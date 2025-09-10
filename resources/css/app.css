@@ -1,0 +1,203 @@
+/* ============================= */
+/*        Vendor Imports         */
+/* ============================= */
+@import 'tailwindcss';
+@import "../../vendor/livewire/flux/dist/flux.css";
+@import '../../vendor/filament/support/resources/css/index.css';
+@import '../../vendor/filament/actions/resources/css/index.css';
+@import '../../vendor/filament/forms/resources/css/index.css';
+@import '../../vendor/filament/infolists/resources/css/index.css';
+@import '../../vendor/filament/notifications/resources/css/index.css';
+@import '../../vendor/filament/schemas/resources/css/index.css';
+@import '../../vendor/filament/tables/resources/css/index.css';
+@import '../../vendor/filament/widgets/resources/css/index.css';
+/* ============================= */
+/*       Tailwind Sources        */
+/* ============================= */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../**/*.vue';
+
+/* ============================= */
+/*         Tailwind Theme        */
+/* ============================= */
+@theme {
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+}
+
+/* --- Tailwind v4 theme variables --- */
+@theme {
+    --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+
+    /* Custom brand colors */
+    --color-mc_primary_color: #1C4587;
+    --color-mc_bg_violet: #600CBA;
+    --color-mc_bg_white: #FFFFFF;
+    --color-mc_logo_color1: #00E4FE;
+    --color-mc_logo_color2: #9DFF00;
+
+    /* Accent colors */
+    --color-accent: #ffffff;
+    --color-accent-foreground: #000;
+
+    /* Animations */
+    --animate-fadeIn: fadeIn 0.3s ease-out forwards;
+
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+}
+
+/* ============================= */
+/*          Dark Variant         */
+/* ============================= */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================= */
+/*        Tailwind Layers        */
+/* ============================= */
+@layer utilities {
+    dialog::backdrop {
+        @apply bg-black/70;
+    }
+
+    .z-100 {
+        z-index: 100;
+    }
+
+    .main-color {
+        @apply bg-mc_primary_color;
+    }
+
+    .btn-main-violet {
+        @apply bg-mc_bg_violet text-white px-4 py-2 rounded
+               hover:bg-purple-800 hover:text-white transition;
+    }
+
+    .btn-border-text-violet {
+        @apply border text-black
+               hover:border-violet-700 hover:text-mc_bg_violet
+               focus:ring focus:ring-violet-200
+               active:bg-violet-100 transition;
+    }
+
+    .direction-rtl {
+        direction: rtl;
+    }
+}
+
+@import "nprogress/nprogress.css";
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* ============================= */
+/*        Global Defaults        */
+/* ============================= */
+:root {
+    --livewire-progress-bar-color: rgb(255, 230, 0);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100%;
+}
+
+/* ============================= */
+/*        Custom Fonts           */
+/* ============================= */
+.oswald-font {
+    font-family: "Oswald", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+.anton-regular {
+    font-family: "Anton", sans-serif;
+    font-style: normal;
+}
+
+.archivo-black-regular {
+    font-family: "Archivo Black", sans-serif;
+    font-style: normal;
+}
+
+.righteous-regular {
+    font-family: "Righteous", sans-serif;
+    font-style: normal;
+}
+
+.passion-one-regular {
+    font-family: "Passion One", sans-serif;
+    font-style: normal;
+}
+
+/* ============================= */
+/*     NProgress Customization   */
+/* ============================= */
+#nprogress .bar {
+    background: rgb(255, 230, 0) !important;
+    height: 4px;
+}
+
+#nprogress .spinner {
+    display: block !important;
+    position: fixed !important;
+    right: 15px !important;
+    top: 15px !important;
+    z-index: 1031 !important;
+}
+
+#nprogress .spinner-icon {
+    width: 18px !important;
+    height: 18px !important;
+    box-sizing: border-box !important;
+    border: solid 4px transparent !important;
+    border-top-color: #4f46e5 !important;
+    border-left-color: #4f46e5 !important;
+    border-radius: 50% !important;
+    animation: spin 400ms linear infinite !important;
+}
+
+/* ============================= */
+/*       Custom Backgrounds      */
+/* ============================= */
+.custom-bg-body {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                url('/public/images/GRIEVANCE_SYSTEM_FOR_MANDAUE_UIUX.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.forget-pass {
+    background: url('/public/images/faq-img.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+/* ============================= */
+/*   Hide Password Toggle Icon   */
+/* ============================= */
+.hide-password-toggle::-ms-reveal,
+.hide-password-toggle::-ms-clear,
+.hide-password-toggle::-webkit-reveal {
+    display: none !important;
+}
