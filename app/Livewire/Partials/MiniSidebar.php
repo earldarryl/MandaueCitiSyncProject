@@ -20,11 +20,6 @@ class MiniSidebar extends Component
                 'route' => 'profile',
             ],
             [
-                'label' => 'Appearance',
-                'icon' => 'bi bi-brush-fill',
-                'route' => 'appearance',
-            ],
-            [
                 'label' => 'Two Factor Authentication',
                 'icon' => 'bi bi-gear-fill',
                 'route' => 'two-factor-auth',

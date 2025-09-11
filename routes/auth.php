@@ -1,11 +1,7 @@
 <?php
 
-use App\Http\Controllers\VerifyOtpController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
-use App\Models\User;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use App\Livewire\Pages\Auth\Register;
 
 
 Route::middleware('guest')->group(function () {
@@ -18,12 +14,9 @@ Route::middleware('guest')->group(function () {
 
 });
 
-
 Route::middleware(['auth', 'verified.redirect'])->prefix('verify')->group(function () {
 
     Volt::route('email', 'pages.auth.verify-otp')->name('verification.notice');
-
-    Route::post('verify-otp', [VerifyOtpController::class, 'verifyOtp'])->name('verification.otp.submit');
 
     Route::post('email/verification-notification', function () {
         auth()->user()->sendEmailVerificationNotification();
@@ -32,5 +25,17 @@ Route::middleware(['auth', 'verified.redirect'])->prefix('verify')->group(functi
 
 });
 
+Route::middleware(['auth', 'verified'])->group(function(){
 
+    Volt::route('/dashboard', Dashboard::class)->name('dashboard');
+    Volt::route('user/confirm-password', 'pages.auth.password-confirm')->name('password.confirm');
+    Volt::route('user/admin/activity-logs', 'user.admin.activity-logs')->name('user.admin.activity-logs');
+    Volt::route('user/admin/users/citizens', 'user.admin.users.citizens')->name('user.admin.users.citizens');
+    Volt::route('user/citizen/grievance-form', 'user.citizen.grievance-form')->name('user.citizen.grievance-form');
+    Volt::route('/settings', 'layout.settings')->name('settings');
+    Volt::route('/settings/profile', 'settings.profile')->name('settings.profile');
+    Volt::route('/settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Volt::route('/settings/two-factor-auth', 'settings.two-factor-auth')->name('settings.two-factor-auth');
+    Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
+});

@@ -17,11 +17,13 @@
     }"
     x-init="
         $watch('value', (val) => {
+            {{ $name }} = val;
             $wire.set('{{ $name }}', val, true);
         });
             window.addEventListener('clear', () => {
             selected = '';
             customValue = '';
+            {{ $name }} = '';
         })
     "
     class="relative w-full"

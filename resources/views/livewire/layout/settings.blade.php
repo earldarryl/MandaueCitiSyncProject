@@ -1,7 +1,6 @@
 @php
     $currentPage = match (true) {
         request()->routeIs('settings.profile') => 'profile',
-        request()->routeIs('settings.appearance') => 'appearance',
         request()->routeIs('settings.two-factor-auth') => 'two-factor-auth',
         request()->routeIs('settings') => 'profile',
         default => 'profile',
@@ -43,9 +42,6 @@
         <div class="flex-1 overflow-auto h-full">
             <div x-show="activePage === 'profile'" x-cloak class="h-full w-full flex flex-col">
                 <livewire:settings.profile class="flex-1 w-full" />
-            </div>
-            <div x-show="activePage === 'appearance'" x-cloak class="h-full w-full flex flex-col">
-                <livewire:settings.appearance class="flex-1 w-full" />
             </div>
             <div x-show="activePage === 'two-factor-auth'" x-cloak class="h-full w-full flex flex-col">
                 <livewire:settings.two-factor-auth class="flex-1 w-full" />

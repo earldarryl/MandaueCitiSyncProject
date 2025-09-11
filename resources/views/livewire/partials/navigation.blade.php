@@ -41,20 +41,20 @@
         <div class="relative flex w-auto items-center justify-center gap-4 mr-5">
             <!-- Profile Section -->
             <div class="relative flex flex-col items-center">
-
                 <!-- Profile Wrapper -->
-                <div class="flex items-center justify-between w-full ">
+                <div class="flex items-center justify-between w-full">
                     <!-- Avatar and Profile Info -->
                     <div class="flex items-center gap-4">
                         <div x-data="{ openProfile: false }" class="relative flex items-center">
-
                             <!-- Avatar Button -->
-                            <div class="dark:bg-white w-10 h-10 rounded-full cursor-pointer"
+                            <div class="dark:bg-white w-10 h-10 rounded-full cursor-pointer shrink-0"
                                 @click="openProfile = !openProfile">
-                                <img  src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}" alt="profile-pic" class="rounded-full w-full h-full">
+                                <img src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}"
+                                    alt="profile-pic"
+                                    class="rounded-full w-full h-full object-cover">
                             </div>
 
-                            <!-- Modal Profile Info -->
+                            <!-- Profile Dropdown -->
                             <div x-show="openProfile" x-transition x-cloak
                                 @click.outside="openProfile = false"
                                 class="absolute top-14 right-0 dark:bg-zinc-800 bg-white rounded-lg z-40 shadow-md min-w-[350px] p-4 space-y-3">
@@ -62,53 +62,36 @@
                                 <div class="relative border-box dark:bg-zinc-700 bg-gray-200 p-3 rounded-lg">
                                     <!-- Avatar and Email -->
                                     <div class="flex items-center gap-3">
-                                        <div class="rounded-full w-20 h-20">
-                                            <img
-                                                src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}"
+                                        <div class="rounded-full w-20 h-20 shrink-0">
+                                            <img src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}"
                                                 alt="profile-pic"
-                                                class="rounded-full w-full h-full object-cover"
-                                            />
+                                                class="rounded-full w-full h-full object-cover">
                                         </div>
-                                        <div class="flex flex-col gap-2">
-                                            <span class="font-semibold text-sm">{{ $userName }}</span>
-                                            <span class="text-sm">{{ $userEmail }}</span>
+                                        <div class="flex flex-col gap-1 min-w-0">
+                                            <span class="font-semibold text-sm truncate">{{ $userName }}</span>
+                                            <span class="text-sm text-gray-600 dark:text-gray-300 truncate">{{ $userEmail }}</span>
                                         </div>
                                     </div>
-
-                                    <!-- Manage Account -->
-                                    <!-- Logout Button -->
-                                    {{-- <div class="cursor-pointer flex items-center gap-2 text-sm dark:hover:bg-zinc-900 hover:bg-gray-200 w-full px-2 py-1 rounded-md"
-                                        x-data
-                                        @click="Livewire.dispatch('openModal', {
-                                            action: 'log-out',
-                                            title: 'Log Out',
-                                            subtitle: 'Are you sure you want to log out?'
-                                        })">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 24 24" stroke-width="1.5"
-                                            stroke="currentColor" class="size-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
-                                        </svg>
-                                        <span>Log out</span>
-                                    </div> --}}
                                 </div>
 
-                                <x-responsive-nav-link href="{{ route('settings') }}"
-                                    class="flex items-center gap-2 text-sm dark:text-white dark:hover:bg-zinc-700 hover:bg-gray-200 w-full px-2 py-1 rounded-md"
-                                    wire:navigate>
-                                    <svg class="w-[1em] h-[1em]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                    </svg>
+                                <!-- Theme Switch -->
+                                <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
+                                    <flux:radio value="light" icon="sun" />
+                                    <flux:radio value="dark" icon="moon" />
+                                    <flux:radio value="system" icon="computer-desktop" />
+                                </flux:radio.group>
+
+                                <!-- Settings Link -->
+                                <x-responsive-nav-link href="{{ route('settings') }}" class="flex items-center gap-2 text-sm dark:text-white dark:hover:bg-zinc-700 hover:bg-gray-200 w-full px-2 py-1 rounded-md" wire:navigate>
+                                    <svg class="w-[1em] h-[1em]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" /> <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /> </svg>
                                     <span>Settings</span>
                                 </x-responsive-nav-link>
-
-                            </div> <!-- End Tooltip -->
-                        </div> <!-- End Avatar & Info -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div> <!-- End Profile Section -->
+            </div>
+            <!-- End Profile Section -->
 
                 <!-- Notification Section -->
             <div x-data="{ open: false }" class="relative">

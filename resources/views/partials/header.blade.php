@@ -26,6 +26,12 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <!-- Flatpickr JS -->
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        {{-- Cropper.js --}}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+        <!-- Cropper  -->
+        <script src="
+        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.js
+        "></script>
+        <link href="
+        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.css
+        " rel="stylesheet">
+
+

@@ -29,12 +29,12 @@
 
     <div class="flex flex-col w-full h-full gap-4 p-4">
         <!-- OTP Verification Form -->
-        <form method="POST" action="{{ route('verification.otp.submit') }}" class="space-y-4 w-full">
+        <form wire:submit.prevent="verifyOtp" class="space-y-4 w-full">
             @csrf
 
             <flux:field class="flex flex-col gap-2">
                 <flux:label>Enter OTP</flux:label>
-                <flux:input id="otp" name="otp" type="text" class="mt-1 w-full" autofocus />
+                <flux:input id="otp" name="otp" type="text" wire:model.defer="otp" class="mt-1 w-full" autofocus />
                 <flux:error name="otp" />
 
                 @if (session('success'))
@@ -48,8 +48,10 @@
                     variant="primary"
                     color="blue"
                     class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                    wire:loading.attr="disabled"
                 >
-                    <span>{{ __('Verify OTP') }}</span>
+                    <span wire:loading.remove wire:target="verifyOtp">{{ __('Verify OTP') }}</span>
+                    <span wire:loading wire:target="verifyOtp">Verifying...</span>
                 </flux:button>
             </div>
         </form>
@@ -84,10 +86,10 @@
                     wire:loading.attr="disabled"
                     x-bind:disabled="timeLeft > 0"
                 >
-                    <span wire:loading.remove>
+                    <span wire:loading.remove wire:target="sendVerification">
                         <span x-text="label"></span>
                     </span>
-                    <span wire:loading>Sending...</span>
+                    <span wire:loading wire:target="sendVerification">Sending...</span>
                 </flux:button>
             </div>
 
@@ -98,6 +100,7 @@
                     type="submit"
                     variant="danger"
                     color="rose"
+                    wire:loading.attr="disabled"
                     class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
                 >
                     {{ __('Log Out') }}
