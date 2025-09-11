@@ -3,17 +3,13 @@
 namespace App\Livewire\Pages\Auth;
 
 use App\Models\User;
-use App\Models\UserInfo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Spatie\Permission\Models\Role;
-use Livewire\Attributes\Title;
 
 #[Layout('layouts.guest')]
 class Register extends Component
@@ -44,7 +40,6 @@ class Register extends Component
 
     public function resetForm()
     {
-        $this->dispatch('register-listeners-done', state: false);
 
         $this->reset([
             'first_name',
@@ -82,7 +77,6 @@ class Register extends Component
             'agreed_terms',
         ]);
 
-        $this->dispatch('register-listeners-done', state: true);
     }
 
 
