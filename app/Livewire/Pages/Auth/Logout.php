@@ -42,6 +42,11 @@ class Logout extends Component
             ]);
         }
 
+
+        if ($user) {
+            $user->markOffline();
+        }
+
         Auth::guard('web')->logout();
         Session::invalidate();
         Session::regenerateToken();

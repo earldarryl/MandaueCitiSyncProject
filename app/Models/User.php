@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'agreed_terms',
         'terms_version',
         'agreed_at',
+        'last_seen_at',
     ];
 
     /**
@@ -57,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'agreed_terms' => 'boolean',
             'agreed_at' => 'datetime',
+            'last_seen_at' => 'datetime',
         ];
     }
 
@@ -70,6 +72,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function info()
     {
         return $this->hasOne(UserInfo::class);
+    }
+
+    public function isOnline(): bool
+    {
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    public function getStatusAttribute(): string
+    {
+        if (!$this->last_seen_at) {
+            return 'offline';
+        }
+
+        return $this->isOnline() ? 'online' : 'away';
+    }
+
+    public function markOffline(): void
+    {
+        $this->forceFill(['last_seen_at' => null])->saveQuietly();
     }
 
 }

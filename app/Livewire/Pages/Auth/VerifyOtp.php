@@ -19,8 +19,14 @@ class VerifyOtp extends Component
     public string $title = 'Verify Account';
     public int $cooldown = 0;
     public string $otp = ''; // ✅ input binding for OTP
-
     private string $limiterKey = '';
+
+   public function mount()
+    {
+        if (request()->query('trigger') == 1) {
+            $this->sendOtpInternal();
+        }
+    }
 
     private function getLimiterKey(): string
     {
@@ -31,7 +37,7 @@ class VerifyOtp extends Component
         return $this->limiterKey;
     }
 
-    public function sendVerification(): void
+    public function sendVerification()
     {
         $user = Auth::user();
 
@@ -66,7 +72,6 @@ class VerifyOtp extends Component
         $this->status = 'verification-link-sent';
     }
 
-    // ✅ Moved verifyOtp logic here
     public function verifyOtp(): void
     {
         $this->validate([
@@ -99,7 +104,6 @@ class VerifyOtp extends Component
 
         $this->addError('otp', 'Invalid or expired OTP.');
     }
-
     public function render()
     {
         return view('livewire.pages.auth.verify-otp');
