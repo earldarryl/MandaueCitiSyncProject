@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified.redirect'])->prefix('verify')->group(functi
 
 Route::middleware(['auth', 'verified'])->group(function(){
 
-    Volt::route('/dashboard', Dashboard::class)->name('dashboard');
+    Volt::route('/dashboard', 'dashboard')->name('dashboard');
     Volt::route('user/confirm-password', 'pages.auth.password-confirm')->name('password.confirm');
     Volt::route('user/admin/activity-logs', 'user.admin.activity-logs')->name('user.admin.activity-logs');
     Volt::route('user/admin/users/citizens', 'user.admin.users.citizens')->name('user.admin.users.citizens');

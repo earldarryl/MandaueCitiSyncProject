@@ -8,263 +8,318 @@
                 Profile
             </h1>
         </header>
-    <div class="relative flex flex-col gap-10">
-     <div class="relative shadow-md p-3">
-    <header>
-        <h2 class="text-lg font-medium">
-            {{ __('Profile Information') }}
-        </h2>
+        <div class="relative flex flex-col gap-10">
+            <div class="relative shadow-md p-3">
+            <header>
+                <h2 class="text-lg font-medium">
+                    {{ __('Profile Information') }}
+                </h2>
 
-        <p class="mt-1 text-sm">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+                <p class="mt-1 text-sm">
+                    {{ __("Update your account's profile information and email address.") }}
+                </p>
+            </header>
 
-    <form wire:submit.prevent="updateProfileInformation" enctype="multipart/form-data" class="mt-6 space-y-6">
-        <flux:error name="form" />
+                <form wire:submit.prevent="saveProfilePic" enctype="multipart/form-data" class="mt-6 space-y-6">
+                    <flux:error name="form" />
 
-        {{-- Profile Picture Upload with Cropper --}}
-        <div
-            x-data="{
-                preview: @js($current_profile_pic ? Storage::url($current_profile_pic) : asset('images/avatar.png')),
-                defaultPreview: @js(asset('images/avatar.png')),
-                cropper: null,
-                showModal: false,
-                file: null,
+                    {{-- Profile Picture Upload with Cropper --}}
+                        <div x-data="{
+                            preview: @js($current_profile_pic ? Storage::url($current_profile_pic) : asset('images/avatar.png')),
+                            showModal: false,
+                            cropper: null,
 
-                handleChange(e) {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
+                            handleChange(e) {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
 
-                    this.file = file;
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        this.preview = event.target.result;
-                        this.showModal = true;
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    this.preview = event.target.result;
+                                    this.showModal = true;
 
-                        this.$nextTick(() => {
-                            const image = this.$refs.cropImage;
-                            if (this.cropper) {
+                                    this.$nextTick(() => {
+                                        const image = this.$refs.cropImage;
+                                        if (this.cropper) this.cropper.destroy();
+
+                                        this.cropper = new Cropper(image, {
+                                            aspectRatio: 1,
+                                            viewMode: 1,
+                                            autoCropArea: 1,
+                                            responsive: true,
+                                        });
+                                    });
+                                };
+                                reader.readAsDataURL(file);
+                            },
+
+                            cropAndSave() {
+                            if (!this.cropper) return;
+
+                            this.cropper.getCroppedCanvas({ width: 400, height: 400 }).toBlob((blob) => {
+                                const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+
+                                // Close modal immediately
+                                this.showModal = false;
                                 this.cropper.destroy();
                                 this.cropper = null;
-                            }
-                            this.cropper = new Cropper(image, {
-                                aspectRatio: 1,
-                                viewMode: 1,
-                                autoCropArea: 1,
-                                responsive: true,
-                                background: false,
-                                movable: true,
-                                zoomable: true,
-                                rotatable: true,
-                                scalable: true,
+
+                                // Update preview immediately
+                                this.preview = URL.createObjectURL(blob);
+
+                                // Upload to Livewire in the background
+                                $wire.upload('profile_pic', file, {
+                                    finish: () => {
+                                        // Optionally, save profile immediately
+                                        $wire.call('saveProfilePic');
+                                    },
+                                    error: (err) => console.error(err),
+                                });
                             });
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                },
+                        },
 
-                cropAndSave() {
-                    if (this.cropper) {
-                        const canvas = this.cropper.getCroppedCanvas({
-                            width: 400,
-                            height: 400,
-                        });
+                            cancelCrop() {
+                                if (this.cropper) {
+                                    this.cropper.destroy();
+                                    this.cropper = null;
+                                }
+                                this.showModal = false;
+                                this.preview = @js($current_profile_pic ? Storage::url($current_profile_pic) : asset('images/avatar.png'));
+                            }
+                        }" class="flex flex-col items-center gap-4">
 
-                        canvas.toBlob((blob) => {
-                            // Create a new File object from the blob
-                            const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
+                            <!-- Avatar -->
+                            <div wire:ignore>
+                            <div class="relative w-64 h-64 rounded-full overflow-hidden cursor-pointer group">
+                                <img :src="preview" class="w-full h-full object-cover" alt="Profile">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition">
+                                    <span class="text-white text-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-8">
+                                            <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+                                            <path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </div>
 
-                            // Create a DataTransfer object and add the file to it
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
+                                <input type="file" @change="handleChange($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                            </div>
 
-                            // Set the file input's files property to the new file
-                            this.$refs.hiddenInput.files = dataTransfer.files;
+                            <!-- Cropper Modal -->
+                            <div
+                                x-show="showModal"
+                                x-transition.opacity
+                                style="display:none"
+                                class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+                                wire:ignore
+                            >
+                                <div
+                                    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-95"
+                                    x-transition:enter="ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave="ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                >
+                                    <!-- Header -->
+                                    <div class="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
+                                        <h2 class="text-lg font-semibold text-gray-800">Crop Your Image</h2>
+                                        <button
+                                            type="button"
+                                            @click="cancelCrop()"
+                                            class="text-gray-400 hover:text-gray-600 transition"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
 
-                            // Dispatch a change event on the hidden input to trigger wire:model
-                            this.$refs.hiddenInput.dispatchEvent(new Event('change'));
+                                    <!-- Body -->
+                                    <div class="p-6 flex justify-center">
+                                        <img
+                                            x-ref="cropImage"
+                                            :src="preview"
+                                            class="max-w-full max-h-[400px] rounded-lg border border-gray-200 shadow-sm"
+                                            alt="Crop"
+                                        >
+                                    </div>
 
-                            // Update preview and close modal
-                            this.preview = URL.createObjectURL(blob);
-                            this.showModal = false;
-                            this.cropper.destroy();
-                            this.cropper = null;
-                        }, 'image/jpeg');
-                    }
-                },
-
-                resetPreview() {
-                    this.preview = this.defaultPreview;
-                    if (this.$refs.fileInput) this.$refs.fileInput.value = '';
-                }
-            }"
-            class="flex justify-center"
-        >
-            <div class="w-32 h-32 border border-black rounded-full overflow-hidden relative">
-                <img :src="preview" class="w-full h-full object-cover" alt="preview">
-
-                <input
-                    x-ref="fileInput"
-                    type="file"
-                    @change="handleChange($event)"
-                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    accept="image/*"
-                />
-            </div>
-
-            <input type="file" x-ref="hiddenInput" wire:model.live="profile_pic" class="hidden" />
-
-            <div
-                x-show="showModal"
-                style="display: none"
-                class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-            >
-                <div class="bg-white p-4 rounded-lg shadow-lg w-[500px]">
-                    <div class="relative w-full h-96">
-                        <img x-ref="cropImage" :src="preview" class="max-w-full max-h-full" alt="Crop">
+                                    <!-- Footer -->
+                                    <div class="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
+                                        <flux:button
+                                            variant="primary"
+                                            icon="x-mark"
+                                            type="button"
+                                            @click="cancelCrop()"
+                                            class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 transition"
+                                        >
+                                            Cancel
+                                        </flux:button>
+                                        <flux:button
+                                            variant="primary"
+                                            icon="scissors"
+                                            color="blue"
+                                            type="button"
+                                            @click="cropAndSave()"
+                                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
+                                        >
+                                            Crop & Save
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex justify-end gap-3 mt-4">
-                        <button type="button"
-                            @click="showModal = false; cropper?.destroy(); cropper = null"
-                            class="px-3 py-1 border rounded bg-gray-200">
-                            Cancel
-                        </button>
-                        <button type="button" @click="cropAndSave"
-                            class="px-3 py-1 border rounded bg-blue-600 text-white">
-                            Crop & Save
-                        </button>
+                    <div class="flex items-center gap-4">
+                        <flux:button
+                            type="submit"
+                            variant="primary"
+                            color="blue"
+                            class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                            wire:target="saveProfilePic"
+                            wire:loading.attr="disabled"
+                        >
+                            <span wire:loading wire:target="saveProfilePic">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span><flux:icon.loading variant="micro"/></span>
+                                    <span>{{ __('Saving....') }}</span>
+                                </span>
+                            </span>
+                            <span wire:loading.remove wire:target="saveProfilePic">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span><flux:icon.arrow-right-circle variant="micro"/></span>
+                                    <span>{{ __('Save') }}</span>
+                                </span>
+                            </span>
+                        </flux:button>
                     </div>
-                </div>
-            </div>
-        </div>
+                <flux:error name="profile_pic" />
+            </form>
 
-        <flux:error name="profile_pic" />
-
-        {{-- Name Field --}}
-        <flux:field
-            x-data="{ status: '', timeout: null }"
-            x-init="
-                $wire.$on('field-updated', e => {
-                    if (e.field === 'name') {
-                        clearTimeout(timeout);
-                        status = 'success';
-                        timeout = setTimeout(() => status = '', 2000);
-                    }
-                });
-            "
-            class="flex flex-col gap-3"
-        >
-            <flux:label for="name">{{ __('Name') }}</flux:label>
-            <flux:input.group>
-                <flux:input.group.prefix>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                    </svg>
-                </flux:input.group.prefix>
-                <flux:input
-                    wire:model="name"
-                    id="name"
-                    name="name"
-                    type="text"
-                    autocomplete="name"
-                    clearable
-                />
-            </flux:input.group>
-            <flux:error name="name" />
-        </flux:field>
-
-        {{-- Email Field --}}
-        <flux:field
-            x-data="{ status: '', timeout: null }"
-            x-init="
-                $wire.$on('field-updated', e => {
-                    if (e.field === 'email') {
-                        clearTimeout(timeout);
-                        status = 'success';
-                        timeout = setTimeout(() => status = '', 2000);
-                    }
-                });
-            "
-            class="flex flex-col gap-3"
-        >
-            <flux:label for="email">{{ __('Email') }}</flux:label>
-            <flux:input.group>
-                <flux:input.group.prefix>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                    </svg>
-                </flux:input.group.prefix>
-                <flux:input
-                    wire:model="email"
-                    id="email"
-                    name="email"
-                    type="text"
-                    autocomplete="email"
-                    clearable
-                />
-            </flux:input.group>
-            <flux:error name="email" />
-
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-96">
-                    <div class="space-y-6">
-                        <div>
-                            <flux:heading size="lg" class="flex gap-3 items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5"
-                                    stroke="currentColor" class="size-10">
+            <form wire:submit.prevent="updateProfileInformation"  class="mt-6 space-y-6">
+                {{-- Name Field --}}
+                    <flux:field
+                        x-data="{ status: '', timeout: null }"
+                        x-init="
+                            $wire.$on('field-updated', e => {
+                                if (e.field === 'name') {
+                                    clearTimeout(timeout);
+                                    status = 'success';
+                                    timeout = setTimeout(() => status = '', 2000);
+                                }
+                            });
+                        "
+                        class="flex flex-col gap-3"
+                    >
+                        <flux:label for="name">{{ __('Name') }}</flux:label>
+                        <flux:input.group>
+                            <flux:input.group.prefix>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                        d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
                                 </svg>
-                                <span class="font-bold text-lg">Heads up!</span>
-                            </flux:heading>
-                            <flux:text class="mt-2">
-                                Your email is unverified, please verify your email.
-                            </flux:text>
-                        </div>
-                        <div class="flex">
-                            <flux:spacer />
-                            <flux:button type="button" variant="primary" wire:click="redirectEmailVerify">
-                                Proceed
-                            </flux:button>
-                        </div>
-                    </div>
-                </flux:modal>
-            @endif
-        </flux:field>
+                            </flux:input.group.prefix>
+                            <flux:input
+                                wire:model="name"
+                                id="name"
+                                name="name"
+                                type="text"
+                                autocomplete="name"
+                                clearable
+                            />
+                        </flux:input.group>
+                        <flux:error name="name" />
+                    </flux:field>
 
-        {{-- Save Button --}}
-        <div class="flex items-center gap-4">
-            <flux:button
-                type="submit"
-                variant="primary"
-                color="blue"
-                class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                wire:loading.attr="disabled"
-            >
-                <span wire:loading wire:target="updateProfileInformation">
-                    <span class="flex items-center justify-center gap-2">
-                        <span><flux:icon.loading variant="micro"/></span>
-                        <span>{{ __('Saving....') }}</span>
-                    </span>
-                </span>
-                <span wire:loading.remove wire:target="updateProfileInformation">
-                    <span class="flex items-center justify-center gap-2">
-                        <span><flux:icon.arrow-right-circle variant="micro"/></span>
-                        <span>{{ __('Save') }}</span>
-                    </span>
-                </span>
-            </flux:button>
-        </div>
-    </form>
-</div>
+                    {{-- Email Field --}}
+                    <flux:field
+                        x-data="{ status: '', timeout: null }"
+                        x-init="
+                            $wire.$on('field-updated', e => {
+                                if (e.field === 'email') {
+                                    clearTimeout(timeout);
+                                    status = 'success';
+                                    timeout = setTimeout(() => status = '', 2000);
+                                }
+                            });
+                        "
+                        class="flex flex-col gap-3"
+                    >
+                        <flux:label for="email">{{ __('Email') }}</flux:label>
+                        <flux:input.group>
+                            <flux:input.group.prefix>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                </svg>
+                            </flux:input.group.prefix>
+                            <flux:input
+                                wire:model="email"
+                                id="email"
+                                name="email"
+                                type="text"
+                                autocomplete="email"
+                                clearable
+                            />
+                        </flux:input.group>
+                        <flux:error name="email" />
+
+                            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+                                <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-96">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <flux:heading size="lg" class="flex gap-3 items-center">
+                                                <span class="inline-flex shrink-0 rounded-full border border-pink-300 bg-pink-100 p-2 dark:border-pink-300/10 dark:bg-pink-400/10">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-pink-700 dark:text-pink-500">
+                                                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                                <span class="font-bold text-lg">Heads up!</span>
+                                            </flux:heading>
+                                            <flux:text class="mt-2">
+                                                Your email is updated, please verify your email.
+                                            </flux:text>
+                                        </div>
+                                        <div class="flex">
+                                            <flux:spacer />
+                                            <flux:button type="button" variant="primary" wire:click="redirectEmailVerify">
+                                                Proceed
+                                            </flux:button>
+                                        </div>
+                                    </div>
+                                </flux:modal>
+                            @endif
+                    </flux:field>
+
+                    {{-- Save Button --}}
+                    <div class="flex items-center gap-4">
+                        <flux:button
+                            type="submit"
+                            variant="primary"
+                            color="blue"
+                            class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                            wire:target="updateProfileInformation"
+                            wire:loading.attr="disabled"
+                        >
+                            <span wire:loading wire:target="updateProfileInformation">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span><flux:icon.loading variant="micro"/></span>
+                                    <span>{{ __('Saving....') }}</span>
+                                </span>
+                            </span>
+                            <span wire:loading.remove wire:target="updateProfileInformation">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span><flux:icon.arrow-right-circle variant="micro"/></span>
+                                    <span>{{ __('Save') }}</span>
+                                </span>
+                            </span>
+                        </flux:button>
+                    </div>
+                </form>
+            </div>
 
 
 

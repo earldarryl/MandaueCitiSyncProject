@@ -19,7 +19,7 @@ class Login extends Component
     public bool $isOpenModalLogin = false;
     public string $title = 'Login';
     public bool $isButtonShow = false;
-    protected $listeners = ['openModalLogin', 'openModalRegister'];
+    protected $listeners = ['openModalRegister'];
 
     public function openModalRegister()
     {
@@ -40,21 +40,25 @@ class Login extends Component
 
         $user = Auth::user();
 
+        $user->forceFill(['last_seen_at' => now()])->saveQuietly();
+
         if (! $user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();
-        }
-        else
-        {
+        } else {
             $roleName = ucfirst(auth()->user()->roles->first()?->name ?? 'user');
 
-         ActivityLog::create([
-            'user_id'    => auth()->id(),
-            'role_id'    => auth()->user()->roles->first()?->id,
-            'action'     => $roleName . ' logged in',
-            'ip_address' => Request::ip(),
-            'device_info'=> Request::header('User-Agent'),
-        ]);
+            ActivityLog::create([
+                'user_id'    => auth()->id(),
+                'role_id'    => auth()->user()->roles->first()?->id,
+                'action'     => $roleName . ' logged in',
+                'ip_address' => Request::ip(),
+                'device_info'=> Request::header('User-Agent'),
+            ]);
+
         }
+
+        // ✅ Mark session for dashboard notification
+        Session::put('just_logged_in', true);
     }
 
     public function render()

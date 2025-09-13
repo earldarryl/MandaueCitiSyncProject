@@ -5,12 +5,13 @@
     }"
     @resize.window="isDesktop = window.matchMedia('(min-width: 600px)').matches"
     :class="{
-        'w-[320px] sticky top-0 h-full z-[33]': $store.sidebar.open && isDesktop,
-        'w-[80px] sticky top-0 h-full z-[33]': !$store.sidebar.open && isDesktop,
-        'w-3/5 translate-x-0 fixed z-[36]': !isDesktop && $store.sidebar.open,
-        'w-3/5 -translate-x-96 fixed z-[36]': !isDesktop && !$store.sidebar.open,
+        'w-[320px] sticky top-0 h-full z-[36] transition-all duration-300 ': $store.sidebar.open && isDesktop,
+        'w-[80px] sticky top-0 h-full z-[36] transition-all duration-300 ': !$store.sidebar.open && isDesktop && !$store.notifications.open,
+        'w-[80px] sticky top-0 h-full z-[30]': !$store.sidebar.open && isDesktop && $store.notifications.open,
+        'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300 ': !isDesktop && $store.sidebar.open,
+        'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300 ': !isDesktop && !$store.sidebar.open,
     }"
-    class="flex flex-col justify-between bg-white dark:bg-black text-black dark:text-white text-sm shadow-md min-h-full transition-all duration-300 overflow-visible"
+    class="flex flex-col justify-between bg-white dark:bg-black text-black dark:text-white text-sm shadow-md min-h-full overflow-visible"
 >
     <div class="relative flex flex-col">
 

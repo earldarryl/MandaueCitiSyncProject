@@ -41,9 +41,11 @@ class CustomVerifyEmail extends Notification
         $otp = $this->generateOTP($notifiable);
 
         return (new MailMessage)
-            ->subject('Your Email Verification OTP')
-            ->line("Use the following One-Time Password (OTP) to verify your email:")
-            ->line("**$otp**")
-            ->line('This OTP is valid for 10 minutes.');
+            ->subject('Verify Your Email')
+            ->view('emails.verify-otp', [
+                'user' => $notifiable,
+                'otp'  => $otp,
+            ]);
     }
+
 }

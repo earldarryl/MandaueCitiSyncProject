@@ -31,7 +31,7 @@
         <div x-data class="relative flex flex-col flex-1 h-full overflow-y-auto overflow-x-hidden">
             <!-- Overlay only in content container -->
             <div
-                x-show="$store.sidebar.open && $store.sidebar.screen <= 600"
+                x-show="$store.sidebar.open && $store.sidebar.screen <= 768"
                 x-transition.opacity
                 class="fixed inset-0 bg-black/50 z-[35] lg:hidden"
                 @click="$store.sidebar.open = false"

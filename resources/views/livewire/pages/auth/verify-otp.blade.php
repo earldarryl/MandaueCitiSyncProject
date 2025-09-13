@@ -11,12 +11,12 @@
 
     @if ($status === 'verification-link-sent')
         <div class="flex gap-3 mb-4 font-medium text-sm text-green-400"
-            x-data="{ showStatus: true }"
-            x-init="setTimeout(() => showStatus = false, 5000)"
-            x-show="showStatus"
-            x-transition:leave.duration.500ms
-            class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
-            role="alert"
+             x-data="{ showStatus: true }"
+             x-init="setTimeout(() => showStatus = false, 5000)"
+             x-show="showStatus"
+             x-transition:leave.duration.500ms
+             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
+             role="alert"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                  stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -28,7 +28,7 @@
     @endif
 
     <div class="flex flex-col w-full h-full gap-4 p-4">
-        <!-- OTP Verification Form -->
+        <!-- ✅ OTP Verification Form -->
         <form wire:submit.prevent="verifyOtp" class="space-y-4 w-full">
             @csrf
 
@@ -50,13 +50,15 @@
                     class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
                     wire:loading.attr="disabled"
                 >
-                    <span wire:loading.remove wire:target="verifyOtp">{{ __('Verify OTP') }}</span>
-                    <span wire:loading wire:target="verifyOtp">Verifying...</span>
+                    <span wire:loading.remove>{{ __('Verify OTP') }}</span>
+                    <span wire:loading>Verifying...</span>
                 </flux:button>
             </div>
         </form>
 
+        <!-- ✅ Resend OTP + Logout Section (outside form) -->
         <div class="w-full flex justify-end gap-2 mt-4">
+            <!-- Resend OTP -->
             <div
                 x-data="{
                     timeLeft: @js($cooldown),
@@ -78,7 +80,6 @@
             >
                 <flux:button
                     type="button"
-                    id="loading-button"
                     variant="primary"
                     color="blue"
                     class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
@@ -86,10 +87,7 @@
                     wire:loading.attr="disabled"
                     x-bind:disabled="timeLeft > 0"
                 >
-                    <span wire:loading.remove wire:target="sendVerification">
-                        <span x-text="label"></span>
-                    </span>
-                    <span wire:loading wire:target="sendVerification">Sending...</span>
+                    <span x-text="label"></span>
                 </flux:button>
             </div>
 
