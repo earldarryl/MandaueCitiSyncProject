@@ -3,7 +3,6 @@
 namespace App\Livewire\Partials;
 
 use Livewire\Component;
-use App\Livewire\Actions\Logout;
 use Livewire\Attributes\Layout;
 
 #[Layout('layouts.app')]
@@ -26,8 +25,8 @@ class Sidebar extends Component
                     'label' => 'Department',
                     'icon' => 'bi bi-people',
                     'children' => [
-                        ['label' => 'Department Info', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-info-circle-fill',],
-                        ['label' => 'Grievance Repository', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-archive-fill',],
+                        ['label' => 'Department Info', 'route' => 'grievance.create','icon' => 'bi bi-info-circle-fill',],
+                        ['label' => 'Grievance Repository', 'route' => 'grievance.create','icon' => 'bi bi-archive-fill',],
 
 
                     ],
@@ -36,8 +35,8 @@ class Sidebar extends Component
                     'label' => 'Users',
                     'icon' => 'bi bi-person-fill',
                     'children' => [
-                        ['label' => 'Citizens', 'route' => 'user.admin.users.citizens','icon' => 'bi bi-people-fill',],
-                        ['label' => 'HR Liaisons', 'route' => 'dashboard','icon' => 'bi bi-person-badge',],
+                        ['label' => 'Citizens', 'route' => 'users.citizens','icon' => 'bi bi-people-fill',],
+                        ['label' => 'HR Liaisons', 'route' => 'users.hr-liaisons','icon' => 'bi bi-person-badge',],
 
 
                     ],
@@ -50,7 +49,7 @@ class Sidebar extends Component
                 [
                     'label' => 'Activity Logs',
                     'icon' => 'bi bi-clock-history',
-                    'route' => 'user.admin.activity-logs',
+                    'route' => 'activity-logs.index',
                 ],
             ];
         }
@@ -65,8 +64,8 @@ class Sidebar extends Component
                     'label' => 'Department',
                     'icon' => 'bi bi-people',
                     'children' => [
-                        ['label' => 'Department Info', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-info-circle-fill',],
-                        ['label' => 'Grievance Repository', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-archive-fill',],
+                        ['label' => 'Department Info', 'route' => 'grievance.create','icon' => 'bi bi-info-circle-fill',],
+                        ['label' => 'Grievance Repository', 'route' => 'grievance.create','icon' => 'bi bi-archive-fill',],
 
 
                     ],
@@ -85,20 +84,10 @@ class Sidebar extends Component
         }
         elseif ($user->hasRole('citizen')){
             $this->menuItems = [
-                [
-                    'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
-                    'route' => 'dashboard',
-                ],
-                [
+                 [
                     'label' => 'Grievance',
-                    'icon' => 'bi bi-file-earmark-fill',
-                    'children' => [
-                        ['label' => 'Grievance Application Form', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-file-text-fill',],
-                        ['label' => 'Grievance Status Tracking', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-file-earmark-bar-graph-fill',],
-
-
-                    ],
+                    'icon' => 'bi bi-house',
+                    'route' => 'grievance.create',
                 ],
                 [
                     'label' => 'FAQs',

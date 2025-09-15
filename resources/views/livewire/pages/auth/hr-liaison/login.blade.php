@@ -1,18 +1,10 @@
 <div class="w-full">
-    <div class="flex justify-center items-center py-3 text-center">
-        <h1 class="text-7xl font-bold tracking-tighter text-mc_primary_color dark:text-blue-600 ">
+    <div class="flex justify-center items-center py-5 text-center">
+        <h1 class="text-5xl font-bold tracking-tighter text-mc_primary_color dark:text-blue-600 ">
             {{ $title }}
         </h1>
     </div>
 
-    @if (session('status'))
-        <div class="flex gap-3 my-4 font-medium text-sm text-green-400">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-            {{ session('status') }}
-        </div>
-    @endif
     <form wire:submit="login" class="flex flex-col gap-5">
 
         <!-- Email Address -->
@@ -64,25 +56,11 @@
         <!-- Remember Me -->
         <div class="flex justify-between mt-4">
             <flux:field variant="inline">
-            <flux:checkbox
-                wire:model="form.remember"
-            />
-            <flux:label for="remember">{{ __('Remember me') }}</flux:label>
-        </flux:field>
-
-            <div class="flex justify-end">
-                @if (Route::has('password.request'))
-                    <a
-                        href="{{ route('password.request') }}"
-                        class="underline-none text-sm font-bold text-blue-600 hover:text-blue-900 rounded-md transition duration-300 ease-in-out"
-                        wire:target="openModalRegister, login"
-                        wire:loading.class="cursor-not-allowed opacity-50 pointer-events-none"
-                        wire:navigate
-                    >
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-            </div>
+                <flux:checkbox
+                    wire:model="form.remember"
+                />
+                <flux:label for="remember">{{ __('Remember me') }}</flux:label>
+            </flux:field>
         </div>
 
         <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full">
@@ -113,35 +91,6 @@
                     </span>
                 </span>
             </flux:button>
-
-            @if (Route::has('register'))
-            <flux:button
-                variant="primary"
-                color="zinc"
-                class="w-full group transition duration-300 ease-in-out cursor-pointer"
-                wire:click="openModalRegister"
-                wire:target="openModalRegister, login"
-                wire:loading.attr="disabled"
-                wire:loading.class="cursor-not-allowed opacity-50 pointer-events-none"
-            >
-                <span wire:loading wire:target="openModalRegister">
-                    <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.loading variant="micro"/>
-                        </span>
-                        <span>{{ __('Loading...') }}</span>
-                    </span>
-                </span>
-                <span wire:loading.remove wire:target="openModalRegister">
-                    <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.pencil-square variant="micro"/>
-                        </span>
-                        <span>{{ __('Register') }} </span>
-                    </span>
-                </span>
-            </flux:button>
-            @endif
         </div>
     </form>
 

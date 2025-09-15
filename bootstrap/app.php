@@ -17,7 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        $middleware->append(UpdateLastSeen::class);
+        $middleware->web([
+            UpdateLastSeen::class,
+        ]);
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

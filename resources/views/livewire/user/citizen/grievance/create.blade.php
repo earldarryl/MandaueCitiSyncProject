@@ -1,4 +1,4 @@
-<div class="w-full h-full z-20 flex flex-col justify-center">
+<div class="w-full h-full z-20 flex flex-col">
     <header class="p-3">
         <h1 class="text-3xl font-medium flex items-center gap-2">
             <flux:icon.document-plus />

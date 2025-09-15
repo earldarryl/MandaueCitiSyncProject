@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\User\Admin\Dashboard;
 
 use Livewire\Component;
 use App\Models\User;
@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Session;
 
 #[Layout('layouts.app')]
 #[Title('Dashboard')]
-class Dashboard extends Component
+class Index extends Component
 {
     public $users = [];
     public $user;
@@ -37,10 +36,8 @@ class Dashboard extends Component
             $this->dispatch('notification-created');
         }
     }
-
-
     public function render()
     {
-        return view('livewire.dashboard');
+        return view('livewire.user.admin.dashboard.index');
     }
 }

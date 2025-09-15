@@ -93,4 +93,16 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->forceFill(['last_seen_at' => null])->saveQuietly();
     }
 
+    public function departments()
+    {
+        return $this->belongsToMany(
+            Department::class,
+            'hr_liaison_department',
+            'hr_liaison_id',
+            'department_id',
+            'id',
+            'department_id'
+        );
+    }
+
 }

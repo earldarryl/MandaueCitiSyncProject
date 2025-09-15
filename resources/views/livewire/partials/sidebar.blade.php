@@ -44,105 +44,89 @@
             @endphp
 
             @if (!empty($item['children']))
-                <!-- Parent Item with Dropdown -->
-                <div class="relative"
-                    x-data="{
-                        showTooltip: false,
-                        hide: false,
-                        update() {
-                            this.hide = !$store.sidebar.open;
-                        }
-                    }"
-                    @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                    @mouseleave="showTooltip = false"
-                    x-init="update()"
-                    x-effect="$watch('$store.sidebar.open', () => update())"
+                    @php
+                        // Check if any child route matches the current route
+                        $isParentActive = collect($item['children'])->contains(function($child) {
+                            return request()->routeIs($child['route']);
+                        });
+                    @endphp
 
-                >
-                    <div
-                   @click="
-                        if ($store.sidebar.open) {
-                            dropdowns[{{ $index }}] = !dropdowns[{{ $index }}];
-                        } else {
-                            $store.sidebar.toggle();
-                        }
-                    "
-                    class="flex items-center gap-2 rounded-lg cursor-pointer transition
-                        {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 hover:font-bold font-md' }}"
-                    :class="$store.sidebar.open ? 'justify-between' : 'justify-center'"
-                >
-                    <!-- Icon -->
-                    <div
-                      @click.stop="$store.sidebar.toggle()"
-                    class="relative inline-flex text-center py-2 px-4">
-                        <i class="{{ $item['icon'] }}"></i>
-                    </div>
-
-                        <!-- Tooltip (next to icon when sidebar is collapsed) -->
-                        <span
-                        x-show="showTooltip && !$store.sidebar.open"
-                        x-transition
-                        x-cloak
-                        class="fixed w-auto font-bold text-left left-14 px-4 py-2 transition-all text-left dark:bg-zinc-800 bg-gray-200 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
-                        @click="$store.sidebar.toggle(); dropdowns[{{ $index }}] = false"
-                        >
-                        {{ $item['label'] }}
-                        </span>
-
-                        <!-- Label (only when sidebar is open) -->
-                        <span
-                            x-ref="box"
-                            :class="{
-                                'left-14 opacity-100 transition-all duration-200': $store.sidebar.open,
-                                'opacity-0 ': !$store.sidebar.open,
-                            }"
-                            class="absolute w-full text-left ease-in-out overflow-x-hidden"
-                        >
-                            {{ $item['label'] }}
-                        </span>
-
-                        <!-- Dropdown Arrow -->
-                        <svg
-                            x-show="$store.sidebar.open"
-                            :class="{ 'rotate-180': dropdowns[{{ $index }}] }"
-                            class="w-4 h-4 transition-transform duration-200 mx-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                        >
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
-
-                    <!-- Dropdown Children -->
-                    <div
-                        x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
-                        class="overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1"
+                    <div class="relative"
+                        x-data="{ showTooltip: false, hide: false, update() { this.hide = !$store.sidebar.open; } }"
+                        @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                        @mouseleave="showTooltip = false"
+                        x-init="update()"
+                        x-effect="$watch('$store.sidebar.open', () => update())"
                     >
-                        @foreach ($item['children'] as $child)
-                            <x-responsive-nav-link
-                                href="{{ route($child['route']) }}"
-                                class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
-                                    {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 hover:font-bold font-md' }}"
-                                wire:navigate
+                        <!-- Parent Item -->
+                        <div
+                            @click="
+                                if ($store.sidebar.open) {
+                                    dropdowns[{{ $index }}] = !dropdowns[{{ $index }}];
+                                } else {
+                                    $store.sidebar.toggle();
+                                }
+                            "
+                            class="flex items-center gap-2 rounded-lg cursor-pointer transition
+                                {{ $isParentActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
+                            :class="$store.sidebar.open ? 'justify-between' : 'justify-center'"
+                        >
+                            <!-- Icon -->
+                            <div class="relative inline-flex text-center py-2 px-4">
+                                <i class="{{ $item['icon'] }}"></i>
+                            </div>
+
+                            <!-- Tooltip -->
+                            <span x-show="showTooltip && !$store.sidebar.open"
+                                x-transition
+                                x-cloak
+                                class="fixed w-auto font-bold text-left left-14 px-4 py-2 transition-all text-left dark:bg-zinc-800 bg-gray-200 duration-300 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap"
+                                @click="$store.sidebar.toggle(); dropdowns[{{ $index }}] = false">
+                                {{ $item['label'] }}
+                            </span>
+
+                            <!-- Label -->
+                            <span x-ref="box" :class="{ 'left-14 opacity-100 transition-all duration-200': $store.sidebar.open, 'opacity-0 ': !$store.sidebar.open, }" class="absolute w-full text-left ease-in-out overflow-x-hidden" > {{ $item['label'] }} </span>
+
+                            <!-- Dropdown Arrow -->
+                            <svg x-show="$store.sidebar.open"
+                                :class="{ 'rotate-180': dropdowns[{{ $index }}] }"
+                                class="w-4 h-4 transition-transform duration-200 mx-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
                             >
-                                <span class="inline-block text-center">
-                                    <i class="{{ $child['icon'] }}"></i>
-                                </span>
-                                <span
-                                    x-show="$store.sidebar.open"
-                                    x-transition
-                                    class="ml-2"
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
+
+                        <!-- Dropdown Children -->
+                        <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
+                            class="overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1">
+                            @foreach ($item['children'] as $child)
+                                @php
+                                    $isChildActive = request()->routeIs($child['route']);
+                                @endphp
+
+                                <x-responsive-nav-link href="{{ route($child['route']) }}"
+                                                    class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
+                                                        {{ $isChildActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
+                                                    wire:navigate
                                 >
-                                    {{ $child['label'] }}
-                                </span>
-                            </x-responsive-nav-link>
-                        @endforeach
+                                    <span class="inline-block text-center">
+                                        <i class="{{ $child['icon'] }}"></i>
+                                    </span>
+                                    <span x-show="$store.sidebar.open" x-transition class="ml-2">
+                                        {{ $child['label'] }}
+                                    </span>
+                                </x-responsive-nav-link>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @else
+                @else
+
                 <!-- Single Link Item -->
                 <x-responsive-nav-link
                 href="{{ route($item['route']) }}"
