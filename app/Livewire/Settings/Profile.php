@@ -12,14 +12,20 @@ use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Filament\Notifications\Notification;
-use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+
+// Filament schema-based APIs (v4+)
+use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Schema;
+
+// Filament form field(s)
+use Filament\Forms\Components\FileUpload;
 
 #[Layout('layouts.app')]
-class Profile extends Component
+class Profile extends Component implements HasSchemas
 {
-     use WithFileUploads;
+    use InteractsWithSchemas;
 
     public string $name = '';
     public string $email = '';
@@ -28,93 +34,84 @@ class Profile extends Component
     public string $delete_password = '';
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
-    public ?TemporaryUploadedFile $profile_pic = null;
-    protected $listeners = ['reset-form' => 'resetForm'];
-    public $showMyModal = true;
+    public bool $showMyModal = false;
+
+    // Filament form state (statePath('data') below)
+    public array $data = [];
 
     // Track original values
     public string $originalName = '';
     public string $originalEmail = '';
 
-    public function mount()
+    public function mount(): void
     {
-
         $user = Auth::user();
-        $this->name = $user->name;
-        $this->email = $user->email;
+
+        $this->name = $user->name ?? '';
+        $this->email = $user->email ?? '';
         $this->current_profile_pic = $user->profile_pic;
 
-        // Save originals for dirty/clean checks
-        $this->originalName = $user->name;
-        $this->originalEmail = $user->email;
-    }
-    public function getUnreadNotificationsProperty()
-    {
-        return Auth::user()
-            ->unreadNotifications()
-            ->latest()
-            ->take($this->unreadLimit)
-            ->get();
+        // original values for dirty checks
+        $this->originalName = $this->name;
+        $this->originalEmail = $this->email;
+
+        // Initialize the Filament form
+        $this->form->fill([
+            'profile_pic' => $user->profile_pic,
+        ]);
     }
 
-    public function getReadNotificationsProperty()
+    /**
+     * NOTE: For Filament v4+ use Schema here.
+     */
+    public function form(Schema $schema): Schema
     {
-        return Auth::user()
-            ->readNotifications()
-            ->latest()
-            ->take($this->readLimit)
-            ->get();
+        return $schema
+            ->components([
+                FileUpload::make('profile_pic')
+                    ->disk('public')
+                    ->directory('profile_pics')
+                    ->image()
+                    ->imageEditor()
+                    ->imageEditorAspectRatios(['1:1'])
+                    ->maxSize(2048)
+                    ->label('Profile Picture'),
+            ])
+            ->statePath('data');
     }
 
-    public function getHasMoreUnreadProperty(): bool
-    {
-        return Auth::user()->unreadNotifications()->count() > $this->unreadLimit;
-    }
-
-    public function getHasMoreReadProperty(): bool
-    {
-        return Auth::user()->readNotifications()->count() > $this->readLimit;
-    }
-
-    public function loadMore(string $type): void
-    {
-        if ($type === 'unread') {
-            $this->unreadLimit += 5;
-        } elseif ($type === 'read') {
-            $this->readLimit += 5;
-        }
-    }
-
-    // Save uploaded profile picture immediately
-    public function updatedProfilePic(): void
+    public function saveProfilePic(): void
     {
         $user = Auth::user();
 
-        if (!$this->profile_pic) return;
+        // Use the form API to get validated/processed state
+        $state = $this->form->getState(); // or $this->data
+        $path = $state['profile_pic'] ?? null;
 
-        // Delete old profile picture if exists
+        if (! $path) {
+            Notification::make()->title('No image uploaded')->warning()->send();
+            return;
+        }
+
+        // delete old image if exists
         if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
             Storage::disk('public')->delete($user->profile_pic);
         }
 
-        // Store new picture
-        $this->current_profile_pic = $this->profile_pic->store('profile_pics', 'public');
-
+        // persist new path to DB
         $user->update([
-            'profile_pic' => $this->current_profile_pic,
+            'profile_pic' => $path,
         ]);
 
-        $this->profile_pic = null;
+        $this->current_profile_pic = $path;
+
+        // refill form with persisted value (keeps state consistent)
+        $this->form->fill(['profile_pic' => $path]);
 
         Notification::make()
             ->title('Profile picture updated!')
             ->success()
             ->send();
-    }
-
-    public function saveProfilePic(): void
-    {
-        $this->updatedProfilePic();
     }
 
     public function isDirty(string $field): bool
@@ -131,11 +128,10 @@ class Profile extends Component
         return !$this->isDirty($field);
     }
 
-     public function updateProfileInformation(): void
+    public function updateProfileInformation(): void
     {
         $user = Auth::user();
 
-        // Only run if something is dirty
         if ($this->isClean('name') && $this->isClean('email')) {
             Notification::make()
                 ->title('No changes detected')
@@ -150,46 +146,24 @@ class Profile extends Component
         ]);
 
         if ($user->email !== $validated['email']) {
-
-            sleep(2);
             $user->email_verified_at = null;
         }
 
         $user->update($validated);
 
-        // Refresh originals so next change can be tracked
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
-        $this->current_profile_pic = $user->profile_pic;
-        $this->profile_pic = null;
-
-
-
-        $this->dispatch('user-profile-updated', [
-            'name' => $this->name,
-            'email' => $this->email,
-        ]);
 
         Notification::make()
             ->title('Profile updated successfully!')
             ->success()
             ->send();
-
     }
-
-    public function resetForm()
-    {
-        $this->reset('current_password', 'password', 'password_confirmation');
-        $this->resetErrorBag();
-        $this->dispatch('reset-finished');
-    }
-
 
     public function redirectEmailVerify()
     {
         return $this->redirect(route('verification.notice', ['trigger' => 1]), navigate: true);
     }
-
 
     public function updatePassword(): void
     {
@@ -214,8 +188,6 @@ class Profile extends Component
             ->title('Password updated ✅')
             ->success()
             ->send();
-
-        $this->dispatch('password-updated');
     }
 
     public function deleteUser(Logout $logout): void

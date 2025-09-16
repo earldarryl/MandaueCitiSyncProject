@@ -1,0 +1,21 @@
+/* Target the Filament File Upload Image Editor modal */
+.fi-fo-file-upload-editor {
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    margin: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+.fi-fo-file-upload-editor-overlay {
+    background-color: transparent !important;
+}
+
+.fi-fo-file-upload-editor .fi-modal-window {
+    width: 100% !important;
+    max-width: 1200px !important; /* wider editor for desktop */
+    height: auto !important;
+    max-height: 85vh !important;  /* prevent cutting off buttons */
+    overflow-y: auto !important;
+    border-radius: 0.75rem;
+}

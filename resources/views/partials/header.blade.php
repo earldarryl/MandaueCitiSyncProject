@@ -21,7 +21,7 @@
         <!-- Icon -->
         <link rel="icon" href="{{ asset('LOGO.png') }}" type="image/x-icon">
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament.css'])
         <!-- Flatpickr CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <!-- Flatpickr JS -->

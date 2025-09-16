@@ -104,5 +104,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'department_id'
         );
     }
-
+    public function getProfilePicAttribute($value)
+    {
+        return $value ?: null;
+    }
 }

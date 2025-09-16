@@ -1,4 +1,4 @@
-<div class="w-full z-20 flex flex-col gap-6">
+<div class="w-full flex flex-col gap-6">
 
     <!-- Header -->
     <header class="p-4 bg-mc_primary_color dark:bg-blue-500 shadow-md">

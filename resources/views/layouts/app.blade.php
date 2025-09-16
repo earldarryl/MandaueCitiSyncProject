@@ -28,7 +28,7 @@
     <div class="flex h-full">
         <livewire:partials.sidebar />
 
-        <div x-data class="relative flex flex-col flex-1 h-full overflow-y-auto overflow-x-hidden">
+        <div x-data class="relative flex flex-col flex-1 h-full overflow-y-auto overflow-x-auto">
             <!-- Overlay only in content container -->
             <div
                 x-show="$store.sidebar.open && $store.sidebar.screen <= 768"

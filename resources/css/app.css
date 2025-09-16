@@ -72,10 +72,6 @@
         @apply bg-black/70;
     }
 
-    .z-100 {
-        z-index: 100;
-    }
-
     .main-color {
         @apply bg-mc_primary_color;
     }
