@@ -5,13 +5,14 @@
     }"
     @resize.window="isDesktop = window.matchMedia('(min-width: 600px)').matches"
     :class="{
-        'w-[320px] sticky top-0 h-full z-[36] transition-all duration-300 ': $store.sidebar.open && isDesktop,
-        'w-[80px] sticky top-0 h-full z-[36] transition-all duration-300 ': !$store.sidebar.open && isDesktop && !$store.notifications.open,
+        'w-[320px] sticky top-0 h-full z-[36] transition-all duration-300': $store.sidebar.open && isDesktop,
+        'w-[320px] sticky top-0 h-full z-[30]': $store.sidebar.open && isDesktop && $store.notifications.open,
+        'w-[80px] sticky top-0 h-full z-[36] transition-all duration-300': !$store.sidebar.open && isDesktop && !$store.notifications.open,
         'w-[80px] sticky top-0 h-full z-[30]': !$store.sidebar.open && isDesktop && $store.notifications.open,
-        'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300 ': !isDesktop && $store.sidebar.open,
-        'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300 ': !isDesktop && !$store.sidebar.open,
+        'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
+        'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
-    class="flex flex-col justify-between bg-white dark:bg-black text-black dark:text-white text-sm shadow-md min-h-full overflow-visible"
+    class="flex flex-col justify-between bg-white dark:bg-black text-sky-900 dark:text-blue-500 text-sm shadow-md min-h-full overflow-visible"
 >
     <div class="relative flex flex-col">
 
@@ -103,17 +104,23 @@
                         </div>
 
                         <!-- Dropdown Children -->
-                        <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
-                            class="overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1">
+                       <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
+                            class="relative overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1">
+
+                            <!-- Vertical line inside the parent -->
+                            <div class="absolute top-0 left-5 h-full w-0.5 bg-black"></div>
+
                             @foreach ($item['children'] as $child)
                                 @php
                                     $isChildActive = request()->routeIs($child['route']);
                                 @endphp
 
                                 <x-responsive-nav-link href="{{ route($child['route']) }}"
-                                                    class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
-                                                        {{ $isChildActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
-                                                    wire:navigate
+                                                        class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
+                                                            {{ $isChildActive
+                                                                ? 'bg-gray-200 dark:bg-zinc-800 font-bold'
+                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
+                                                        wire:navigate
                                 >
                                     <span class="inline-block text-center">
                                         <i class="{{ $child['icon'] }}"></i>

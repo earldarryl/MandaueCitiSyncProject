@@ -1,4 +1,3 @@
-/* Target the Filament File Upload Image Editor modal */
 .fi-fo-file-upload-editor {
     max-width: 90vw !important;
     max-height: 90vh !important;
@@ -13,9 +12,72 @@
 
 .fi-fo-file-upload-editor .fi-modal-window {
     width: 100% !important;
-    max-width: 1200px !important; /* wider editor for desktop */
+    max-width: 1200px !important;
     height: auto !important;
-    max-height: 85vh !important;  /* prevent cutting off buttons */
+    max-height: 85vh !important;
     overflow-y: auto !important;
     border-radius: 0.75rem;
 }
+
+.fi-input,
+.fi-select-input,
+.fi-textarea {
+    border-color: #d1d5db;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+
+.fi-input-wrp:focus-within,
+.fi-select:focus-within,
+.fi-textarea-wrp:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-fo-toggle:focus-within,
+.fi-fo-checkbox:focus-within {
+    outline: none;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-fo-file-upload:focus-within,
+.fi-fo-file-upload-button:focus {
+    outline: none;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+
+.fi-fo-rich-editor:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-select:focus-within .fi-select-input {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-btn.fi-color-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+.fi-btn.fi-color-primary > *{
+    color: #ffffff;
+}
+.fi-btn.fi-color-primary:hover {
+    background-color: #3b82f6;
+    color: #f3f4f6;
+}
+
+.dark .fi-btn.fi-color-primary {
+    background-color: #3b82f6;
+    color: #f9fafb;
+}
+
+.dark .fi-btn.fi-color-primary:hover {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+

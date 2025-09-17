@@ -17,7 +17,10 @@ class Index extends Component
     public $user;
     public $userModel;
 
-   public function mount()
+    public $startDate;
+    public $endDate;
+
+    public function mount()
     {
         $this->user = auth()->user();
 
@@ -25,6 +28,10 @@ class Index extends Component
             $this->users = User::all();
             $this->userModel = User::class;
         }
+
+        // optional: initialize dates
+        $this->startDate = now()->startOfMonth()->format('Y-m-d');
+        $this->endDate = now()->format('Y-m-d');
 
         if (session()->pull('just_logged_in', false)) {
             Notification::make()
@@ -36,8 +43,13 @@ class Index extends Component
             $this->dispatch('notification-created');
         }
     }
+
     public function render()
     {
-        return view('livewire.user.admin.dashboard.index');
+        return view('livewire.user.admin.dashboard.index', [
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+        ]);
     }
 }
+

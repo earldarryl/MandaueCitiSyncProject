@@ -21,7 +21,7 @@
     @filamentStyles
     @fluxAppearance
 </head>
-<body class="font-sans antialiased animate-fadeIn">
+<body class="font-sans antialiased animate-fadeIn bg-blue-500/20">
 
     @livewire('notifications')
 
