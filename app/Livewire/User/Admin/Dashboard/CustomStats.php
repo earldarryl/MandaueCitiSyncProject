@@ -33,43 +33,46 @@ class CustomStats extends Widget
         $this->calculateStats();
     }
 
-    public function updatedStartDate($value)
-{
-    $this->calculateStats();
-    $this->dispatch('dateRangeUpdated', $value, $this->endDate);
-}
+        public function updatedStartDate($value)
+    {
+        $this->calculateStats();
+        $this->dispatch('dateRangeUpdated', $value, $this->endDate);
+    }
 
-public function updatedEndDate($value)
-{
-    $this->calculateStats();
-    $this->dispatch('dateRangeUpdated', $this->startDate, $value);
-}
+    public function updatedEndDate($value)
+    {
+        $this->calculateStats();
+        $this->dispatch('dateRangeUpdated', $this->startDate, $value);
+    }
 
     protected function calculateStats(): void
     {
-        $this->totalUsers = User::whereBetween('created_at', [$this->startDate, $this->endDate])->count();
-        $this->totalGrievances = Grievance::whereBetween('created_at', [$this->startDate, $this->endDate])->count();
-        $this->totalAssignments = Assignment::whereBetween('created_at', [$this->startDate, $this->endDate])->count();
+        $start = $this->startDate . ' 00:00:00';
+        $end = $this->endDate . ' 23:59:59';
+
+        $this->totalUsers = User::whereBetween('created_at', [$start, $end])->count();
+        $this->totalGrievances = Grievance::whereBetween('created_at', [$start, $end])->count();
+        $this->totalAssignments = Assignment::whereBetween('created_at', [$start, $end])->count();
 
         $this->onlineUsers = User::whereNotNull('last_seen_at')
             ->where('last_seen_at', '>=', now()->subMinutes(5))
             ->count();
 
-        // ✅ Grievances by status
-        $this->pendingGrievances = Grievance::whereBetween('created_at', [$this->startDate, $this->endDate])
+        $this->pendingGrievances = Grievance::whereBetween('created_at', [$start, $end])
             ->where('grievance_status', 'pending')
             ->count();
 
-        $this->rejectedGrievances = Grievance::whereBetween('created_at', [$this->startDate, $this->endDate])
+        $this->rejectedGrievances = Grievance::whereBetween('created_at', [$start, $end])
             ->where('grievance_status', 'rejected')
             ->count();
 
-        $this->inProgressGrievances = Grievance::whereBetween('created_at', [$this->startDate, $this->endDate])
+        $this->inProgressGrievances = Grievance::whereBetween('created_at', [$start, $end])
             ->where('grievance_status', 'in progress')
             ->count();
 
-        $this->resolvedGrievances = Grievance::whereBetween('created_at', [$this->startDate, $this->endDate])
+        $this->resolvedGrievances = Grievance::whereBetween('created_at', [$start, $end])
             ->where('grievance_status', 'resolved')
             ->count();
     }
+
 }

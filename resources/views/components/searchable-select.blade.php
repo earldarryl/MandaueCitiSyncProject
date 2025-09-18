@@ -4,13 +4,18 @@
     'options' => [],
 ])
 
-
-
 <div
     x-data="{
         open: false,
         selected: @entangle($name),
         customValue: '',
+        search: '',
+        get filteredOptions() {
+            if (this.search === '') return @js($options);
+            return @js($options).filter(opt =>
+                opt.toLowerCase().includes(this.search.toLowerCase())
+            );
+        },
         get value() {
             return this.selected === 'Other' ? this.customValue : this.selected;
         }
@@ -20,9 +25,10 @@
             {{ $name }} = val;
             $wire.set('{{ $name }}', val, true);
         });
-            window.addEventListener('clear', () => {
+        window.addEventListener('clear', () => {
             selected = '';
             customValue = '';
+            search = '';
             {{ $name }} = '';
         })
     "
@@ -64,6 +70,7 @@
                 @click.stop="
                     selected = '';
                     customValue = '';
+                    search = '';
                     $wire.set('{{ $name }}', '', true);
                 "
             />
@@ -82,32 +89,55 @@
     </div>
 
     <!-- Dropdown -->
-    <div
-        x-show="open"
-        @click.outside="open = false"
-        x-transition
-        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-black ring-opacity-5 rounded-md shadow-md"
-    >
+    <!-- Dropdown -->
+<div
+    x-show="open"
+    @click.outside="open = false"
+    x-transition
+    class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-gray-200 dark:ring-zinc-700 ring-opacity-5 rounded-md shadow-md"
+>
+    <!-- Search input -->
+    <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
+        <!-- Icon -->
+        <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
+
+        <!-- Input -->
+        <input
+            type="text"
+            x-model="search"
+            placeholder="Search..."
+            class="w-full border-none focus:outline-none focus:ring-0 bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+        />
+    </div>
+
+    <!-- Scrollable options -->
+    <div class="max-h-48 overflow-y-auto">
         <ul class="py-1" role="listbox">
-            @foreach ($options as $option)
+            <template x-for="option in filteredOptions" :key="option">
                 <li>
                     <button
                         type="button"
                         @click="
-                            selected = '{{ $option }}';
+                            selected = option;
                             open = false;
+                            search = '';
                         "
                         class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
-                        :class="selected === '{{ $option }}'
+                        :class="selected === option
                             ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'"
                     >
-                        {{ $option }}
-                        <flux:icon.check x-show="selected === '{{ $option }}'" class="w-4 h-4" />
+                        <span x-text="option"></span>
+                        <flux:icon.check x-show="selected === option" class="w-4 h-4" />
                     </button>
                 </li>
-            @endforeach
+            </template>
+
+            <!-- No results -->
+            <li x-show="filteredOptions.length === 0" class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                No results found
+            </li>
         </ul>
     </div>
 </div>
-
+</div>

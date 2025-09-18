@@ -69,13 +69,14 @@ class Profile extends Component implements HasSchemas
         return $schema
             ->components([
                 FileUpload::make('profile_pic')
+                    ->avatar()
                     ->disk('public')
                     ->directory('profile_pics')
                     ->image()
                     ->imageEditor()
-                    ->imageEditorAspectRatios(['1:1'])
+                    ->circleCropper()
                     ->maxSize(2048)
-                    ->label('Profile Picture'),
+                    ->hiddenLabel(true)
             ])
             ->statePath('data');
     }

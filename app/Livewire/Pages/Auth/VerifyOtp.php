@@ -18,7 +18,7 @@ class VerifyOtp extends Component
     public string $status = '';
     public string $title = 'Verify Account';
     public int $cooldown = 0;
-    public string $otp = ''; // ✅ input binding for OTP
+    public string $otp = '';
     private string $limiterKey = '';
 
    public function mount()

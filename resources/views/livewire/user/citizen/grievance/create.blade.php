@@ -1,137 +1,33 @@
-<div class="w-full h-full z-20 flex flex-col">
-    <header class="p-3">
-        <h1 class="text-3xl font-medium flex items-center gap-2">
-            <flux:icon.document-plus />
-            Grievance Application Form
-        </h1>
+<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+    <header class="p-6 flex flex-col gap-2 bg-sky-500/10 rounded-b-lg shadow-sm">
+        <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-sky-900 dark:text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <h1 class="text-3xl font-semibold text-sky-900 dark:text-blue-500">Grievance Application Form</h1>
+        </div>
     </header>
 
-    <div class="relative w-full overflow-y-auto">
-        <div class="w-full mx-auto p-3 shadow-lg max-w-4xl">
-            <form wire:submit.prevent="submit" class="flex flex-col gap-4" enctype="multipart/form-data">
-                <div class="w-full flex flex-col lg:flex-row gap-4">
-                    <div class="w-full flex gap-2 rounded-md">
-                        <flux:field class="w-full">
-                                <flux:label>Grievance Type</flux:label>
-                                <flux:description>The type/nature of your grievance</flux:description>
+    <div class="flex flex-col justify-center p-3">
+        {{ $this->form }}
 
-                                <flux:input.group>
-                                    <x-select
-                                        name="grievance_type"
-                                        placeholder="Choose grievance type"
-                                        :options="['Complaints', 'Inquiry', 'Request', 'Suggestion/Feedback']"
-                                        wire:model="grievance_type"
-                                    />
-                                </flux:input.group>
-
-                            <flux:error name="grievance_type" />
-                        </flux:field>
-                    </div>
-                    <div class="w-full flex gap-2 rounded-md">
-                        <flux:field class="w-full">
-                                <flux:label>Department</flux:label>
-                                <flux:description>The appropriate department that handles/manages your grievance</flux:description>
-
-                                <flux:input.group>
-                                    <x-multiple-select
-                                        name="department"
-                                        placeholder="Choose department type"
-                                        :options="$departmentList"
-                                        wire:model="department"
-                                    />
-                                </flux:input.group>
-
-                            <flux:error name="department" />
-                        </flux:field>
-                    </div>
-                </div>
-
-                <flux:field>
-                    <flux:label>Grievance Title</flux:label>
-                    <flux:description>The specified title of your grievance</flux:description>
-                    <flux:input
-                        wire:model="grievance_title"
-                    />
-                    <flux:error name="grievance_title" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Grievance Details</flux:label>
-                    <flux:description>The specified details/brief summary of your grievance</flux:description>
-                    <flux:textarea
-                        wire:model="grievance_details"
-                        resize="none"
-                    />
-                    <flux:error name="grievance_details" />
-                </flux:field>
-
-              <flux:field>
-                    <flux:label>Upload Attachment</flux:label>
-                    <flux:description>The additional files/documents serve as evidence</flux:description>
-
-                    <div x-data="{ progress: 0, isUploading: false, isComplete: false }"
-                        x-on:livewire-upload-start="isUploading = true; isComplete = false; progress = 0"
-                        x-on:livewire-upload-finish="isUploading = false; progress = 100; isComplete = true"
-                        x-on:livewire-upload-error="isUploading = false; isComplete = false; progress = 0"
-                        x-on:livewire-upload-progress="progress = $event.detail.progress"
-                        x-on:form-submitted.window="isComplete = false">  <!-- ✅ hide complete msg on submit -->
-
-                        <!-- File input (disabled while uploading/submitting) -->
-                        <flux:input type="file"
-                            wire:model="grievance_files"
-                            multiple
-                            x-bind:disabled="isUploading"
-                            wire:loading.attr="disabled"
-                            wire:target="submit,grievance_files"
-                        />
-
-                        <!-- Progress bar -->
-                        <template x-if="isUploading">
-                            <div class="mt-2">
-                                <div class="w-full bg-gray-200 rounded h-2">
-                                    <div class="bg-blue-600 h-2 rounded transition-all duration-200"
-                                        :style="'width: ' + progress + '%'"></div>
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">
-                                    Uploading... <span x-text="progress"></span>%
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Completed message -->
-                        <template x-if="isComplete && !isUploading">
-                            <div class="mt-2 text-sm text-green-600 font-medium">
-                                ✅ Uploading complete
-                            </div>
-                        </template>
-                    </div>
-
-                    <flux:error name="grievance_files" />
-                </flux:field>
-
-
-
-                <div class="flex justify-end">
-                    <flux:button
-                        type="submit"
-                        variant="primary"
-                        class="w-full group bg-mc_primary_color text-white dark:bg-blue-700
-                            hover:bg-mc_primary_color dark:hover:bg-blue-700 dark:hover:text-white
-                            transition duration-300 ease-in-out"
-                        wire:loading.attr="disabled"
-                        wire:loading.class="cursor-not-allowed"
-                        wire:target="submit,grievance_files"
-                    >
-                        <span class="flex items-center justify-center gap-2">
-                            <span>
-                                <flux:icon.arrow-up-tray variant="mini"/>
-                            </span>
-                            <span>{{ __('Submit') }}</span>
+        <div class="mt-4 flex justify-end">
+            <flux:button
+                wire:click="submit"
+                type="submit"
+                variant="primary"
+                class="w-full group bg-mc_primary_color text-white dark:bg-blue-700 hover:bg-mc_primary_color dark:hover:bg-blue-700 dark:hover:text-white transition duration-300 ease-in-out"
+                wire:loading.attr="disabled"
+                wire:loading.class="cursor-not-allowed"
+                wire:target="submit,grievance_files">
+                    <span class="flex items-center justify-center gap-2">
+                        <span>
+                            <flux:icon.arrow-up-tray variant="mini"/>
                         </span>
-                    </flux:button>
-                </div>
-
-            </form>
+                        <span>{{ __('Submit') }}</span>
+                    </span>
+            </flux:button>
         </div>
     </div>
+
 </div>

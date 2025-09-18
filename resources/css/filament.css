@@ -1,14 +1,12 @@
 .fi-fo-file-upload-editor {
-    max-width: 90vw !important;
-    max-height: 90vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
     margin: auto !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
 }
 
-.fi-fo-file-upload-editor-overlay {
-    background-color: transparent !important;
-}
+
 
 .fi-fo-file-upload-editor .fi-modal-window {
     width: 100% !important;
@@ -17,6 +15,14 @@
     max-height: 85vh !important;
     overflow-y: auto !important;
     border-radius: 0.75rem;
+}
+
+.filepond--label-action{
+    color: #3b82f6 !important;
+}
+
+.filepond--label-action:hover{
+    color: #3b82f6 !important;
 }
 
 .fi-input,
@@ -41,7 +47,6 @@
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
 }
 
-.fi-fo-file-upload:focus-within,
 .fi-fo-file-upload-button:focus {
     outline: none;
     border-color: #3b82f6 !important;
@@ -80,4 +85,24 @@
     background-color: #3b82f6;
     color: #ffffff;
 }
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child {
+    background-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:hover {
+    background-color: #2563eb !important;
+}
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:focus {
+    background-color: #2563eb !important;
+}
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    background-color: #1d4ed8 !important;
+    color: white !important;
+}
+
 

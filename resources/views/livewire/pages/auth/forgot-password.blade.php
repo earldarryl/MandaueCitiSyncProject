@@ -1,6 +1,6 @@
 <div>
     <div class="flex justify-center items-center py-3 text-center">
-        <h1 class="text-7xl passion-one-regular tracking-tighter text-mc_primary_color dark:text-blue-600 ">
+        <h1 class="text-6xl font-bold tracking-tighter text-mc_primary_color dark:text-blue-600 ">
             {{ $title }}
         </h1>
     </div>
@@ -42,7 +42,7 @@
                     wire:click="sendPasswordResetLink"
                     variant="primary"
                     color="blue"
-                    class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                     wire:loading.attr="disabled"
                     wire:loading.class="cursor-not-allowed"
                     >

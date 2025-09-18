@@ -1,7 +1,7 @@
 <div class="w-full">
     <div class="flex justify-center items-center py-3 text-center">
-        <h1 class="text-2xl sm:text-3xl md:text-3xl lg:text-6xl oswald-font font-extrabold text-mc_primary_color dark:text-blue-600 drop-shadow-lg tracking-wide">
-            {{ $pageTitle ?? 'CitiSync' }}
+        <h1 class="text-6xl font-bold tracking-tighter text-mc_primary_color dark:text-blue-600 ">
+            {{ $title }}
         </h1>
     </div>
 
@@ -14,61 +14,101 @@
     </div>
     @endif
     <form wire:submit.prevent="resetPassword" class="flex flex-col gap-3">
-        <flux:field class="flex flex-col gap-2">
-            <flux:label>Email</flux:label>
-                <flux:input.group>
-                    <flux:input.group.prefix>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 1 0-2.636 6.364M16.5 12V8.25" />
-                        </svg>
-                    </flux:input.group.prefix>
 
+        <flux:field class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2">
+                <flux:label class="flex gap-2">
+                    <flux:icon.at-symbol />
+                    <span>Email</span>
+                </flux:label>
+
+                <flux:input.group>
                     <flux:input wire:model.defer="email" id="email" type="email" name="email" autocomplete="username" disabled />
                 </flux:input.group>
 
-                <flux:error name="email" />
+            </div>
+
+            <flux:error name="email" />
         </flux:field>
 
         <flux:field class="flex flex-col gap-2">
-            <flux:label>Password</flux:label>
+            <div class="flex flex-col gap-2">
+                <flux:label class="flex gap-2">
+                    <flux:icon.lock-closed />
+                    <span>Password</span>
+                </flux:label>
 
-            <flux:input.group>
-                <flux:input.group.prefix>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    </svg>
-                </flux:input.group.prefix>
+                <flux:input.group>
+                    <flux:input wire:model.defer="password" id="password" type="password" name="password" class:input="hide-password-toggle" viewable autofocus autocomplete="new-password" clearable />
+                </flux:input.group>
 
-                <flux:input wire:model.defer="password" id="password" type="password" name="password" class:input="hide-password-toggle" viewable autofocus autocomplete="new-password" clearable />
-            </flux:input.group>
+            </div>
 
             <flux:error name="password" />
         </flux:field>
 
         <flux:field class="flex flex-col gap-2">
-            <flux:label>Confirm Password</flux:label>
+            <div class="flex flex-col gap-2">
+                <flux:label class="flex gap-2">
+                    <flux:icon.check-circle />
+                    <span>Confirm Password</span>
+                </flux:label>
 
-            <flux:input.group>
-                <flux:input.group.prefix>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                </flux:input.group.prefix>
+                <flux:input.group>
+                    <flux:input wire:model.defer="password_confirmation" id="password_confirmation" type="password" name="password_confirmation" class:input="hide-password-toggle" viewable autocomplete="new-password" clearable />
+                </flux:input.group>
 
-                <flux:input wire:model.defer="password_confirmation" id="password_confirmation" type="password" name="password_confirmation" class:input="hide-password-toggle" viewable autocomplete="new-password" clearable />
-            </flux:input.group>
+            </div>
 
-                <flux:error name="password_confirmation" />
+            <flux:error name="password_confirmation" />
         </flux:field>
 
         <div class="flex items-center justify-end mt-4 gap-3">
-            <x-primary-button wire:click="resetPassword" type="submit" class="border-2 border-black dark:border-white hover:bg-mc_primary_color dark:hover:bg-blue-600 hover:border-mc_primary_color dark:hover:border-blue-600 transition duration-300 ease-in-out">
-                {{ __('Reset Password') }}
-            </x-primary-button>
+            <flux:button variant="primary"
+                    color="blue"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                    wire:click="resetPassword"
+                    type="submit">
 
-            <x-primary-button wire:click="abortConfirmation" type="button" class="border-2 border-black dark:border-white hover:bg-red-600 dark:hover:bg-red-600 hover:border-red-600 dark:hover:border-red-600 transition duration-300 ease-in-out">
-                {{ _('Abort Confirmation')}}
-            </x-primary-button>
+                <span wire:loading wire:target="resetPassword">
+                        <span class="flex items-center justify-center gap-2">
+                             <span>
+                                <flux:icon.loading variant="micro"/>
+                            </span>
+                        </span>
+                    </span>
+                    <span wire:loading.remove wire:target="resetPassword">
+                        <span class="flex items-center justify-center gap-2">
+                            <span>
+                                <flux:icon.arrow-path variant="micro"/>
+                            </span>
+                            <span>{{ __('Reset Password') }}</span>
+                        </span>
+                    </span>
+            </flux:button>
+
+            <flux:button
+                    variant="danger"
+                    class="w-full"
+                    wire:click="abortConfirmation"
+                    type="button"
+                    >
+                    <span wire:loading wire:target="abortConfirmation">
+                        <span class="flex items-center justify-center gap-2">
+                             <span>
+                                <flux:icon.loading variant="micro"/>
+                            </span>
+                        </span>
+                    </span>
+                    <span wire:loading.remove wire:target="abortConfirmation">
+                        <span class="flex items-center justify-center gap-2">
+                            <span>
+                                <flux:icon.x-mark variant="micro"/>
+                            </span>
+                            <span>{{ _('Abort Confirmation')}}</span>
+                        </span>
+                    </span>
+            </flux:button>
         </div>
     </form>
     <script>

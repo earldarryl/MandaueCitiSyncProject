@@ -194,7 +194,7 @@
     >
         <div
             class="flex items-center px-4 py-3 w-full cursor-pointer text-sm font-medium text-white relative
-                bg-red-500 hover:bg-red-600 shadow-md"
+                bg-red-600 hover:bg-red-500 shadow-md"
             @mouseenter="if (!$store.sidebar.open) showTooltip = true"
             @mouseleave="showTooltip = false"
             @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
@@ -235,7 +235,7 @@
             <span
                 x-show="showTooltip && !$store.sidebar.open"
                 x-cloak
-               class="fixed w-auto font-bold text-left left-14 -bottom-1 p-4 text-sm transition-all text-left bg-red-600 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
+               class="fixed w-auto font-bold text-left left-14 -bottom-1 p-4 text-sm transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
             >
                 <span x-show="!loadingLogoutModal">Log out</span>
                 <span

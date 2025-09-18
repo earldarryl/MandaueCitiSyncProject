@@ -67,7 +67,7 @@
             <flux:button
                 variant="primary"
                 color="blue"
-                class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                 wire:click="login"
                 wire:loading.attr="disabled"
                 wire:target="openModalRegister, login"

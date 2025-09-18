@@ -76,7 +76,7 @@
                         href="{{ route('password.request') }}"
                         class="underline-none text-sm font-bold text-blue-600 hover:text-blue-900 rounded-md transition duration-300 ease-in-out"
                         wire:target="openModalRegister, login"
-                        wire:loading.class="cursor-not-allowed opacity-50 pointer-events-none"
+                        wire:loading.class="cursor-not-allowed pointer-events-none"
                         wire:navigate
                     >
                         {{ __('Forgot your password?') }}
@@ -85,15 +85,15 @@
             </div>
         </div>
 
-        <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full">
+        <div class="flex flex-col items-center gap-4 justify-end mt-4 w-full">
             <flux:button
                 variant="primary"
                 color="blue"
-                class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                 wire:click="login"
                 wire:loading.attr="disabled"
                 wire:target="openModalRegister, login"
-                wire:loading.class="cursor-not-allowed"
+                wire:loading.class="cursor-not-allowed opacity-100 pointer-events-none"
                 >
 
                 <span wire:loading wire:target="login">
@@ -114,34 +114,30 @@
                 </span>
             </flux:button>
 
-            @if (Route::has('register'))
-            <flux:button
-                variant="primary"
-                color="zinc"
-                class="w-full group transition duration-300 ease-in-out cursor-pointer"
-                wire:click="openModalRegister"
-                wire:target="openModalRegister, login"
-                wire:loading.attr="disabled"
-                wire:loading.class="cursor-not-allowed opacity-50 pointer-events-none"
-            >
-                <span wire:loading wire:target="openModalRegister">
+           <div class="w-full flex items-center justify-center">
+                <flux:button
+                    variant="primary"
+                    color="zinc"
+                    class="w-full transition duration-300 ease-in-out"
+                    wire:click="openModalRegister"
+                    wire:target="openModalRegister"
+                    wire:loading.attr="disabled"
+                    wire:loading.remove
+                >
                     <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.loading variant="micro"/>
-                        </span>
-                        <span>{{ __('Loading...') }}</span>
+                        <flux:icon.pencil-square variant="micro"/>
+                        <span>{{ __('Register') }}</span>
                     </span>
-                </span>
-                <span wire:loading.remove wire:target="openModalRegister">
-                    <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.pencil-square variant="micro"/>
-                        </span>
-                        <span>{{ __('Register') }} </span>
-                    </span>
-                </span>
-            </flux:button>
-            @endif
+                </flux:button>
+
+                <div wire:loading wire:target="openModalRegister">
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.2s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.4s]"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 

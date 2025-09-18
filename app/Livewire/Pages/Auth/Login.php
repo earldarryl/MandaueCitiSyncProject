@@ -7,9 +7,6 @@ use App\Livewire\Forms\LoginForm;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Illuminate\Support\Facades\Auth;
-use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Request;
 
 #[Layout('layouts.guest')]
 #[Title('Welcome to Mandaue CitiSync')]

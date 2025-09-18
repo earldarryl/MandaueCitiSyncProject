@@ -148,6 +148,8 @@ body {
 /* ============================= */
 #nprogress .bar {
     background: rgb(255, 230, 0) !important;
+    border-color: rgb(255, 230, 0) !important;
+    color: rgb(255, 230, 0) !important;
     height: 4px;
 }
 
@@ -187,6 +189,25 @@ body {
     background-size: cover;
     background-position: center;
     overflow: hidden;
+}
+
+.custom-focus:focus {
+    border: 2px solid #2563eb !important;
+    outline: none;
+}
+
+@keyframes pulseDot {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+.dot {
+  animation: pulseDot 1s infinite ease-in-out;
 }
 
 /* ============================= */

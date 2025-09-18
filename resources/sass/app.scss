@@ -1,8 +1,42 @@
-// Fonts
-@import url('https://fonts.bunny.net/css?family=Nunito');
+// Filament Wizard custom styles
+.fi-sc-wizard {
 
-// Variables
-@import 'variables';
+    .fi-sc-wizard-header {
 
-// Bootstrap
-@import 'bootstrap/scss/bootstrap';
+        .fi-sc-wizard-header-step {
+
+            /* Step button, icon, text */
+            .fi-sc-wizard-header-step-btn > *,
+            .fi-sc-wizard-header-step-icon-ctn > *,
+            .fi-sc-wizard-header-step-text > * {
+                color: #3b82f6;        // Tailwind blue-500
+                border-color: #3b82f6;
+            }
+
+
+
+            /* Completed step */
+            &.fi-completed {
+                .fi-sc-wizard-header-step-btn {
+                    .fi-sc-wizard-header-step-icon-ctn {
+                        background-color: #2563eb;
+                    }
+                    .fi-icon{
+                        color: #fff;
+                    }
+                }
+            }
+
+
+        }
+    }
+}
+.fi-fo-date-time-picker {
+    & .fi-fo-date-time-picker-calendar {
+        & .fi-fo-date-time-picker-calendar-day {
+            &.fi-selected {
+                color: #2563eb;
+            }
+        }
+    }
+}
