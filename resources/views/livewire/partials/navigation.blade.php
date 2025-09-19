@@ -3,7 +3,7 @@
     <!-- Primary Navigation Menu -->
     <div class="w-full px-2">
         <div class="flex justify-between items-center h-16">
-            <div class="flex">
+            <div class="flex gap-3">
                 <div class="flex items-center">
 
                     <!-- Toggle Button -->
@@ -13,7 +13,7 @@
                         :class="{
                             'hover:bg-none': !$store.sidebar.open && $store.sidebar.screen < 600,
                         }"
-                        class="dark:hover:bg-zinc-800/50 hover:bg-gray-200/20 p-2 text-sky-900 dark:text-blue-500 rounded-full cursor-pointer"
+                        class="dark:hover:bg-zinc-800 hover:bg-gray-200 p-2 text-sky-900 dark:text-blue-500 rounded-full cursor-pointer"
 
                     >
                         <!-- Show CLOSE icon (X) when sidebar is open -->
@@ -33,6 +33,12 @@
                             </svg>
                         </template>
                     </button>
+                </div>
+                <div class="flex items-center justify-start gap-3 text-2xl sm:text-3xl md:text-4xl font-bold text-sky-900 dark:text-blue-500">
+                    <i class="{{ $this->getHeaderIconClass() }}"></i>
+                    <h1>
+                        {{ $header }}
+                    </h1>
                 </div>
             </div>
 

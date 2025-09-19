@@ -85,42 +85,32 @@
             </div>
         </div>
 
-        <div class="flex flex-col items-center gap-4 justify-end mt-4 w-full">
+        <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full">
             <flux:button
                 variant="primary"
                 color="blue"
                 class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                 wire:click="login"
-                wire:loading.attr="disabled"
                 wire:target="openModalRegister, login"
-                wire:loading.class="cursor-not-allowed opacity-100 pointer-events-none"
+                wire:loading.attr="disabled"
+                wire:loading.remove
                 >
-
-                <span wire:loading wire:target="login">
-                    <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.loading variant="micro"/>
-                        </span>
-                        <span>{{ __('Logging In...') }}</span>
-                    </span>
-                </span>
-                <span wire:loading.remove wire:target="login">
                     <span class="flex items-center justify-center gap-2">
                         <span>
                             <flux:icon.arrow-right-circle variant="micro"/>
                         </span>
                         <span>{{ __('Log in') }} </span>
                     </span>
-                </span>
             </flux:button>
 
            <div class="w-full flex items-center justify-center">
                 <flux:button
+                    type="button"
                     variant="primary"
                     color="zinc"
                     class="w-full transition duration-300 ease-in-out"
                     wire:click="openModalRegister"
-                    wire:target="openModalRegister"
+                    wire:target="openModalRegister, login"
                     wire:loading.attr="disabled"
                     wire:loading.remove
                 >
@@ -129,13 +119,12 @@
                         <span>{{ __('Register') }}</span>
                     </span>
                 </flux:button>
-
-                <div wire:loading wire:target="openModalRegister">
-                    <div class="flex items-center justify-center gap-2">
-                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.2s]"></div>
-                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.4s]"></div>
-                    </div>
+            </div>
+             <div wire:loading wire:target="openModalRegister, login">
+                <div class="w-full flex items-center justify-center gap-2">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                 </div>
             </div>
         </div>

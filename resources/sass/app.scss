@@ -40,3 +40,174 @@
         }
     }
 }
+// -------------------------------
+// Badge Theme (Bluish Palette)
+// -------------------------------
+
+// -------------------------------
+// Badge Theme (Bluish Palette)
+// -------------------------------
+
+// Light mode palette
+$badge-bg: #f0f6ff;     // light bluish background
+$badge-text: #1d4ed8;   // deep blue text (Tailwind blue-700)
+$badge-hover: #e0edff;  // hover bluish
+$badge-border: #c7d8ff; // border in light mode
+
+// Dark mode palette
+$badge-bg-dark: #1e293b;    // slate/navy dark background
+$badge-text-dark: #93c5fd;  // lighter blue text
+$badge-hover-dark: #334155; // darker navy on hover
+$badge-border-dark: #475569; // border in dark mode
+
+.fi-badge {
+  // Base styles
+  background-color: $badge-bg !important;
+  color: $badge-text !important;
+  border: 1px solid $badge-border;
+  border-radius: 0.5rem; // soft rounded corners
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem; // balance with button
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem; // tighter gap between text and button
+  line-height: 1.25rem;
+
+  // Hover effect for entire badge
+  &:hover {
+    background-color: $badge-hover !important;
+  }
+
+  // -------------------------------
+  // Delete Button (X) beside text
+  // -------------------------------
+  .fi-badge-delete-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin-left: 0; // tight beside text
+    color: inherit; // inherit text color initially
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      color: darken($badge-text, 10%); // darker blue hover in light mode
+    }
+
+    svg {
+      color: $badge-text; // fixed blue icon
+      width: 0.85rem;
+      height: 0.85rem;
+      display: block;
+      pointer-events: none; // avoids blocking button click
+    }
+  }
+
+  // -------------------------------
+  // Dark Mode Styling
+  // -------------------------------
+  :where(.dark, .dark *) & {
+    background-color: $badge-bg-dark !important;
+    color: $badge-text-dark !important;
+    border-color: $badge-border-dark;
+
+    &:hover {
+      background-color: $badge-hover-dark !important;
+    }
+
+    .fi-badge-delete-btn {
+      &:hover {
+        color: lighten($badge-text-dark, 10%); // lighter hover in dark mode
+      }
+
+      svg {
+        color: $badge-text-dark; // bluish icon in dark mode
+      }
+
+      > .fi-icon {
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, $badge-text-dark 80%, transparent);
+        }
+
+        @supports not (color: color-mix(in lab, red, red)) {
+          color: $badge-text-dark;
+        }
+      }
+    }
+  }
+}
+
+/* ------------------------------- */
+/* Filament Table Checkboxes       */
+/* ------------------------------- */
+
+input[type="checkbox"].fi-checkbox-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  border: 2px solid #c7d8ff;
+  background-color: #f0f6ff;
+  accent-color: #1d4ed8; // checkmark color
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #1e40af;
+  }
+
+  &:checked {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    accent-color: #ffffff;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.3);
+
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-ring-color: color-mix(in oklab, var(--primary-500) 50%, transparent);
+      }
+    }
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+  }
+}
+
+/* ------------------------------- */
+/* Dark Mode Support               */
+/* ------------------------------- */
+.dark input[type="checkbox"].fi-checkbox-input {
+  border-color: #475569;
+  background-color: #1e293b;
+  accent-color: #93c5fd;
+
+  &:hover {
+    border-color: #60a5fa;
+  }
+
+  &:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    accent-color: #ffffff;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-ring-color: color-mix(in oklab, var(--primary-400) 50%, transparent);
+      }
+    }
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+}
+
+

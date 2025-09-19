@@ -4,7 +4,7 @@ namespace App\Livewire\Partials;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Route;
 class Navigation extends Component
 {
     public $user;
@@ -20,11 +20,31 @@ class Navigation extends Component
 
     public $unreadLimit = 20;
     public $readLimit = 20;
-
+    public $header = 'Dashboard';
     protected $listeners = [
         'user-profile-updated' => 'refreshUserData',
         'notification-created'  => 'prependNewNotification',
         'refreshNotifications' => 'refreshNotifications',
+    ];
+    private $routeHeaders = [
+
+        'dashboard'          => 'Dashboard',
+        'activity-logs.index' => 'Activity Logs',
+        'users.citizens'     => 'Citizen Users',
+        'users.hr-liaisons'  => 'HR Liaisons Users',
+
+
+        'grievance.index'    => 'My Grievances',
+        'grievance.create'   => 'File a Grievance',
+        'grievance.edit'     => 'Edit Grievance',
+
+
+        'settings'              => 'Settings',
+        'settings.profile'      => 'Profile Settings',
+        'settings.appearance'   => 'Appearance Settings',
+        'settings.two-factor-auth' => 'Two-Factor Authentication',
+        'password.confirm'      => 'Confirm Password',
+        'sidebar'               => 'Sidebar',
     ];
 
     public function mount()
@@ -39,6 +59,33 @@ class Navigation extends Component
             $this->updateStatus();
             $this->loadNotifications();
         }
+
+        $this->setHeader();
+    }
+    public function getHeaderIconClass()
+    {
+        $icons = [
+            // -------------------- Admin --------------------
+            'Dashboard' => 'bi bi-speedometer2',
+            'Activity Logs' => 'bi bi-journal-text',
+            'Citizen Users' => 'bi bi-people',
+            'HR Liaisons Users' => 'bi bi-person-badge',
+
+            // -------------------- Citizen --------------------
+            'My Grievances' => 'bi bi-file-earmark-text',
+            'File a Grievance' => 'bi bi-plus-square',
+            'Edit Grievance' => 'bi bi-pencil-square',
+
+            // -------------------- General --------------------
+            'Settings' => 'bi bi-gear',
+            'Profile Settings' => 'bi bi-person-circle',
+            'Appearance Settings' => 'bi bi-palette',
+            'Two-Factor Authentication' => 'bi bi-shield-lock',
+            'Confirm Password' => 'bi bi-lock',
+            'Sidebar' => 'bi bi-list',
+        ];
+
+        return $icons[$this->header] ?? 'bi bi-circle'; // fallback
     }
 
     public function hydrate()
@@ -47,6 +94,13 @@ class Navigation extends Component
         $this->updateStatus();
     }
 
+    private function setHeader()
+    {
+        $currentRoute = Route::currentRouteName();
+
+        $this->header = $this->routeHeaders[$currentRoute]
+            ?? ucfirst(str_replace('.', ' ', $currentRoute));
+    }
     /** ------------------ STATUS ------------------ */
     public function getUserStatus()
     {

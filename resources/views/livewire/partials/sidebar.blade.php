@@ -195,11 +195,11 @@
         <div
             class="flex items-center px-4 py-3 w-full cursor-pointer text-sm font-medium text-white relative
                 bg-red-600 hover:bg-red-500 shadow-md"
-            @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-            @mouseleave="showTooltip = false"
-            @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
-            x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
-        >
+                @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                @mouseleave="showTooltip = false"
+                @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
+                x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+            >
             <!-- Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24" stroke-width="2"

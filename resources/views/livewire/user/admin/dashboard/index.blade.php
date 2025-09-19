@@ -1,47 +1,42 @@
-<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+    <!-- Global Loader -->
+    <div wire:loading wire:target="startDate,endDate"
+         class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+        <div class="flex flex-col mt-6 items-center">
+            <flux:icon.loading class="h-12 w-12 text-blue-600"/>
+            <span class="mt-3 text-gray-700 dark:text-gray-300 text-sm">Refreshing dashboard…</span>
+        </div>
+    </div>
 
-    <!-- Header -->
-    <header class="p-6 flex flex-col gap-2 bg-sky-500/10 rounded-b-lg shadow-sm">
-        <div class="flex items-center gap-3">
-            <svg class="w-8 h-8 text-sky-900 dark:text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875
-                        c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504
-                        1.125-1.125V9.75M8.25 21h8.25" />
-            </svg>
-            <h1 class="text-3xl font-semibold text-sky-900 dark:text-blue-500">Dashboard</h1>
+    <!-- Date Filters -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 w-full px-4">
+        <div class="w-full md:w-1/2">
+            <flux:input label="Start Date" type="date" wire:model.live="startDate" class:input="w-full"/>
         </div>
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                Welcome back, <span class="text-sky-900 dark:text-blue-500">{{ $user->name }}</span>
-            </h2>
-            <p class="mt-1 text-gray-600 dark:text-gray-300">Here’s what’s happening in the system today:</p>
+        <div class="w-full md:w-1/2">
+            <flux:input label="End Date" type="date" wire:model.live="endDate" class:input="w-full"/>
         </div>
-    </header>
+    </div>
 
     <!-- Stats Widgets -->
     <section class="w-full p-4">
-        <div class="flex">
+        <div class="flex flex-col lg:flex-row gap-6">
             <livewire:user.admin.dashboard.custom-stats />
         </div>
     </section>
 
     <!-- Chart Widgets -->
-    <section class="w-full flex justify-center gap-6 bg-white dark:bg-zinc-800 p-3">
-            <div class="rounded-lg shadow flex items-center justify-center">
-                <livewire:chart-widget />
-            </div>
-            <div class="rounded-lg shadow flex items-center justify-center">
-                <livewire:pie-widget />
-            </div>
+    <section class="w-full grid grid-cols-1 gap-6 bg-white dark:bg-zinc-800 p-3">
+            <livewire:bar-widget />
+            <livewire:pie-widget />
     </section>
 
+    <!-- Table -->
     <section class="w-full p-4 mt-4 bg-white dark:bg-zinc-800">
         @can('viewAny', $userModel)
-            <div class="shadow-sm rounded-lg p-4">
+            <div class="shadow-sm rounded-lg p-4 overflow-x-auto">
                 <livewire:dashboard-table/>
             </div>
         @endcan
     </section>
-
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Forms;
@@ -39,6 +40,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     {
         return [
             Select::make('grievance_type')
+                ->prefixIcon("heroicon-o-document")
                 ->label('Grievance Type')
                 ->native(false)
                 ->options([
@@ -51,8 +53,12 @@ class Create extends Component implements Forms\Contracts\HasForms
 
             Select::make('department')
                 ->label('Department')
+                ->prefixIcon('heroicon-o-building-office')
                 ->multiple()
-                ->options(Department::pluck('department_name', 'department_id')->toArray())
+                ->searchable()
+                ->options(
+                    Department::pluck('department_name', 'department_id')->toArray()
+                )
                 ->required(),
 
             TextInput::make('grievance_title')

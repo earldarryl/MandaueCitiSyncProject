@@ -69,28 +69,24 @@
                 color="blue"
                 class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                 wire:click="login"
-                wire:loading.attr="disabled"
                 wire:target="openModalRegister, login"
-                wire:loading.class="cursor-not-allowed"
+                wire:loading.attr="disabled"
+                wire:loading.remove
                 >
-
-                <span wire:loading wire:target="login">
-                    <span class="flex items-center justify-center gap-2">
-                        <span>
-                            <flux:icon.loading variant="micro"/>
-                        </span>
-                        <span>{{ __('Logging In...') }}</span>
-                    </span>
-                </span>
-                <span wire:loading.remove wire:target="login">
                     <span class="flex items-center justify-center gap-2">
                         <span>
                             <flux:icon.arrow-right-circle variant="micro"/>
                         </span>
                         <span>{{ __('Log in') }} </span>
                     </span>
-                </span>
             </flux:button>
+            <div wire:loading wire:target="openModalRegister, login">
+                <div class="w-full flex items-center justify-center gap-2">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full"></div>
+                </div>
+            </div>
         </div>
     </form>
 

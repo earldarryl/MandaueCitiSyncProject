@@ -18,7 +18,7 @@ class Sidebar extends Component
             $this->menuItems = [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
+                    'icon' => 'bi bi-speedometer2',
                     'route' => 'dashboard',
                 ],
                 [
@@ -57,7 +57,7 @@ class Sidebar extends Component
             $this->menuItems = [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
+                    'icon' => 'bi bi-speedometer2',
                     'route' => 'dashboard',
                 ],
                  [
@@ -86,7 +86,7 @@ class Sidebar extends Component
             $this->menuItems = [
                  [
                     'label' => 'Grievance',
-                    'icon' => 'bi bi-house',
+                    'icon' => 'bi bi-file-earmark-text',
                     'route' => 'grievance.create',
                 ],
                 [

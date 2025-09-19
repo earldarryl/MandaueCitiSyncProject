@@ -5,34 +5,52 @@ namespace App\Livewire;
 use App\Models\User;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions\Action;
-use Illuminate\Support\Str;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms;
+use Illuminate\Support\Str;
 
 class DashboardTable extends TableWidget
 {
     protected int|string|array $columnSpan = 'full';
-
     protected static ?string $heading = 'Recent Users Registered';
+
+    // Enable Livewire polling every 5 seconds
+    protected static bool $polling = true;
+    protected static ?string $pollingInterval = '5s';
+
     public function getTable(): Table
     {
-        return Table::make($this)
-            ->query(User::query()->latest('created_at'))
+        $table = Table::make($this)
+            ->query(User::query())
+            ->heading('Citizens')
+            ->description('Manage your citizens here.')
             ->columns($this->getTableColumns())
             ->filters($this->getTableFilters())
+            ->filtersLayout(FiltersLayout::AboveContentCollapsible)
             ->actions($this->getTableActions())
             ->bulkActions($this->getTableBulkActions())
-            ->paginated([10]);
+            ->defaultPaginationPageOption(10)
+            ->striped(true)
+            ->reorderable('sort_order', fn() => true) // This correctly enables row reordering on the 'sort_order' column
+            ->reorderRecordsTriggerAction(
+                fn (Action $action, bool $isReordering) => $action
+                    ->button()
+                    ->label($isReordering ? 'Disable reordering' : 'Enable reordering')
+            )
+            ->deferLoading();
+
+        return $table;
     }
 
     protected function getTableColumns(): array
@@ -50,21 +68,24 @@ class DashboardTable extends TableWidget
             TextColumn::make('name')
                 ->label('Name')
                 ->sortable()
-                ->searchable()
+                ->toggleable()
+                ->searchable(isIndividual: true, isGlobal: false)
                 ->weight('medium'),
             TextColumn::make('email')
                 ->label('Email')
                 ->sortable()
+                ->toggleable()
                 ->searchable(),
             TextColumn::make('roles.name')
                 ->label('Role')
                 ->badge()
+                ->toggleable()
                 ->sortable()
                 ->formatStateUsing(fn ($state) => $state
                     ? ($state === 'hr_liaison' ? 'HR Liaison' : Str::headline($state))
                     : null
                 )
-                ->color(fn (User $record) => match ($record->roles->first()?->name ?? '') {
+                ->color(fn ($record) => match ($record->roles->first()?->name ?? '') {
                     'admin' => 'danger',
                     'hr_liaison' => 'info',
                     'citizen' => 'success',
@@ -73,19 +94,21 @@ class DashboardTable extends TableWidget
             IconColumn::make('status')
                 ->label('Online')
                 ->boolean()
+                ->toggleable()
                 ->trueIcon('heroicon-o-bolt')
                 ->falseIcon('heroicon-o-x-circle')
-                ->color(fn (User $record) => match ($record->status) {
+                ->color(fn ($record) => match ($record->status) {
                     'online' => 'success',
                     'away' => 'warning',
                     'offline' => 'secondary',
                     default => 'secondary',
                 })
-                ->tooltip(fn (User $record) => ucfirst($record->status)),
+                ->tooltip(fn ($record) => ucfirst($record->status)),
             TextColumn::make('created_at')
                 ->label('Joined')
                 ->dateTime('M d, Y')
                 ->sortable()
+                ->toggleable()
                 ->color('gray'),
         ];
     }
@@ -177,7 +200,7 @@ class DashboardTable extends TableWidget
                 ])
                 ->modalHeading('Edit User')
                 ->modalButton('Save Changes')
-                ->action(fn (User $record, array $data) => $record->update($data)),
+                ->action(fn ($record, array $data) => $record->update($data)),
             DeleteAction::make()
                 ->label('Delete')
                 ->icon('heroicon-o-trash')
