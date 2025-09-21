@@ -129,7 +129,7 @@
                             {{ $unreadCount }}
                         </span>
                     @endif
-                    <div class="p-2 rounded-full dark:hover:bg-zinc-800/50 hover:bg-gray-200/20 text-sky-900 dark:text-blue-500">
+                    <div class="p-2 rounded-full dark:hover:bg-zinc-800 hover:bg-gray-200 text-sky-900 dark:text-blue-500">
                         <flux:icon.bell class="w-6 h-6"/>
                     </div>
                 </div>
@@ -159,7 +159,7 @@
                             x-transition:leave-end="translate-x-full"
                         >
                             <!-- Header -->
-                            <div class="flex items-center justify-between p-4 border-b dark:border-zinc-700 flex-shrink-0">
+                            <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0">
                                 <span class="font-semibold">Notifications</span>
                                 <flux:button type="button" icon="x-mark" @click="$store.notifications.close()" ></flux:button>
                             </div>

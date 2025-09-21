@@ -86,8 +86,9 @@ class Sidebar extends Component
             $this->menuItems = [
                  [
                     'label' => 'Grievance',
-                    'icon' => 'bi bi-file-earmark-text',
-                    'route' => 'grievance.create',
+                    'icon'  => 'bi bi-file-earmark-text',
+                    'route' => 'grievance.index',
+                    'activePattern' => 'grievance.*',
                 ],
                 [
                     'label' => 'FAQs',

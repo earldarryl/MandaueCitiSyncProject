@@ -6,7 +6,7 @@
     </div>
 
     <form wire:submit="login" class="flex flex-col gap-5">
-
+        <flux:error name="status" />
         <!-- Email Address -->
             <flux:field>
                 <div class="flex flex-col gap-2">
@@ -89,72 +89,5 @@
             </div>
         </div>
     </form>
-
-    <div
-    x-data="{
-        open: @entangle('isOpenModalLogin'),
-        showButton: @entangle('isButtonShow'),
-        redirectUrl: @entangle('redirectLink')
-    }"
->
-    <!-- Modal Background -->
-    <div
-        x-show="open"
-        x-transition.opacity.duration.300ms
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        x-cloak
-    >
-        <!-- Modal Box -->
-        <div
-            x-show="open"
-            x-transition.scale.duration.300ms
-            class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg w-3/4 sm:2/4 md:2/4 lg:w-2/6 h-auto pb-8 flex flex-col gap-8"
-        >
-            <header class="flex justify-center items-center rounded-tr-lg rounded-tl-lg bg-green-700 text-white">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-35">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-            </header>
-            <div class="px-5 flex flex-col gap-8">
-                <h1 class="text-3xl font-bold inline-flex justify-center items-center">
-                    Login Successful!
-                </h1>
-                <p class="text-sm text-gray-700 dark:text-gray-400 inline-flex justify-center items-center">
-                    Your account logged in successfully, you can now proceed.
-                </p>
-                <div class="flex justify-end">
-                    <flux:button
-                        x-show="showButton"
-                        x-data="{ loading: false }"
-                        x-on:click="
-                            loading = true;
-                            if (redirectUrl) {
-                                Livewire.navigate(redirectUrl);
-                            } else {
-                                window.location.href = '{{ route('dashboard') }}';
-                            }
-                        "
-                        variant="primary"
-                        class="bg-green-700 hover:bg-green-900 text-white flex items-center justify-center tracking-widest w-full rounded-md font-bold text-xs rounded-2x1 gap-2"
-                    >
-                        <template x-if="!loading">
-                            <div class="flex items-center gap-2">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                <span>Ok</span>
-                            </div>
-                        </template>
-
-                        <template x-if="loading">
-                            <span class="flex items-center justify-center gap-2">
-                                <span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                                <span>Loading... Please wait</span>
-                            </span>
-                        </template>
-                    </flux:button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 </div>

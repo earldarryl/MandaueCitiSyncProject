@@ -38,6 +38,7 @@
             ></div>
 
             <livewire:partials.navigation />
+            <livewire:partials.breadcrumbs/>
 
             <div class="flex-1 flex">
                 {{ $slot }}

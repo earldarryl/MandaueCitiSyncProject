@@ -1,4 +1,5 @@
-<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative p-3">
+
     <!-- Global Loader -->
     <div wire:loading wire:target="startDate,endDate"
          class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
@@ -18,25 +19,69 @@
         </div>
     </div>
 
-    <!-- Stats Widgets -->
-    <section class="w-full p-4">
-        <div class="flex flex-col lg:flex-row gap-6">
-            <livewire:user.admin.dashboard.custom-stats />
-        </div>
-    </section>
-
-    <!-- Chart Widgets -->
-    <section class="w-full grid grid-cols-1 gap-6 bg-white dark:bg-zinc-800 p-3">
-            <livewire:bar-widget />
-            <livewire:pie-widget />
-    </section>
-
-    <!-- Table -->
-    <section class="w-full p-4 mt-4 bg-white dark:bg-zinc-800">
-        @can('viewAny', $userModel)
-            <div class="shadow-sm rounded-lg p-4 overflow-x-auto">
-                <livewire:dashboard-table/>
+    <div class="flex flex-col gap-4 border-box">
+        <!-- Stats Widgets -->
+        <section class="w-full p-4">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <livewire:user.admin.dashboard.custom-stats :start-date="$startDate" :end-date="$endDate"/>
             </div>
-        @endcan
-    </section>
+        </section>
+
+        <!-- Chart Widgets -->
+        <section class="w-full flex flex-col md:flex-row gap-3 bg-white dark:bg-zinc-800 p-3">
+
+            <div class="w-full">
+                <livewire:bar-widget :start-date="$startDate" :end-date="$endDate" />
+            </div>
+
+            <div class="w-full">
+                <livewire:pie-widget :start-date="$startDate" :end-date="$endDate" />
+            </div>
+
+        </section>
+
+        <!-- Table Section -->
+        <section class="w-full p-4 bg-white dark:bg-zinc-800 relative rounded-lg">
+            @can('viewAny', $userModel)
+                <!-- Table Selector -->
+                <div class="flex w-full mb-4">
+                    {{ $this->form }}
+                </div>
+
+                <div class="shadow-sm rounded-lg p-4 overflow-x-auto relative">
+
+                    <!-- Loading Overlay for Table Switch -->
+                    <div
+                        wire:loading
+                        wire:target="activeTab"
+                        class="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-gray-900/70 z-50 rounded-lg"
+                    >
+                        <div class="flex flex-col items-center">
+                            <flux:icon.loading class="h-12 w-12 text-blue-600"/>
+                            <span class="mt-2 text-gray-700 dark:text-gray-300 text-sm">
+                                Loading table…
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Tables -->
+                    @if($activeTab === 'grievances')
+                        <livewire:dashboard-grievance-table
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            :wire:key="'grievances-table-'.$startDate.'-'.$endDate"
+                        />
+                    @elseif($activeTab === 'users')
+                        <livewire:dashboard-user-table
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            :wire:key="'users-table-'.$startDate.'-'.$endDate"
+                        />
+                    @endif
+
+                </div>
+            @endcan
+        </section>
+    </div>
+
 </div>

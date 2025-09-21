@@ -12,7 +12,7 @@
         'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
         'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
-    class="flex flex-col justify-between bg-white dark:bg-black text-sky-900 dark:text-blue-500 text-sm shadow-md min-h-full overflow-visible"
+    class="flex flex-col justify-between bg-white dark:bg-black text-sky-900 dark:text-blue-500 font-bold text-sm shadow-md min-h-full overflow-visible"
 >
     <div class="relative flex flex-col">
 
@@ -20,11 +20,11 @@
          <!-- Navigation -->
         <div
             x-cloak
-              x-data="{
-                    screen: window.innerWidth,
-                    visible: true,
-                    dropdowns: Array({{ count($menuItems) }}).fill(false) // initialize dropdowns array
-                }"
+            x-data="{
+                screen: window.innerWidth,
+                visible: true,
+                dropdowns: Array({{ count($menuItems) }}).fill(false) // initialize dropdowns array
+            }"
             x-init="
                 visible = !(screen < 600 && !$store.sidebar.open);
                 $watch('$store.sidebar.open', val => {
@@ -35,31 +35,27 @@
                 screen = window.innerWidth;
                 visible = !(screen < 600 && !$store.sidebar.open);
             "
-
             class="p-3 gap-2 text-center flex flex-col flex-shrink-0"
         >
-        @foreach ($menuItems as $index => $item)
-            @php
-                $isActive = request()->routeIs($item['route'] ?? '') ||
-                            collect($item['children'] ?? [])->pluck('route')->contains(fn($r) => request()->routeIs($r));
-            @endphp
+            @foreach ($menuItems as $index => $item)
+                @php
+                    $hasChildren = !empty($item['children']);
+                    $isActive = request()->routeIs($item['activePattern'] ?? $item['route']);
 
-            @if (!empty($item['children']))
-                    @php
-                        // Check if any child route matches the current route
-                        $isParentActive = collect($item['children'])->contains(function($child) {
-                            return request()->routeIs($child['route']);
-                        });
-                    @endphp
+                    // For parent dropdowns, check if one of the children is active
+                    if ($hasChildren) {
+                        $isActive = collect($item['children'])->contains(fn($child) => request()->routeIs($child['route']));
+                    }
+                @endphp
 
+                @if ($hasChildren)
+                    <!-- Parent Dropdown Item -->
                     <div class="relative"
-                        x-data="{ showTooltip: false, hide: false, update() { this.hide = !$store.sidebar.open; } }"
+                        x-data="{ showTooltip: false }"
                         @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                        @mouseleave="showTooltip = false"
-                        x-init="update()"
-                        x-effect="$watch('$store.sidebar.open', () => update())"
-                    >
-                        <!-- Parent Item -->
+                        @mouseleave="showTooltip = false">
+
+                        <!-- Parent Button -->
                         <div
                             @click="
                                 if ($store.sidebar.open) {
@@ -69,7 +65,7 @@
                                 }
                             "
                             class="flex items-center gap-2 rounded-lg cursor-pointer transition
-                                {{ $isParentActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
+                                {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
                             :class="$store.sidebar.open ? 'justify-between' : 'justify-center'"
                         >
                             <!-- Icon -->
@@ -77,17 +73,21 @@
                                 <i class="{{ $item['icon'] }}"></i>
                             </div>
 
-                            <!-- Tooltip -->
+                            <!-- Tooltip (when collapsed) -->
                             <span x-show="showTooltip && !$store.sidebar.open"
                                 x-transition
                                 x-cloak
-                                class="fixed w-auto font-bold text-left left-14 px-4 py-2 transition-all text-left dark:bg-zinc-800 bg-gray-200 duration-300 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap"
-                                @click="$store.sidebar.toggle(); dropdowns[{{ $index }}] = false">
+                                class="fixed w-auto text-left left-14 px-4 py-2 transition-all
+                                        dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap">
                                 {{ $item['label'] }}
                             </span>
 
                             <!-- Label -->
-                            <span x-ref="box" :class="{ 'left-14 opacity-100 transition-all duration-200': $store.sidebar.open, 'opacity-0 ': !$store.sidebar.open, }" class="absolute w-full text-left ease-in-out overflow-x-hidden" > {{ $item['label'] }} </span>
+                            <span x-show="$store.sidebar.open"
+                                x-transition
+                                class="ml-2 text-sm font-medium">
+                                {{ $item['label'] }}
+                            </span>
 
                             <!-- Dropdown Arrow -->
                             <svg x-show="$store.sidebar.open"
@@ -97,18 +97,16 @@
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke-width="1.5"
-                                stroke="currentColor"
-                            >
+                                stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                             </svg>
                         </div>
 
                         <!-- Dropdown Children -->
-                       <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
+                        <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
                             class="relative overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1">
-
-                            <!-- Vertical line inside the parent -->
-                            <div class="absolute top-0 left-5 h-full w-0.5 bg-black"></div>
+                            <!-- Line -->
+                            <div class="absolute top-0 left-5 h-full w-0.5 bg-sky-900 dark:bg-blue-500"></div>
 
                             @foreach ($item['children'] as $child)
                                 @php
@@ -116,15 +114,12 @@
                                 @endphp
 
                                 <x-responsive-nav-link href="{{ route($child['route']) }}"
-                                                        class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
-                                                            {{ $isChildActive
-                                                                ? 'bg-gray-200 dark:bg-zinc-800 font-bold'
+                                                    class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
+                                                        {{ $isChildActive
+                                                                ? 'bg-gray-200 dark:bg-zinc-800'
                                                                 : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
-                                                        wire:navigate
-                                >
-                                    <span class="inline-block text-center">
-                                        <i class="{{ $child['icon'] }}"></i>
-                                    </span>
+                                                    wire:navigate>
+                                    <i class="{{ $child['icon'] }}"></i>
                                     <span x-show="$store.sidebar.open" x-transition class="ml-2">
                                         {{ $child['label'] }}
                                     </span>
@@ -133,56 +128,45 @@
                         </div>
                     </div>
                 @else
+                    <!-- Single Link Item -->
+                    <x-responsive-nav-link
+                        href="{{ route($item['route']) }}"
+                        class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition overflow-hidden
+                            {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                        x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+                        x-data="{ showTooltip: false }"
+                        @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                        @mouseleave="showTooltip = false"
+                        wire:navigate
+                    >
+                        <span class="inline-block text-center">
+                            <i class="{{ $item['icon'] }}"></i>
+                        </span>
+                        <div
+                            x-cloak
+                            :class="{
+                                'left-14 opacity-100 transition-all duration-400': $store.sidebar.open,
+                                'opacity-0 ': !$store.sidebar.open,
 
-                <!-- Single Link Item -->
-                <x-responsive-nav-link
-                href="{{ route($item['route']) }}"
-                class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition overflow-hidden
-                    {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : 'dark:hover:bg-zinc-800 hover:bg-gray-200 hover:font-bold font-md' }}"
-                x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
-                x-data="{
-                    showTooltip: false,
-                    hide: false,
-                    update() {
-                        this.hide = !$store.sidebar.open;
-                    }
-                }"
-                @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                @mouseleave="showTooltip = false"
-                x-init="update()"
-                x-effect="$watch('$store.sidebar.open', () => update())"
-                wire:navigate
-            >
-                <span class="inline-block text-center">
-                    <i class="{{ $item['icon'] }}"></i>
-                </span>
-                <div
-                    x-cloak
-                    :class="{
-                        'left-14 opacity-100 transition-all duration-200': $store.sidebar.open,
-                        'opacity-0 ': !$store.sidebar.open,
+                            }"
+                            class="absolute w-full text-left ease-in-out overflow-x-hidden "
+                        >
+                        <span>
+                            {{ $item['label'] }}
+                        </span>
+                        </div>
 
-                    }"
-                    class="absolute w-full text-left ease-in-out overflow-x-hidden "
-                >
-                <span>
-                     {{ $item['label'] }}
-                </span>
-                </div>
-
-                 <!-- Tooltip (when sidebar is collapsed) -->
-                <span
-                    x-show="showTooltip && !$store.sidebar.open"
-                    x-transition
-                    x-cloak
-                    class="fixed w-auto font-bold text-left left-14 px-4 py-2 transition-all text-left dark:bg-zinc-800 bg-gray-200 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
-                >
-                    {{ $item['label'] }}
-                </span>
-            </x-responsive-nav-link>
-
-            @endif
-        @endforeach
+                        <!-- Tooltip (collapsed) -->
+                        <span x-show="showTooltip && !$store.sidebar.open"
+                            x-transition
+                            x-cloak
+                            class="fixed w-auto text-left left-14 px-4 py-2 transition-all
+                                    dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap">
+                            {{ $item['label'] }}
+                        </span>
+                    </x-responsive-nav-link>
+                @endif
+            @endforeach
         </div>
     </div>
     </div>
@@ -235,7 +219,7 @@
             <span
                 x-show="showTooltip && !$store.sidebar.open"
                 x-cloak
-               class="fixed w-auto font-bold text-left left-14 -bottom-1 p-4 text-sm transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
+               class="fixed w-auto text-left left-14 -bottom-1 p-4 text-sm transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
             >
                 <span x-show="!loadingLogoutModal">Log out</span>
                 <span

@@ -29,19 +29,19 @@ Route::middleware(['auth', 'verified.redirect'])->prefix('verify')->group(functi
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    // -------------------- Citizen Routes --------------------
+    Route::middleware('role:citizen')->group(function () {
+        Volt::route('grievance/index', 'user.citizen.grievance.index')->name('grievance.index');
+        Volt::route('grievance/create', 'user.citizen.grievance.create')->name('grievance.create');
+        Volt::route('grievance/edit/{id}', 'user.citizen.grievance.edit')->name('grievance.edit');
+    });
+
     // -------------------- Admin Routes --------------------
     Route::middleware('role:admin')->group(function () {
         Volt::route('/dashboard', 'user.admin.dashboard.index')->name('dashboard');
         Volt::route('admin/activity-logs', 'user.admin.activtiy-logs.index')->name('activity-logs.index');
         Volt::route('admin/users/citizens', 'user.admin.users.citizens.index')->name('users.citizens');
         Volt::route('admin/users/hr-liaisons', 'user.admin.users.hr-liaisons.index')->name('users.hr-liaisons');
-    });
-
-    // -------------------- Citizen Routes --------------------
-    Route::middleware('role:citizen')->group(function () {
-        Volt::route('grievance/index', 'user.citizen.grievance.index')->name('grievance.index');
-        Volt::route('grievance/create', 'user.citizen.grievance.create')->name('grievance.create');
-        Volt::route('grievance/edit', 'user.citizen.grievance.edit')->name('grievance.edit');
     });
 
     // -------------------- General Routes --------------------

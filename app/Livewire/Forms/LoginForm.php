@@ -35,7 +35,7 @@ class LoginForm extends Form
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'form.email' => 'The provided email address does not exist.',
+                'status' => 'The provided email address does not exist.',
             ]);
         }
 
@@ -43,7 +43,7 @@ class LoginForm extends Form
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'form.password' => 'The provided password is incorrect.',
+                'status' => 'These credentials do not match our records.',
             ]);
         }
 
@@ -54,7 +54,7 @@ class LoginForm extends Form
         if (! $user->hasRole($expectedRole)) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'form.email' => 'These credentials do not match our records.',
+                'status' => 'These credentials do not match our records.',
             ]);
         }
 
@@ -73,7 +73,7 @@ class LoginForm extends Form
         $redirect = match ($role) {
             'admin'      => route('dashboard'),
             'hr_liaison' => route('dashboard'),
-            'citizen'    => route('grievance.create'),
+            'citizen'    => route('grievance.index'),
             default      => route('dashboard'),
         };
 

@@ -2,53 +2,62 @@
 
 namespace App\Livewire;
 
+use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget as BaseChartWidget;
 use App\Models\User;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class BarWidget extends BaseChartWidget
 {
     public $startDate;
     public $endDate;
+
     protected ?string $heading = 'Users Registered';
     protected $listeners = ['dateRangeUpdated'];
+
+    protected static ?int $contentHeight = 400; // Height in pixels
 
     public function dateRangeUpdated($start, $end)
     {
         $this->startDate = $start;
         $this->endDate = $end;
+        $this->updateChartData(); // Added to refresh chart on date change
     }
 
     protected function getData(): array
     {
-        $start = $this->startDate ? Carbon::parse($this->startDate) : Carbon::now()->subDays(6);
-        $end   = $this->endDate ? Carbon::parse($this->endDate) : Carbon::now();
+        $start = $this->startDate ? Carbon::parse($this->startDate) : now()->subDays(6);
+        $end = $this->endDate ? Carbon::parse($this->endDate) : now();
 
         $users = User::whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()])
             ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
             ->groupBy('date')
-            ->orderBy('date')
             ->pluck('total', 'date');
 
-        $period = \Carbon\CarbonPeriod::create($start, $end);
+        $period = CarbonPeriod::create($start, $end);
+
         $labels = [];
         $data = [];
         foreach ($period as $date) {
-            $labels[] = $date->format('M d'); // e.g., Sep 19
+            $labels[] = $date->format('M d');
             $data[] = $users[$date->format('Y-m-d')] ?? 0;
         }
 
         return [
+            'labels' => $labels,
             'datasets' => [
                 [
                     'label' => 'Users Registered',
                     'data' => $data,
-                    'backgroundColor' => 'rgba(54, 162, 235, 0.7)',
-                    'borderColor' => 'rgba(54, 162, 235, 1)',
-                    'borderWidth' => 1,
+                    'backgroundColor' => 'rgba(37, 99, 235, 0.7)',
+                    'borderColor' => 'rgba(37, 99, 235, 1)',
+                    'borderWidth' => 2,
+                    'width' => 10,
+                    'height'=> 10,
+                    'barPercentage' => 1,
                 ],
             ],
-            'labels' => $labels,
         ];
     }
 
@@ -57,32 +66,25 @@ class BarWidget extends BaseChartWidget
         return 'bar';
     }
 
-    // must be public
     public function getColumnSpan(): int|string|array
     {
-        return 'full'; // full width
+        return 'full';
     }
 
-    // must be public
-    public function getContentHeight(): string
+    protected function getOptions(): RawJs
     {
-        $labelCount = count($this->getData()['labels'] ?? []);
-        $height = 300 + ($labelCount * 10); // base height + growth
-
-        return $height . 'px';
-    }
-
-    // must be public
-    public function getOptions(): array
-    {
-        return [
-            'maintainAspectRatio' => false,
-            'responsive' => true,
-            'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
-                ],
-            ],
-        ];
+        return RawJs::make(<<<JS
+            {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (value) => value,
+                        },
+                    },
+                },
+            }
+        JS);
     }
 }

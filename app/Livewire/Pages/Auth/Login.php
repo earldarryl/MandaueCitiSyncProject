@@ -13,10 +13,8 @@ use Livewire\Attributes\Title;
 class Login extends Component
 {
     public LoginForm $form;
-    public bool $isOpenModalLogin = false;
     public string $title = 'Login';
     public string $redirectLink = '';
-    public bool $isButtonShow = false;
     protected $listeners = ['openModalRegister'];
 
     public function openModalRegister()
@@ -32,19 +30,16 @@ class Login extends Component
 
         $result = $this->form->authenticate('citizen');
 
+        // Regenerate session after login
         Session::regenerate();
         Session::forget('password_reset_done');
-        $this->isOpenModalLogin = true;
-        $this->isButtonShow = true;
+        Session::put('just_logged_in', true);
 
-        $user = $result['user'];
-        $redirect = $result['redirect'];
+        $redirect = $result['redirect'] ?? null;
 
         if ($redirect) {
-            $this->redirectLink = $redirect;
+            $this->redirect($redirect, navigate: true);
         }
-
-        Session::put('just_logged_in', true);
     }
 
     public function render()

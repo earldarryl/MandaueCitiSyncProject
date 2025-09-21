@@ -40,15 +40,13 @@ class Login extends Component
 
         Session::regenerate();
         Session::forget('password_reset_done');
-        $this->isOpenModalLogin = true;
-        $this->isButtonShow = true;
-
-        $redirect = $result['redirect'];
-        if ($redirect) {
-            $this->redirectLink = $redirect;
-        }
-
         Session::put('just_logged_in', true);
+
+        $redirect = $result['redirect'] ?? null;
+
+        if ($redirect) {
+            $this->redirect($redirect, navigate: true);
+        }
     }
 
     public function render()
