@@ -105,3 +105,89 @@
     color: white !important;
 }
 
+/* Container style for toggle buttons */
+.fi-fo-toggle-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Base style for all toggle buttons */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn {
+    background-color: #bae6fd; /* Light blue background */
+    color: #1e3a8a;            /* Dark blue text */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Icon inside button */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn svg {
+    color: #1e3a8a;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover {
+    background-color: #93c5fd; /* Slightly darker blue */
+    color: #1e40af;
+}
+
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover svg {
+    color: #1e40af;
+}
+
+/* Checked / active button style */
+.fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn {
+    background-color: #3b82f6; /* Tailwind blue-500 */
+    color: #ffffff !important;
+    border-color: #2563eb;
+}
+
+/* Icon inside checked button */
+.fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn svg {
+    color: #ffffff;
+}
+
+/* Focus outline for accessibility */
+.fi-fo-toggle-buttons-btn-ctn input:focus + label.fi-btn {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    outline: none;
+}
+
+/* Dark mode overrides */
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn {
+    background-color: #1e293b; /* Dark gray background */
+    color: #93c5fd;            /* Light blue text */
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn svg {
+    color: #93c5fd;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover {
+    background-color: #334155; /* Slightly lighter gray */
+    color: #60a5fa;            /* Brighter blue */
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover svg {
+    color: #60a5fa;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn {
+    background-color: #3b82f6;
+    color: #ffffff !important;
+    border-color: #2563eb;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn svg {
+    color: #ffffff;
+}
+
+.fi-active {
+    color: #1e40af;
+}
+.dark .fi-active {
+    color: #3b82f6;
+}

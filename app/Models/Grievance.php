@@ -15,7 +15,7 @@ class Grievance extends Model
     const PRIORITY_HIGH = 'High';
     protected $fillable = [
         'user_id',
-        'category',
+        'is_anonymous',
         'grievance_status',
         'priority_level',
         'grievance_type',

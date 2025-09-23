@@ -2,14 +2,17 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
 use App\Models\Grievance;
 use App\Models\GrievanceAttachment;
@@ -18,13 +21,15 @@ use App\Models\Assignment;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.app')]
 #[Title('Grievance Form Submission')]
 class Create extends Component implements Forms\Contracts\HasForms
 {
-    use WithFileUploads, Forms\Concerns\InteractsWithForms;
+    use WithFileUploads, InteractsWithForms, InteractsWithActions;
 
+    public $is_anonymous;
     public $grievance_type;
     public $grievance_title;
     public $grievance_details;
@@ -34,12 +39,20 @@ class Create extends Component implements Forms\Contracts\HasForms
 
     public function mount(): void
     {
-        $this->form->fill([]);
+        $this->form->fill();
     }
 
     protected function getFormSchema(): array
     {
         return [
+            ToggleButtons::make('is_anonymous')
+                ->label('Submit Anonymously?')
+                ->options([true => 'Yes', false => 'No'])
+                ->icons([true => Heroicon::Eye, false => Heroicon::EyeSlash])
+                ->default(false)
+                ->helperText('If checked, your identity will not be revealed to the assigned HR liaisons.')
+                ->required(),
+
             Select::make('grievance_type')
                 ->prefixIcon("heroicon-o-document")
                 ->label('Grievance Type')
@@ -50,8 +63,6 @@ class Create extends Component implements Forms\Contracts\HasForms
                     'Request' => 'Request',
                     'Suggestion/Feedback' => 'Suggestion/Feedback',
                 ])
-                ->placeholder(false)
-                ->extraAttributes(['class' => 'cursor-pointer'])
                 ->required(),
 
             Select::make('department')
@@ -60,25 +71,15 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->multiple()
                 ->searchable()
                 ->options(
-                    Department::whereHas('hrLiaisons')
-                        ->pluck('department_name', 'department_id')
-                        ->toArray()
+                    Department::whereHas('hrLiaisons')->pluck('department_name', 'department_id')->toArray()
                 )
-                ->placeholder(false)
-                ->extraAttributes(['class' => 'cursor-pointer'])
                 ->required(),
 
             Select::make('priority_level')
                 ->prefixIcon("heroicon-o-document-chart-bar")
                 ->label('Priority Level')
                 ->native(false)
-                ->options([
-                    'Low' => 'Low',
-                    'Normal' => 'Normal',
-                    'High' => 'High',
-                ])
-                ->placeholder(false)
-                ->extraAttributes(['class' => 'cursor-pointer'])
+                ->options(['Low' => 'Low', 'Normal' => 'Normal', 'High' => 'High'])
                 ->required(),
 
             TextInput::make('grievance_title')
@@ -91,37 +92,36 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->label('Grievance Details')
                 ->required()
                 ->toolbarButtons([
-                    'bold',
-                    'italic',
-                    'underline',
-                    'strike',
-                    'bulletList',
-                    'orderedList',
-                    'link',
-                    'blockquote',
-                    'codeBlock',
+                    'bold','italic','underline','strike',
+                    'bulletList','orderedList','link',
+                    'blockquote','codeBlock'
                 ])
                 ->placeholder('Enter the details of your grievance here...'),
 
             FileUpload::make('grievance_files')
                 ->label('Upload Attachments')
+                ->multiple()
+                ->preserveFilenames()
+                ->downloadable()
+                ->openable()
+                ->previewable(true)
+                ->reorderable()
                 ->disk('public')
                 ->directory('grievance_files')
-                ->preserveFilenames()
-                ->multiple()
-                ->image()
-                ->imageEditor()
-                ->panelLayout('grid')
-                ->maxFiles(5)
-                ->maxSize(5120)
-                ->storeFiles()
+                ->maxSize(51200)
                 ->acceptedFileTypes([
                     'application/pdf',
-                    'image/*',
                     'application/msword',
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
                 ])
-                ->getUploadedFileNameForStorageUsing(fn (TemporaryUploadedFile $file): string => $file->getClientOriginalName()),
+                ->helperText('Accepted files: PDF, Word, Excel, PowerPoint, JPG, PNG, GIF. Max size 50MB.'),
         ];
     }
 
@@ -129,55 +129,70 @@ class Create extends Component implements Forms\Contracts\HasForms
     {
         $data = $this->form->getState();
 
-        $grievance = Grievance::create([
-            'user_id'          => auth()->id(),
-            'grievance_type'   => $data['grievance_type'],
-            'priority_level'   => $data['priority_level'],
-            'grievance_title'  => $data['grievance_title'],
-            'grievance_details'=> $data['grievance_details'],
-            'category'         => 'General',
-            'grievance_status' => 'pending',
-            'processing_days'  => 0,
-        ]);
+        try {
+            $grievance = Grievance::create([
+                'user_id'          => auth()->id(),
+                'grievance_type'   => $data['grievance_type'],
+                'priority_level'   => $data['priority_level'],
+                'grievance_title'  => $data['grievance_title'],
+                'grievance_details'=> $data['grievance_details'],
+                'is_anonymous'     => $data['is_anonymous'],
+                'grievance_status' => 'pending',
+                'processing_days'  => 0,
+            ]);
 
-        // Save attachments
-        if (!empty($data['grievance_files'])) {
-            foreach ($data['grievance_files'] as $filePath) {
-                // Extract the filename from the stored path
-                $originalName = basename($filePath);
+            if (!empty($this->grievance_files)) {
+                foreach ($this->grievance_files as $file) {
+                    $storedPath = is_string($file)
+                        ? $file
+                        : $file->store('grievance_files', 'public');
 
-                GrievanceAttachment::create([
-                    'grievance_id' => $grievance->grievance_id,
-                    'file_path'    => $filePath,
-                    'file_name'    => $originalName,
-                ]);
+                    GrievanceAttachment::create([
+                        'grievance_id' => $grievance->grievance_id,
+                        'file_path'    => $storedPath,
+                        'file_name'    => basename($storedPath),
+                    ]);
+                }
             }
-        }
 
-        // Assign HR liaisons
-        foreach ($data['department'] as $deptId) {
-            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $deptId))
-                ->get();
+            foreach ($data['department'] as $deptId) {
+                $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $deptId))
+                    ->get();
 
-            foreach ($hrLiaisons as $hr) {
-                Assignment::create([
-                    'grievance_id'  => $grievance->grievance_id,
-                    'department_id' => $deptId,
-                    'assigned_at'   => now(),
-                    'hr_liaison_id' => $hr->id,
-                ]);
+                foreach ($hrLiaisons as $hr) {
+                    Assignment::create([
+                        'grievance_id'  => $grievance->grievance_id,
+                        'department_id' => $deptId,
+                        'assigned_at'   => now(),
+                        'hr_liaison_id' => $hr->id,
+                    ]);
+                }
             }
+
+            Notification::make()
+                ->title('Grievance Submitted')
+                ->body('Your grievance was submitted successfully and assigned to the relevant HR liaisons.')
+                ->success()
+                ->send();
+
+            $this->redirectRoute('grievance.index', navigate: true);
+
+        } catch (\Exception $e) {
+            if (!empty($this->grievance_files)) {
+                foreach ($this->grievance_files as $file) {
+                    if (is_string($file)) {
+                        Storage::disk('public')->delete($file);
+                    }
+                }
+            }
+
+            Notification::make()
+                ->title('Submission Failed')
+                ->body('Something went wrong while submitting your grievance. Please try again.')
+                ->danger()
+                ->send();
         }
-
-        $this->form->fill([]);
-        $this->reset(['grievance_type', 'grievance_title', 'grievance_details', 'department', 'grievance_files', 'priority_level']);
-
-        Notification::make()
-            ->title('Grievance Submitted')
-            ->body('Your grievance was submitted successfully and assigned to the relevant HR liaisons.')
-            ->success()
-            ->send();
     }
 
     public function render()

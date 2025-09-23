@@ -5,16 +5,40 @@
             el.__x.$data.open = false
         })
      ">
-    <header class="relative border-box w-full flex justify-end p-2 items-end">
+
+    @php
+        $highlight = fn($text, $search) => $search
+            ? preg_replace(
+                '/(' . preg_quote($search, '/') . ')/i',
+                '<mark class="bg-yellow-200 text-black dark:bg-yellow-500 dark:text-black">$1</mark>',
+                $text
+            )
+            : $text;
+    @endphp
+
+    <!-- Header -->
+    <header class="relative border-box w-full flex justify-between p-2 items-center gap-2">
+        <div class="relative w-1/2">
+            <flux:input
+                icon="magnifying-glass"
+                type="text"
+                wire:model.live="search"
+                placeholder="Search grievances..."
+                clearable
+            />
+        </div>
+
         <flux:button
             icon="plus-circle"
             variant="primary"
             color="blue"
             wire:click="goToGrievanceCreate"
-            >
+        >
             Add Grievance
         </flux:button>
     </header>
+
+    <!-- Grid -->
     <div class="flex w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-full">
 
@@ -24,23 +48,29 @@
 
                     <div class="flex flex-col flex-1 justify-between">
                         <header class="flex justify-between items-start mb-3">
-                            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate">
-                                {{ ucwords(strtolower($grievance->grievance_title)) }}
-                            </h2>
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate">
+                                    {!! $highlight($grievance->grievance_title, $search) !!}
+                                </h2>
+                                <span class="text-xs italic text-gray-500 dark:text-gray-400">
+                                    {{ $grievance->is_anonymous ? 'Submitted Anonymously' : 'Submitted by ' . $grievance->user->name }}
+                                </span>
+                            </div>
                             <span class="text-xs font-semibold px-2 py-1 rounded-full
                                 {{ $grievance->priority_level === 'High' ? 'bg-red-100 text-red-600' :
                                 ($grievance->priority_level === 'Normal' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600') }}">
-                                {{ $grievance->priority_level }}
+                                {!! $highlight($grievance->priority_level, $search) !!}
                             </span>
                         </header>
 
-                        <div class="text-sm bg-gray-200 dark:bg-zinc-700 p-5 text-gray-600 rounded-xl dark:text-gray-300 mb-4 prose dark:prose-invert overflow-y-auto flex-1">
-                            {!! $grievance->grievance_details !!}
+                        <div class="text-sm bg-gray-200 dark:bg-zinc-700 p-5 text-gray-600 rounded-xl dark:text-gray-300 prose dark:prose-invert overflow-y-auto flex-1">
+                            {!! $highlight(Str::limit($grievance->grievance_details, 150), $search) !!}
                         </div>
 
                         <footer class="flex justify-between w-full items-center mt-2 pt-3">
                             <div class="text-xs">{{ $grievance->created_at->format('M d, Y') }}</div>
                             <div class="flex gap-2">
+                                <!-- View Modal Trigger -->
                                 <flux:button
                                     icon="eye"
                                     variant="primary"
@@ -48,6 +78,7 @@
                                     x-on:click="$dispatch('open-modal', 'view-{{ $grievance->grievance_id }}')">
                                     View
                                 </flux:button>
+
                                 <flux:button
                                     icon="pencil-square"
                                     variant="primary"
@@ -55,11 +86,11 @@
                                     wire:click="goToGrievanceEdit({{ $grievance->grievance_id }})">
                                     Edit
                                 </flux:button>
+
                                 <flux:button
                                     icon="trash"
                                     variant="danger"
-                                    x-on:click="$dispatch('open-modal', 'delete-{{ $grievance->grievance_id }}')"
-                                    >
+                                    x-on:click="$dispatch('open-modal', 'delete-{{ $grievance->grievance_id }}')">
                                     Delete
                                 </flux:button>
                             </div>
@@ -67,9 +98,9 @@
                     </div>
                 </div>
 
-                <!-- View Modal -->
-                <x-modal name="view-{{ $grievance->grievance_id }}">
-                    <div class="p-6 space-y-6 bg-white dark:bg-black h-1/2">
+               <!-- View Modal -->
+                <x-modal name="view-{{ $grievance->grievance_id }}" maxWidth="2xl">
+                    <div class="p-6 space-y-6 bg-white dark:bg-black max-h-[80vh] overflow-y-auto">
 
                         <!-- Header -->
                         <div class="flex items-center justify-between pb-3">
@@ -83,7 +114,7 @@
                         </div>
 
                         <!-- Meta Info -->
-                        <div class="grid sm:grid-cols-4 gap-4 text-sm">
+                        <div class="grid sm:grid-cols-5 gap-4 text-sm">
                             <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">
                                 <span class="font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Type:</span>
                                 <p class="text-gray-600 dark:text-gray-400">{{ $grievance->grievance_type }}</p>
@@ -101,11 +132,20 @@
                             </div>
 
                             <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">
+                                <span class="font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Anonymous:</span>
+                                <p>
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                        {{ $grievance->is_anonymous ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600' }}">
+                                        {{ $grievance->is_anonymous ? 'Yes' : 'No' }}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">
                                 <span class="font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Filed On:</span>
                                 <p class="text-gray-600 dark:text-gray-400">{{ $grievance->created_at->format('M d, Y h:i A') }}</p>
                             </div>
 
-                            <!-- New Status Field -->
                             <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">
                                 <span class="font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Status:</span>
                                 <p>
@@ -118,27 +158,22 @@
                             </div>
                         </div>
 
-
-                        <!-- Grievance Details -->
-                        <div>
-                            <div class="flex flex-col gap-2 prose dark:prose-invert text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg shadow">
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Details</h3>
-                                {!! $grievance->grievance_details !!}
-                            </div>
+                        <!-- Details -->
+                        <div class="flex flex-col gap-2 prose dark:prose-invert text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg shadow">
+                            <h3 class="text-sm font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em]">Details</h3>
+                            {!! $grievance->grievance_details !!}
                         </div>
 
                         <!-- Departments -->
-                        <div>
-                            <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em] mb-2">Assigned Departments</h3>
-                                <ul class="list-disc list-inside text-sm p-3 rounded-lg text-gray-700 dark:text-gray-300">
-                                    @forelse ($grievance->departments->unique('department_id') as $department)
-                                        <li>{{ $department->department_name }}</li>
-                                    @empty
-                                        <li>No department assigned</li>
-                                    @endforelse
-                                </ul>
-                            </div>
+                        <div class="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg">
+                            <h3 class="text-sm font-semibold text-gray-500 dark:text-white/70 uppercase tracking-[.25em] mb-2">Assigned Departments</h3>
+                            <ul class="list-disc list-inside text-sm p-3 rounded-lg text-gray-700 dark:text-gray-300">
+                                @forelse ($grievance->departments->unique('department_id') as $department)
+                                    <li>{{ $department->department_name }}</li>
+                                @empty
+                                    <li>No department assigned</li>
+                                @endforelse
+                            </ul>
                         </div>
 
                         <!-- Attachments -->
@@ -186,7 +221,6 @@
                     </div>
                 </x-modal>
 
-
                 <!-- Delete Modal -->
                 <x-modal name="delete-{{ $grievance->grievance_id }}">
                     <div class="p-6">
@@ -205,9 +239,15 @@
                         </div>
                     </div>
                 </x-modal>
+
             @empty
                 <p class="col-span-3 text-center text-gray-500">No grievances found.</p>
             @endforelse
         </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-4">
+        {{ $grievances->links() }}
     </div>
 </div>

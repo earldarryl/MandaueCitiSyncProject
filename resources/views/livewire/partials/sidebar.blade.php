@@ -12,7 +12,7 @@
         'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
         'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
-    class="flex flex-col justify-between bg-white dark:bg-black text-sky-900 dark:text-blue-500 font-bold text-sm shadow-md min-h-full overflow-visible"
+    class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-sm shadow-md min-h-full overflow-visible"
 >
     <div class="relative flex flex-col">
 

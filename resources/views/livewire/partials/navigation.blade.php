@@ -13,7 +13,7 @@
                         :class="{
                             'hover:bg-none': !$store.sidebar.open && $store.sidebar.screen < 600,
                         }"
-                        class="dark:hover:bg-zinc-800 hover:bg-gray-200 p-2 text-sky-900 dark:text-blue-500 rounded-full cursor-pointer"
+                        class="dark:hover:bg-zinc-800 hover:bg-gray-200 p-2 text-mc_primary_color dark:text-white rounded-full cursor-pointer"
 
                     >
                         <!-- Show CLOSE icon (X) when sidebar is open -->
@@ -34,7 +34,7 @@
                         </template>
                     </button>
                 </div>
-                <div class="flex items-center justify-start gap-3 text-2xl sm:text-3xl md:text-4xl font-bold text-sky-900 dark:text-blue-500">
+                <div class="flex items-center justify-start gap-3 text-2xl sm:text-3xl md:text-4xl font-bold text-mc_primary_color dark:text-white">
                     <i class="{{ $this->getHeaderIconClass() }}"></i>
                     <h1>
                         {{ $header }}
@@ -129,7 +129,7 @@
                             {{ $unreadCount }}
                         </span>
                     @endif
-                    <div class="p-2 rounded-full dark:hover:bg-zinc-800 hover:bg-gray-200 text-sky-900 dark:text-blue-500">
+                    <div class="p-2 rounded-full dark:hover:bg-zinc-800 hover:bg-gray-200 text-mc_primary_color dark:text-white">
                         <flux:icon.bell class="w-6 h-6"/>
                     </div>
                 </div>
