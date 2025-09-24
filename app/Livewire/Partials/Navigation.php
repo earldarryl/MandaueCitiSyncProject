@@ -33,11 +33,16 @@ class Navigation extends Component
         'users.citizens'     => 'Citizen Users',
         'users.hr-liaisons'  => 'HR Liaisons Users',
 
+        'hr-liaison.dashboard'           => 'Dashboard',
+        'hr-liaison.activity-logs.index' => 'Activity Logs',
 
-        'grievance.index'    => 'My Grievances',
-        'grievance.create'   => 'File a Grievance',
-        'grievance.edit'     => 'Edit Grievance',
+        'hr-liaison.grievance.index' => 'Grievance List',
+        'hr-liaison.grievance.view' => 'View Grievance',
 
+        'citizen.grievance.index'    => 'My Grievances',
+        'citizen.grievance.create'   => 'File a Grievance',
+        'citizen.grievance.edit'     => 'Edit Grievance',
+        'citizen.grievance.view'     => 'View Grievance',
 
         'settings'              => 'Settings',
         'settings.profile'      => 'Profile Settings',
@@ -75,6 +80,7 @@ class Navigation extends Component
             'My Grievances' => 'bi bi-file-earmark-text',
             'File a Grievance' => 'bi bi-plus-square',
             'Edit Grievance' => 'bi bi-pencil-square',
+            'View Grievance' => 'bi bi-eye',
 
             // -------------------- General --------------------
             'Settings' => 'bi bi-gear',

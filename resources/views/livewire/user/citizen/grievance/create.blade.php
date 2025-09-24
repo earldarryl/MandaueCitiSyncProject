@@ -1,6 +1,6 @@
 <div class="px-10 py-5 flex flex-col justify-center items-center w-full">
     <div class="p-6 bg-gray-200/20 dark:bg-zinc-800/50 rounded-lg shadow-md w-full">
-        {{-- Render the Filament form --}}
+
         {{ $this->form }}
 
         <div class="mt-4 flex justify-end w-full">

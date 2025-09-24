@@ -40,7 +40,7 @@ class Edit extends Component implements HasForms
     public $grievance_files = [];
     public $existing_attachments = [];
 
-   public function mount($id): void
+    public function mount($id): void
     {
         $this->grievance = Grievance::with('attachments', 'assignments', 'departments')->findOrFail($id);
 

@@ -71,10 +71,10 @@ class LoginForm extends Form
         $role = strtolower($user->roles->first()?->name ?? 'user');
 
         $redirect = match ($role) {
-            'admin'      => route('dashboard'),
-            'hr_liaison' => route('dashboard'),
-            'citizen'    => route('grievance.index'),
-            default      => route('dashboard'),
+            'admin'      => route('admin.dashboard'),
+            'hr_liaison' => route('hr-liaison.dashboard'),
+            'citizen'    => route('citizen.grievance.index'),
+            default      => route('login'),
         };
 
         return [

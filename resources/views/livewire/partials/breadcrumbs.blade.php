@@ -24,7 +24,7 @@
                 @endif
 
                 @if (!$loop->last)
-                    <span class="mx-2 dark:text-blue-500 text-mc_primary_color font-bold">
+                    <span class="mx-2 text-mc_primary_color dark:text-white font-bold">
                         <flux:icon.chevron-right class="size-4"/>
                     </span>
                 @endif

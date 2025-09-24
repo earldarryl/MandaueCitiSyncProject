@@ -38,7 +38,7 @@
         <flux:button
             x-on:click="$flux.dark = true"
             icon="sun"
-            variant="primary"
+            variant="subtle"
             aria-label="Switch to dark mode"
             class="border-none"
         />

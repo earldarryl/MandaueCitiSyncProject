@@ -35,21 +35,23 @@ class Index extends Component
             Notification::make()
                 ->title($notif['title'])
                 ->body($notif['body'])
-                ->{$notif['type']}() // calls ->success() or ->error()
+                ->{$notif['type']}()
                 ->send();
         }
     }
 
     public function goToGrievanceCreate()
     {
-        return $this->redirect(route('grievance.create', absolute: false), navigate: true);
+        return $this->redirect(route('citizen.grievance.create', absolute: false), navigate: true);
     }
-
+    public function goToGrievanceView($id)
+    {
+        return $this->redirect(route('citizen.grievance.view', $id, absolute: false), navigate: true);
+    }
     public function goToGrievanceEdit($id)
     {
-        return $this->redirect(route('grievance.edit', $id, absolute: false), navigate: true);
+        return $this->redirect(route('citizen.grievance.edit', $id, absolute: false), navigate: true);
     }
-
     public function deleteGrievance($grievanceId)
     {
         $grievance = Grievance::findOrFail($grievanceId);

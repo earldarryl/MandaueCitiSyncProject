@@ -24,13 +24,11 @@ class Grievance extends Model
         'grievance_details',
     ];
 
-    // Relationship to attachments
     public function attachments()
     {
         return $this->hasMany(GrievanceAttachment::class, 'grievance_id', 'grievance_id');
     }
 
-    // Optional: relationship to assignments
     public function assignments()
     {
         return $this->hasMany(Assignment::class, 'grievance_id', 'grievance_id');
@@ -42,9 +40,13 @@ class Grievance extends Model
                     ->distinct();
     }
 
-    // Optional: relationship to user
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'grievance_id', 'grievance_id');
     }
 }

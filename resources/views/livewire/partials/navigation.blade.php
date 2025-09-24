@@ -10,29 +10,17 @@
                     <button
                         x-data
                         @click="$store.sidebar.toggle()"
-                        :class="{
-                            'hover:bg-none': !$store.sidebar.open && $store.sidebar.screen < 600,
-                        }"
-                        class="dark:hover:bg-zinc-800 hover:bg-gray-200 p-2 text-mc_primary_color dark:text-white rounded-full cursor-pointer"
-
+                        class="dark:hover:bg-zinc-800 hover:bg-gray-200 p-2 text-mc_primary_color dark:text-white rounded-full cursor-pointer transition-transform"
                     >
-                        <!-- Show CLOSE icon (X) when sidebar is open -->
-                        <template x-if="$store.sidebar.open && $store.sidebar.screen >= 600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </template>
-
-                        <!-- Show HAMBURGER icon when sidebar is closed -->
-                        <template x-if="!$store.sidebar.open">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M4 6h16M4 12h16M4 18h16"/>
-                            </svg>
-                        </template>
+                        <!-- Single Chevron that rotates -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor"
+                            class="size-6 transform transition-transform duration-300"
+                            :class="{ 'rotate-180': $store.sidebar.open }">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
                     </button>
+
                 </div>
                 <div class="flex items-center justify-start gap-3 text-2xl sm:text-3xl md:text-4xl font-bold text-mc_primary_color dark:text-white">
                     <i class="{{ $this->getHeaderIconClass() }}"></i>

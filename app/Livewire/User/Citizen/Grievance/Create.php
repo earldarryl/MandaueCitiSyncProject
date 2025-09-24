@@ -176,7 +176,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->success()
                 ->send();
 
-            $this->redirectRoute('grievance.index', navigate: true);
+            $this->redirectRoute('citizen.grievance.index', navigate: true);
 
         } catch (\Exception $e) {
             if (!empty($this->grievance_files)) {
