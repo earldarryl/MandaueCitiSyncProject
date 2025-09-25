@@ -70,19 +70,17 @@ class Navigation extends Component
     public function getHeaderIconClass()
     {
         $icons = [
-            // -------------------- Admin --------------------
             'Dashboard' => 'bi bi-speedometer2',
             'Activity Logs' => 'bi bi-journal-text',
             'Citizen Users' => 'bi bi-people',
             'HR Liaisons Users' => 'bi bi-person-badge',
 
-            // -------------------- Citizen --------------------
             'My Grievances' => 'bi bi-file-earmark-text',
             'File a Grievance' => 'bi bi-plus-square',
             'Edit Grievance' => 'bi bi-pencil-square',
             'View Grievance' => 'bi bi-eye',
+            'Grievance List' => 'bi bi-file-earmark-text',
 
-            // -------------------- General --------------------
             'Settings' => 'bi bi-gear',
             'Profile Settings' => 'bi bi-person-circle',
             'Appearance Settings' => 'bi bi-palette',

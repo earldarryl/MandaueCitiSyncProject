@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget as BaseChartWidget;
 use App\Models\User;
+use App\Models\Grievance;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
@@ -13,49 +14,65 @@ class BarWidget extends BaseChartWidget
     public $startDate;
     public $endDate;
 
-    protected ?string $heading = 'Users Registered';
     protected $listeners = ['dateRangeUpdated'];
 
-    protected static ?int $contentHeight = 400; // Height in pixels
+    protected static ?int $contentHeight = 400;
 
     public function dateRangeUpdated($start, $end)
     {
         $this->startDate = $start;
-        $this->endDate = $end;
-        $this->updateChartData(); // Added to refresh chart on date change
+        $this->endDate   = $end;
+        $this->updateChartData();
+    }
+
+    public function getHeading(): ?string
+    {
+        $user = auth()->user();
+        return $user->hasRole('hr_liaison') ? 'Grievances Assigned' : 'Users Registered';
     }
 
     protected function getData(): array
     {
         $start = $this->startDate ? Carbon::parse($this->startDate) : now()->subDays(6);
-        $end = $this->endDate ? Carbon::parse($this->endDate) : now();
+        $end   = $this->endDate ? Carbon::parse($this->endDate) : now();
 
-        $users = User::whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
-            ->groupBy('date')
-            ->pluck('total', 'date');
+        $user = auth()->user();
 
-        $period = CarbonPeriod::create($start, $end);
+        if ($user->hasRole('hr_liaison')) {
+            $query = Grievance::query()
+                ->whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()])
+                ->whereHas('assignments', function ($q) use ($user) {
+                    $q->where('hr_liaison_id', $user->id);
+                })
+                ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+                ->groupBy('date');
+        } else {
+            $query = User::query()
+                ->whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()])
+                ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+                ->groupBy('date');
+        }
+
+        $records = $query->pluck('total', 'date');
+        $period  = CarbonPeriod::create($start, $end);
 
         $labels = [];
-        $data = [];
+        $data   = [];
         foreach ($period as $date) {
             $labels[] = $date->format('M d');
-            $data[] = $users[$date->format('Y-m-d')] ?? 0;
+            $data[]   = $records[$date->format('Y-m-d')] ?? 0;
         }
 
         return [
             'labels' => $labels,
             'datasets' => [
                 [
-                    'label' => 'Users Registered',
-                    'data' => $data,
+                    'label' => $user->hasRole('hr_liaison') ? 'Grievances Assigned' : 'Users Registered',
+                    'data'  => $data,
                     'backgroundColor' => 'rgba(37, 99, 235, 0.7)',
-                    'borderColor' => 'rgba(37, 99, 235, 1)',
-                    'borderWidth' => 2,
-                    'width' => 10,
-                    'height'=> 10,
-                    'barPercentage' => 1,
+                    'borderColor'     => 'rgba(37, 99, 235, 1)',
+                    'borderWidth'     => 2,
+                    'barPercentage'   => 1,
                 ],
             ],
         ];

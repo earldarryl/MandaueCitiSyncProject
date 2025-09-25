@@ -268,7 +268,7 @@ public function validateStepTwo()
 
     session()->put('just_registered', true);
 
-    return $this->redirectIntended(route('dashboard'), navigate: true);
+    return $this->redirectIntended(route('citizen.grievance.index'), navigate: true);
 }
 
 

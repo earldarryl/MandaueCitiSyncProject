@@ -8,7 +8,8 @@
 <div
     x-data="{
         open: false,
-        selected: @js($selected) || '',    // initialize from prop
+
+        selected: @entangle($name),
         customValue: '',
         search: '',
         get filteredOptions() {
@@ -17,23 +18,24 @@
                 opt.toLowerCase().includes(this.search.toLowerCase())
             );
         },
+
         get value() {
             return this.selected === 'Other' ? this.customValue : this.selected;
         }
     }"
     x-init="
-        // initialize Livewire with selected value
-        if (selected) {
-            $wire.set('{{ $name }}', selected, true);
-        }
+
         $watch('value', (val) => {
+            {{ $name }} = val;
             $wire.set('{{ $name }}', val, true);
         });
+
+
         window.addEventListener('clear', () => {
             selected = '';
             customValue = '';
             search = '';
-            $wire.set('{{ $name }}', '', true);
+            {{ $name }} = '';
         })
     "
     class="relative w-full"
@@ -47,16 +49,19 @@
         :aria-expanded="open"
         aria-haspopup="listbox"
     >
+
         <flux:input
-            readonly
+            wire:model="{{ $name }}"
+            x-model="{{ $name }}"
             name="{{ $name }}"
+            class:input="border rounded-lg cursor-pointer"
+            readonly
             placeholder="{{ $placeholder }}"
             x-bind:value="selected === ''
                 ? ''
                 : (selected === 'Other'
                     ? (customValue || 'Custom option')
                     : selected)"
-            class:input="border rounded-lg cursor-pointer"
         />
 
         <div class="absolute right-3 inset-y-0 flex items-center gap-2">
@@ -70,7 +75,7 @@
                     selected = '';
                     customValue = '';
                     search = '';
-                    $wire.set('{{ $name }}', '', true);
+                    // The @entangle binding handles $wire.set for 'selected' automatically.
                 "
             />
 
@@ -109,7 +114,7 @@
                         <button
                             type="button"
                             @click="
-                                selected = option;
+                                selected = option; // This will trigger the $watch('value')
                                 open = false;
                                 search = '';
                             "

@@ -47,13 +47,11 @@ Breadcrumbs::for('hr-liaison.dashboard', function (Trail $trail) {
 
 // Department Index
 Breadcrumbs::for('hr-liaison.department.index', function (Trail $trail) {
-    $trail->parent('hr-liaison.dashboard');
     $trail->push('<i class="bi bi-people"></i> Departments', route('hr-liaison.department.index'));
 });
 
 // Grievance Index
 Breadcrumbs::for('hr-liaison.grievance.index', function (Trail $trail) {
-    $trail->parent('hr-liaison.dashboard');
     $trail->push('<i class="bi bi-archive-fill"></i> Grievance Repository', route('hr-liaison.grievance.index'));
 });
 
@@ -77,26 +75,26 @@ Breadcrumbs::for('hr-liaison.activity-logs.index', function (Trail $trail) {
 */
 
 // Dashboard
-Breadcrumbs::for('dashboard', function (Trail $trail) {
-    $trail->push('<i class="bi bi-speedometer2"></i> Dashboard', route('dashboard'));
+Breadcrumbs::for('admin.dashboard', function (Trail $trail) {
+    $trail->push('<i class="bi bi-speedometer2"></i> Dashboard', route('admin.dashboard'));
 });
 
 // Activity Logs
-Breadcrumbs::for('activity-logs.index', function (Trail $trail) {
+Breadcrumbs::for('admin.activity-logs.index', function (Trail $trail) {
     $trail->parent('dashboard');
-    $trail->push('<i class="bi bi-list-check"></i> Activity Logs', route('activity-logs.index'));
+    $trail->push('<i class="bi bi-list-check"></i> Activity Logs', route('admin.activity-logs.index'));
 });
 
 // Citizens
 Breadcrumbs::for('users.citizens', function (Trail $trail) {
     $trail->parent('dashboard');
-    $trail->push('<i class="bi bi-people"></i> Citizens', route('users.citizens'));
+    $trail->push('<i class="bi bi-people"></i> Citizens', route('admin.users.citizens'));
 });
 
 // HR Liaisons
 Breadcrumbs::for('users.hr-liaisons', function (Trail $trail) {
     $trail->parent('dashboard');
-    $trail->push('<i class="bi bi-person-badge"></i> HR Liaisons', route('users.hr-liaisons'));
+    $trail->push('<i class="bi bi-person-badge"></i> HR Liaisons', route('admin.users.hr-liaisons'));
 });
 
 

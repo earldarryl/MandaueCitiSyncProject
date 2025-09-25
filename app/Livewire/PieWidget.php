@@ -6,6 +6,7 @@ use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget as BaseChartWidget;
 use App\Models\Grievance;
 use Carbon\Carbon;
+
 class PieWidget extends BaseChartWidget
 {
     public $startDate;
@@ -14,61 +15,63 @@ class PieWidget extends BaseChartWidget
     protected ?string $heading = 'Grievance Status Overview';
     protected $listeners = ['dateRangeUpdated'];
 
-    protected static ?int $contentHeight = 400; // Added for consistent height
+    protected static ?int $contentHeight = 400;
 
     public function dateRangeUpdated($start, $end)
     {
         $this->startDate = $start;
-        $this->endDate = $end;
-        $this->updateChartData(); // Added to refresh chart on date change
+        $this->endDate   = $end;
+        $this->updateChartData();
     }
 
     protected function getData(): array
     {
         $start = $this->startDate ? Carbon::parse($this->startDate)->startOfDay() : now()->subDays(30);
-        $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now();
+        $end   = $this->endDate ? Carbon::parse($this->endDate)->endOfDay()       : now();
 
         $statuses = [
-            'pending' => 'Pending',
-            'rejected' => 'Rejected',
+            'pending'     => 'Pending',
+            'rejected'    => 'Rejected',
             'in_progress' => 'In Progress',
-            'resolved' => 'Resolved',
+            'resolved'    => 'Resolved',
         ];
+
+        $query = Grievance::query()->whereBetween('created_at', [$start, $end]);
+
+        $user = auth()->user();
+        if ($user->hasRole('hr_liaison')) {
+            $query->whereHas('assignments', function ($q) use ($user) {
+                $q->where('hr_liaison_id', $user->id);
+            });
+        }
 
         $counts = collect($statuses)->map(fn ($label, $key) =>
-            Grievance::where('grievance_status', $key)
-                ->whereBetween('created_at', [$start, $end])
-                ->count()
+            (clone $query)->where('grievance_status', $key)->count()
         )->values()->toArray();
-
-        $colors = [
-            'rgba(253, 224, 71, 0.7)',
-            'rgba(239, 68, 68, 0.7)',
-            'rgba(59, 130, 246, 0.7)',
-            'rgba(16, 185, 129, 0.7)',
-        ];
-
-        $borderColors = [
-            'rgba(253, 224, 71, 1)',
-            'rgba(239, 68, 68, 1)',
-            'rgba(59, 130, 246, 1)',
-            'rgba(16, 185, 129, 1)',
-        ];
 
         return [
             'labels' => array_values($statuses),
-            'datasets' => [
-                [
-                    'label' => 'Grievances',
-                    'data' => $counts,
-                    'backgroundColor' => $colors,
-                    'borderColor' => $borderColors,
-                    'borderWidth' => 2,
-                    'hoverOffset' => 10,
+            'datasets' => [[
+                'label' => 'Grievances',
+                'data' => $counts,
+                'backgroundColor' => [
+                    'rgba(253, 224, 71, 0.7)',
+                    'rgba(239, 68, 68, 0.7)',
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(16, 185, 129, 0.7)',
                 ],
-            ],
+                'borderColor' => [
+                    'rgba(253, 224, 71, 1)',
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(16, 185, 129, 1)',
+                ],
+                'borderWidth' => 2,
+                'hoverOffset' => 10,
+            ]],
         ];
     }
+
     protected function getType(): string
     {
         return 'pie';
@@ -78,11 +81,12 @@ class PieWidget extends BaseChartWidget
     {
         return [
             'today' => 'Today',
-            'week' => 'Last week',
+            'week'  => 'Last week',
             'month' => 'Last month',
-            'year' => 'This year',
+            'year'  => 'This year',
         ];
     }
+
     protected function getOptions(): RawJs
     {
         return RawJs::make(<<<JS

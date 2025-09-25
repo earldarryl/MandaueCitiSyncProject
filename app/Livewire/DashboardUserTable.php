@@ -26,6 +26,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class DashboardUserTable extends TableWidget
@@ -40,10 +41,12 @@ class DashboardUserTable extends TableWidget
         TextColumn::configureUsing(fn (TextColumn $column) => $column->toggleable());
 
         return $table
+            ->header(view('tables.header', array_merge(
+                $this->getStats(),
+                ['tableType' => $this->tableType]
+            )))
             ->striped()
-            ->query(fn (): Builder => $this->tableType === 'users'
-                ? User::query()->with('roles')
-                : Grievance::query()->with('user'))
+            ->query(fn (): Builder => $this->getTableQuery())
             ->columns($this->getTableColumns())
             ->filters($this->getTableFilters())
             ->actions($this->getTableActions())
@@ -52,8 +55,94 @@ class DashboardUserTable extends TableWidget
             ->reorderable('sort_order')
             ->recordTitle(fn ($record) => $record->name ?? $record->grievance_title)
             ->defaultSort('created_at', 'desc')
-            ->deferLoading() // deferred to improve heavy datasets
-            ->paginated([5, 10, 25, 50, 100, 'all']);
+            ->deferLoading()
+            ->paginated([5, 10, 25, 50, 100, 'all'])
+            ->poll(10);
+    }
+
+    // ----------------------
+    // Dynamic header stats
+    // ----------------------
+    protected function getStats(): array
+    {
+        $user = auth()->user();
+
+        $totalUsers = $user->hasRole('admin')
+            ? User::count()
+            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))->count();
+
+        $activeUsers = $user->hasRole('admin')
+            ? User::where('last_seen_at', '>=', now()->subMinutes(5))->count()
+            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))
+                  ->where('last_seen_at', '>=', now()->subMinutes(5))
+                  ->count();
+
+        $todayUsers = $user->hasRole('admin')
+            ? User::whereDate('created_at', today())->count()
+            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))
+                  ->whereDate('created_at', today())
+                  ->count();
+
+        $totalGrievances = $user->hasRole('admin')
+            ? Grievance::count()
+            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))->count();
+
+        $pendingGrievances = $user->hasRole('admin')
+            ? Grievance::where('grievance_status','pending')->count()
+            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+                  ->where('grievance_status','pending')
+                  ->count();
+
+        $resolvedGrievances = $user->hasRole('admin')
+            ? Grievance::where('grievance_status','resolved')->count()
+            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+                  ->where('grievance_status','resolved')
+                  ->count();
+
+        return [
+            'heading' => $this->tableType === 'users' ? 'Users' : 'Grievances',
+            'totalUsers' => $this->tableType === 'users' ? $totalUsers : $totalGrievances,
+            'activeUsers' => $this->tableType === 'users' ? $activeUsers : $pendingGrievances,
+            'todayUsers' => $this->tableType === 'users' ? $todayUsers : $resolvedGrievances,
+        ];
+    }
+
+    // ----------------------
+    // Query per role
+    // ----------------------
+    protected function getTableQuery(): Builder|\Illuminate\Database\Eloquent\Relations\Relation|null
+    {
+        $user = auth()->user();
+
+        if ($this->tableType === 'users') {
+            if ($user->hasRole('admin')) {
+                return User::query()->with('roles');
+            }
+
+            if ($user->hasRole('hr_liaison')) {
+                return User::query()
+                    ->whereHas('roles', fn ($q) => $q->where('name', 'citizen'))
+                    ->with('roles');
+            }
+
+            return User::query()->with('roles');
+        }
+
+        if ($this->tableType === 'grievances') {
+            if ($user->hasRole('admin')) {
+                return Grievance::query()->with('user');
+            }
+
+            if ($user->hasRole('hr_liaison')) {
+                return Grievance::query()
+                    ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+                    ->with('user');
+            }
+
+            return Grievance::query()->with('user');
+        }
+
+        return User::query()->with('roles');
     }
 
     // ----------------------
@@ -72,7 +161,6 @@ class DashboardUserTable extends TableWidget
                             ? asset('storage/' . $record->profile_pic)
                             : 'https://ui-avatars.com/api/?name=' . urlencode($record->name)
                     ),
-
                 TextColumn::make('name')->label('Name')->sortable()->searchable(),
                 TextColumn::make('email')->label('Email')->sortable()->searchable(),
                 TextColumn::make('roles.name')
@@ -94,14 +182,10 @@ class DashboardUserTable extends TableWidget
                         default => 'secondary'
                     })
                     ->tooltip(fn ($record) => ucfirst($record->status)),
-                TextColumn::make('created_at')
-                    ->label('Joined')
-                    ->dateTime('M d, Y')
-                    ->sortable(),
+                TextColumn::make('created_at')->label('Joined')->dateTime('M d, Y')->sortable(),
             ];
         }
 
-        // Grievances table
         return [
             TextColumn::make('grievance_title')->label('Title')->sortable()->searchable()->reorderable(),
             TextColumn::make('category')->label('Category')->sortable()->reorderable(),
@@ -117,78 +201,51 @@ class DashboardUserTable extends TableWidget
     // ----------------------
     protected function getTableFilters(): array
     {
+        $user = Auth::user();
+
         if ($this->tableType === 'users') {
             return [
                 SelectFilter::make('roles')->relationship('roles', 'name')->multiple()->preload()->label('Role'),
-                SelectFilter::make('status')->options([
-                    'online' => 'Online',
-                    'away' => 'Away',
-                    'offline' => 'Offline',
-                ])->label('Online Status')->native(false),
-                Filter::make('joined')->label('Joined Today')->query(fn (Builder $query) => $query->whereDate('created_at', today())),
+
+                SelectFilter::make('status')
+                    ->label('Online Status')
+                    ->options([
+                        'online' => 'Online',
+                        'away' => 'Away',
+                        'offline' => 'Offline',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!isset($data['value'])) return;
+
+                        if ($data['value'] === 'online') {
+                            $query->where('last_seen_at', '>=', now()->subMinutes(5));
+                        } elseif ($data['value'] === 'away') {
+                            $query->where('last_seen_at', '<', now()->subMinutes(5))
+                                  ->whereNotNull('last_seen_at');
+                        } elseif ($data['value'] === 'offline') {
+                            $query->whereNull('last_seen_at');
+                        }
+                    }),
+
+                Filter::make('joined')->label('Joined Today')
+                    ->query(fn (Builder $query) => $query->whereDate('created_at', today())),
             ];
         }
 
-        return [
-            SelectFilter::make('grievance_status')->options([
-                'pending' => 'Pending',
-                'processing' => 'Processing',
-                'resolved' => 'Resolved',
-            ])->label('Status')->native(false),
-            Filter::make('created_today')->label('Created Today')->query(fn (Builder $query) => $query->whereDate('created_at', today())),
-        ];
-    }
-
-    // ----------------------
-    // Actions
-    // ----------------------
-    protected function getTableActions(): array
-    {
-        if ($this->tableType === 'users') {
+        if ($this->tableType === 'grievances') {
             return [
-                ActionGroup::make([
-                    ViewAction::make()->infolist([
-                        Section::make('User Details')->schema([
-                            Grid::make(1)->schema([
-                                ImageEntry::make('profile_pic')->label('Profile Picture')->circular()->alignCenter()
-                                    ->getStateUsing(fn ($record) => $record->profile_pic
-                                        ? asset('storage/' . $record->profile_pic)
-                                        : 'https://ui-avatars.com/api/?name=' . urlencode($record->name)),
-                            ]),
-                            Grid::make(2)->schema([
-                                TextEntry::make('name')->label('Full Name'),
-                                TextEntry::make('email')->label('Email'),
-                                TextEntry::make('roles')->label('Role')
-                                    ->formatStateUsing(fn ($state, $record) => $record->roles->map(fn ($role) => Str::headline($role->name))->implode(', ')),
-                                TextEntry::make('status')->label('Status'),
-                                TextEntry::make('created_at')->label('Joined On'),
-                            ]),
-                        ])
-                    ]),
-                    EditAction::make()->form([
-                        FileUpload::make('profile_pic')->directory('profiles')->image()->imageCropAspectRatio('1:1'),
-                        TextInput::make('name')->label('Name')->required(),
-                        TextInput::make('email')->label('Email')->email()->required(),
-                        Select::make('roles')->relationship('roles', 'name')->multiple()->preload()->label('Role'),
-                        Select::make('status')->options(['online'=>'Online','away'=>'Away','offline'=>'Offline'])->label('Status'),
-                    ]),
-                    DeleteAction::make(),
-                ])
+                SelectFilter::make('grievance_status')->options([
+                    'pending' => 'Pending',
+                    'processing' => 'Processing',
+                    'resolved' => 'Resolved',
+                ])->label('Status')->native(false),
+
+                Filter::make('created_today')->label('Created Today')
+                    ->query(fn (Builder $query) => $query->whereDate('created_at', today())),
             ];
         }
 
-        return [
-            ViewAction::make()->infolist([
-                Section::make('Grievance Details')->schema([
-                    TextEntry::make('grievance_title')->label('Title'),
-                    TextEntry::make('category')->label('Category'),
-                    TextEntry::make('grievance_type')->label('Type'),
-                    TextEntry::make('grievance_status')->label('Status'),
-                    TextEntry::make('grievance_details')->label('Details'),
-                    TextEntry::make('user.name')->label('Submitted By'),
-                ])
-            ])
-        ];
+        return [];
     }
 
     // ----------------------
@@ -196,7 +253,9 @@ class DashboardUserTable extends TableWidget
     // ----------------------
     protected function getTableBulkActions(): array
     {
-        if ($this->tableType === 'users') {
+        $user = Auth::user();
+
+        if ($this->tableType === 'users' && $user->hasRole('admin')) {
             return [
                 BulkActionGroup::make([
                     BulkAction::make('delete')->requiresConfirmation()

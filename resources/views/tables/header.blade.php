@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4">
+<div wire:poll.10s class="flex flex-col gap-4">
     <!-- Heading -->
     <h2 class="text-2xl font-bold tracking-tight p-3 text-sky-900 dark:text-blue-500">
         {{ $heading }}
@@ -6,7 +6,7 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <!-- Total Users -->
+        <!-- Total Users / Total Grievances -->
         <div class="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <div class="flex-shrink-0 p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 dark:text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -14,12 +14,14 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{ $tableType === 'users' ? 'Total Users' : 'Total Grievances' }}
+                </p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $totalUsers }}</p>
             </div>
         </div>
 
-        <!-- Active Users -->
+        <!-- Active Users / Pending Grievances -->
         <div class="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <div class="flex-shrink-0 p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,12 +29,14 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</p>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{ $tableType === 'users' ? 'Active Users' : 'Pending Grievances' }}
+                </p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $activeUsers }}</p>
             </div>
         </div>
 
-        <!-- Registered Today -->
+        <!-- Registered Today / Resolved Grievances -->
         <div class="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <div class="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,7 +44,9 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Registered Today</p>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{ $tableType === 'users' ? 'Registered Today' : 'Resolved Grievances' }}
+                </p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $todayUsers }}</p>
             </div>
         </div>
