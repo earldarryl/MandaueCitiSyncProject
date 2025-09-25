@@ -72,10 +72,6 @@
         @apply bg-black/70;
     }
 
-    .z-100 {
-        z-index: 100;
-    }
-
     .main-color {
         @apply bg-mc_primary_color;
     }
@@ -152,6 +148,8 @@ body {
 /* ============================= */
 #nprogress .bar {
     background: rgb(255, 230, 0) !important;
+    border-color: rgb(255, 230, 0) !important;
+    color: rgb(255, 230, 0) !important;
     height: 4px;
 }
 
@@ -192,6 +190,37 @@ body {
     background-position: center;
     overflow: hidden;
 }
+
+.custom-focus:focus {
+    border: 2px solid #2563eb !important;
+    outline: none;
+}
+
+@keyframes pulseDot {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.dot {
+  animation: pulseDot 1s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 
 /* ============================= */
 /*   Hide Password Toggle Icon   */

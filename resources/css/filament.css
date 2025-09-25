@@ -1,0 +1,193 @@
+.fi-fo-file-upload-editor {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    margin: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+
+
+.fi-fo-file-upload-editor .fi-modal-window {
+    width: 100% !important;
+    max-width: 1200px !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    border-radius: 0.75rem;
+}
+
+.filepond--label-action{
+    color: #3b82f6 !important;
+}
+
+.filepond--label-action:hover{
+    color: #3b82f6 !important;
+}
+
+.fi-input,
+.fi-select-input,
+.fi-textarea {
+    border-color: #d1d5db;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+
+.fi-input-wrp:focus-within,
+.fi-select:focus-within,
+.fi-textarea-wrp:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-fo-toggle:focus-within,
+.fi-fo-checkbox:focus-within {
+    outline: none;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-fo-file-upload-button:focus {
+    outline: none;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+
+.fi-fo-rich-editor:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-select:focus-within .fi-select-input {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.fi-btn.fi-color-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+.fi-btn.fi-color-primary > *{
+    color: #ffffff;
+}
+.fi-btn.fi-color-primary:hover {
+    background-color: #3b82f6;
+    color: #f3f4f6;
+}
+
+.dark .fi-btn.fi-color-primary {
+    background-color: #3b82f6;
+    color: #f9fafb;
+}
+
+.dark .fi-btn.fi-color-primary:hover {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child {
+    background-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:hover {
+    background-color: #2563eb !important;
+}
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:focus {
+    background-color: #2563eb !important;
+}
+
+.fi-fo-file-upload-editor-control-panel-footer > button:last-child:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    background-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+/* Container style for toggle buttons */
+.fi-fo-toggle-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Base style for all toggle buttons */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn {
+    background-color: #bae6fd; /* Light blue background */
+    color: #1e3a8a;            /* Dark blue text */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Icon inside button */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn svg {
+    color: #1e3a8a;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover {
+    background-color: #93c5fd; /* Slightly darker blue */
+    color: #1e40af;
+}
+
+.fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover svg {
+    color: #1e40af;
+}
+
+/* Checked / active button style */
+.fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn {
+    background-color: #3b82f6; /* Tailwind blue-500 */
+    color: #ffffff !important;
+    border-color: #2563eb;
+}
+
+/* Icon inside checked button */
+.fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn svg {
+    color: #ffffff;
+}
+
+/* Focus outline for accessibility */
+.fi-fo-toggle-buttons-btn-ctn input:focus + label.fi-btn {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    outline: none;
+}
+
+/* Dark mode overrides */
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn {
+    background-color: #1e293b; /* Dark gray background */
+    color: #93c5fd;            /* Light blue text */
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn svg {
+    color: #93c5fd;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover {
+    background-color: #334155; /* Slightly lighter gray */
+    color: #60a5fa;            /* Brighter blue */
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn label.fi-btn:hover svg {
+    color: #60a5fa;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn {
+    background-color: #3b82f6;
+    color: #ffffff !important;
+    border-color: #2563eb;
+}
+
+.dark .fi-fo-toggle-buttons-btn-ctn input:checked + label.fi-btn svg {
+    color: #ffffff;
+}
+
+.fi-active {
+    color: #1e40af;
+}
+.dark .fi-active {
+    color: #3b82f6;
+}

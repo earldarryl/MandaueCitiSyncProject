@@ -10,29 +10,25 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
-use Livewire\Exceptions\RedirectException;
+use Livewire\Attributes\Title;
 
 #[Layout('layouts.guest')]
+#[Title('Welcome to Mandaue CitiSync')]
 class ResetPassword extends Component
 {
     public string $token = '';
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public string $title = 'Reset Password';
 
 
+    public function mount(string $token): void
+    {
+        $this->token = $token;
+        $this->email = request()->query('email', '');
 
-public function mount(string $token): void
-{
-    $this->token = $token;
-    $this->email = request()->query('email', '');
-
-}
-
-
-
-
-
+    }
 
     public function resetPassword(): void
     {

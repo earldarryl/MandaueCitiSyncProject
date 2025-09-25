@@ -56,9 +56,7 @@
             </div>
         </form>
 
-        <!-- ✅ Resend OTP + Logout Section (outside form) -->
         <div class="w-full flex justify-end gap-2 mt-4">
-            <!-- Resend OTP -->
             <div
                 x-data="{
                     timeLeft: @js($cooldown),
@@ -91,7 +89,6 @@
                 </flux:button>
             </div>
 
-            <!-- Logout Button -->
             <form method="POST" action="{{ route('logout') }}" class="w-1/2">
                 @csrf
                 <flux:button

@@ -108,20 +108,6 @@
                 </li>
             @endforeach
         </ul>
-
-        <!-- Custom input (if 'Other' exists) -->
-        <template x-if="selected === 'Other'">
-            <div class="px-4 pb-3">
-                <flux:input
-                    type="text"
-                    x-model="customValue"
-                    placeholder="Please specify"
-                    @click.stop
-                    clearable
-                    @input="$wire.set('{{ $name }}', customValue, true)"
-                />
-            </div>
-        </template>
     </div>
 </div>
 

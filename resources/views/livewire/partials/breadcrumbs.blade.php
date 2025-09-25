@@ -14,17 +14,19 @@
                 @endphp
 
                 @if ($isCurrent)
-                    <span class="dark:text-white text-black font-semibold">
-                        {{ $crumb->title }}
+                    <span class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-bold">
+                        {!! $crumb->title !!}
                     </span>
                 @else
-                    <a href="{{ $crumb->url }}" wire:navigate class="dark:text-blue-500 text-mc_primary_color underline-none">
-                        {{ $crumb->title }}
+                    <a href="{{ $crumb->url }}" wire:navigate class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-semibold underline-none hover:underline">
+                        {!! $crumb->title !!}
                     </a>
                 @endif
 
                 @if (!$loop->last)
-                    <span class="mx-2 dark:text-white text-gray-400">/</span>
+                    <span class="mx-2 text-mc_primary_color dark:text-white font-bold">
+                        <flux:icon.chevron-right class="size-4"/>
+                    </span>
                 @endif
             @endforeach
         </header>

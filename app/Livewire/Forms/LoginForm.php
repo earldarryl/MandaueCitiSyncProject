@@ -27,32 +27,62 @@ class LoginForm extends Form
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function authenticate(): User
+    public function authenticate(string $expectedRole): array
     {
         $this->ensureIsNotRateLimited();
 
         $user = User::where('email', $this->email)->first();
 
         if (! $user) {
-            // Email not found
             throw ValidationException::withMessages([
-                'form.email' => 'The provided email address does not exist.',
+                'status' => 'The provided email address does not exist.',
             ]);
         }
 
         if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
-            // Email exists but password incorrect
             throw ValidationException::withMessages([
-                'form.password' => 'The provided password is incorrect.',
+                'status' => 'These credentials do not match our records.',
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
 
-        return Auth::user();
+        $user = Auth::user();
+
+        if (! $user->hasRole($expectedRole)) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'status' => 'These credentials do not match our records.',
+            ]);
+        }
+
+        $user->forceFill(['last_seen_at' => now()])->saveQuietly();
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+            return [
+                'user' => $user,
+                'redirect' => null,
+            ];
+        }
+
+        $role = strtolower($user->roles->first()?->name ?? 'user');
+
+        $redirect = match ($role) {
+            'admin'      => route('admin.dashboard'),
+            'hr_liaison' => route('hr-liaison.dashboard'),
+            'citizen'    => route('citizen.grievance.index'),
+            default      => route('login'),
+        };
+
+        return [
+            'user' => $user,
+            'redirect' => $redirect,
+        ];
     }
+
 
     /**
      * Ensure the authentication request is not rate limited.

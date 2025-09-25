@@ -18,7 +18,7 @@ class VerifyOtp extends Component
     public string $status = '';
     public string $title = 'Verify Account';
     public int $cooldown = 0;
-    public string $otp = ''; // ✅ input binding for OTP
+    public string $otp = '';
     private string $limiterKey = '';
 
    public function mount()
@@ -43,7 +43,7 @@ class VerifyOtp extends Component
 
         if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(
-                default: route('dashboard', absolute: false),
+                default: route('citizen.grievance.index', absolute: false),
                 navigate: true
             );
             return;
@@ -64,7 +64,7 @@ class VerifyOtp extends Component
         $user = Auth::user();
         $user->sendEmailVerificationNotification();
 
-        RateLimiter::hit($this->getLimiterKey(), 60); // lock for 60s
+        RateLimiter::hit($this->getLimiterKey(), 60);
 
         session(['status' => 'verification-link-sent']);
 
@@ -95,7 +95,7 @@ class VerifyOtp extends Component
             ]);
 
             $this->redirectIntended(
-                default: route('dashboard', absolute: false),
+                default: route('citizen.grievance.index', absolute: false),
                 navigate: true
             );
             session()->flash('success', 'Email verified successfully.');

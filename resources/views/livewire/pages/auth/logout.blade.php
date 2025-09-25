@@ -22,11 +22,10 @@
 
             <div class="flex justify-end space-x-4 mt-6">
                 <flux:button
-                    variant="ghost"
+                    type="button"
+                    variant="primary"
+                    color="zinc"
                     @click="show = false"
-                    wire:click="close"
-                    wire:loading.attr="disabled"
-                    wire:target="close"
                 >
                     <span wire:loading.remove wire:target="close">
                         Cancel

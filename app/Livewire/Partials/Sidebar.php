@@ -3,7 +3,6 @@
 namespace App\Livewire\Partials;
 
 use Livewire\Component;
-use App\Livewire\Actions\Logout;
 use Livewire\Attributes\Layout;
 
 #[Layout('layouts.app')]
@@ -19,38 +18,21 @@ class Sidebar extends Component
             $this->menuItems = [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
-                    'route' => 'dashboard',
-                ],
-                [
-                    'label' => 'Department',
-                    'icon' => 'bi bi-people',
-                    'children' => [
-                        ['label' => 'Department Info', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-info-circle-fill',],
-                        ['label' => 'Grievance Repository', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-archive-fill',],
-
-
-                    ],
+                    'icon' => 'bi bi-speedometer2',
+                    'route' => 'admin.dashboard',
                 ],
                 [
                     'label' => 'Users',
                     'icon' => 'bi bi-person-fill',
                     'children' => [
-                        ['label' => 'Citizens', 'route' => 'user.admin.users.citizens','icon' => 'bi bi-people-fill',],
-                        ['label' => 'HR Liaisons', 'route' => 'dashboard','icon' => 'bi bi-person-badge',],
-
-
+                        ['label' => 'Citizens', 'route' => 'admin.users.citizens', 'icon' => 'bi bi-people-fill'],
+                        ['label' => 'HR Liaisons', 'route' => 'admin.users.hr-liaisons', 'icon' => 'bi bi-person-badge'],
                     ],
-                ],
-                [
-                    'label' => 'Feedback Form',
-                    'icon' => 'bi bi-chat-right-dots-fill',
-                    'route' => 'dashboard',
                 ],
                 [
                     'label' => 'Activity Logs',
                     'icon' => 'bi bi-clock-history',
-                    'route' => 'user.admin.activity-logs',
+                    'route' => 'admin.activity-logs.index',
                 ],
             ];
         }
@@ -58,57 +40,41 @@ class Sidebar extends Component
             $this->menuItems = [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
-                    'route' => 'dashboard',
+                    'icon' => 'bi bi-speedometer2',
+                    'route' => 'hr-liaison.dashboard',
                 ],
                  [
                     'label' => 'Department',
                     'icon' => 'bi bi-people',
                     'children' => [
-                        ['label' => 'Department Info', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-info-circle-fill',],
-                        ['label' => 'Grievance Repository', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-archive-fill',],
-
-
+                        ['label' => 'Department Info', 'route' => 'hr-liaison.department.index', 'icon' => 'bi bi-info-circle-fill'],
+                        ['label' => 'Grievance Repository', 'route' => 'hr-liaison.grievance.index', 'icon' => 'bi bi-archive-fill'],
                     ],
-                ],
-                [
-                    'label' => 'Feedback Form',
-                    'icon' => 'bi bi-chat-right-dots-fill',
-                    'route' => 'dashboard',
                 ],
                 [
                     'label' => 'Activity Logs',
                     'icon' => 'bi bi-clock-history',
-                    'route' => 'dashboard',
+                    'route' => 'hr-liaison.activity-logs.index',
                 ],
             ];
         }
         elseif ($user->hasRole('citizen')){
             $this->menuItems = [
                 [
-                    'label' => 'Dashboard',
-                    'icon' => 'bi bi-house',
-                    'route' => 'dashboard',
-                ],
-                [
-                    'label' => 'Grievance',
-                    'icon' => 'bi bi-file-earmark-fill',
-                    'children' => [
-                        ['label' => 'Grievance Application Form', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-file-text-fill',],
-                        ['label' => 'Grievance Status Tracking', 'route' => 'user.citizen.grievance-form','icon' => 'bi bi-file-earmark-bar-graph-fill',],
-
-
-                    ],
+                    'label' => 'My Grievances',
+                    'icon'  => 'bi bi-file-earmark-text',
+                    'route' => 'citizen.grievance.index',
+                    'activePattern' => 'citizen.grievance.*',
                 ],
                 [
                     'label' => 'FAQs',
                     'icon' => 'bi bi-question-circle-fill',
-                    'route' => 'dashboard',
+                    'route' => 'citizen.grievance.index', // or create a dedicated route if you have one
                 ],
                 [
                     'label' => 'Feedback Form',
                     'icon' => 'bi bi-chat-right-dots-fill',
-                    'route' => 'dashboard',
+                    'route' => 'citizen.grievance.index', // or assign a real feedback form route
                 ],
             ];
 

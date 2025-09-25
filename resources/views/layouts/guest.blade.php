@@ -30,7 +30,7 @@
             icon="moon"
             variant="subtle"
             aria-label="Switch to light mode"
-            class="rounded-none bg-transparent text-white hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+            class="border-none"
         />
     </template>
 
@@ -38,50 +38,71 @@
         <flux:button
             x-on:click="$flux.dark = true"
             icon="sun"
-            variant="primary"
+            variant="subtle"
             aria-label="Switch to dark mode"
-            class="rounded-none bg-transparent border-none text-white lg:text-zinc-900 lg:hover:text-zinc-600 lg:hover:bg-gray-100 hover:bg-white/10 dark:hover:bg-zinc-800"
+            class="border-none"
         />
     </template>
 </div>
-@if(Route::is('login'))
-    <div x-data>
-        <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
-            <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
-                <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
-                    {{ $slot }}
+    @if(Route::is('login'))
+        <div x-data>
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+                <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
+                    <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
+                        {{ $slot }}
+                    </div>
+                </div>
+
+                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
+                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
+                    </h1>
                 </div>
             </div>
 
-            <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
-                <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
-                    <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
-                    <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
-                </h1>
+            <!-- Modal Wrapper -->
+            <livewire:pages.auth.register />
+
+        </div>
+    @endif
+    @if(Route::is('hr-liaison.login'))
+        <div x-data>
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+                <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
+                    <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
+                        {{ $slot }}
+                    </div>
+                </div>
+
+                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
+                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
+                    </h1>
+                </div>
             </div>
         </div>
-
-        <!-- Modal Wrapper -->
-        <livewire:pages.auth.register />
-
-    </div>
     @endif
+    @if(Route::is('admin.login'))
+        <div x-data>
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+                <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
+                    <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
+                        {{ $slot }}
+                    </div>
+                </div>
 
+                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
+                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
+                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    @endif
     @if(Route::is('verification.notice'))
-        <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
-            <div class="w-full lg:col-span-1 flex items-center justify-center h-full">
-                <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
-                    {{ $slot }}
-                </div>
-            </div>
-
-            <div class="w-full lg:col-span-2 flex flex-col items-center justify-center text-center min-h-[20vh] lg:min-h-screen">
-                <img src="{{ asset('/images/email-pic.png') }}" class="w-1/3 h-1/3 sm:w-1/3 sm:h-1/3 md:w-2/6 md:h-2/6 lg:w-3/5 lg:h-3/5" alt="img">
-            </div>
-        </div>
-    @endif
-
-    @if(Route::is('password.request') || Route::is('password.reset'))
         <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
             <div class="w-full lg:col-span-1 flex items-center justify-center h-full">
                 <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center overflow-hidden">
@@ -89,8 +110,30 @@
                 </div>
             </div>
 
-            <div class="w-full lg:col-span-2 flex flex-col items-center justify-center text-center min-h-[20vh] lg:min-h-screen">
-                <img src="{{ asset('/images/faq-img.png') }}" class="w-1/3 h-1/3 sm:w-1/3 sm:h-1/3 md:w-2/6 md:h-2/6 lg:w-3/5 lg:h-3/5" alt="img">
+            <div class="w-full lg:col-span-2 flex items-center justify-center text-center h-full">
+                <img
+                    src="{{ asset('/images/email-pic.png') }}"
+                    class="max-w-full h-auto sm:max-w-1/2 md:max-w-2/3 lg:max-w-full"
+                    alt="img"
+                >
+            </div>
+        </div>
+    @endif
+
+    @if(Route::is('password.request') || Route::is('password.reset'))
+        <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center bg-white dark:bg-black">
+            <div class="w-full lg:col-span-1 flex items-center justify-center h-full">
+                <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black rounded-lg md:rounded-none lg:rounded-none">
+                    {{ $slot }}
+                </div>
+            </div>
+
+            <div class="w-full lg:col-span-2 flex items-center justify-center text-center h-1/3">
+                <img
+                    src="{{ asset('/images/faq-img.png') }}"
+                    class="max-w-full h-auto sm:max-w-1/2 md:max-w-2/3 lg:max-w-full"
+                    alt="img"
+                >
             </div>
         </div>
 

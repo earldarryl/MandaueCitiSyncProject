@@ -204,11 +204,10 @@
 
                                                     <flux:input.group>
 
-                                                                <x-select
+                                                                <x-searchable-select
                                                                     name="suffix"
                                                                     placeholder="Select a suffix"
-                                                                    :options="['N/A', 'Jr.', 'Sr.', 'Other']"
-                                                                    wire:model="suffix"
+                                                                    :options="['N/A', 'Jr.', 'Sr.']"
                                                                 />
 
                                                     </flux:input.group>
@@ -227,13 +226,11 @@
                                                 <flux:description>The individual's gender identity</flux:description>
                                                 <flux:input.group>
 
-                                                    <x-select
-                                                            name="gender"
-                                                            placeholder="Select a gender"
-                                                            :options="['Male', 'Female', 'Not Mentioned', 'Other']"
-                                                            wire:model="gender"
-
-                                                        />
+                                                <x-searchable-select
+                                                    name="gender"
+                                                    placeholder="Select a gender"
+                                                    :options="['Male', 'Female', 'Not Mentioned']"
+                                                    />
 
                                                 </flux:input.group>
                                             </div>
@@ -254,13 +251,11 @@
                                                 <flux:description>The individual's civil status</flux:description>
                                                 <flux:input.group>
 
-                                                        <x-select
+                                                        <x-searchable-select
                                                             name="civil_status"
                                                             placeholder="Select a civil status"
-                                                            :options="['Single', 'Married', 'Divorced', 'Other']"
-                                                            wire:model="civil_status"
-
-                                                        />
+                                                            :options="['Single', 'Married', 'Divorced']"
+                                                            />
 
                                             </flux:input.group>
                                             </div>
@@ -297,13 +292,11 @@
                                                 <flux:description>The individual's barangay community</flux:description>
                                                 <flux:input.group>
 
-                                                    <x-select
+                                                    <x-searchable-select
                                                         name="barangay"
                                                         placeholder="Select a barangay"
-                                                        :options="['Labogon', 'Paknaan', 'Tabok', 'Basak']"
-                                                        wire:model="barangay"
-
-                                                    />
+                                                        :options="['Labogon', 'Paknaan', 'Tabok', 'Pajara', 'Jagobiao', 'Latasan']"
+                                                        />
 
                                             </flux:input.group>
                                             </div>
@@ -806,5 +799,3 @@
                             </div>
                         </div>
                     </div>
-
-
