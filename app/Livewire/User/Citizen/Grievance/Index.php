@@ -63,7 +63,7 @@ class Index extends Component
 
     public function updatingSearch()
     {
-        $this->resetPage(); // Reset to page 1 when search changes
+        $this->resetPage();
     }
 
     public function render()
@@ -73,12 +73,13 @@ class Index extends Component
             'attachments',
             'user',
         ])
+        ->where('user_id', auth()->id())
         ->where(function($query) {
             $query->where('grievance_title', 'like', '%'.$this->search.'%')
-                  ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
-                  ->orWhere('priority_level', 'like', '%'.$this->search.'%')
-                  ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
-                  ->orWhere('is_anonymous', 'like', '%'.$this->search.'%'); // include anonymous search
+                ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
+                ->orWhere('priority_level', 'like', '%'.$this->search.'%')
+                ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
+                ->orWhere('is_anonymous', 'like', '%'.$this->search.'%');
         })
         ->latest()
         ->paginate($this->perPage);

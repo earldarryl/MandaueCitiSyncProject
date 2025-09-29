@@ -94,10 +94,10 @@
         </div>
     </div>
 
-    <div class="mt-6">
+   <div class="mt-6">
         <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">
             Conversation
         </h3>
-        <livewire:user.message-chat :grievance="$grievance" />
+        <livewire:grievance.chat :grievance="$grievance" />
     </div>
 </div>

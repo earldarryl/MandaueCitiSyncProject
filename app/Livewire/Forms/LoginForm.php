@@ -5,7 +5,9 @@ namespace App\Livewire\Forms;
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
@@ -21,6 +23,9 @@ class LoginForm extends Form
 
     #[Validate('boolean')]
     public bool $remember = false;
+
+    #[Validate('boolean')]
+    public bool $forceLogin = false; // <-- optional "Force login" toggle
 
     /**
      * Attempt to authenticate the request's credentials.
@@ -39,6 +44,25 @@ class LoginForm extends Form
             ]);
         }
 
+        // -------------------- Check for other active sessions --------------------
+        $currentSessionId = Session::getId();
+        $activeSession = DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '<>', $currentSessionId)
+            ->first();
+
+        if ($activeSession && ! $this->forceLogin) {
+            throw ValidationException::withMessages([
+                'status' => 'Your account is currently logged in from another device/browser.',
+            ]);
+        }
+
+        // If forceLogin is true, delete the old session
+        if ($activeSession && $this->forceLogin) {
+            DB::table('sessions')->where('id', $activeSession->id)->delete();
+        }
+
+        // -------------------- Attempt login --------------------
         if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
@@ -60,6 +84,7 @@ class LoginForm extends Form
 
         $user->forceFill(['last_seen_at' => now()])->saveQuietly();
 
+        // -------------------- Email verification --------------------
         if (! $user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();
             return [
@@ -68,6 +93,7 @@ class LoginForm extends Form
             ];
         }
 
+        // -------------------- Role-based redirect --------------------
         $role = strtolower($user->roles->first()?->name ?? 'user');
 
         $redirect = match ($role) {
@@ -82,7 +108,6 @@ class LoginForm extends Form
             'redirect' => $redirect,
         ];
     }
-
 
     /**
      * Ensure the authentication request is not rate limited.

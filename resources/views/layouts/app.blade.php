@@ -51,6 +51,13 @@
 
     {{-- Scripts --}}
     @livewireScripts
+    <script>
+        window.Laravel = {
+            csrfToken: '{{ csrf_token() }}',
+            userId: {{ auth()->id() ?? 'null' }},
+        };
+    </script>
+    @vite('resources/js/echo.js')
     @filamentScripts
     @fluxScripts
 </body>

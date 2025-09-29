@@ -1,6 +1,7 @@
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
+
 NProgress.configure({
     showSpinner: false,
     trickleSpeed: 200,
@@ -53,4 +54,5 @@ document.addEventListener('alpine:init', () => {
         Alpine.store('sidebar').updateScreen();
     });
 });
+
 

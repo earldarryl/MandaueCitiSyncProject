@@ -16,8 +16,10 @@
         "bootstrap": "^5.2.3",
         "concurrently": "^9.0.1",
         "daisyui": "^5.0.50",
+        "laravel-echo": "^2.2.4",
         "laravel-vite-plugin": "^1.2.0",
         "postcss": "^8.4.31",
+        "pusher-js": "^8.4.0",
         "sass": "^1.56.1",
         "tailwindcss": "^4.1.13",
         "vite": "^6.2.4"

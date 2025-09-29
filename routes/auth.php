@@ -3,33 +3,27 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-
+// -------------------- Guest Routes --------------------
 Route::middleware('guest')->group(function () {
-
     Volt::route('/', 'pages.auth.login')->name('login');
-
     Volt::route('/admin', 'pages.auth.admin.login')->name('admin.login');
-
     Volt::route('/hr-liaison', 'pages.auth.hr-liaison.login')->name('hr-liaison.login');
-
     Volt::route('forgot-password', 'pages.auth.forgot-password')->name('password.request');
-
     Volt::route('reset-password/{token}', 'pages.auth.reset-password')->name('password.reset');
-
 });
 
-Route::middleware(['auth', 'verified.redirect'])->prefix('verify')->group(function () {
-
+// -------------------- Email Verification Routes --------------------
+Route::middleware(['auth', 'verified.redirect', 'single_session'])->prefix('verify')->group(function () {
     Volt::route('email', 'pages.auth.verify-otp')->name('verification.notice');
 
     Route::post('email/verification-notification', function () {
         auth()->user()->sendEmailVerificationNotification();
         return back()->with('message', 'Verification link sent!');
     })->middleware('throttle:6,1')->name('verification.send');
-
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// -------------------- Authenticated Routes --------------------
+Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
 
     // -------------------- Citizen Routes --------------------
     Route::middleware('role:citizen')->group(function () {
@@ -56,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Volt::route('admin/users/hr-liaisons', 'user.admin.users.hr-liaisons.index')->name('admin.users.hr-liaisons');
     });
 
-    // -------------------- General Routes --------------------
+    // -------------------- General Settings Routes --------------------
     Volt::route('/settings', 'layout.settings')->name('settings');
     Volt::route('/settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('/settings/appearance', 'settings.appearance')->name('settings.appearance');
@@ -65,4 +59,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
 });
-

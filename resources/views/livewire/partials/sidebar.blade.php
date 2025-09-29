@@ -1,16 +1,16 @@
 <aside
     x-cloak
     x-data="{
-        isDesktop: window.matchMedia('(min-width: 600px)').matches
+        isDesktop: window.matchMedia('(min-width: 768px)').matches
     }"
-    @resize.window="isDesktop = window.matchMedia('(min-width: 600px)').matches"
+    @resize.window="isDesktop = window.matchMedia('(min-width: 768px)').matches"
     :class="{
         'w-[320px] sticky top-0 h-full z-[36] transition-all duration-300': $store.sidebar.open && isDesktop,
         'w-[320px] sticky top-0 h-full z-[30]': $store.sidebar.open && isDesktop && $store.notifications.open,
         'w-[80px] sticky top-0 h-full z-[36] transition-all duration-300': !$store.sidebar.open && isDesktop && !$store.notifications.open,
         'w-[80px] sticky top-0 h-full z-[30]': !$store.sidebar.open && isDesktop && $store.notifications.open,
         'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
-        'w-3/5 -translate-x-96 fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
+        'w-3/5 -translate-x-[100%] fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
     class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-sm shadow-md min-h-full overflow-visible"
 >
@@ -26,14 +26,14 @@
                 dropdowns: Array({{ count($menuItems) }}).fill(false) // initialize dropdowns array
             }"
             x-init="
-                visible = !(screen < 600 && !$store.sidebar.open);
+                visible = !(screen < 768 && !$store.sidebar.open);
                 $watch('$store.sidebar.open', val => {
-                    visible = !(screen < 600 && !val);
+                    visible = !(screen < 768 && !val);
                 });
             "
             @resize.window="
                 screen = window.innerWidth;
-                visible = !(screen < 600 && !$store.sidebar.open);
+                visible = !(screen < 768 && !$store.sidebar.open);
             "
             class="p-3 gap-2 text-center flex flex-col flex-shrink-0"
         >
@@ -133,8 +133,7 @@
                                                     class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition
                                                         {{ $isChildActive
                                                                 ? 'bg-gray-200 dark:bg-zinc-800'
-                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}"
-                                                    wire:navigate>
+                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}">
                                     <i class="{{ $child['icon'] }}"></i>
                                     <span x-show="$store.sidebar.open" x-transition class="ml-2">
                                         {{ $child['label'] }}
@@ -152,9 +151,7 @@
                         x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
                         x-data="{ showTooltip: false }"
                         @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                        @mouseleave="showTooltip = false"
-                        wire:navigate
-                    >
+                        @mouseleave="showTooltip = false">
                         <span class="inline-block text-center">
                             <i class="{{ $item['icon'] }}"></i>
                         </span>

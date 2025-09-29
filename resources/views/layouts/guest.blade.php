@@ -28,7 +28,7 @@
         <flux:button
             x-on:click="$flux.dark = false"
             icon="moon"
-            variant="subtle"
+            variant="primary"
             aria-label="Switch to light mode"
             class="border-none"
         />
