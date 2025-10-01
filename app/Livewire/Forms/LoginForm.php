@@ -106,6 +106,7 @@ class LoginForm extends Form
         return [
             'user' => $user,
             'redirect' => $redirect,
+            'success' => 'Login successful! Redirecting...',
         ];
     }
 

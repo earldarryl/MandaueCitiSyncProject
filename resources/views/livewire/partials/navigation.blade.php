@@ -149,7 +149,7 @@
                             <!-- Header -->
                             <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0">
                                 <span class="font-semibold">Notifications</span>
-                                <flux:button type="button" icon="x-mark" @click="$store.notifications.close()" ></flux:button>
+                                <flux:button type="button" icon="x-mark" variant="subtle" @click="$store.notifications.close()" ></flux:button>
                             </div>
 
                             <!-- Scrollable Content -->

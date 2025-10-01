@@ -364,114 +364,12 @@
 
 
 
-                                    <div
-                                        x-data="{
-                                            preview: @js(asset('images/avatar.png')),
-                                            defaultPreview: @js(asset('images/avatar.png')), // store default
-                                            showSpinner: false,
-                                            isDropping: false,
-                                            minDelay: 700,
-                                            _url: null,
-                                            _timer: null,
-
-                                            setPreview(file) {
-                                                if (!file) return;
-                                                this.showSpinner = true;
-                                                if (this._url) URL.revokeObjectURL(this._url);
-                                                this._url = URL.createObjectURL(file);
-
-                                                clearTimeout(this._timer);
-                                                this._timer = setTimeout(() => {
-                                                    this.preview = this._url;
-                                                    this.showSpinner = false;
-                                                }, this.minDelay);
-                                            },
-
-                                            handleDrop(e) {
-                                                this.isDropping = false;
-                                                const files = e.dataTransfer?.files;
-                                                if (!files || !files.length) return;
-                                                this.$refs.fileInput.files = files;
-                                                this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                                this.setPreview(files[0]);
-                                            },
-
-                                            handleChange(e) {
-                                                const file = e.target.files?.[0];
-                                                this.setPreview(file);
-                                            },
-
-                                            resetPreview() {
-                                                // revoke temp URL
-                                                if (this._url) URL.revokeObjectURL(this._url);
-                                                this._url = null;
-
-                                                // reset preview to default
-                                                this.preview = this.defaultPreview;
-
-                                                // clear file input
-                                                if (this.$refs.fileInput) this.$refs.fileInput.value = '';
-                                            }
-                                        }"
-                                        >
+                                    <div x-data="{ profile_pic: @entangle('profile_pic') }">
                                             <!-- Page 2 -->
                                         <div class="relative w-full h-full flex flex-col items-center justify-between p-2 gap-8"  x-show="currentPage === 2">
 
                                             <!-- Profile Picture (Preview + Drag & Drop + Timed Swap) -->
-                                            <div
-                                            x-init="
-                                                window.addEventListener('reset-register-form', () => resetPreview())
-                                            "
-                                            class="w-2/4 aspect-square border border-black rounded-full overflow-hidden relative"
-                                            >
-
-                                                <!-- Overlay spinner (Alpine) -->
-                                                <div
-                                                    x-show="showSpinner"
-                                                    x-transition.opacity
-                                                    class="absolute inset-0 flex items-center justify-center bg-black/50 z-10"
-                                                >
-                                                    <span class="h-10 w-10 text-white">
-                                                        <flux:icon.loading />
-                                                    </span>
-
-                                                </div>
-
-                                                <!-- Image preview (client-side URL) -->
-                                                <img
-                                                    :src="preview"
-                                                    class="w-full h-full object-cover transition-opacity duration-500"
-                                                    alt="preview"
-                                                >
-
-                                                <!-- Dropzone layer -->
-                                                <div
-                                                    @dragover.prevent="isDropping = true"
-                                                    @dragleave.prevent="isDropping = false"
-                                                    @drop.prevent="handleDrop($event)"
-                                                    class="group absolute inset-0 flex items-center justify-center cursor-pointer transition
-                                                        bg-transparent hover:bg-white/10"
-                                                    :class="{ 'border-blue-500 bg-blue-50/70': isDropping }"
-                                                    title="Drag & drop or click to browse"
-                                                >
-                                                    <p class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs text-gray-700 bg-white/70 rounded px-2 py-1">
-                                                        Drag & drop here or click to browse
-                                                    </p>
-
-                                                    <!-- The ONLY file input (bind to Livewire + Alpine) -->
-                                                    <input
-                                                        x-ref="fileInput"
-                                                        type="file"
-                                                        wire:model="profile_pic"
-                                                        @change="handleChange($event)"
-                                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                        accept="image/*"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {{-- Livewire validation error --}}
-                                            <flux:error name="profile_pic" />
+                                            {{ $this->form }}
 
                                             <div class="relative border-box w-full flex flex-col gap-3 px-5 pb-8">
 
@@ -632,117 +530,141 @@
                                         <!-- Page 3 -->
                                         <div class="w-full h-auto flex flex-col" x-show="currentPage === 3">
 
-                                                            <!-- Info Grid -->
-                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                        <!-- Info Grid -->
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 
-                                                                <!-- Personal Info Card -->
-                                                                <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                                    <!-- Card Header -->
-                                                                    <div class="bg-blue-500 px-5 py-4 flex items-center justify-between">
-                                                                        <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Personal Information</h2>
-                                                                        <img
-                                                                            :src="preview"
-                                                                            alt="Profile Picture"
-                                                                            class="w-14 h-14 rounded-full object-cover shadow-lg border-2 border-white/40"
-                                                                        />
-                                                                    </div>
-
-                                                                    <!-- Card Content -->
-                                                                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                                                                        <template x-for="(value, label) in {
-                                                                            'First Name': first_name,
-                                                                            'Middle Name': middle_name,
-                                                                            'Last Name': last_name,
-                                                                            'Suffix': suffix,
-                                                                            'Gender': gender,
-                                                                            'Civil Status': civil_status,
-                                                                            'Barangay': barangay,
-                                                                            'Sitio': sitio,
-                                                                            'Birth Date': birthdate
-                                                                        }" :key="label">
-                                                                            <div class="grid grid-cols-2 px-4 py-2">
-                                                                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="label"></div>
-                                                                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="value || '—'"></div>
-                                                                            </div>
-                                                                        </template>
-                                                                    </div>
+                                                            <!-- Personal Info Card -->
+                                                            <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                                                <!-- Card Header -->
+                                                                <div class="bg-blue-500 px-5 py-4 flex items-center justify-between">
+                                                                    <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Personal Information</h2>
+                                                                   <img
+                                                                        src="{{ $this->profilePicUrl }}"
+                                                                        alt="Profile Picture"
+                                                                        class="w-24 h-24 rounded-full object-cover shadow-lg border-2 border-gray-200"
+                                                                    />
                                                                 </div>
 
-                                                                <!-- Account Info Card -->
-                                                                <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                                    <!-- Card Header -->
-                                                                    <div class="bg-blue-500 px-5 py-4">
-                                                                        <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Account Information</h2>
-                                                                    </div>
-
-                                                                    <!-- Card Content -->
-                                                                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                                                                        <template x-for="(value, label) in {
-                                                                            'Username': name,
-                                                                            'Email': email,
-                                                                            'Contact': `+63${contact}`,
-                                                                            'Password': '•'.repeat(password.length)
-                                                                        }" :key="label">
-                                                                            <div class="grid grid-cols-2 px-4 py-2">
-                                                                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="label"></div>
-                                                                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 break-all" x-text="value || '—'"></div>
-                                                                            </div>
-                                                                        </template>
-                                                                    </div>
+                                                                <!-- Card Content -->
+                                                                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                                                                    <template x-for="(value, label) in {
+                                                                        'First Name': first_name,
+                                                                        'Middle Name': middle_name,
+                                                                        'Last Name': last_name,
+                                                                        'Suffix': suffix,
+                                                                        'Gender': gender,
+                                                                        'Civil Status': civil_status,
+                                                                        'Barangay': barangay,
+                                                                        'Sitio': sitio,
+                                                                        'Birth Date': birthdate
+                                                                    }" :key="label">
+                                                                        <div class="grid grid-cols-2 px-4 py-2">
+                                                                            <div class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="label"></div>
+                                                                            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="value || '—'"></div>
+                                                                        </div>
+                                                                    </template>
                                                                 </div>
                                                             </div>
 
-                                                            <!-- Terms & Conditions -->
-                                                            <flux:field variant="inline" class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                                                <flux:checkbox
-                                                                    wire:model="agreed_terms"
-                                                                />
-                                                                <flux:label class="text-sm text-gray-700 dark:text-gray-300 leading-6">
-                                                                    I agree to the terms and conditions
-                                                                </flux:label>
-                                                                <flux:error name="agreed_terms" class="text-xs text-red-500 mt-1"/>
-                                                            </flux:field>
+                                                            <!-- Account Info Card -->
+                                                            <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                                                <!-- Card Header -->
+                                                                <div class="bg-blue-500 px-5 py-4">
+                                                                    <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Account Information</h2>
+                                                                </div>
+
+                                                                <!-- Card Content -->
+                                                                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                                                                    <template x-for="(value, label) in {
+                                                                        'Username': name,
+                                                                        'Email': email,
+                                                                        'Contact': `+63${contact}`,
+                                                                        'Password': '•'.repeat(password.length)
+                                                                    }" :key="label">
+                                                                        <div class="grid grid-cols-2 px-4 py-2">
+                                                                            <div class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="label"></div>
+                                                                            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 break-all" x-text="value || '—'"></div>
+                                                                        </div>
+                                                                    </template>
+                                                                </div>
+                                                            </div>
                                                         </div>
+
+                                                        <!-- Terms & Conditions -->
+                                                        <flux:field variant="inline" class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                                            <flux:checkbox
+                                                                wire:model="agreed_terms"
+                                                            />
+                                                            <flux:label class="text-sm text-gray-700 dark:text-gray-300 leading-6">
+                                                                I agree to the terms and conditions
+                                                            </flux:label>
+                                                            <flux:error name="agreed_terms" class="text-xs text-red-500 mt-1"/>
+                                                        </flux:field>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                <div class="flex gap-3 mt-4 p-2">
+                                <div class="flex gap-3 mt-4 p-2 w-full items-center justify-center">
+
+                                    <!-- Loading Dots -->
+                                    <div wire:loading wire:target="validateStepOne, validateStepTwo, register">
+                                        <div class="w-full flex items-center justify-center gap-2 p-3">
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                        </div>
+                                    </div>
+
                                     <!-- Step 1 Button -->
                                     <flux:button
                                         variant="primary"
+                                        color="zinc"
                                         x-show="currentPage == 1"
                                         wire:click="validateStepOne"
                                         wire:loading.attr="disabled"
                                         wire:target="validateStepOne"
-                                        class="hover:bg-mc_primary_color dark:hover:bg-blue-700 hover:text-white dark:hover:text-white bg-black text-white dark:bg-white dark:text-black w-full transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                                        wire:loading.remove
+                                        class="w-full transition duration-300 ease-in-out"
                                     >
-                                        <span wire:loading.remove wire:target="validateStepOne">Next</span>
-                                        <flux:icon.loading wire:loading wire:target="validateStepOne" class="w-5 h-5 animate-spin mx-auto" />
+                                        <span wire:loading.remove wire:target="validateStepOne">
+                                            <span class="flex items-center justify-center gap-2">
+                                                <span><flux:icon.forward/></span>
+                                                <span>Next</span>
+                                            </span>
+                                        </span>
                                     </flux:button>
 
 
                                     <!-- Step 2 Button -->
                                     <flux:button
                                         variant="primary"
+                                        color="zinc"
                                         x-show="currentPage == 2"
                                         wire:click="validateStepTwo"
                                         wire:loading.attr="disabled"
                                         wire:target="validateStepTwo"
-                                        class="hover:bg-mc_primary_color dark:hover:bg-blue-700 hover:text-white dark:hover:text-white bg-black text-white dark:bg-white dark:text-black w-full transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                                        wire:loading.remove
+                                        class="w-full transition duration-300 ease-in-out"
                                     >
-                                        <span wire:loading.remove wire:target="validateStepTwo">Next</span>
-                                        <flux:icon.loading wire:loading wire:target="validateStepTwo" class="w-5 h-5 animate-spin mx-auto" />
+                                        <span wire:loading.remove wire:target="validateStepTwo">
+                                            <span class="flex items-center justify-center gap-2">
+                                                <span><flux:icon.forward/></span>
+                                                <span>Next</span>
+                                            </span>
+                                        </span>
                                     </flux:button>
 
                                     <!-- Step 3 Register Button -->
                                     <flux:button
                                         variant="primary"
+                                        color="zinc"
                                         x-show="currentPage == 3"
                                         wire:click="register"
-                                        class="w-full transition duration-300 ease-in-out hover:bg-mc_primary_color dark:hover:bg-blue-700 hover:text-white dark:hover:text-white bg-black text-white dark:bg-white dark:text-black"
+                                        wire:loading.remove
+                                        class="w-full transition duration-300 ease-in-out"
                                     >
                                         <span class="flex items-center justify-center gap-2">
                                             <flux:icon.check-badge />

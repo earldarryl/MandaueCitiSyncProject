@@ -28,7 +28,7 @@
         <flux:button
             x-on:click="$flux.dark = false"
             icon="moon"
-            variant="primary"
+            variant="ghost"
             aria-label="Switch to light mode"
             class="border-none"
         />
@@ -38,9 +38,9 @@
         <flux:button
             x-on:click="$flux.dark = true"
             icon="sun"
-            variant="subtle"
+            variant="primary"
             aria-label="Switch to dark mode"
-            class="border-none"
+            class="border-none bg-mc_primary_color text-white lg:bg-white lg:text-black hover:bg-mc_primary_color lg:hover:bg-gray-200"
         />
     </template>
 </div>
@@ -55,8 +55,8 @@
 
                 <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
                     <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
+                        <span class="block leading-[0.8] text-6xl lg:text-9xl">Mandaue</span>
+                        <span class="block leading-[0.8] text-6xl lg:text-9xl">Citi-Sync</span>
                     </h1>
                 </div>
             </div>

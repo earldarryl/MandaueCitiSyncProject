@@ -1,0 +1,231 @@
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step {
+  /* Step button, icon, text */
+  /* Completed step */
+}
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step .fi-sc-wizard-header-step-btn > *,
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step .fi-sc-wizard-header-step-icon-ctn > *,
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step .fi-sc-wizard-header-step-text > * {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step.fi-completed .fi-sc-wizard-header-step-btn .fi-sc-wizard-header-step-icon-ctn {
+  background-color: #2563eb;
+}
+.fi-sc-wizard .fi-sc-wizard-header .fi-sc-wizard-header-step.fi-completed .fi-sc-wizard-header-step-btn .fi-icon {
+  color: #fff;
+}
+
+.fi-fo-date-time-picker .fi-fo-date-time-picker-calendar .fi-fo-date-time-picker-calendar-day.fi-selected {
+  color: #2563eb;
+}
+
+.fi-badge {
+  background-color: #f0f6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #c7d8ff;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.25rem;
+}
+.fi-badge:hover {
+  background-color: #e0edff !important;
+}
+.fi-badge .fi-badge-delete-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-left: 0;
+  color: inherit;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.fi-badge .fi-badge-delete-btn:hover {
+  opacity: 1;
+  color: rgb(22.9632653061, 61.7632653061, 171.0367346939);
+}
+.fi-badge .fi-badge-delete-btn svg {
+  color: #1d4ed8;
+  width: 0.85rem;
+  height: 0.85rem;
+  display: block;
+  pointer-events: none;
+}
+:where(.dark, .dark *) .fi-badge {
+  background-color: #1e293b !important;
+  color: #93c5fd !important;
+  border-color: #475569;
+}
+:where(.dark, .dark *) .fi-badge:hover {
+  background-color: #334155 !important;
+}
+:where(.dark, .dark *) .fi-badge .fi-badge-delete-btn:hover {
+  color: rgb(197.0727272727, 223.8909090909, 253.9272727273);
+}
+:where(.dark, .dark *) .fi-badge .fi-badge-delete-btn svg {
+  color: #93c5fd;
+}
+@supports (color: color-mix(in lab, red, red)) {
+  :where(.dark, .dark *) .fi-badge .fi-badge-delete-btn > .fi-icon {
+    color: color-mix(in oklab, #93c5fd 80%, transparent);
+  }
+}
+@supports not (color: color-mix(in lab, red, red)) {
+  :where(.dark, .dark *) .fi-badge .fi-badge-delete-btn > .fi-icon {
+    color: #93c5fd;
+  }
+}
+
+/* ------------------------------- */
+/* Filament Table Checkboxes       */
+/* ------------------------------- */
+input[type=checkbox].fi-checkbox-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  border: 2px solid #c7d8ff;
+  background-color: #f0f6ff;
+  accent-color: #1d4ed8;
+  transition: all 0.2s ease;
+}
+input[type=checkbox].fi-checkbox-input:hover {
+  border-color: #1e40af;
+}
+input[type=checkbox].fi-checkbox-input:checked {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  accent-color: #ffffff;
+}
+input[type=checkbox].fi-checkbox-input:checked:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.3);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  input[type=checkbox].fi-checkbox-input:checked:focus {
+    --tw-ring-color: color-mix(in oklab, var(--primary-500) 50%, transparent);
+  }
+}
+input[type=checkbox].fi-checkbox-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+}
+
+/* ------------------------------- */
+/* Dark Mode Support               */
+/* ------------------------------- */
+.dark input[type=checkbox].fi-checkbox-input {
+  border-color: #475569;
+  background-color: #1e293b;
+  accent-color: #93c5fd;
+}
+.dark input[type=checkbox].fi-checkbox-input:hover {
+  border-color: #60a5fa;
+}
+.dark input[type=checkbox].fi-checkbox-input:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  accent-color: #ffffff;
+}
+.dark input[type=checkbox].fi-checkbox-input:checked:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dark input[type=checkbox].fi-checkbox-input:checked:focus {
+    --tw-ring-color: color-mix(in oklab, var(--primary-400) 50%, transparent);
+  }
+}
+.dark input[type=checkbox].fi-checkbox-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* ----------------------------------- */
+/* Primary Button - Bluish Theme       */
+/* ----------------------------------- */
+button.fi-color-primary,
+button.fi-dropdown-list-item.fi-ac-grouped-action > * {
+  color: #3b82f6;
+  transition: all 0.2s ease;
+}
+button.fi-color-primary:hover,
+button.fi-dropdown-list-item.fi-ac-grouped-action > *:hover {
+  border-color: #1e40af;
+}
+button.fi-color-primary:focus,
+button.fi-dropdown-list-item.fi-ac-grouped-action > *:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.3);
+}
+button.fi-color-primary:disabled, button.fi-color-primary[disabled],
+button.fi-dropdown-list-item.fi-ac-grouped-action > *:disabled,
+button.fi-dropdown-list-item.fi-ac-grouped-action > *[disabled] {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ----------------------------------- */
+/* Icon Buttons (edit, delete, etc.)   */
+/* ----------------------------------- */
+button.fi-icon-btn,
+button.fi-ac-icon-btn-group {
+  color: #1d4ed8;
+  background-color: #f0f6ff;
+  border: 2px solid #c7d8ff;
+  border-radius: 0.375rem;
+  padding: 0.4rem;
+  transition: all 0.2s ease;
+}
+button.fi-icon-btn svg,
+button.fi-ac-icon-btn-group svg {
+  color: inherit;
+}
+button.fi-icon-btn:hover,
+button.fi-ac-icon-btn-group:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+button.fi-icon-btn:focus,
+button.fi-ac-icon-btn-group:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+}
+
+/* ----------------------------------- */
+/* Dark Mode Support                   */
+/* ----------------------------------- */
+.dark button.fi-color-primary,
+.dark button.fi-dropdown-list-item.fi-ac-grouped-action {
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+.dark button.fi-color-primary:hover,
+.dark button.fi-dropdown-list-item.fi-ac-grouped-action:hover {
+  border-color: #3b82f6;
+}
+.dark button.fi-color-primary:focus,
+.dark button.fi-dropdown-list-item.fi-ac-grouped-action:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+.dark button.fi-icon-btn,
+.dark button.fi-ac-icon-btn-group {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #3b82f6;
+}
+.dark button.fi-icon-btn:hover,
+.dark button.fi-ac-icon-btn-group:hover {
+  background-color: #334155;
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+.dark button.fi-icon-btn:focus,
+.dark button.fi-ac-icon-btn-group:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}/*# sourceMappingURL=app.css.map */

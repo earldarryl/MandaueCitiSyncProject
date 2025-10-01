@@ -15,6 +15,7 @@ class Login extends Component
     public LoginForm $form;
     public string $title = 'Login';
     public string $redirectLink = '';
+    public bool $showSuccessModal = false;
     protected $listeners = ['openModalRegister'];
 
     public function openModalRegister()
@@ -24,13 +25,12 @@ class Login extends Component
         $this->resetErrorBag(["form.email", 'form.password']);
     }
 
-    public function login(): void
+    public function login()
     {
         $this->validate();
 
         $result = $this->form->authenticate('citizen');
 
-        // Regenerate session after login
         Session::regenerate();
         Session::forget('password_reset_done');
         Session::put('just_logged_in', true);
@@ -38,8 +38,10 @@ class Login extends Component
         $redirect = $result['redirect'] ?? null;
 
         if ($redirect) {
-            $this->redirect($redirect, navigate: true);
+            $this->redirectLink = $redirect;
+            $this->showSuccessModal = true;
         }
+
     }
 
     public function render()

@@ -18,25 +18,15 @@ use Illuminate\Validation\ValidationException;
 class Login extends Component
 {
     public LoginForm $form;
-    public bool $isOpenModalLogin = false;
     public string $title = 'Admin | Login';
     public string $redirectLink = '';
-    public bool $isButtonShow = false;
-    protected $listeners = ['openModalRegister'];
+    public bool $showSuccessModal = false;
 
-    public function openModalRegister()
-    {
-        $this->dispatch('open-register-modal');
-        $this->reset(["form.email", 'form.password']);
-        $this->resetErrorBag(["form.email", 'form.password']);
-    }
-
-
-   public function login(): void
+    public function login()
     {
         $this->validate();
 
-        $result = $this->form->authenticate('admin');
+        $result = $this->form->authenticate('citizen');
 
         Session::regenerate();
         Session::forget('password_reset_done');
@@ -45,8 +35,10 @@ class Login extends Component
         $redirect = $result['redirect'] ?? null;
 
         if ($redirect) {
-            $this->redirect($redirect, navigate: true);
+            $this->redirectLink = $redirect;
+            $this->showSuccessModal = true;
         }
+
     }
 
     public function render()
