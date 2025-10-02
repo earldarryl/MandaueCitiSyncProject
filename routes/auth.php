@@ -55,7 +55,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     Volt::route('/settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('/settings/appearance', 'settings.appearance')->name('settings.appearance');
     Volt::route('/settings/two-factor-auth', 'settings.two-factor-auth')->name('settings.two-factor-auth');
-    Volt::route('user/confirm-password', 'pages.auth.password-confirm')->name('password.confirm');
+    Volt::route('/user/confirm-password', 'pages.auth.confirm-password')->name('password.confirm');
     Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
 });

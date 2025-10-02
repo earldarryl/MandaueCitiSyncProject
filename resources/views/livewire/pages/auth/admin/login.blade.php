@@ -106,14 +106,14 @@
     >
         <!-- Overlay -->
         <div
-            class="fixed inset-0 bg-black/50 z-40"
+            class="fixed inset-0 bg-black/50 z-[90]"
             x-show="show"
             x-transition.opacity
         ></div>
 
         <!-- Modal -->
         <div
-            class="fixed inset-0 flex items-center justify-center z-50"
+            class="fixed inset-0 flex items-center justify-center z-[100]"
             x-show="show"
             x-transition
         >

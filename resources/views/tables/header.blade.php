@@ -1,6 +1,6 @@
 <div wire:poll.10s class="flex flex-col gap-4">
     <!-- Heading -->
-    <h2 class="text-2xl font-bold tracking-tight p-3 text-sky-900 dark:text-blue-500">
+    <h2 class="text-2xl font-bold tracking-tight p-3 text-sky-900 dark:text-white">
         {{ $heading }}
     </h2>
 

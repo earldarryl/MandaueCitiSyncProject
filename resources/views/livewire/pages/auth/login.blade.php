@@ -121,7 +121,7 @@
                     </span>
                 </flux:button>
             </div>
-             <div wire:loading wire:target="openModalRegister, login">
+            <div wire:loading wire:target="openModalRegister, login">
                 <div class="w-full flex items-center justify-center gap-2">
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
@@ -139,7 +139,7 @@
         x-init="
             $watch('show', value => {
                 if (value && redirectLink) {
-                    setTimeout(() => { window.location.href = redirectLink }, 2500) // 2.5s delay
+                    setTimeout(() => { window.location.href = redirectLink }, 2500)
                 }
             })
         "
@@ -147,14 +147,14 @@
     >
         <!-- Overlay -->
         <div
-            class="fixed inset-0 bg-black/50 z-40"
+            class="fixed inset-0 bg-black/50 z-[90]"
             x-show="show"
             x-transition.opacity
         ></div>
 
         <!-- Modal -->
         <div
-            class="fixed inset-0 flex items-center justify-center z-50"
+            class="fixed inset-0 flex items-center justify-center z-[100]"
             x-show="show"
             x-transition
         >

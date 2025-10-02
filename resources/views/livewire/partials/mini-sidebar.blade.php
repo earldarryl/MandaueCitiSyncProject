@@ -13,8 +13,8 @@
         <div :class="open ? 'h-auto w-full' : 'h-0 hidden transition-all duration-300 lg:flex lg:flex-col lg:h-auto lg:w-full'">
             @if ($itemRoute)
                 <div
-                    class="flex justify-start w-full text-sm p-2 rounded-lg cursor-pointer hover:bg-gray-200 hover:font-bold dark:hover:bg-zinc-800"
-                    :class="activePage === '{{ $item['route'] }}' ? 'bg-gray-200 dark:bg-zinc-800 font-bold' : ''"
+                    class="flex justify-start w-full text-sm p-2 rounded-lg cursor-pointer hover:bg-gray-200 font-bold dark:hover:bg-zinc-800 select-none"
+                    :class="activePage === '{{ $item['route'] }}' ? 'bg-gray-200 dark:bg-zinc-800' : ''"
                     @click="
                         $dispatch('set-page', '{{ $item['route'] }}');
                         Livewire.dispatch('reset-form');

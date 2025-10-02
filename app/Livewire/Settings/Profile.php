@@ -42,6 +42,31 @@ class Profile extends Component implements HasSchemas
     // Track original values
     public string $originalName = '';
     public string $originalEmail = '';
+    protected $listeners = ['reset-form' => 'resetForm'];
+    public function resetForm(): void
+    {
+        $user = Auth::user();
+
+        $this->reset([
+            'current_password',
+            'password',
+            'password_confirmation',
+            'delete_password',
+        ]);
+
+        $this->name = $user->name ?? '';
+        $this->email = $user->email ?? '';
+
+        $this->originalName = $this->name;
+        $this->originalEmail = $this->email;
+
+        $this->form->fill([
+            'profile_pic' => $user->profile_pic,
+        ]);
+
+        $this->dispatch('reset-finished');
+    }
+
 
     public function mount(): void
     {
@@ -85,28 +110,29 @@ class Profile extends Component implements HasSchemas
     {
         $user = Auth::user();
 
-        // Use the form API to get validated/processed state
-        $state = $this->form->getState(); // or $this->data
+        $state = $this->form->getState();
         $path = $state['profile_pic'] ?? null;
 
         if (! $path) {
-            Notification::make()->title('No image uploaded')->warning()->send();
+            Notification::make()
+                ->title('No image uploaded')
+                ->body('Please select and upload a profile picture before saving.')
+                ->warning()
+                ->send();
+
             return;
         }
 
-        // delete old image if exists
         if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
             Storage::disk('public')->delete($user->profile_pic);
         }
 
-        // persist new path to DB
         $user->update([
             'profile_pic' => $path,
         ]);
 
         $this->current_profile_pic = $path;
 
-        // refill form with persisted value (keeps state consistent)
         $this->form->fill(['profile_pic' => $path]);
 
         Notification::make()

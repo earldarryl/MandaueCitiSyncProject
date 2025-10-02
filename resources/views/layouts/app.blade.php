@@ -25,16 +25,27 @@
 
     @livewire('notifications')
 
+
+    @if(Route::is('password.confirm'))
+        <div class="flex h-full w-full justify-center items-center">
+            {{ $slot }}
+        </div>
+    @else
     <div class="flex h-full">
         <livewire:partials.sidebar />
-
+        <livewire:partials.notifications />
         <div x-data class="relative flex flex-col flex-1 h-full overflow-y-auto overflow-x-auto">
             <!-- Overlay only in content container -->
             <div
-                x-show="$store.sidebar.open && $store.sidebar.screen <= 768"
+                x-show="($store.sidebar.open && $store.sidebar.screen < 1024) || $store.notifications.open"
                 x-transition.opacity
-                class="fixed inset-0 bg-black/50 z-[35] lg:hidden"
-                @click="$store.sidebar.open = false"
+                class="fixed inset-0 bg-black/50 z-[35]"
+                @click="
+                    if ($store.sidebar.screen < 1024) {
+                        $store.sidebar.open = false
+                    }
+                    $store.notifications.open = false
+                "
             ></div>
 
             <livewire:partials.navigation />
@@ -49,6 +60,8 @@
     {{-- Logout modal --}}
     <livewire:pages.auth.logout />
 
+
+
     {{-- Scripts --}}
     @livewireScripts
     <script>
@@ -60,5 +73,7 @@
     @vite('resources/js/echo.js')
     @filamentScripts
     @fluxScripts
+
+    @endif
 </body>
 </html>

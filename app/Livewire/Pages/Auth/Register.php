@@ -3,22 +3,17 @@
 namespace App\Livewire\Pages\Auth;
 
 use App\Models\User;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Layout;
 use Filament\Forms\Components\FileUpload;
-use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.guest')]
-class Register extends Component implements HasForms
+class Register extends Component
 {
-    use WithFileUploads, InteractsWithForms;
-
     public string $first_name = '';
     public string $middle_name = '';
     public string $last_name = '';
@@ -29,7 +24,6 @@ class Register extends Component implements HasForms
     public string $sitio = '';
     public string $birthdate = '';
     public int $age;
-    public $profile_pic = null;
     public string $name = '';
     public string $email = '';
     public string $contact = '';
@@ -67,9 +61,9 @@ class Register extends Component implements HasForms
         $this->resetErrorBag();
     }
 
-    public function form(Schema $schema): Schema
+    protected function getFormSchema(): array
     {
-        return $schema->components([
+        return [
             FileUpload::make('profile_pic')
                 ->avatar()
                 ->disk('public')
@@ -78,31 +72,9 @@ class Register extends Component implements HasForms
                 ->imageEditor()
                 ->circleCropper()
                 ->maxSize(2048)
-                ->storeFileNamesIn('profile_pic')
                 ->reactive()
                 ->hiddenLabel(true)
-                ->dehydrated(true)
-                ->multiple(false)
-
-        ]);
-    }
-
-    public function mount()
-    {
-        $this->form->fill([
-            'profile_pic' => $this->profile_pic,
-        ]);
-    }
-
-    // ---------- Validation rules split ----------
-    protected function userProperties(): array
-    {
-        return [
-            'name' => $this->name,
-            'email' => $this->email,
-            'contact' => $this->contact,
-            'password' => $this->password,
-            'password_confirmation' => $this->password_confirmation,
+                ->multiple(false),
         ];
     }
 
@@ -114,21 +86,6 @@ class Register extends Component implements HasForms
             'contact' => ['required', 'regex:/^9\d{9}$/'],
             'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
             'password_confirmation' => ['required', 'same:password'],
-        ];
-    }
-
-    protected function userInfoProperties(): array
-    {
-        return [
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
-            'suffix' => $this->suffix,
-            'gender' => $this->gender,
-            'civil_status' => $this->civil_status,
-            'barangay' => $this->barangay,
-            'sitio' => $this->sitio,
-            'birthdate' => $this->birthdate,
         ];
     }
 
@@ -166,7 +123,28 @@ class Register extends Component implements HasForms
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('step-two-validated', success: false);
             throw $e;
+
         }
+    }
+    public function rules()
+    {
+        return [
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
+            'middle_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
+            'suffix' => ['required', 'string', 'max:5', 'regex:/^[A-Za-z\s\/\.\-]+$/'],
+            'gender' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
+            'civil_status' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
+            'barangay' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
+            'sitio' => ['required', 'string', 'max:255'],
+            'birthdate' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/', 'unique:users,email'],
+            'contact' => ['required', 'regex:/^9\d{9}$/'], // Starts with 9 + 9 digits (e.g., 9123456789)
+            'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
+            'password_confirmation' => ['required', 'same:password'],
+            'agreed_terms' => ['accepted'],
+        ];
     }
 
     public function updatedBirthdate($value)
@@ -182,72 +160,26 @@ class Register extends Component implements HasForms
         ];
     }
 
-    public function rules()
-    {
-        return [
-            'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
-            'middle_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
-            'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
-            'suffix' => ['required', 'string', 'max:5', 'regex:/^[A-Za-z\s\/\.\-]+$/'],
-            'gender' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
-            'civil_status' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
-            'barangay' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
-            'sitio' => ['required', 'string', 'max:255'],
-            'birthdate' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/', 'unique:users,email'],
-            'contact' => ['required', 'regex:/^9\d{9}$/'],
-            'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
-            'password_confirmation' => ['required', 'same:password'],
-            'agreed_terms' => ['accepted'],
-            'profile_pic' => ['nullable'],
-        ];
-    }
-
-    public function getProfilePicUrlProperty()
-    {
-        if ($this->profile_pic instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-            return $this->profile_pic->temporaryUrl();
-        }
-
-        if (is_string($this->profile_pic) && !empty($this->profile_pic)) {
-            return asset('storage/' . $this->profile_pic);
-        }
-
-        return asset('images/avatar.png');
-    }
-
-
     public function register()
     {
         try {
+
             $validated = $this->validate();
 
-            $profilePicPath = null;
-
-            if (is_array($this->profile_pic)) {
-                $profilePicPath = $this->profile_pic[0] ?? null;
-            } else {
-                $profilePicPath = $this->profile_pic;
-            }
-            // Format contact
             $validated['contact'] = '+63' . $validated['contact'];
 
-            // Create User account
             $user = User::create([
                 'name' => ucwords(strtolower(trim($validated['name']))),
                 'email' => strtolower(trim($validated['email'])),
-                'profile_pic' => $profilePicPath,
+                'profile_pic' => null,
                 'password' => Hash::make($validated['password']),
                 'contact' => trim($validated['contact']),
                 'agreed_terms' => true,
                 'agreed_at' => now(),
             ]);
 
-            // Assign role
             $user->assignRole('citizen');
 
-            // Create UserInfo
             $user->info()->create([
                 'first_name' => ucwords(strtolower(trim($validated['first_name']))),
                 'middle_name' => ucwords(strtolower(trim($validated['middle_name']))),

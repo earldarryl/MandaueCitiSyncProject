@@ -20,7 +20,7 @@
     <x-modal name="confirm-submit" class="p-6">
     <div class="flex items-center space-x-3 p-4">
         <div class="flex-shrink-0">
-            <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-blue-500" />
+            <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-mc_primary_color" />
         </div>
         <div>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
