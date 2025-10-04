@@ -8,7 +8,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\ToggleButtons;
@@ -29,16 +28,20 @@ class Create extends Component implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms, InteractsWithActions;
 
+    // Public properties (used by your Blade inputs too)
     public $is_anonymous;
     public $grievance_type;
-    public $grievance_title;
-    public $grievance_details;
     public $priority_level;
     public $department = [];
     public $grievance_files = [];
-
+    public $grievance_title;
+    public $grievance_details;
+    public $departmentOptions;
     public function mount(): void
     {
+          $this->departmentOptions = Department::whereHas('hrLiaisons')
+            ->pluck('department_name', 'department_id')
+            ->toArray();
         $this->form->fill();
     }
 
@@ -46,50 +49,15 @@ class Create extends Component implements Forms\Contracts\HasForms
     {
         return [
             ToggleButtons::make('is_anonymous')
-                ->label('Submit Anonymously?')
+                ->hiddenLabel(true)
                 ->options([true => 'Yes', false => 'No'])
                 ->icons([true => Heroicon::Eye, false => Heroicon::EyeSlash])
                 ->default(false)
                 ->helperText('If checked, your identity will not be revealed to the assigned HR liaisons.')
                 ->required(),
 
-            Select::make('grievance_type')
-                ->prefixIcon("heroicon-o-document")
-                ->label('Grievance Type')
-                ->native(false)
-                ->options([
-                    'Complaints' => 'Complaints',
-                    'Inquiry' => 'Inquiry',
-                    'Request' => 'Request',
-                    'Suggestion/Feedback' => 'Suggestion/Feedback',
-                ])
-                ->required(),
-
-            Select::make('department')
-                ->label('Department')
-                ->prefixIcon('heroicon-o-building-office')
-                ->multiple()
-                ->searchable()
-                ->options(
-                    Department::whereHas('hrLiaisons')->pluck('department_name', 'department_id')->toArray()
-                )
-                ->required(),
-
-            Select::make('priority_level')
-                ->prefixIcon("heroicon-o-document-chart-bar")
-                ->label('Priority Level')
-                ->native(false)
-                ->options(['Low' => 'Low', 'Normal' => 'Normal', 'High' => 'High'])
-                ->required(),
-
-            TextInput::make('grievance_title')
-                ->prefixIcon("heroicon-o-tag")
-                ->label('Grievance Title')
-                ->maxLength(255)
-                ->placeholder('Enter the title of your grievance here...'),
-
             RichEditor::make('grievance_details')
-                ->label('Grievance Details')
+                ->hiddenLabel(true)
                 ->required()
                 ->toolbarButtons([
                     'bold','italic','underline','strike',
@@ -99,7 +67,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->placeholder('Enter the details of your grievance here...'),
 
             FileUpload::make('grievance_files')
-                ->label('Upload Attachments')
+                ->hiddenLabel(true)
                 ->multiple()
                 ->preserveFilenames()
                 ->downloadable()
@@ -125,6 +93,21 @@ class Create extends Component implements Forms\Contracts\HasForms
         ];
     }
 
+    protected function rules(): array
+    {
+        return [
+            'is_anonymous'      => ['required', 'boolean'],
+            'grievance_type'    => ['required', 'string', 'max:255'],
+            'priority_level'    => ['required', 'string', 'max:50'],
+            'department'        => ['required', 'array', 'min:1'],
+            'department.*'      => ['exists:departments,department_id'],
+            'grievance_title'   => ['required', 'string', 'max:255'],
+            'grievance_details' => ['required', 'string'],
+            'grievance_files.*' => ['nullable', 'file', 'max:51200'],
+        ];
+    }
+
+
     public function submit(): void
     {
         $data = $this->form->getState();
@@ -132,9 +115,9 @@ class Create extends Component implements Forms\Contracts\HasForms
         try {
             $grievance = Grievance::create([
                 'user_id'          => auth()->id(),
-                'grievance_type'   => $data['grievance_type'],
-                'priority_level'   => $data['priority_level'],
-                'grievance_title'  => $data['grievance_title'],
+                'grievance_type'   => $this->grievance_type,
+                'priority_level'   => $this->priority_level,
+                'grievance_title'  => $this->grievance_title,
                 'grievance_details'=> $data['grievance_details'],
                 'is_anonymous'     => $data['is_anonymous'],
                 'grievance_status' => 'pending',
@@ -155,7 +138,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 }
             }
 
-            foreach ($data['department'] as $deptId) {
+            foreach ($this->department as $deptId) {
                 $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
                     ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $deptId))
                     ->get();

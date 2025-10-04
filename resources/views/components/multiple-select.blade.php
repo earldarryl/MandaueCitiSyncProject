@@ -1,7 +1,7 @@
 @props([
     'name',
     'placeholder' => 'Select options',
-    'options' => [], // expects [id => name, id => name, ...]
+    'options' => [],
 ])
 
 <div
@@ -14,6 +14,10 @@
                 let opt = {{ Js::from($options) }}[s];
                 return opt ? opt : s;
             });
+        },
+        remove(item) {
+            this.selected = this.selected.filter(v => v !== item);
+            $wire.set('{{ $name }}', this.selected, true);
         }
     }"
     x-init="window.addEventListener('clear', () => {
@@ -23,30 +27,44 @@
     class="relative w-full"
 >
     <!-- Trigger -->
-    <div @click="open = !open" tabindex="0" role="button">
+    <div
+        @click="open = !open"
+        tabindex="0"
+        role="button"
+        class="flex flex-wrap items-center gap-1 px-3 py-2 border rounded-lg cursor-pointer min-h-[42px]
+               {{ $errors->has($name) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300' }}"
+    >
+        <!-- Selected chips -->
+        <template x-for="(label, index) in value" :key="index">
+            <span class="inline-flex items-center bg-mc_primary_color/10 text-mc_primary_color text-sm font-medium px-2 py-1 rounded-full">
+                <span x-text="label"></span>
+                <button
+                    type="button"
+                    class="ml-1 text-mc_primary_color hover:text-red-500 focus:outline-none"
+                    @click.stop="remove(selected[index])"
+                >
+                    ✕
+                </button>
+            </span>
+        </template>
 
-        <flux:input
-            readonly
-            placeholder="{{ $placeholder }}"
-            class:input="cursor-pointer"
-            class="rounded-lg {{ $errors->has($name)
-                ? 'border border-red-500 focus:border-red-500 focus:ring-red-500'
-                : '' }}"
+        <!-- Placeholder -->
+        <span x-show="selected.length === 0" class="text-gray-400 text-sm">{{ $placeholder }}</span>
 
-            x-bind:value="value.length === 0 ? '' : value.join(' • ')"
+        <!-- Hidden input (for accessibility / Livewire binding) -->
+        <input type="hidden" :value="selected">
+    </div>
+
+    <!-- Clear-all button -->
+    <div class="absolute right-3 top-2 flex items-center gap-2">
+        <flux:button
+            x-show="selected.length > 0"
+            size="sm"
+            variant="subtle"
+            icon="x-mark"
+            class="h-5 w-5"
+            @click.stop="selected = []; customValue = ''; $wire.set('{{ $name }}', [], true)"
         />
-
-        <!-- Right controls -->
-        <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-            <flux:button
-                x-show="selected.length > 0"
-                size="sm"
-                variant="subtle"
-                icon="x-mark"
-                class="h-5 w-5"
-                @click.stop="selected = []; customValue = ''; $wire.set('{{ $name }}', [], true)"
-            />
-        </div>
     </div>
 
     <!-- Dropdown -->
@@ -56,7 +74,7 @@
         x-transition
         class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-black ring-opacity-5 rounded-md shadow-md"
     >
-        <ul class="py-1" role="listbox">
+        <ul class="py-1 max-h-60 overflow-y-auto" role="listbox">
             @foreach ($options as $id => $label)
                 <li>
                     <button
@@ -71,26 +89,14 @@
                         "
                         class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
                         :class="selected.includes({{ $id }})
-                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
+                            ? 'bg-mc_primary_color/20 dark:bg-zinc-800 font-medium'
                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
                         {{ $label }}
-                        <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4" />
+                        <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4 text-mc_primary_color" />
                     </button>
                 </li>
             @endforeach
         </ul>
 
-        <!-- Custom input for "Other" -->
-        <template x-if="selected.includes(999)">
-            <div class="px-4 pb-3">
-                <flux:input
-                    type="text"
-                    x-model="customValue"
-                    placeholder="Please specify"
-                    @click.stop
-                    @input="$wire.set('{{ $name }}', [...selected.filter(v => v !== 999), customValue], true)"
-                />
-            </div>
-        </template>
     </div>
 </div>

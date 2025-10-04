@@ -1,7 +1,138 @@
 <div class="px-10 py-5 flex flex-col justify-center items-center w-full">
     <div class="p-6 bg-gray-200/20 dark:bg-zinc-800/50 rounded-lg shadow-md w-full">
 
-        {{ $this->form }}
+        <div class="space-y-4">
+
+                <flux:field>
+                    <div class="flex flex-col gap-2">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.tag />
+                            <span>Is Anonymous</span>
+                        </flux:label>
+
+                        {{ $this->form->getComponent('is_anonymous') }}
+
+                    </div>
+
+                    <flux:error name="is_anonymous" />
+                </flux:field>
+
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <flux:field>
+                        <div class="flex flex-col gap-2">
+                            <flux:label class="flex gap-2">
+                                <span>Grievance Type</span>
+                            </flux:label>
+                            <flux:input.group>
+
+                            <x-searchable-select
+                                name="grievance_type"
+                                placeholder="Select a grievance type"
+                                :options="['Complaints', 'Inquiry', 'Request', 'Suggestion/Feedback']"
+                                :selected="$grievance_type"
+                                />
+
+                            </flux:input.group>
+                        </div>
+
+                        <flux:error name="grievance_type" />
+                    </flux:field>
+
+                     <flux:field>
+                        <div class="flex flex-col gap-2">
+                            <flux:label class="flex gap-2">
+                                <span>Priority Level</span>
+                            </flux:label>
+                            <flux:input.group>
+
+                            <x-searchable-select
+                                name="priority_level"
+                                placeholder="Select a priority level"
+                                :options="['Low', 'Normal', 'High']"
+                                :selected="$priority_level"
+                                />
+
+                            </flux:input.group>
+                        </div>
+
+                        <flux:error name="priority_level" />
+                    </flux:field>
+
+                </div>
+
+                <flux:field>
+                    <div class="flex flex-col gap-2">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.tag />
+                            <span>Department</span>
+                        </flux:label>
+
+                       <x-multiple-select
+                            name="department"
+                            placeholder="Select department(s)"
+                            :options="$departmentOptions"
+                        />
+
+                    </div>
+
+                    <flux:error name="department" />
+                </flux:field>
+
+                <flux:field>
+                    <div class="flex flex-col gap-2">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.tag />
+                            <span>Grievance Title</span>
+                        </flux:label>
+
+                        <flux:description>The first part of your full name</flux:description>
+
+                        <flux:input.group>
+                            <flux:input
+                                wire:model="grievance_title"
+                                type="text"
+                                name="grievance_title"
+                                autocomplete="grievance_title"
+                                placeholder="Enter your grievance title"
+                                clearable />
+                        </flux:input.group>
+                    </div>
+
+                    <flux:error name="grievance_title" />
+                </flux:field>
+
+                <flux:field>
+                    <div class="flex flex-col gap-2 w-full">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.tag />
+                            <span>Grievance Details</span>
+                        </flux:label>
+
+                        {{ $this->form->getComponent('grievance_details') }}
+
+                    </div>
+
+                    <flux:error name="grievance_details" />
+                </flux:field>
+
+                <flux:field>
+                    <div class="flex flex-col gap-2 w-full">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.tag />
+                            <span>Grievance Files</span>
+                        </flux:label>
+
+                        {{ $this->form->getComponent('grievance_files') }}
+
+                    </div>
+
+                    <flux:error name="grievance_files" />
+                </flux:field>
+
+            </div>
 
         <div class="mt-4 flex justify-end w-full">
         <flux:button
@@ -45,7 +176,7 @@
             variant="primary"
             color="blue"
             icon="pencil-square"
-            class="px-4 py-2 rounded-md"
+            class="bg-mc_primary_color dark:bg-blue-500 px-4 py-2 rounded-md"
             wire:click="submit"
             x-on:click="$dispatch('close-modal', 'confirm-submit')"
         >

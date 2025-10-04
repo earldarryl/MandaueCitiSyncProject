@@ -89,7 +89,7 @@ class Navigation extends Component
             'Sidebar' => 'bi bi-list',
         ];
 
-        return $icons[$this->header] ?? 'bi bi-circle'; // fallback
+        return $icons[$this->header] ?? 'bi bi-circle';
     }
 
     public function hydrate()

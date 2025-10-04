@@ -120,9 +120,14 @@ class Edit extends Component implements HasForms
     protected function rules(): array
     {
         return [
+            'is_anonymous'      => ['required', 'boolean'],
             'grievance_type'    => ['required', 'string', 'max:255'],
-            'priority_level'    => ['required', 'string'],
+            'priority_level'    => ['required', 'string', 'max:50'],
+            'department'        => ['required', 'array', 'min:1'],
+            'department.*'      => ['exists:departments,department_id'],
             'grievance_title'   => ['required', 'string', 'max:255'],
+            'grievance_details' => ['required', 'string'],
+            'grievance_files.*' => ['nullable', 'file', 'max:51200'],
         ];
     }
 

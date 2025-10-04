@@ -19,10 +19,14 @@ class Index extends Component
 
     public $perPage = 10;
     public $search = '';
+    public $searchInput = '';
+    public $filterPriority = '';
+    public $filterStatus = '';
+    public $filterType = '';
+    public $filterDate = '';
+    public array $selectedGrievances = [];
 
     protected $updatesQueryString = ['search'];
-
-    // Polling every 10 seconds
     protected $listeners = [
         'poll' => '$refresh',
     ];
@@ -40,25 +44,42 @@ class Index extends Component
         }
     }
 
-    public function goToGrievanceCreate()
-    {
-        return $this->redirect(route('citizen.grievance.create', absolute: false), navigate: true);
-    }
-    public function goToGrievanceView($id)
-    {
-        return $this->redirect(route('citizen.grievance.view', $id, absolute: false), navigate: true);
-    }
-    public function goToGrievanceEdit($id)
-    {
-        return $this->redirect(route('citizen.grievance.edit', $id, absolute: false), navigate: true);
-    }
     public function deleteGrievance($grievanceId)
     {
-        $grievance = Grievance::findOrFail($grievanceId);
-        $grievance->delete();
+        Grievance::where('id', $grievanceId)->delete();
 
         session()->flash('message', 'Grievance deleted successfully.');
         $this->dispatch('close-all-modals');
+    }
+
+    public function bulkDelete()
+    {
+        Grievance::whereIn('grievance_id', $this->selectedGrievances)->delete();
+        $this->selectedGrievances = [];
+        Notification::make()
+            ->title('Deleted')
+            ->body('Selected grievances deleted successfully.')
+            ->success()
+            ->send();
+    }
+
+    public function bulkMarkHigh()
+    {
+        Grievance::whereIn('grievance_id', $this->selectedGrievances)
+            ->update(['priority_level' => 'High']);
+
+        $this->selectedGrievances = [];
+        Notification::make()
+            ->title('Updated')
+            ->body('Selected grievances marked as High Priority.')
+            ->success()
+            ->send();
+    }
+
+    public function applySearch()
+    {
+        $this->search = $this->searchInput;
+        $this->resetPage();
     }
 
     public function updatingSearch()
@@ -74,12 +95,50 @@ class Index extends Component
             'user',
         ])
         ->where('user_id', auth()->id())
+        ->when($this->filterPriority, fn($q) => $q->where('priority_level', $this->filterPriority))
+        ->when($this->filterStatus, function ($q) {
+            $map = [
+                'Pending'     => 'pending',
+                'In Progress' => 'in_progress',
+                'Resolved'    => 'resolved',
+                'Closed'      => 'closed',
+            ];
+
+            if (isset($map[$this->filterStatus])) {
+                $q->where('grievance_status', $map[$this->filterStatus]);
+            }
+        })
+        ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
         ->where(function($query) {
             $query->where('grievance_title', 'like', '%'.$this->search.'%')
                 ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
                 ->orWhere('priority_level', 'like', '%'.$this->search.'%')
                 ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
                 ->orWhere('is_anonymous', 'like', '%'.$this->search.'%');
+        })
+        ->when($this->filterDate, function ($q) {
+            switch ($this->filterDate) {
+                case 'Today':
+                    $q->whereDate('created_at', now()->toDateString());
+                    break;
+
+                case 'Yesterday':
+                    $q->whereDate('created_at', now()->subDay()->toDateString());
+                    break;
+
+                case 'This Week':
+                    $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+
+                case 'This Month':
+                    $q->whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year);
+                    break;
+
+                case 'This Year':
+                    $q->whereYear('created_at', now()->year);
+                    break;
+            }
         })
         ->latest()
         ->paginate($this->perPage);

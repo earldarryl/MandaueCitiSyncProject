@@ -9,7 +9,6 @@ use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Layout;
 use Filament\Forms\Components\FileUpload;
-use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.guest')]
 class Register extends Component
@@ -28,6 +27,7 @@ class Register extends Component
     public string $email = '';
     public string $contact = '';
     public string $password = '';
+    public $profile_pic;
     public string $password_confirmation = '';
     public string $current_password = '';
     public bool $agreed_terms = false;

@@ -1,4 +1,4 @@
-<div class="sticky top-0 z-[34] h-[60px] shadow-md dark:bg-black bg-white">
+<div class="sticky top-0 z-[32] h-[60px] shadow-md dark:bg-black bg-white">
 <nav x-data="{ open: false }" class="w-full">
     <!-- Primary Navigation Menu -->
     <div class="w-full px-2">
