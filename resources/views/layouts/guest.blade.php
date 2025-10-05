@@ -23,28 +23,28 @@
 </head>
 
 <body class="w-full h-full antialiased" @show-register-modal.window="console.log('Event caught!'); $store.modal.show();">
- <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
-    <template x-if="dark">
-        <flux:button
-            x-on:click="$flux.dark = false"
-            icon="moon"
-            variant="ghost"
-            aria-label="Switch to light mode"
-            class="border-none"
-        />
-    </template>
-
-    <template x-if="!dark">
-        <flux:button
-            x-on:click="$flux.dark = true"
-            icon="sun"
-            variant="primary"
-            aria-label="Switch to dark mode"
-            class="border-none bg-mc_primary_color text-white lg:bg-white lg:text-black hover:bg-mc_primary_color lg:hover:bg-gray-200"
-        />
-    </template>
-</div>
     @if(Route::is('login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="primary"
+                    aria-label="Switch to dark mode"
+                    class="border-none bg-mc_primary_color text-white lg:bg-white lg:text-black hover:bg-mc_primary_color lg:hover:bg-gray-200"
+                />
+            </template>
+        </div>
         <div x-data>
             <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">

@@ -26,21 +26,20 @@
     })"
     class="relative w-full"
 >
-    <!-- Trigger -->
     <div
         @click="open = !open"
         tabindex="0"
         role="button"
         class="flex flex-wrap items-center gap-1 px-3 py-2 border rounded-lg cursor-pointer min-h-[42px]
-               {{ $errors->has($name) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300' }}"
+            {{ $errors->has($name) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200/50 dark:border-zinc-600' }}
+            bg-white dark:bg-zinc-800"
     >
-        <!-- Selected chips -->
         <template x-for="(label, index) in value" :key="index">
-            <span class="inline-flex items-center bg-mc_primary_color/10 text-mc_primary_color text-sm font-medium px-2 py-1 rounded-full">
+            <span class="inline-flex gap-2 items-center bg-mc_primary_color/10 dark:bg-mc_primary_color/20 text-mc_primary_color dark:text-mc_primary_color text-sm font-medium px-2 py-1 rounded-full">
                 <span x-text="label"></span>
                 <button
                     type="button"
-                    class="ml-1 text-mc_primary_color hover:text-red-500 focus:outline-none"
+                    class="ml-1 text-mc_primary_color dark:text-mc_primary_color hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
                     @click.stop="remove(selected[index])"
                 >
                     ✕
@@ -48,14 +47,11 @@
             </span>
         </template>
 
-        <!-- Placeholder -->
-        <span x-show="selected.length === 0" class="text-gray-400 text-sm">{{ $placeholder }}</span>
+        <span x-show="selected.length === 0" class="text-gray-400 dark:text-gray-400 text-sm">{{ $placeholder }}</span>
 
-        <!-- Hidden input (for accessibility / Livewire binding) -->
         <input type="hidden" :value="selected">
     </div>
 
-    <!-- Clear-all button -->
     <div class="absolute right-3 top-2 flex items-center gap-2">
         <flux:button
             x-show="selected.length > 0"
@@ -67,12 +63,11 @@
         />
     </div>
 
-    <!-- Dropdown -->
     <div
         x-show="open"
         @click.outside="open = false"
         x-transition
-        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-black ring-opacity-5 rounded-md shadow-md"
+        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white border-gray-200/50 dark:border-zinc-600 rounded-md shadow-md"
     >
         <ul class="py-1 max-h-60 overflow-y-auto" role="listbox">
             @foreach ($options as $id => $label)

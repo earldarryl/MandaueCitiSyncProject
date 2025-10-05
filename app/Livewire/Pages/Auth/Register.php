@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Layout;
-use Filament\Forms\Components\FileUpload;
 
 #[Layout('layouts.guest')]
 class Register extends Component
@@ -28,6 +27,7 @@ class Register extends Component
     public string $contact = '';
     public string $password = '';
     public $profile_pic;
+    public $showConfirmModal;
     public string $password_confirmation = '';
     public string $current_password = '';
     public bool $agreed_terms = false;
@@ -59,23 +59,6 @@ class Register extends Component
         ]);
 
         $this->resetErrorBag();
-    }
-
-    protected function getFormSchema(): array
-    {
-        return [
-            FileUpload::make('profile_pic')
-                ->avatar()
-                ->disk('public')
-                ->directory('profile_pics')
-                ->image()
-                ->imageEditor()
-                ->circleCropper()
-                ->maxSize(2048)
-                ->reactive()
-                ->hiddenLabel(true)
-                ->multiple(false),
-        ];
     }
 
     protected function userRules(): array
@@ -110,6 +93,7 @@ class Register extends Component
             $this->validate($this->userInfoRules());
             $this->dispatch('step-one-validated', success: true);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->showConfirmModal = true;
             $this->dispatch('step-one-validated', success: false);
             throw $e;
         }
@@ -121,9 +105,9 @@ class Register extends Component
             $this->validate($this->userRules());
             $this->dispatch('step-two-validated', success: true);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->showConfirmModal = true;
             $this->dispatch('step-two-validated', success: false);
             throw $e;
-
         }
     }
     public function rules()
@@ -163,6 +147,14 @@ class Register extends Component
     public function register()
     {
         try {
+
+            if (!$this->agreed_terms) {
+                $this->addError('agreed_terms', 'You must agree to the terms and conditions before proceeding.');
+
+                $this->dispatch('check-terms-error');
+
+                return;
+            }
 
             $validated = $this->validate();
 

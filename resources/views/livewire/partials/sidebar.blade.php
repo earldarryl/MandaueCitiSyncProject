@@ -7,8 +7,8 @@
     :class="{
         'w-[320px] sticky top-0 h-full z-[34] transition-all duration-300': $store.sidebar.open && isDesktop,
         'w-[80px] sticky top-0 h-full z-[34] transition-all duration-300': !$store.sidebar.open && isDesktop,
-        'w-2/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
-        'w-2/5 -translate-x-[100%] fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
+        'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
+        'w-3/5 -translate-x-[100%] fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
     class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-sm shadow-md min-h-full overflow-visible"
 >

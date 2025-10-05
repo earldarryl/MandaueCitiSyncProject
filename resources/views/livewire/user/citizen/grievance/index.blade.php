@@ -32,19 +32,31 @@
         <div class="flex flex-col flex-1 gap-2 w-full">
             <!-- Search -->
             <div class="flex w-full flex-1 px-4">
-                <input
-                    type="text"
-                    wire:model.defer="searchInput"
-                    wire:keydown.enter="applySearch"
-                    placeholder="Search grievances..."
-                    class="border border-gray-200 dark:border-zinc-700 p-2 w-full bg-gray-200/60 rounded-l-md dark:bg-zinc-900"
-                />
+                <div class="relative w-full">
+                    <input
+                        type="text"
+                        wire:model.defer="searchInput"
+                        wire:keydown.enter="applySearch"
+                        placeholder="Search grievances..."
+                        class="relative border border-gray-200 dark:border-zinc-700 p-2 pr-10 w-full bg-gray-200/60 rounded-md dark:bg-zinc-900"
+                    />
+
+                    <button
+                        type="button"
+                        wire:click="clearSearch"
+                        class="absolute p-3 rounded-lg inset-y-0 right-1 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:bg-gray-300 dark:hover:bg-zinc-700"
+                    >
+                        <flux:icon.x-mark class="w-4 h-4"/>
+                    </button>
+                </div>
+
                 <button
                     wire:click="applySearch"
                     class="py-2 px-4 bg-mc_primary_color/20 text-mc_primary_color dark:bg-black dark:text-white border border-gray-200 dark:border-zinc-700 rounded-r-md"
                 >
                     <flux:icon.magnifying-glass />
                 </button>
+
             </div>
 
             <!-- Filters -->

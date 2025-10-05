@@ -7,10 +7,8 @@ use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
 use App\Models\Grievance;
@@ -48,14 +46,6 @@ class Create extends Component implements Forms\Contracts\HasForms
     protected function getFormSchema(): array
     {
         return [
-            ToggleButtons::make('is_anonymous')
-                ->hiddenLabel(true)
-                ->options([true => 'Yes', false => 'No'])
-                ->icons([true => Heroicon::Eye, false => Heroicon::EyeSlash])
-                ->default(false)
-                ->helperText('If checked, your identity will not be revealed to the assigned HR liaisons.')
-                ->required(),
-
             RichEditor::make('grievance_details')
                 ->hiddenLabel(true)
                 ->required()
@@ -119,7 +109,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'priority_level'   => $this->priority_level,
                 'grievance_title'  => $this->grievance_title,
                 'grievance_details'=> $data['grievance_details'],
-                'is_anonymous'     => $data['is_anonymous'],
+                'is_anonymous'     => (int) $this->is_anonymous,
                 'grievance_status' => 'pending',
                 'processing_days'  => 0,
             ]);

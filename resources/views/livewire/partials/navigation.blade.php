@@ -43,7 +43,10 @@
                             <!-- Avatar Button -->
                             <div class="dark:bg-white w-10 h-10 rounded-full cursor-pointer shrink-0"
                                 @click="openProfile = !openProfile">
-                                <img src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}"
+                                <img
+                                    src="{{ $user->profile_pic
+                                    ? Storage::url($user->profile_pic)
+                                    : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0D8ABC&color=fff&size=128' }}"
                                     alt="profile-pic"
                                     class="rounded-full w-full h-full object-cover">
                             </div>
@@ -61,9 +64,13 @@
                                     <div class="flex items-center gap-3">
                                         <!-- Avatar -->
                                         <div class="rounded-full w-16 h-16 sm:w-20 sm:h-20 shrink-0">
-                                            <img src="{{ $user->profile_pic ? Storage::url($user->profile_pic) : asset('images/avatar.png') }}"
+                                            <img
+                                                src="{{ $user->profile_pic
+                                                    ? Storage::url($user->profile_pic)
+                                                    : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0D8ABC&color=fff&size=128' }}"
                                                 alt="profile-pic"
-                                                class="rounded-full w-full h-full object-cover">
+                                                class="rounded-full w-full h-full object-cover"
+                                            />
                                         </div>
 
                                         <!-- Info -->

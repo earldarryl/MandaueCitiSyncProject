@@ -16,8 +16,8 @@ class Index extends Component
     use WithPagination;
 
     protected $paginationTheme = 'tailwind';
-
-    public $perPage = 10;
+    public $user;
+    public $perPage = 4;
     public $search = '';
     public $searchInput = '';
     public $filterPriority = '';
@@ -33,6 +33,16 @@ class Index extends Component
 
     public function mount()
     {
+        $this->user = auth()->user();
+
+        if (session()->pull('just_logged_in', false)) {
+            Notification::make()
+                ->title('Welcome back, ' . $this->user->name . ' 👋')
+                ->body('Good to see you again! Here’s your dashboard.')
+                ->success()
+                ->send();
+        }
+
         if (session()->has('notification')) {
             $notif = session('notification');
 
@@ -42,6 +52,7 @@ class Index extends Component
                 ->{$notif['type']}()
                 ->send();
         }
+
     }
 
     public function deleteGrievance($grievanceId)
@@ -81,6 +92,14 @@ class Index extends Component
         $this->search = $this->searchInput;
         $this->resetPage();
     }
+
+    public function clearSearch()
+    {
+        $this->searchInput = '';
+        $this->search = '';
+        $this->resetPage();
+    }
+
 
     public function updatingSearch()
     {

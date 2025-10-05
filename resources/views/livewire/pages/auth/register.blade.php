@@ -68,6 +68,7 @@
                 >
                     <div id="modal-scroll" class="overflow-y-auto flex-1">
                         <div class="sticky top-0 p-4 bg-white dark:bg-zinc-900 flex flex-col gap-3 w-full z-50">
+
                             <div class="flex items-center justify-between">
                                 <h1 class="text-3xl tracking-tighter text-mc_primary_color dark:text-blue-600 font-extrabold">
                                     Create an account
@@ -80,61 +81,121 @@
                                     />
                                 </flux:modal.trigger>
                             </div>
-                            <div class="relative w-full flex items-center justify-center select-none">
-                                <!-- Background Line (absolute behind circles) -->
-                                <div class="absolute top-1/2 left-0 right-0 top-4 h-[2px] bg-gray-300 dark:bg-zinc-700 -translate-y-1/2 z-0">
-                                    <!-- Active part of line -->
-                                    <div
-                                        class="bg-blue-500 h-[2px] absolute left-0 transition-all duration-500"
-                                        :style="{ width: currentPage === 1 ? '0%' : currentPage === 2 ? '50%' : '100%' }"></div>
-                                </div>
 
-                                <div class="relative w-full flex justify-between">
-                                    <!-- Step 1 -->
-                                    <div class="relative z-10 flex flex-col items-start">
-                                        <div :class="currentPage >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-600 dark:bg-zinc-700 dark:text-white'"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full font-bold transition-colors">
-                                            <span x-show="currentPage == 1">1</span>
-                                            <span x-show="currentPage > 1">
-                                                <flux:icon.check />
-                                            </span>
+                            <div class="w-full flex flex-col items-center justify-center select-none py-6">
+                                <!-- Step Circles & Connecting Lines -->
+                                <div class="relative w-full max-w-3xl px-8">
+                                    <div class="relative flex items-center justify-between">
+                                        <!-- Base Gray Line (behind circles) -->
+                                        <div
+                                            class="absolute top-6 left-[0%] right-[0%] h-[3px] w-full bg-gray-200 dark:bg-zinc-700 rounded-full transform -translate-y-1/2"
+                                        ></div>
+
+                                        <!-- Active Blue Progress Line -->
+                                        <div
+                                            class="absolute top-6 left-[0%] right-[0%] h-[3px] w-full bg-blue-500 rounded-full transform -translate-y-1/2 transition-all duration-700 ease-in-out"
+                                            :style="{
+                                                width:
+                                                    currentPage === 1
+                                                        ? '0%'
+                                                        : currentPage === 2
+                                                        ? '50%'
+                                                        : currentPage >= 3
+                                                        ? '100%'
+                                                        : '0%'
+                                            }"
+                                        ></div>
+
+                                        <!-- Steps (Circles + Labels) -->
+                                        <div class="relative flex w-full justify-between">
+                                            <template x-for="(label, index) in ['Personal Info', 'Account Info', 'Summary']" :key="index">
+                                                <div
+                                                    class="flex flex-col relative z-10 transition-all duration-300"
+                                                    :class="{
+                                                        'items-start': index === 0,
+                                                        'items-center': index === 1,
+                                                        'items-end': index === 2
+                                                    }"
+                                                >
+                                                    <!-- Step Circle -->
+                                                    <div
+                                                        class="flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-500 ease-in-out"
+                                                        :class="{
+                                                            'bg-blue-500 text-white shadow-[0_0_12px_rgba(59,130,246,0.6)] scale-110': currentPage >= index + 1,
+                                                            'bg-gray-300 text-gray-500 dark:bg-zinc-700 dark:text-gray-400': currentPage < index + 1
+                                                        }"
+                                                    >
+                                                        <!-- Show check icon if completed -->
+                                                        <template x-if="currentPage > index + 1">
+                                                            <flux:icon.check />
+                                                        </template>
+
+                                                        <!-- Show icon depending on step if not completed -->
+                                                        <template x-if="currentPage <= index + 1">
+                                                            <span>
+                                                                <template x-if="index === 0">
+                                                                    <flux:icon.identification />
+                                                                </template>
+                                                                <template x-if="index === 1">
+                                                                    <flux:icon.user />
+                                                                </template>
+                                                                <template x-if="index === 2">
+                                                                    <flux:icon.document-magnifying-glass />
+                                                                </template>
+                                                            </span>
+                                                        </template>
+                                                    </div>
+
+                                                    <!-- Label -->
+                                                    <span
+                                                        class="mt-2 text-sm font-bold transition-colors text-center"
+                                                        :class="currentPage >= index + 1 ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+                                                        x-text="label"
+                                                    ></span>
+                                                </div>
+                                            </template>
                                         </div>
-                                        <span class="text-sm mt-1">Personal Info</span>
-                                    </div>
 
-                                    <!-- Step 2 -->
-                                    <div class="relative z-10 flex flex-col items-center">
-                                        <div :class="currentPage >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-600 dark:bg-zinc-700 dark:text-white'"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full font-bold transition-colors">
-                                            <span x-show="currentPage == 1 || currentPage == 2">2</span>
-                                            <span x-show="currentPage > 2">
-                                                <flux:icon.check />
-                                            </span>
-                                        </div>
-                                        <span class="text-sm mt-1">User's Account Info</span>
-                                    </div>
-
-                                    <!-- Step 3 -->
-                                    <div class="relative z-10 flex flex-col items-end">
-                                        <div :class="currentPage >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-600 dark:bg-zinc-700 dark:text-white'"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full font-bold transition-colors">
-
-                                            <span x-show="(currentPage == 1 || currentPage == 2 || currentPage == 3) && !loading">3</span>
-                                            <span x-show="loading">
-                                                <flux:icon.check />
-                                            </span>
-                                        </div>
-                                        <span class="text-sm mt-1">Summary Section</span>
                                     </div>
                                 </div>
                             </div>
+
                         </div>
 
                             <div class="relative p-4">
-                                <div class="relative flex flex-col w-full h-full">
+                                <div class="relative p-4 bg-gray-50 border border-gray-200 dark:border-none dark:bg-zinc-800 flex flex-col w-full h-full">
                                     <div class="relative flex flex-col w-full h-full">
+
+                                    <flux:modal wire:model.self="showConfirmModal">
+                                        <div class="p-6 flex flex-col items-center text-center space-y-4">
+                                            <div class="rounded-full bg-red-100 p-3 text-red-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                            </div>
+
+                                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                                Missing Required Information
+                                            </h2>
+
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                Some required fields are incomplete or invalid. Please review your input before proceeding.
+                                            </p>
+
+                                            <div class="flex justify-center gap-3 mt-4">
+                                                <flux:button
+                                                    color="zinc"
+                                                    variant="primary"
+                                                    @click="$wire.showConfirmModal = false"
+                                                >
+                                                    Close
+                                                </flux:button>
+                                            </div>
+                                        </div>
+                                    </flux:modal>
+
                                     <!-- Page 1 -->
-                                    <div class="relative border-box w-full flex flex-col gap-4 px-5 pb-8 gap-4" x-show="currentPage === 1">
+                                    <div class="relative border-box w-full font-semibold flex flex-col gap-4 px-5 pb-8 gap-4" x-show="currentPage === 1">
                                             <!-- First Name -->
                                             <flux:field>
                                                 <div class="flex flex-col gap-2">
@@ -325,209 +386,243 @@
                                             <flux:error name="sitio" />
                                         </flux:field>
 
-                                        <flux:field
-                                                x-data
-                                                x-init="$nextTick(() => {
-                                                    if (!$refs.input._flatpickr) {
-                                                        flatpickr($refs.input, {
-                                                            dateFormat: 'Y-m-d',
-                                                            defaultDate: birthdate || null
-                                                        });
-                                                    }
-                                                })"
-                                                class="relative w-full"
-                                                >
-                                                <div class="flex flex-col gap-2">
-                                                    <flux:label class="flex gap-2">
-                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                                                        </svg>
-                                                        <span>Birth Date</span>
-                                                    </flux:label>
-                                                    <flux:description>The individual's date of birth</flux:description>
-                                                    <flux:error name="birthdate" class="my-2" />
-                                                    <flux:error name="age" class="my-2" />
-                                                    <flux:input.group class="cursor-pointer">
+                                       <flux:field>
+                                            <div class="flex flex-col gap-2">
+                                                <flux:label class="flex gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                        stroke-width="1.5" stroke="currentColor" class="size-6 text-blue-500">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                                    </svg>
+                                                    <span>Birth Date</span>
+                                                </flux:label>
+
+                                                <flux:description>The individual's date of birth</flux:description>
+                                                <flux:error name="birthdate" class="my-2" />
+                                                <flux:error name="age" class="my-2" />
+
+                                                <flux:input.group>
+                                                    <div
+                                                        x-data
+                                                        x-init="$nextTick(() => {
+                                                            const setupFlatpickr = () => {
+                                                                const isDark = document.documentElement.classList.contains('dark');
+
+                                                                if (!$refs.input._flatpickr) {
+                                                                    flatpickr($refs.input, {
+                                                                        dateFormat: 'Y-m-d',
+                                                                        defaultDate: birthdate || null,
+                                                                        onReady: function(selectedDates, dateStr, instance) {
+                                                                            applyDarkMode(instance, isDark);
+                                                                        },
+                                                                    });
+                                                                } else {
+                                                                    applyDarkMode($refs.input._flatpickr, isDark);
+                                                                }
+                                                            };
+
+                                                            const applyDarkMode = (instance, isDark) => {
+                                                                const calendar = instance.calendarContainer;
+                                                                if (!calendar) return;
+                                                                calendar.classList.toggle('flatpickr-dark', isDark);
+                                                            };
+
+                                                            setupFlatpickr();
+
+                                                            const observer = new MutationObserver(() => {
+                                                                const isDark = document.documentElement.classList.contains('dark');
+                                                                if ($refs.input._flatpickr) {
+                                                                    applyDarkMode($refs.input._flatpickr, isDark);
+                                                                }
+                                                            });
+
+                                                            observer.observe(document.documentElement, {
+                                                                attributes: true,
+                                                                attributeFilter: ['class']
+                                                            });
+                                                        })"
+                                                        class="relative w-full cursor-pointer"
+                                                    >
                                                         <flux:input
                                                             x-ref="input"
                                                             type="text"
                                                             wire:model="birthdate"
+                                                            class="cursor-pointer select-none"
                                                             x-model="birthdate"
                                                             placeholder="Enter a birthdate"
-                                                            clearable
+                                                            readonly
                                                         />
+                                                    </div>
+                                                </flux:input.group>
+                                            </div>
+                                        </flux:field>
+
+                                    </div>
+
+                                    <!-- Page 2 -->
+                                    <div class="relative w-full h-full flex flex-col items-center justify-between p-2 gap-8"  x-show="currentPage === 2">
+
+                                        <div class="relative border-box w-full flex flex-col gap-3 px-5 pb-8">
+
+                                            <!-- Name -->
+                                            <flux:field>
+                                                <div class="flex flex-col gap-2">
+                                                    <flux:label class="flex gap-2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                                        </svg>
+                                                        <span>Name</span>
+                                                    </flux:label>
+
+                                                    <flux:description>Create a unique and catchy username</flux:description>
+
+                                                    <flux:input.group>
+                                                        <flux:input wire:model="name" x-model="name" id="name" type="text" name="name"
+                                                                    autocomplete="name" placeholder="Enter your username" clearable />
                                                     </flux:input.group>
                                                 </div>
 
-                                        </flux:field>
-                                    </div>
+                                                <flux:error name="name" />
+                                            </flux:field>
+
+                                            <!-- Email Address -->
+                                            <flux:field>
+                                                <div class="flex flex-col gap-2">
+                                                    <flux:label class="flex gap-2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-mc_primary_color">
+                                                            <path fill-rule="evenodd" d="M17.834 6.166a8.25 8.25 0 1 0 0 11.668.75.75 0 0 1 1.06 1.06c-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788 3.807-3.808 9.98-3.808 13.788 0A9.722 9.722 0 0 1 21.75 12c0 .975-.296 1.887-.809 2.571-.514.685-1.28 1.179-2.191 1.179-.904 0-1.666-.487-2.18-1.164a5.25 5.25 0 1 1-.82-6.26V8.25a.75.75 0 0 1 1.5 0V12c0 .682.208 1.27.509 1.671.3.401.659.579.991.579.332 0 .69-.178.991-.579.3-.4.509-.99.509-1.671a8.222 8.222 0 0 0-2.416-5.834ZM15.75 12a3.75 3.75 0 1 0-7.5 0 3.75 3.75 0 0 0 7.5 0Z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        <span>Email</span>
+                                                    </flux:label>
+
+                                                    <flux:description>Email address including Gmail, Yahoo, etc.</flux:description>
+
+                                                    <flux:input.group>
+                                                        <flux:input wire:model="email" x-model="email" id="email" type="text" name="email"
+                                                                    autocomplete="email" placeholder="Enter your email" clearable />
+                                                    </flux:input.group>
+                                                </div>
 
 
+                                                <flux:error name="email" />
+                                            </flux:field>
 
-                                    <!-- Page 2 -->
-                            <div class="relative w-full h-full flex flex-col items-center justify-between p-2 gap-8"  x-show="currentPage === 2">
+                                            <!-- Contact Number -->
+                                            <flux:field>
+                                                <div class="flex flex-col gap-2">
+                                                    <flux:label class="flex gap-2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                                                        </svg>
+                                                        <span>Contact Number</span>
+                                                    </flux:label>
 
-                                <div class="relative border-box w-full flex flex-col gap-3 px-5 pb-8">
+                                                    <flux:description>Your personal contact number e.g. 639690944474</flux:description>
 
-                                    <!-- Name -->
-                                    <flux:field>
-                                        <div class="flex flex-col gap-2">
-                                            <flux:label class="flex gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                                                </svg>
-                                                <span>Name</span>
-                                            </flux:label>
+                                                    <flux:input.group>
+                                                        <flux:input.group.prefix class="flex gap-2 justify-center items-center">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 72 72">
+                                                                <path fill="#1e50a0" d="M5 17h62v38H5z" />
+                                                                <path fill="#d22f27" d="M5 36h62v19H5z" />
+                                                                <path fill="#fff" d="M37 36L5 55V17z" />
+                                                                <circle cx="8" cy="21" r="1.044" fill="#f1b31c" />
+                                                                <circle cx="33" cy="36" r="1.044" fill="#f1b31c" />
+                                                                <circle cx="8" cy="51" r="1.044" fill="#f1b31c" />
+                                                                <path fill="#f1b31c" stroke="#f1b31c" stroke-linecap="round" stroke-linejoin="round" d="m17.907 35.086l2.133-1.496l-1.606 2.052l2.566.45l-2.586.315l1.496 2.133l-2.051-1.606l-.451 2.566l-.315-2.586l-2.133 1.496l1.606-2.051L14 35.908l2.586-.315l-1.496-2.133l2.052 1.606l.45-2.566z" stroke-width="1" />
+                                                            </svg>
+                                                            <span>+63</span>
+                                                        </flux:input.group.prefix>
+                                                        <flux:input
+                                                            wire:model="contact"
+                                                            x-model="contact"
+                                                            id="contact"
+                                                            type="text"
+                                                            name="contact"
+                                                            maxlength="10"
+                                                            inputmode="numeric"
+                                                            x-data
+                                                            x-on:input="$el.value = $el.value.replace(/\D/g, '')"
+                                                            placeholder="Enter your contact number"
+                                                            autocomplete="contact"
+                                                            clearable
+                                                            />
+                                                    </flux:input.group>
+                                                </div>
 
-                                            <flux:description>Create a unique and catchy username</flux:description>
+                                                <flux:error name="contact" />
+                                            </flux:field>
 
-                                            <flux:input.group>
-                                                <flux:input wire:model="name" x-model="name" id="name" type="text" name="name"
-                                                            autocomplete="name" placeholder="Enter your username" clearable />
-                                            </flux:input.group>
-                                        </div>
+                                            <!-- Password -->
+                                            <flux:field>
+                                                    <div class="flex flex-col gap-2">
+                                                        <flux:label class="flex gap-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                                                            </svg>
+                                                            <span>Password</span>
+                                                        </flux:label>
 
-                                        <flux:error name="name" />
-                                    </flux:field>
+                                                        <flux:description>Create a unique and catchy password</flux:description>
 
-                                    <!-- Email Address -->
-                                    <flux:field>
-                                        <div class="flex flex-col gap-2">
-                                            <flux:label class="flex gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-mc_primary_color">
-                                                    <path fill-rule="evenodd" d="M17.834 6.166a8.25 8.25 0 1 0 0 11.668.75.75 0 0 1 1.06 1.06c-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788 3.807-3.808 9.98-3.808 13.788 0A9.722 9.722 0 0 1 21.75 12c0 .975-.296 1.887-.809 2.571-.514.685-1.28 1.179-2.191 1.179-.904 0-1.666-.487-2.18-1.164a5.25 5.25 0 1 1-.82-6.26V8.25a.75.75 0 0 1 1.5 0V12c0 .682.208 1.27.509 1.671.3.401.659.579.991.579.332 0 .69-.178.991-.579.3-.4.509-.99.509-1.671a8.222 8.222 0 0 0-2.416-5.834ZM15.75 12a3.75 3.75 0 1 0-7.5 0 3.75 3.75 0 0 0 7.5 0Z" clip-rule="evenodd" />
-                                                </svg>
-                                                <span>Email</span>
-                                            </flux:label>
+                                                        <flux:input.group>
 
-                                            <flux:description>Email address including Gmail, Yahoo, etc.</flux:description>
+                                                            <flux:input
+                                                                wire:model="password"
+                                                                x-model="password"
+                                                                id="password"
+                                                                type="password"
+                                                                class:input="hide-password-toggle"
+                                                                placeholder="Enter your password"
+                                                                viewable
+                                                                clearable
+                                                            />
 
-                                            <flux:input.group>
-                                                <flux:input wire:model="email" x-model="email" id="email" type="text" name="email"
-                                                            autocomplete="email" placeholder="Enter your email" clearable />
-                                            </flux:input.group>
-                                        </div>
+                                                        </flux:input.group>
+                                                    </div>
 
+                                                <flux:error name="password" />
+                                            </flux:field>
 
-                                        <flux:error name="email" />
-                                    </flux:field>
+                                            <!-- Confirm Password -->
+                                            <flux:field>
+                                                <div class="flex flex-col gap-2">
+                                                    <flux:label class="flex gap-2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                        </svg>
+                                                        <span>Confirm Password</span>
+                                                    </flux:label>
 
-                                    <!-- Contact Number -->
-                                    <flux:field>
-                                        <div class="flex flex-col gap-2">
-                                            <flux:label class="flex gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                                </svg>
-                                                <span>Contact Number</span>
-                                            </flux:label>
+                                                    <flux:description>Confirm the password you have inputted above</flux:description>
 
-                                            <flux:description>Your personal contact number e.g. 639690944474</flux:description>
+                                                    <flux:input.group>
 
-                                            <flux:input.group>
-                                                <flux:input.group.prefix class="flex gap-2 justify-center items-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 72 72">
-                                                        <path fill="#1e50a0" d="M5 17h62v38H5z" />
-                                                        <path fill="#d22f27" d="M5 36h62v19H5z" />
-                                                        <path fill="#fff" d="M37 36L5 55V17z" />
-                                                        <circle cx="8" cy="21" r="1.044" fill="#f1b31c" />
-                                                        <circle cx="33" cy="36" r="1.044" fill="#f1b31c" />
-                                                        <circle cx="8" cy="51" r="1.044" fill="#f1b31c" />
-                                                        <path fill="#f1b31c" stroke="#f1b31c" stroke-linecap="round" stroke-linejoin="round" d="m17.907 35.086l2.133-1.496l-1.606 2.052l2.566.45l-2.586.315l1.496 2.133l-2.051-1.606l-.451 2.566l-.315-2.586l-2.133 1.496l1.606-2.051L14 35.908l2.586-.315l-1.496-2.133l2.052 1.606l.45-2.566z" stroke-width="1" />
-                                                    </svg>
-                                                    <span>+63</span>
-                                                </flux:input.group.prefix>
-                                                <flux:input
-                                                    wire:model="contact"
-                                                    x-model="contact"
-                                                    id="contact"
-                                                    type="text"
-                                                    name="contact"
-                                                    maxlength="10"
-                                                    inputmode="numeric"
-                                                    x-data
-                                                    x-on:input="$el.value = $el.value.replace(/\D/g, '')"
-                                                    placeholder="Enter your contact number"
-                                                    autocomplete="contact"
-                                                    clearable
-                                                    />
-                                            </flux:input.group>
-                                        </div>
+                                                        <flux:input
+                                                            wire:model="password_confirmation"
+                                                            x-model="password_confirmation"
+                                                            id="password_confirmation"
+                                                            type="password"
+                                                            class:input="hide-password-toggle"
+                                                            placeholder="Retype password"
+                                                            viewable
+                                                            clearable
+                                                        />
 
-                                        <flux:error name="contact" />
-                                    </flux:field>
+                                                    </flux:input.group>
+                                                </div>
 
-                                    <!-- Password -->
-                                    <flux:field>
-                                            <div class="flex flex-col gap-2">
-                                                <flux:label class="flex gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
-                                                    </svg>
-                                                    <span>Password</span>
-                                                </flux:label>
+                                                <flux:error name="password_confirmation" />
+                                            </flux:field>
 
-                                                <flux:description>Create a unique and catchy password</flux:description>
-
-                                                <flux:input.group>
-
-                                                    <flux:input
-                                                        wire:model="password"
-                                                        x-model="password"
-                                                        id="password"
-                                                        type="password"
-                                                        class:input="hide-password-toggle"
-                                                        placeholder="Enter your password"
-                                                        viewable
-                                                        clearable
-                                                    />
-
-                                                </flux:input.group>
+                                                </div>
                                             </div>
-
-                                        <flux:error name="password" />
-                                    </flux:field>
-
-                                    <!-- Confirm Password -->
-                                    <flux:field>
-                                        <div class="flex flex-col gap-2">
-                                            <flux:label class="flex gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                </svg>
-                                                <span>Confirm Password</span>
-                                            </flux:label>
-
-                                            <flux:description>Confirm the password you have inputted above</flux:description>
-
-                                            <flux:input.group>
-
-                                                <flux:input
-                                                    wire:model="password_confirmation"
-                                                    x-model="password_confirmation"
-                                                    id="password_confirmation"
-                                                    type="password"
-                                                    class:input="hide-password-toggle"
-                                                    placeholder="Retype password"
-                                                    viewable
-                                                    clearable
-                                                />
-
-                                            </flux:input.group>
-                                        </div>
-
-                                        <flux:error name="password_confirmation" />
-                                    </flux:field>
-
-                                        </div>
-                                    </div>
 
                                         <!-- Page 3 -->
                                         <div class="w-full h-auto flex flex-col" x-show="currentPage === 3">
 
                                             <!-- Info Grid -->
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <div class="grid grid-cols-1 gap-2">
 
                                                 <!-- Personal Info Card -->
                                                 <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -582,7 +677,16 @@
                                             </div>
 
                                             <!-- Terms & Conditions -->
-                                            <flux:field variant="inline" class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                            <flux:field
+                                                 x-data
+                                                @check-terms-error.window="
+                                                    const modalScroll = document.getElementById('modal-scroll');
+                                                    if (modalScroll) {
+                                                        modalScroll.scrollTo({ top: modalScroll.scrollHeight, behavior: 'smooth' });
+                                                    }
+                                                "
+                                                variant="inline"
+                                                class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm">
                                                 <flux:checkbox
                                                     wire:model="agreed_terms"
                                                 />

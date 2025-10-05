@@ -24,15 +24,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament.css', 'resources/sass/app.scss'])
         <!-- Flatpickr CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
         <!-- Flatpickr JS -->
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <!-- Cropper  -->
-        <script src="
-        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.js
-        "></script>
-        <link href="
-        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.css
-        " rel="stylesheet">
-
 
 

@@ -1,34 +1,39 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Diglactic\Breadcrumbs\Breadcrumbs;
+use Illuminate\Support\Facades\Route;
+use Diglactic\Breadcrumbs\Breadcrumbs;
 
-    $breadcrumbs = Breadcrumbs::generate(Route::currentRouteName(), ...Route::current()->parameters());
+$breadcrumbs = Breadcrumbs::generate(Route::currentRouteName(), ...Route::current()->parameters());
 @endphp
 
 <div>
-    @if ($breadcrumbs->count() > 1)
-        <header class="relative w-full pl-4 py-3 flex items-center">
+    @if ($breadcrumbs->count() > 0)
+    <header class="relative w-full pl-4 py-3 flex items-center">
+        <flux:breadcrumbs>
             @foreach ($breadcrumbs as $index => $crumb)
                 @php
                     $isCurrent = request()->url() === $crumb->url;
+                    $tooltipText = $crumb->data['tooltip'] ?? strip_tags($crumb->title);
                 @endphp
 
-                @if ($isCurrent)
-                    <span class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-bold">
+                @if ($index === 0)
+                    <flux:tooltip :content="$tooltipText" position="bottom">
+                        <flux:breadcrumbs.item href="{{ $crumb->url }}" icon="home">
+                            {!! $crumb->title !!}
+                        </flux:breadcrumbs.item>
+                    </flux:tooltip>
+                @elseif ($isCurrent)
+                    <flux:breadcrumbs.item active="true">
                         {!! $crumb->title !!}
-                    </span>
+                    </flux:breadcrumbs.item>
                 @else
-                    <a href="{{ $crumb->url }}" wire:navigate class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-semibold underline-none hover:underline">
-                        {!! $crumb->title !!}
-                    </a>
-                @endif
-
-                @if (!$loop->last)
-                    <span class="mx-2 text-mc_primary_color dark:text-white font-bold">
-                        <flux:icon.chevron-right class="size-4"/>
-                    </span>
+                    <flux:tooltip :content="$tooltipText" position="bottom">
+                        <flux:breadcrumbs.item href="{{ $crumb->url }}">
+                            {!! $crumb->title !!}
+                        </flux:breadcrumbs.item>
+                    </flux:tooltip>
                 @endif
             @endforeach
-        </header>
+        </flux:breadcrumbs>
+    </header>
     @endif
 </div>
