@@ -24,6 +24,15 @@ class Index extends Component
     public $filterStatus = '';
     public $filterType = '';
     public $filterDate = '';
+    public $totalGrievances = 0;
+    public $highPriorityCount = 0;
+    public $normalPriorityCount = 0;
+    public $lowPriorityCount = 0;
+
+    public $pendingCount = 0;
+    public $inProgressCount = 0;
+    public $resolvedCount = 0;
+    public $closedCount = 0;
     public array $selectedGrievances = [];
 
     protected $updatesQueryString = ['search'];
@@ -52,6 +61,8 @@ class Index extends Component
                 ->{$notif['type']}()
                 ->send();
         }
+
+        $this->updateStats();
 
     }
 
@@ -104,6 +115,69 @@ class Index extends Component
     public function updatingSearch()
     {
         $this->resetPage();
+    }
+
+    public function updateStats()
+    {
+        $query = Grievance::where('user_id', auth()->id());
+
+        if ($this->filterPriority) {
+            $query->where('priority_level', $this->filterPriority);
+        }
+
+        if ($this->filterStatus) {
+            $map = [
+                'Pending'     => 'pending',
+                'In Progress' => 'in_progress',
+                'Resolved'    => 'resolved',
+                'Closed'      => 'closed',
+            ];
+
+            if (isset($map[$this->filterStatus])) {
+                $query->where('grievance_status', $map[$this->filterStatus]);
+            }
+        }
+
+        if ($this->filterType) {
+            $query->where('grievance_type', $this->filterType);
+        }
+
+        if ($this->filterDate) {
+            switch ($this->filterDate) {
+                case 'Today':
+                    $query->whereDate('created_at', now()->toDateString());
+                    break;
+                case 'Yesterday':
+                    $query->whereDate('created_at', now()->subDay()->toDateString());
+                    break;
+                case 'This Week':
+                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+                case 'This Month':
+                    $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+                    break;
+                case 'This Year':
+                    $query->whereYear('created_at', now()->year);
+                    break;
+            }
+        }
+
+        $this->totalGrievances   = $query->count();
+        $this->highPriorityCount = (clone $query)->where('priority_level', 'High')->count();
+        $this->normalPriorityCount = (clone $query)->where('priority_level', 'Normal')->count();
+        $this->lowPriorityCount  = (clone $query)->where('priority_level', 'Low')->count();
+
+        $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
+        $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
+        $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
+        $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
+    }
+
+    public function updated($property)
+    {
+        if (in_array($property, ['filterPriority', 'filterStatus', 'filterType', 'filterDate'])) {
+            $this->updateStats();
+        }
     }
 
     public function render()

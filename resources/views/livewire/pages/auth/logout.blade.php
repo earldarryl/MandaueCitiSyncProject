@@ -1,5 +1,5 @@
 <div
-    x-data="{ show: @entangle('show') }"
+    x-data="{ show: @entangle('show').live }"
     x-cloak
 >
     <!-- Overlay -->

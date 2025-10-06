@@ -10,7 +10,7 @@
         'w-3/5 translate-x-0 fixed z-[36] transition-all duration-300': !isDesktop && $store.sidebar.open,
         'w-3/5 -translate-x-[100%] fixed z-[36] transition-all duration-300': !isDesktop && !$store.sidebar.open,
     }"
-    class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-sm shadow-md min-h-full overflow-visible"
+    class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-lg shadow-md min-h-full overflow-visible"
 >
     <div class="relative flex flex-col">
 
@@ -89,7 +89,7 @@
                                 }"
                                 class="absolute w-full text-left ease-in-out overflow-x-hidden"
                             >
-                                <span class="text-sm font-medium">
+                                <span>
                                     {{ $item['label'] }}
                                 </span>
                             </div>
@@ -111,7 +111,7 @@
                                 x-transition
                                 x-cloak
                                 class="fixed w-auto text-left left-14 px-4 py-2 transition-all
-                                        dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap text-sm">
+                                        dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap">
                                 {{ $item['label'] }}
                             </span>
                         </div>
@@ -131,7 +131,7 @@
                                                     class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition select-none
                                                         {{ $isChildActive
                                                                 ? 'bg-gray-200 dark:bg-zinc-800'
-                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200 font-medium' }}">
+                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}">
                                     <i class="{{ $child['icon'] }}"></i>
                                     <span x-show="$store.sidebar.open" x-transition class="ml-2">
                                         {{ $child['label'] }}
@@ -188,7 +188,7 @@
         x-on:logout-modal-finished.window="loadingLogoutModal = false"
     >
         <div
-            class="flex items-center px-4 py-3 w-full cursor-pointer text-sm font-medium text-white relative
+            class="flex items-center px-4 py-3 w-full cursor-pointer text-white relative
                 bg-red-600 hover:bg-red-500 shadow-md"
                 @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                 @mouseleave="showTooltip = false"
@@ -230,7 +230,7 @@
             <span
                 x-show="showTooltip && !$store.sidebar.open"
                 x-cloak
-               class="fixed w-auto text-left left-14 -bottom-1 p-4 text-sm transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
+               class="fixed w-auto text-left left-14 -bottom-1 p-3 transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
             >
                 <span x-show="!loadingLogoutModal">Log out</span>
                 <span

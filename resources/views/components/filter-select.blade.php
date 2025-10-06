@@ -8,10 +8,8 @@
     x-data="{
         open: false,
         selected: '',
-        // called when user picks an option
         toggle(option) {
             this.selected = option;
-            // update the hidden input (bound with wire:model.live) and trigger input event
             $refs.hidden.value = option;
             $refs.hidden.dispatchEvent(new Event('input', { bubbles: true }));
             this.open = false;
@@ -23,7 +21,7 @@
         }
     }"
     x-init="selected = $refs.hidden.value || ''"
-    class="relative w-48"
+    class="relative w-full"
 >
     <!-- Hidden input bound to Livewire (will update instantly because of .live) -->
     <input x-ref="hidden" type="hidden" wire:model.live="{{ $name }}" />
