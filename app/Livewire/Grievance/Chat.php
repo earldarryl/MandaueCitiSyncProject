@@ -5,51 +5,41 @@ namespace App\Livewire\Grievance;
 use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\Grievance;
-use Livewire\Component;
+use Filament\Forms;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
-class Chat extends Component
+class Chat extends Component implements Forms\Contracts\HasForms
 {
+    use Forms\Concerns\InteractsWithForms;
+    use WithFileUploads;
+
     public Grievance $grievance;
     public $newMessage = '';
     public $currentUserId;
-    public array $messages = [];
     public $isAuthorized = false;
     public $userRole;
-
-    protected $rules = [
-        'newMessage' => 'required|string|max:1000',
-    ];
-
-    protected $listeners = ['refresh' => '$refresh'];
+    public array $messages = [];
+    public ?array $data = [];
+    public $messageLimit = 20;
+    public $hasMore = true;
+    public $loadingOlder = false;
+    public array $files = [];
 
     public function mount(Grievance $grievance)
     {
         $this->currentUserId = Auth::id();
         $this->userRole = Auth::user()->role ?? 'guest';
-
-        if (!$this->currentUserId) {
-            abort(403, 'Unauthorized. Must be logged in.');
-            return;
-        }
-
         $this->grievance = $grievance->load('assignments');
-
-        // Check authorization
-        if ($this->currentUserId === $grievance->user_id) {
-            $this->isAuthorized = true;
-        } else {
-            $assignment = $grievance->assignments->firstWhere('hr_liaison_id', $this->currentUserId);
-            if ($assignment) {
-                $this->isAuthorized = true;
-            } else {
-                abort(403, 'Unauthorized to view this chat.');
-            }
-        }
+        $this->isAuthorized = $this->checkAuthorization();
 
         if ($this->isAuthorized) {
             $this->loadMessages();
         }
+
+        $this->form->fill();
     }
 
     public function getListeners()
@@ -62,83 +52,117 @@ class Chat extends Component
         return [];
     }
 
-    public function receiveMessage($payload)
+    public function receiveMessage()
     {
         $this->loadMessages();
 
         $this->js('$nextTick(() => {
             const chatBox = document.getElementById("chat-box");
-            if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
+    }
+
+    private function checkAuthorization(): bool
+    {
+        return $this->currentUserId === $this->grievance->user_id ||
+            $this->grievance->assignments->contains('hr_liaison_id', $this->currentUserId);
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+            Forms\Components\FileUpload::make('files')
+                ->label('Attachments')
+                ->hiddenLabel(true)
+                ->preserveFilenames()
+                ->directory('chat_attachments')
+                ->disk('public')
+                ->maxSize(10240)
+                ->multiple()
+                ->previewable(true)
+                ->downloadable()
+                ->openable()
+                ->acceptedFileTypes([
+                    'image/*',
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                ])
+                ->helperText('Accepted: Images, PDF, DOCX — Max 10MB each.'),
+        ];
+    }
+
+    public function loadMessages()
+    {
+        $query = Message::where('grievance_id', $this->grievance->grievance_id)
+            ->with('sender')
+            ->orderBy('created_at', 'desc')
+            ->take($this->messageLimit)
+            ->get();
+
+        $this->messages = $query->reverse()->values()->toArray();
+        $this->hasMore = Message::where('grievance_id', $this->grievance->grievance_id)->count() > count($this->messages);
+    }
+
+    public function loadMore()
+    {
+        if (!$this->hasMore) return;
+
+        $this->loadingOlder = true;
+        $this->messageLimit += 20;
+        $this->loadMessages();
+        $this->loadingOlder = false;
     }
 
     public function sendMessage()
     {
-        if (!$this->isAuthorized) {
-            session()->flash('error', 'You are not authorized to send messages.');
+        $state = $this->form->getState();
+
+        if (!$this->newMessage && empty($state['files'])) {
+            Notification::make()
+                ->title('Nothing to send')
+                ->warning()
+                ->send();
             return;
         }
 
-        $this->validate();
+        $filePaths = [];
+        $fileNames = [];
 
-        if ($this->currentUserId === $this->grievance->user_id) {
-            // Citizen → send to all HRs
-            foreach ($this->grievance->assignments as $assignment) {
-                $message = Message::create([
-                    'grievance_id' => $this->grievance->grievance_id,
-                    'sender_id'    => $this->currentUserId,
-                    'receiver_id'  => $assignment->hr_liaison_id,
-                    'message'      => $this->newMessage,
-                ])->load('sender');
-
-                broadcast(new MessageSent($message));
-            }
-        } else {
-            $messageCitizen = Message::create([
-                'grievance_id' => $this->grievance->grievance_id,
-                'sender_id'    => $this->currentUserId,
-                'receiver_id'  => $this->grievance->user_id,
-                'message'      => $this->newMessage,
-            ])->load('sender');
-
-            broadcast(new MessageSent($messageCitizen));
-
-            foreach ($this->grievance->assignments as $assignment) {
-                if ($assignment->hr_liaison_id !== $this->currentUserId) {
-                    $message = Message::create([
-                        'grievance_id' => $this->grievance->grievance_id,
-                        'sender_id'    => $this->currentUserId,
-                        'receiver_id'  => $assignment->hr_liaison_id,
-                        'message'      => $this->newMessage,
-                    ])->load('sender');
-
-                    broadcast(new MessageSent($message));
-                }
+        if (!empty($state['files'])) {
+            foreach ($state['files'] as $file) {
+                $filePaths[] = $file;
+                $fileNames[] = basename($file);
             }
         }
 
-        $this->newMessage = '';
+        $message = Message::create([
+            'grievance_id' => $this->grievance->grievance_id,
+            'sender_id'    => $this->currentUserId,
+            'receiver_id'  => $this->getReceiverId(),
+            'message'      => $this->newMessage,
+            'file_path'    => $filePaths ? json_encode($filePaths) : null,
+            'file_name'    => $fileNames ? json_encode($fileNames) : null,
+        ])->load('sender');
 
+        broadcast(new MessageSent($message));
+
+        $this->reset(['newMessage']);
+        $this->form->fill();
         $this->loadMessages();
 
         $this->js('$nextTick(() => {
             const chatBox = document.getElementById("chat-box");
-            if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
 
-
-    protected function loadMessages()
+    private function getReceiverId()
     {
-        $this->messages = Message::where('grievance_id', $this->grievance->grievance_id)
-            ->with('sender')
-            ->orderBy('created_at')
-            ->get()
-            ->unique(function ($msg) {
-                return $msg->sender_id . '|' . $msg->message;
-            })
-            ->values()
-            ->toArray();
+        if ($this->currentUserId === $this->grievance->user_id) {
+            return $this->grievance->assignments->first()->hr_liaison_id ?? null;
+        }
+        return $this->grievance->user_id;
     }
 
     public function render()

@@ -20,53 +20,77 @@
                 <flux:error name="is_anonymous" />
             </flux:field>
 
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
             <!-- Grievance Type -->
-            <flux:field>
-                <div class="flex flex-col gap-2">
-                    <flux:label class="flex gap-2">
-                        <flux:icon.squares-2x2 />
-                        <span>Grievance Type</span>
-                    </flux:label>
-                    <flux:input.group>
-                        <x-searchable-select
-                            name="grievance_type"
-                            placeholder="Select a grievance type"
-                            :options="['Complaints', 'Inquiry', 'Request', 'Suggestion/Feedback']"
-                            :selected="$grievance_type"
-                        />
-                    </flux:input.group>
-                </div>
-                <flux:error name="grievance_type" />
-            </flux:field>
+                <flux:field>
+                    <div class="flex flex-col gap-4">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.squares-2x2 />
+                            <span>Grievance Type</span>
+                        </flux:label>
+                            <flux:radio.group wire:model="grievance_type">
+                                <div class="bg-amber-500/20 p-3 rounded-t-lg">
+                                    <flux:radio
+                                        value="Complaint"
+                                        label="Complaint"
+                                        description="Reports an issue or dissatisfaction needing corrective action."
+                                    />
+                                </div>
+                                <div class="bg-violet-500/20 p-3">
+                                    <flux:radio
+                                        value="Inquiry"
+                                        label="Inquiry"
+                                        description="Seeks clarification or information on HR-related matters."
+                                    />
+                                </div>
+                                <div class="bg-green-500/20 p-3 rounded-b-lg">
+                                    <flux:radio
+                                        value="Request"
+                                        label="Request"
+                                        description="Asks for assistance, approval, or support from HR."
+                                    />
+                                </div>
+                            </flux:radio.group>
+                    </div>
+                    <flux:error name="grievance_type" />
+                </flux:field>
 
-            <!-- Priority Level -->
-            <flux:field>
-                <div class="flex flex-col gap-2">
-                    <flux:label class="flex gap-2">
-                        <flux:icon.clock />
-                        <span>Priority Level</span>
-                    </flux:label>
+                <!-- Priority Level -->
+                <flux:field>
+                    <div class="flex flex-col gap-4">
+                        <flux:label class="flex gap-2">
+                            <flux:icon.clock />
+                            <span>Priority Level</span>
+                        </flux:label>
+                            <flux:radio.group wire:model="priority_level">
+                                <div class="bg-green-500/20 p-3 rounded-t-lg">
+                                    <flux:radio
+                                        value="Low"
+                                        label="Low"
+                                        description="Low priority grievance. May be handled later; urgent attention is not required."
+                                    />
+                                </div>
+                                <div class="bg-mc_primary_color/20 p-3">
+                                    <flux:radio
+                                        value="Normal"
+                                        label="Normal"
+                                        description="Normal priority grievance. Standard processing applies."
+                                    />
+                                </div>
+                                <div class="bg-red-500/20 p-3 rounded-b-lg">
+                                    <flux:radio
+                                        value="High"
+                                        label="High"
+                                        description="High priority grievance. Requires immediate attention from HR Liaisons."
+                                    />
+                                </div>
+                            </flux:radio.group>
+                    </div>
+                    <flux:error name="priority_level" />
+                </flux:field>
+            </div>
 
-                    <flux:radio.group wire:model="priority_level">
-                        <flux:radio
-                            value="Low"
-                            label="Low"
-                            description="Low priority grievance. May be handled later; urgent attention is not required."
-                        />
-                        <flux:radio
-                            value="Normal"
-                            label="Normal"
-                            description="Normal priority grievance. Standard processing applies."
-                        />
-                        <flux:radio
-                            value="High"
-                            label="High"
-                            description="High priority grievance. Requires immediate attention from HR Liaisons."
-                        />
-                    </flux:radio.group>
-                </div>
-                <flux:error name="priority_level" />
-            </flux:field>
 
             <!-- Department, Title, Details, Files remain unchanged -->
             <flux:field>
@@ -130,55 +154,65 @@
 
         <!-- Submit Button -->
         <div class="mt-4 flex justify-end w-full">
-            <flux:button
-                variant="primary"
-                icon="check"
-                color="blue"
-                type="button"
-                class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
-                x-on:click="$dispatch('open-modal', 'confirm-submit')"
-            >
-                Submit
-            </flux:button>
+            <flux:modal.trigger name="confirm-submit">
+                <flux:button
+                    variant="primary"
+                    icon="check"
+                    color="blue"
+                    type="button"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                >
+                    Submit
+                </flux:button>
+            </flux:modal.trigger>
         </div>
 
     </div>
 
     <!-- Confirm Submit Modal -->
-    <x-modal name="confirm-submit" class="p-6">
-        <div class="flex items-center space-x-3 p-4">
-            <div class="flex-shrink-0">
+    <flux:modal name="confirm-submit" wire:model.self="showConfirmSubmitModal" class="md:w-96">
+        <div class="flex flex-col items-center text-center p-6 space-y-4">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-mc_primary_color/10">
                 <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-mc_primary_color" />
             </div>
-            <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Confirm Submission
-                </h2>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Are you sure you want to submit this grievance? <br>
-                    Once submitted, it will be assigned to the HR Liaison(s).
-                </p>
+
+            <flux:heading size="lg" class="font-semibold text-gray-800 dark:text-gray-100">
+                Confirm Submission
+            </flux:heading>
+
+            <flux:text class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                Are you sure you want to submit this grievance? <br>
+                Once submitted, it will be assigned to the HR Liaison(s).
+            </flux:text>
+        </div>
+
+        <div class="flex items-center justify-center w-full">
+            <div
+                wire:loading.remove
+                wire:target="submit"
+                class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
+                <flux:modal.close>
+                    <flux:button variant="subtle" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button
+                    variant="primary"
+                    color="blue"
+                    icon="pencil-square"
+                    class="bg-mc_primary_color px-4 py-2 rounded-md"
+                    wire:click="submit"
+                >
+                    Yes, Submit
+                </flux:button>
+            </div>
+            <div wire:loading wire:target="submit">
+                <div class="flex items-center justify-center gap-2 w-full">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                </div>
             </div>
         </div>
-        <div class="mt-6 flex justify-end space-x-3 p-4">
-            <flux:button
-                variant="primary"
-                color="zinc"
-                class="px-4 py-2 rounded-md"
-                x-on:click="$dispatch('close-modal', 'confirm-submit')"
-            >
-                Cancel
-            </flux:button>
-            <flux:button
-                variant="primary"
-                color="blue"
-                icon="pencil-square"
-                class="bg-mc_primary_color dark:bg-blue-500 px-4 py-2 rounded-md"
-                wire:click="submit"
-                x-on:click="$dispatch('close-modal', 'confirm-submit')"
-            >
-                Yes, Submit
-            </flux:button>
-        </div>
-    </x-modal>
+
+    </flux:modal>
+
 </div>

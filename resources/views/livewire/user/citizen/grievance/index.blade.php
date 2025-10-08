@@ -341,16 +341,17 @@
                         <div class="flex flex-col flex-1 justify-between">
                             <header class="flex justify-between items-start mb-3">
                                 <div class="flex items-start gap-2">
-
-                                    <div class="flex flex-col">
-                                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate">
-                                            {!! $highlight($grievance->grievance_title, $search) !!}
+                                    <div class="flex flex-col max-w-[250px]">
+                                        <h2
+                                            class="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate"
+                                            title="{{ strip_tags($grievance->grievance_title) }}"
+                                        >
+                                            {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
                                         </h2>
                                         <span class="text-xs italic text-gray-500 dark:text-gray-400">
                                             {{ $grievance->is_anonymous ? 'Submitted Anonymously' : 'Submitted by ' . $grievance->user->name }}
                                         </span>
                                     </div>
-
                                 </div>
 
                                 <div class="flex items-center gap-2">
@@ -388,13 +389,14 @@
                                             </flux:menu.item>
 
                                             <!-- Delete -->
-                                            <flux:menu.item
-                                                icon="trash"
-                                                variant="danger"
-                                                x-on:click.stop="$dispatch('open-modal', 'delete-{{ $grievance->grievance_id }}')"
-                                            >
-                                                <span class="font-bold text-lg">Delete</span>
-                                            </flux:menu.item>
+                                            <flux:modal.trigger name="delete-{{ $grievance->grievance_id }}">
+                                                <flux:menu.item
+                                                    icon="trash"
+                                                    variant="danger"
+                                                >
+                                                    <span class="font-bold text-lg">Delete</span>
+                                                </flux:menu.item>
+                                            </flux:modal.trigger>
                                         </flux:menu>
 
                                     </flux:dropdown>
@@ -438,32 +440,43 @@
                                 </div>
                             </footer>
                         </div>
-                    </div>
 
-                    <!-- Delete Modal -->
-                    <x-modal name="delete-{{ $grievance->grievance_id }}">
-                        <div class="p-6">
-                            <h2 class="text-lg font-semibold text-red-600">Confirm Delete</h2>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                                Are you sure you want to delete this grievance?
-                            </p>
-                            <div class="flex justify-end gap-2">
-                                <flux:button
-                                    variant="primary"
-                                    color="zinc"
-                                    x-on:click="$dispatch('close-modal', 'delete-{{ $grievance->grievance_id }}')"
-                                    class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
-                                    Cancel
-                                </flux:button>
-                                <flux:button
-                                    variant="danger"
-                                    wire:click="deleteGrievance({{ $grievance->grievance_id }})"
-                                    class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                                    Delete
-                                </flux:button>
-                            </div>
-                        </div>
-                    </x-modal>
+                         <flux:modal name="delete-{{ $grievance->grievance_id }}" class="md:w-1/3">
+                                <div class="flex flex-col items-center text-center p-6 space-y-4">
+                                    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
+                                        <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                                    </div>
+                                    <flux:heading size="lg" class="font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</flux:heading>
+                                    <flux:text class="text-sm leading-relaxed">
+                                        Are you sure you want to delete this grievance?
+                                    </flux:text>
+                                </div>
+                                <div class="flex items-center justify-center w-full">
+                                    <div
+                                        wire:loading.remove
+                                        wire:target="deleteGrievance({{ $grievance->grievance_id }})"
+                                        class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
+                                        <flux:modal.close>
+                                            <flux:button variant="subtle" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
+                                        </flux:modal.close>
+                                        <flux:button
+                                            variant="danger"
+                                            icon="trash"
+                                            wire:click="deleteGrievance({{ $grievance->grievance_id }})"
+                                        >
+                                            Yes, Delete
+                                        </flux:button>
+                                    </div>
+                                    <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
+                                        <div class="flex items-center justify-center gap-2 w-full">
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </flux:modal>
+                    </div>
                 @empty
                     <p class="col-span-3 text-center text-gray-500">No grievances found.</p>
                 @endforelse

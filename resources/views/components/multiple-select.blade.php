@@ -32,14 +32,14 @@
         role="button"
         class="flex flex-wrap items-center gap-1 px-3 py-2 border rounded-lg cursor-pointer min-h-[42px]
             {{ $errors->has($name) ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200/50 dark:border-zinc-600' }}
-            bg-white dark:bg-zinc-800"
+            bg-gray-200 dark:bg-zinc-700"
     >
         <template x-for="(label, index) in value" :key="index">
-            <span class="inline-flex gap-2 items-center bg-mc_primary_color/10 dark:bg-mc_primary_color/20 text-mc_primary_color dark:text-mc_primary_color text-sm font-medium px-2 py-1 rounded-full">
+            <span class="inline-flex gap-2 items-center justify-content bg-mc_primary_color/10 dark:bg-mc_primary_color/20 border border-blue-500 text-mc_primary_color dark:text-blue-500 text-sm font-medium px-2 py-1 rounded-full">
                 <span x-text="label"></span>
                 <button
                     type="button"
-                    class="ml-1 text-mc_primary_color dark:text-mc_primary_color hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                    class="ml-1 text-mc_primary_color dark:text-blue-500 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
                     @click.stop="remove(selected[index])"
                 >
                     ✕

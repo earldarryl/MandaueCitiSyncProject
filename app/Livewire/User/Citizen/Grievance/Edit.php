@@ -5,13 +5,10 @@ namespace App\Livewire\User\Citizen\Grievance;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Notifications\Notification;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Components\Select;
+use Filament\Forms;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\ToggleButtons;
-use Filament\Support\Icons\Heroicon;
+use Filament\Forms\Concerns\InteractsWithForms;
 use App\Models\Grievance;
 use App\Models\GrievanceAttachment;
 use App\Models\Department;
@@ -19,38 +16,55 @@ use App\Models\Assignment;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.app')]
 #[Title('Edit Grievance')]
-class Edit extends Component implements HasForms
+class Edit extends Component implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms;
 
     public Grievance $grievance;
 
-    // Properties bound to Blade fields
-    public $is_anonymous = false;
+    public $showConfirmUpdateModal = false;
+
+    // Fields
+    public $is_anonymous;
     public $grievance_type;
     public $priority_level;
     public $department = [];
     public $grievance_title;
     public $grievance_details;
     public $grievance_files = [];
+    public $departmentOptions = [];
     public $existing_attachments = [];
 
     public function mount($id): void
     {
-        $this->grievance = Grievance::with('attachments', 'assignments', 'departments')->findOrFail($id);
+        $this->grievance = Grievance::with('attachments', 'assignments')->findOrFail($id);
 
-        $this->existing_attachments = $this->grievance->attachments->toArray() ?? [];
+        $this->is_anonymous     = (bool) $this->grievance->is_anonymous;
+        $this->grievance_type   = $this->grievance->grievance_type;
+        $this->priority_level   = $this->grievance->priority_level;
+        $this->grievance_title  = $this->grievance->grievance_title;
+        $this->grievance_details = $this->grievance->grievance_details;
+        $this->department = $this->grievance
+            ->assignments
+            ->pluck('department_id')
+            ->unique()
+            ->values()
+            ->toArray();
+        $this->existing_attachments = $this->grievance->attachments->toArray();
 
-        $this->grievance_title   = $this->grievance->grievance_title;
-        $this->grievance_type    = $this->grievance->grievance_type;
-        $this->priority_level    = $this->grievance->priority_level;
-        $this->is_anonymous      = $this->grievance->is_anonymous;
+       $this->departmentOptions = Department::whereIn('department_id', function ($query) {
+            $query->select('department_id')
+                ->from('assignments')
+                ->distinct();
+        })
+        ->pluck('department_name', 'department_id')
+        ->toArray();
 
         $this->form->fill([
-            'is_anonymous'      => (int) $this->grievance->is_anonymous,
             'grievance_details' => $this->grievance->grievance_details,
         ]);
     }
@@ -58,39 +72,18 @@ class Edit extends Component implements HasForms
     protected function getFormSchema(): array
     {
         return [
-            ToggleButtons::make('is_anonymous')
-                ->hiddenLabel(true)
-                ->options([
-                    1 => 'Yes',
-                    0 => 'No',
-                ])
-                ->icons([
-                    1 => Heroicon::Eye,
-                    0 => Heroicon::EyeSlash,
-                ])
-                ->default(0)
-                ->required(),
-
-            Select::make('department')
-                ->hiddenLabel(true)
-                ->multiple()
-                ->searchable()
-                ->options(
-                    Department::whereHas('hrLiaisons')->pluck('department_name', 'department_id')->toArray()
-                )
-                ->required(),
-
             RichEditor::make('grievance_details')
                 ->hiddenLabel(true)
                 ->required()
                 ->toolbarButtons([
-                    'bold', 'italic', 'underline', 'strike',
-                    'bulletList', 'orderedList', 'link',
-                    'blockquote', 'codeBlock',
-                ]),
+                    'bold','italic','underline','strike',
+                    'bulletList','orderedList','link',
+                    'blockquote','codeBlock'
+                ])
+                ->placeholder('Edit grievance details...'),
 
             FileUpload::make('grievance_files')
-                ->label('Upload Attachments')
+                ->hiddenLabel(true)
                 ->multiple()
                 ->preserveFilenames()
                 ->downloadable()
@@ -116,7 +109,6 @@ class Edit extends Component implements HasForms
         ];
     }
 
-
     protected function rules(): array
     {
         return [
@@ -136,109 +128,84 @@ class Edit extends Component implements HasForms
         $attachment = GrievanceAttachment::find($attachmentId);
 
         if ($attachment) {
-            \Storage::disk('public')->delete($attachment->file_path);
+            Storage::disk('public')->delete($attachment->file_path);
             $attachment->delete();
 
-            $this->existing_attachments = $this->grievance->attachments->toArray() ?? [];
+            $this->existing_attachments = $this->grievance->fresh()->attachments->toArray();
 
-            $extension = strtolower(pathinfo($attachment->file_name, PATHINFO_EXTENSION));
-
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                Notification::make()
-                    ->title('Image Removed')
-                    ->body("The image file **{$attachment->file_name}** was successfully removed.")
-                    ->success()
-                    ->send();
-            } elseif ($extension === 'pdf') {
-                Notification::make()
-                    ->title('PDF Removed')
-                    ->body("The PDF file **{$attachment->file_name}** was successfully removed.")
-                    ->success()
-                    ->send();
-            } elseif (in_array($extension, ['doc', 'docx'])) {
-                Notification::make()
-                    ->title('Document Removed')
-                    ->body("The Word document **{$attachment->file_name}** was successfully removed.")
-                    ->success()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('File Removed')
-                    ->body("The file **{$attachment->file_name}** was successfully removed.")
-                    ->success()
-                    ->send();
-            }
+            Notification::make()
+                ->title('Attachment Removed')
+                ->body("The file **{$attachment->file_name}** was successfully removed.")
+                ->success()
+                ->send();
         }
     }
 
-   public function submit()
+    public function submit(): void
     {
+        $this->validate();
+
         $data = $this->form->getState();
 
         try {
             $this->grievance->update([
-                'is_anonymous'      => (int) $data['is_anonymous'],
-                'grievance_type'    => $this->grievance_type,
-                'priority_level'    => $this->priority_level,
-                'grievance_title'   => $this->grievance_title,
-                'grievance_details' => $data['grievance_details'],
+                'user_id'          => auth()->id(),
+                'grievance_type'   => $this->grievance_type,
+                'priority_level'   => $this->priority_level,
+                'grievance_title'  => $this->grievance_title,
+                'grievance_details'=> $data['grievance_details'],
+                'is_anonymous'     => (int) $this->is_anonymous,
             ]);
 
-            if (!empty($data['grievance_files'])) {
-                foreach ($data['grievance_files'] as $file) {
-                    if ($file instanceof \Illuminate\Http\UploadedFile) {
-                        $storedPath = $file->store('grievance_files', 'public');
-                        $fileName = $file->getClientOriginalName();
-                    } elseif (is_string($file)) {
-                        $storedPath = $file;
-                        $fileName = basename($file);
-                    } else {
-                        continue;
-                    }
+            if (!empty($this->grievance_files)) {
+                foreach ($this->grievance_files as $file) {
+                    $storedPath = is_string($file)
+                        ? $file
+                        : $file->store('grievance_files', 'public');
 
                     GrievanceAttachment::create([
                         'grievance_id' => $this->grievance->grievance_id,
                         'file_path'    => $storedPath,
-                        'file_name'    => $fileName,
+                        'file_name'    => basename($storedPath),
                     ]);
                 }
             }
 
             Assignment::where('grievance_id', $this->grievance->grievance_id)->delete();
 
-            foreach ($data['department'] as $deptId) {
+            foreach ($this->department as $deptId) {
                 $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                    ->whereHas('departments', fn($q) => $q->where('departments.department_id', $deptId))
-                    ->pluck('id');
+                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $deptId))
+                    ->get();
 
-                foreach ($hrLiaisons as $hrId) {
-                    Assignment::firstOrCreate(
-                        [
-                            'grievance_id'  => $this->grievance->grievance_id,
-                            'department_id' => $deptId,
-                            'hr_liaison_id' => $hrId,
-                        ],
-                        [
-                            'assigned_at' => now(),
-                        ]
-                    );
+                foreach ($hrLiaisons as $hr) {
+                    Assignment::create([
+                        'grievance_id'  => $this->grievance->grievance_id,
+                        'department_id' => $deptId,
+                        'assigned_at'   => now(),
+                        'hr_liaison_id' => $hr->id,
+                    ]);
                 }
             }
 
-            session()->flash('notification', [
-                'type' => 'success',
-                'title' => 'Grievance Updated',
-                'body'  => 'Your grievance was successfully updated.',
-            ]);
+            Notification::make()
+                ->title('Grievance Updated')
+                ->body('Your grievance was successfully updated and reassigned to the correct HR liaisons.')
+                ->success()
+                ->send();
 
-            return $this->redirect(route('grievance.index', absolute: false), navigate: true);
+            $this->showConfirmUpdateModal = false;
+
+            $this->redirectRoute('citizen.grievance.index', navigate: true);
 
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Update Failed')
-                ->body('Error: ' . $e->getMessage())
+                ->body('Something went wrong: ' . $e->getMessage())
                 ->danger()
                 ->send();
+
+            $this->showConfirmUpdateModal = false;
         }
     }
 

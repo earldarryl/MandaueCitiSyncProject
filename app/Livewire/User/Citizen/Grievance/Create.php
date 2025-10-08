@@ -26,7 +26,7 @@ class Create extends Component implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms, InteractsWithActions;
 
-    // Public properties (used by your Blade inputs too)
+    public $showConfirmSubmitModal = false;
     public $is_anonymous;
     public $grievance_type;
     public $priority_level;
@@ -100,6 +100,10 @@ class Create extends Component implements Forms\Contracts\HasForms
 
     public function submit(): void
     {
+        $this->showConfirmSubmitModal = false;
+
+        $this->validate();
+
         $data = $this->form->getState();
 
         try {
@@ -149,6 +153,9 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->success()
                 ->send();
 
+
+            $this->showConfirmSubmitModal = false;
+
             $this->redirectRoute('citizen.grievance.index', navigate: true);
 
         } catch (\Exception $e) {
@@ -165,7 +172,10 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->body('Something went wrong while submitting your grievance. Please try again.')
                 ->danger()
                 ->send();
+
+            $this->showConfirmSubmitModal = false;
         }
+
     }
 
     public function render()

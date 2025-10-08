@@ -76,7 +76,7 @@ class Navigation extends Component
             'HR Liaisons Users' => 'bi bi-person-badge',
 
             'My Grievances' => 'bi bi-file-earmark-text',
-            'File a Grievance' => 'bi bi-plus-square',
+            'File a Grievance' => 'bi bi-file-earmark-plus',
             'Edit Grievance' => 'bi bi-pencil-square',
             'View Grievance' => 'bi bi-eye',
             'Grievance List' => 'bi bi-file-earmark-text',

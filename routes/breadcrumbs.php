@@ -22,7 +22,7 @@ Breadcrumbs::for('citizen.grievance.index', function (Trail $trail) {
 Breadcrumbs::for('citizen.grievance.create', function (Trail $trail) {
     $trail->parent('citizen.grievance.index');
     $trail->push(
-        '<i class="bi bi-plus-circle"></i> Create Grievance',
+        '<i class="bi bi-file-earmark-plus"></i> Create Grievance',
         route('citizen.grievance.create'),
         ['tooltip' => 'Create a new grievance']
     );

@@ -68,10 +68,27 @@ class Index extends Component
 
     public function deleteGrievance($grievanceId)
     {
-        Grievance::where('id', $grievanceId)->delete();
+        $grievance = Grievance::find($grievanceId);
 
-        session()->flash('message', 'Grievance deleted successfully.');
-        $this->dispatch('close-all-modals');
+        if ($grievance) {
+            $grievance->delete();
+
+            $this->updateStats();
+            $this->dispatch('$refresh');
+
+            Notification::make()
+                ->title('Grievance Deleted')
+                ->body("The grievance **{$grievance->grievance_title}** was successfully deleted.")
+                ->success()
+                ->send();
+
+        } else {
+            Notification::make()
+                ->title('Error')
+                ->body('Grievance not found or already deleted.')
+                ->danger()
+                ->send();
+        }
     }
 
     public function bulkDelete()
