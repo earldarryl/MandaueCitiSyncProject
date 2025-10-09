@@ -1,6 +1,12 @@
-<div class="flex flex-col h-[32rem] border rounded-lg bg-gray-50 dark:bg-zinc-800">
+<div class="flex flex-col h-full rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-200 dark:bg-gray-800 overflow-hidden">
+
     <!-- Chat Box -->
-    <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-3" x-data="chatScroll" x-init="init">
+    <div
+        id="chat-box"
+        class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth"
+        x-data="chatScroll"
+        x-init="init"
+    >
         <template x-if="$wire.loadingOlder">
             <div class="text-center text-gray-400 text-xs py-2 flex justify-center items-center gap-2">
                 <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -19,9 +25,7 @@
             @endphp
 
             <div class="{{ $isSender ? 'flex justify-end' : 'flex justify-start' }}">
-                <div class="max-w-xs px-3 py-2 rounded-lg text-sm break-words
-                    {{ $isSender ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-900 dark:text-gray-100' }}">
-
+                <div class="max-w-xs px-3 py-2 rounded-lg text-sm break-words {{ $isSender ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-zinc-700 text-gray-900 dark:text-gray-100' }}">
                     @if(!empty($msg['message']))
                         <p class="whitespace-pre-wrap">{{ $msg['message'] }}</p>
                     @endif
@@ -51,16 +55,33 @@
                                             @click.self="show = false"
                                         >
                                             <div x-transition.scale class="relative max-w-[90vw] max-h-[80vh]">
-                                                <button
-                                                    @click="show = false"
-                                                    class="absolute top-2 right-2 text-white bg-black/50 rounded-full p-1 hover:bg-black transition"
-                                                >
-                                                    <x-heroicon-o-x-mark class="w-5 h-5" />
-                                                </button>
+                                                <!-- Control Buttons (Top Right Corner) -->
+                                                <div class="absolute top-2 right-2 flex items-center gap-2">
+                                                    <!-- Download Button -->
+                                                    <a
+                                                        href="{{ Storage::url($file) }}"
+                                                        download="{{ $name }}"
+                                                        class="text-white bg-black/50 rounded-full p-1.5 hover:bg-black transition"
+                                                        title="Download Image"
+                                                    >
+                                                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                                                    </a>
+
+                                                    <!-- Close Button -->
+                                                    <button
+                                                        @click="show = false"
+                                                        class="text-white bg-black/50 rounded-full p-1.5 hover:bg-black transition"
+                                                        title="Close"
+                                                    >
+                                                        <x-heroicon-o-x-mark class="w-5 h-5" />
+                                                    </button>
+                                                </div>
+
+                                                <!-- Image Preview -->
                                                 <img
                                                     src="{{ Storage::url($file) }}"
                                                     alt="{{ $name }}"
-                                                    class="rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-full max-h-[80vh]"
+                                                    class="rounded-lg border border-gray-200 dark:border-gray-700 max-w-full max-h-[80vh]"
                                                 />
                                             </div>
                                         </div>
@@ -79,7 +100,7 @@
                         </div>
                     @endif
 
-                    <span class="block text-[10px] text-gray-400 mt-1">
+                    <span class="block text-[10px] text-white mt-1">
                         {{ $msg['sender']['name'] ?? 'Unknown' }} ·
                         {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
                     </span>
@@ -88,26 +109,35 @@
         @endforeach
     </div>
 
-    <!-- Input Area -->
-    <form wire:submit.prevent="sendMessage" class="flex flex-col gap-2 border-t p-3">
-        <div class="flex items-center gap-2">
-            <input
-                type="text"
-                wire:model.defer="newMessage"
-                placeholder="Type a message..."
-                class="flex-1 px-3 py-2 border rounded-lg dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
-            />
-            <button
-                type="submit"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-                Send
-            </button>
-        </div>
+    <!-- Input Area (fixed height & sticky bottom) -->
+    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
+        <form wire:submit.prevent="sendMessage" class="flex flex-col gap-2">
+            <!-- Message and Send -->
+            <div class="flex items-center">
+                <input
+                    type="text"
+                    wire:model.defer="newMessage"
+                    placeholder="Type a message..."
+                    class="flex-1 px-3 py-2 border rounded-l-full bg-gray-100 dark:bg-zinc-800 border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <flux:button
+                    type="submit"
+                    variant="primary"
+                    color="blue"
+                    class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 rounded-r-full transition duration-300 ease-in-out"
+                    icon="paper-airplane"
+                >
+                    Send
+                </flux:button>
+            </div>
 
-        {{ $this->form }}
-    </form>
+            <div class="max-h-72 overflow-y-auto border border-gray-200 dark:border-zinc-700 rounded-lg bg-white/60 dark:bg-zinc-800/60 p-2">
+                {{ $this->form }}
+            </div>
+        </form>
+    </div>
 </div>
+
 
 <script>
 document.addEventListener('alpine:init', () => {

@@ -79,6 +79,8 @@ class Chat extends Component implements Forms\Contracts\HasForms
                 ->disk('public')
                 ->maxSize(10240)
                 ->multiple()
+                ->imageEditor()
+                ->panelLayout('grid')
                 ->previewable(true)
                 ->downloadable()
                 ->openable()
