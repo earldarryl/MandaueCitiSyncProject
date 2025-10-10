@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Storage;
 class Department extends Model
 {
     /** @use HasFactory<\Database\Factories\DepartmentFactory> */
@@ -28,6 +28,20 @@ class Department extends Model
             'department_id',
             'id'
         );
+    }
+
+    public function getDepartmentBgUrlAttribute()
+    {
+        return $this->department_bg
+            ? Storage::url($this->department_bg)
+            : asset('images/default-department-bg.jpg');
+    }
+
+    public function getDepartmentProfileUrlAttribute()
+    {
+        return $this->department_profile
+            ? Storage::url($this->department_profile)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->department_name) . '&background=random';
     }
 
 }

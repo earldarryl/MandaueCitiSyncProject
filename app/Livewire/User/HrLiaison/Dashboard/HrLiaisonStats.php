@@ -19,12 +19,15 @@ class HrLiaisonStats extends Widget
     public $closed = 0;
     public $overdue = 0;
 
-    protected $listeners = ['dateRangeUpdated' => 'updateDateRange'];
+    protected $listeners = [
+        'dateRangeUpdated' => 'updateDateRange',
+    ];
 
-    public function mount()
+
+    public function mount($startDate = null, $endDate = null)
     {
-        $this->startDate = now()->startOfMonth()->format('Y-m-d');
-        $this->endDate = now()->format('Y-m-d');
+        $this->startDate = $startDate ?? now()->startOfMonth()->format('Y-m-d');
+        $this->endDate = $endDate ?? now()->format('Y-m-d');
 
         $this->calculateStats();
     }
@@ -44,19 +47,16 @@ class HrLiaisonStats extends Widget
 
         $userId = auth()->id();
 
-        // Base query filtered by HR liaison and date range
         $baseQuery = Grievance::whereBetween('created_at', [$start, $end])
             ->whereHas('assignments', function ($q) use ($userId) {
                 $q->where('hr_liaison_id', $userId);
             });
 
-        // Count statuses
         $this->pending = (clone $baseQuery)->where('grievance_status', 'pending')->count();
         $this->inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
         $this->resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
         $this->closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
 
-        // Overdue = not resolved and past processing_days
         $this->overdue = (clone $baseQuery)
             ->where('grievance_status', '!=', 'resolved')
             ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])

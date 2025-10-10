@@ -1,40 +1,55 @@
-<div class="w-full mx-4 p-6 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-md flex flex-col gap-6">
+<div class="w-full m-4 px-2 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
 
-    <!-- HEADER -->
-    <header class="border border-gray-300 dark:border-gray-700 rounded-xl p-4 sm:p-6 flex flex-col gap-5 transition bg-gray-50 dark:bg-gray-800">
+    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
+        <button
+            x-on:click="window.location.href='{{ route('citizen.grievance.index') }}'"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span class="hidden lg:inline">Return to Home</span>
+            <span class="lg:hidden">Home</span>
+        </button>
 
-    <!-- ACTION BUTTONS -->
-    <div class="flex flex-wrap justify-between items-center gap-3 w-full">
+        <button
+            x-on:click="$dispatch('open-modal', 'chat')"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span class="hidden lg:inline">Chat with HR Liaison</span>
+            <span class="lg:hidden">Chat</span>
+        </button>
 
-        <!-- BUTTON GROUP -->
-        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button
-                x-on:click="window.location.href='{{ route('citizen.grievance.index') }}'"
-                class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
-            >
-                <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span class="hidden sm:inline">Return to Home</span>
-                <span class="sm:hidden">Home</span>
-            </button>
+        <button
+            wire:click="downloadPdf"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
+            <span class="hidden lg:inline">Download PDF</span>
+            <span class="lg:hidden">Download</span>
+        </button>
 
-            <button
-                x-on:click="$dispatch('open-modal', 'chat')"
-                class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
-            >
-                <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span class="hidden sm:inline">Chat with HR Liaison</span>
-                <span class="sm:hidden">Chat</span>
-            </button>
-        </div>
+        <button
+            wire:click="print({{ $grievance->grievance_id }})"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <span class="hidden lg:inline">Print</span>
+            <span class="lg:hidden">Print</span>
+        </button>
 
-        <!-- LAST UPDATED (visible on larger screens only) -->
+    </div>
+
+    <header class="border border-gray-300 dark:border-gray-700 rounded-xl p-4 sm:p-6 flex flex-col gap-5 transition">
+
+    <div class="flex flex-wrap justify-end items-center gap-3 w-full">
+
         <p class="hidden sm:flex text-sm text-gray-600 dark:text-gray-400 italic items-center gap-1">
             <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
             <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
         </p>
+
     </div>
 
-        <!-- GRIEVANCE DETAILS -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex flex-col">
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -47,7 +62,6 @@
             </div>
         </div>
 
-        <!-- GRIEVANCE TITLE -->
         <div class="flex flex-col">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
                 <x-heroicon-o-tag class="w-6 sm:w-8 h-6 sm:h-8 text-gray-500 dark:text-gray-400" />
@@ -58,7 +72,6 @@
             </h2>
         </div>
 
-        <!-- LAST UPDATED (visible only on mobile) -->
         <div class="sm:hidden mt-2">
             <p class="text-xs text-gray-600 dark:text-gray-400 italic flex items-center gap-1">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
@@ -68,10 +81,8 @@
 
     </header>
 
-    <!-- MAIN CONTENT -->
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 font-sans">
 
-        <!-- LEFT COLUMN: Info Grid -->
         <div class="flex-1 flex flex-col gap-2">
             @php
                 $info = [
@@ -96,10 +107,8 @@
             @endforeach
         </div>
 
-        <!-- RIGHT COLUMN: Details and Departments -->
         <div class="flex-1 flex flex-col gap-4">
 
-            <!-- Details -->
             <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
                 <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
                     <x-heroicon-o-document-text class="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -110,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- Departments -->
             <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
                 <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
                     <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -130,9 +138,8 @@
         </div>
     </div>
 
-    <!-- ATTACHMENTS -->
     <div class="flex flex-col gap-3">
-        <h4 class="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+        <h4 class="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
             <x-heroicon-o-paper-clip class="w-4 h-4" /> Attachments
         </h4>
 
@@ -190,14 +197,12 @@
         </div>
     </div>
 
-    <!-- CHAT MODAL -->
     <div
         x-data="{ open: false }"
         x-on:open-modal.window="if ($event.detail === 'chat') open = true"
         x-on:close-modal.window="if ($event.detail === 'chat') open = false"
         x-cloak
     >
-        <!-- Overlay -->
         <div
             x-show="open"
             x-transition.opacity
@@ -205,7 +210,6 @@
             @click.self="open = false"
         ></div>
 
-        <!-- Modal Container -->
         <div
             x-show="open"
             x-transition
@@ -213,10 +217,9 @@
             class="fixed inset-0 z-50 flex items-center justify-center"
         >
             <div
-                class="w-full max-w-7xl h-full bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-zinc-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                class="w-full max-w-7xl h-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
             >
-                <!-- HEADER -->
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-zinc-700 bg-gray-200/50 dark:bg-gray-800">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                         <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5" />
                         Conversation
@@ -229,7 +232,6 @@
 
                 </div>
 
-                <!-- BODY -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-4">
                     <livewire:grievance.chat :grievance="$grievance" />
                 </div>
@@ -239,3 +241,4 @@
     </div>
 
 </div>
+

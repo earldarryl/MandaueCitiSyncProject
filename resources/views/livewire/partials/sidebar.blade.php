@@ -117,27 +117,41 @@
                         </div>
 
                         <!-- Dropdown Children -->
-                        <div x-show="dropdowns[{{ $index }}] && $store.sidebar.open"
-                            class="relative overflow-hidden flex flex-col items-start pl-6 mt-1 gap-1">
-                            <!-- Line -->
-                            <div class="absolute top-0 left-5 h-full w-0.5 bg-mc_primary_color dark:bg-white"></div>
+                        <div
+                            x-show="$store.sidebar.open"
+                            x-ref="dropdown{{ $index }}"
+                            x-data="{ open: false, height: 0 }"
+                            x-init="$watch('dropdowns[{{ $index }}]', value => {
+                                open = value;
+                                height = value ? $refs.dropdown{{ $index }}.scrollHeight : 0;
+                            })"
+                            x-effect="$el.style.height = open ? height + 'px' : '0px'"
+                            class="overflow-hidden transition-all duration-300 ease-in-out"
+                            style="height: 0;"
+                        >
+                            <div class="relative flex flex-col items-start pl-6 mt-1 pb-1">
+                                <!-- Line -->
+                                <div class="absolute top-0 left-5 h-full w-0.5 bg-mc_primary_color dark:bg-white"></div>
 
-                            @foreach ($item['children'] as $child)
-                                @php
-                                    $isChildActive = request()->routeIs($child['route']);
-                                @endphp
+                                @foreach ($item['children'] as $child)
+                                    @php
+                                        $isChildActive = request()->routeIs($child['route']);
+                                    @endphp
 
-                                <x-responsive-nav-link href="{{ route($child['route']) }}"
-                                                    class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition select-none
-                                                        {{ $isChildActive
-                                                                ? 'bg-gray-200 dark:bg-zinc-800'
-                                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}">
-                                    <i class="{{ $child['icon'] }}"></i>
-                                    <span x-show="$store.sidebar.open" x-transition class="ml-2">
-                                        {{ $child['label'] }}
-                                    </span>
-                                </x-responsive-nav-link>
-                            @endforeach
+                                    <x-responsive-nav-link
+                                        href="{{ route($child['route']) }}"
+                                        class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition select-none
+                                            {{ $isChildActive
+                                                ? 'bg-gray-200 dark:bg-zinc-800'
+                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                                    >
+                                        <i class="{{ $child['icon'] }}"></i>
+                                        <span x-show="$store.sidebar.open" x-transition class="ml-2">
+                                            {{ $child['label'] }}
+                                        </span>
+                                    </x-responsive-nav-link>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 @else

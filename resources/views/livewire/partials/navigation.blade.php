@@ -43,12 +43,34 @@
                             <!-- Avatar Button -->
                             <div class="dark:bg-white w-10 h-10 rounded-full cursor-pointer shrink-0"
                                 @click="openProfile = !openProfile">
+                                @php
+                                    $palette = [
+                                        '0D8ABC',
+                                        '10B981',
+                                        'EF4444',
+                                        'F59E0B',
+                                        '8B5CF6',
+                                        'EC4899',
+                                        '14B8A6',
+                                        '6366F1',
+                                        'F97316',
+                                        '84CC16',
+                                    ];
+
+                                    $index = crc32($user->name) % count($palette);
+                                    $bgColor = $palette[$index];
+                                @endphp
+
                                 <img
                                     src="{{ $user->profile_pic
-                                    ? Storage::url($user->profile_pic)
-                                    : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0D8ABC&color=fff&size=128' }}"
+                                        ? Storage::url($user->profile_pic)
+                                        : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) .
+                                        '&background=' . $bgColor .
+                                        '&color=fff&size=128' }}"
                                     alt="profile-pic"
-                                    class="rounded-full w-full h-full object-cover">
+                                    class="rounded-full w-full h-full object-cover"
+                                />
+
                             </div>
 
                             <!-- Profile Dropdown -->
@@ -67,7 +89,9 @@
                                             <img
                                                 src="{{ $user->profile_pic
                                                     ? Storage::url($user->profile_pic)
-                                                    : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0D8ABC&color=fff&size=128' }}"
+                                                    : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) .
+                                                    '&background=' . $bgColor .
+                                                    '&color=fff&size=128' }}"
                                                 alt="profile-pic"
                                                 class="rounded-full w-full h-full object-cover"
                                             />

@@ -14,18 +14,17 @@ class Index extends Component
     public $startDate;
     public $endDate;
 
-    protected $listeners = ['dateRangeUpdated'];
-
     public function mount()
     {
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
 
-    public function dateRangeUpdated($start, $end)
+    public function updated($propertyName, $value)
     {
-        $this->startDate = $start;
-        $this->endDate = $end;
+        if (in_array($propertyName, ['startDate', 'endDate'])) {
+            $this->dispatch('dateRangeUpdated', $this->startDate, $this->endDate);
+        }
     }
 
     public function render()
@@ -36,4 +35,3 @@ class Index extends Component
         ]);
     }
 }
-

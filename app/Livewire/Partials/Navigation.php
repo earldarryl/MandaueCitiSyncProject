@@ -35,7 +35,7 @@ class Navigation extends Component
 
         'hr-liaison.dashboard'           => 'Dashboard',
         'hr-liaison.activity-logs.index' => 'Activity Logs',
-
+        'hr-liaison.department.index' => 'Department Info',
         'hr-liaison.grievance.index' => 'Grievance List',
         'hr-liaison.grievance.view' => 'View Grievance',
 
@@ -74,6 +74,7 @@ class Navigation extends Component
             'Activity Logs' => 'bi bi-journal-text',
             'Citizen Users' => 'bi bi-people',
             'HR Liaisons Users' => 'bi bi-person-badge',
+            'Department Info' => 'bi bi-building-fill-exclamation',
 
             'My Grievances' => 'bi bi-file-earmark-text',
             'File a Grievance' => 'bi bi-file-earmark-plus',

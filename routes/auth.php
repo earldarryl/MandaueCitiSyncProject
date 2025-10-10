@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     // -------------------- HR Liaison Routes --------------------
     Route::middleware('role:hr_liaison')->group(function () {
         Volt::route('hr-liaison/dashboard', 'user.hr-liaison.dashboard.index')->name('hr-liaison.dashboard');
-        Volt::route('hr-liaison/department/index', 'user.hr-liaison.deparment.index')->name('hr-liaison.department.index');
+        Volt::route('hr-liaison/department/index', 'user.hr-liaison.department.index')->name('hr-liaison.department.index');
         Volt::route('hr-liaison/grievance/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
         Volt::route('hr-liaison/grievance/view/{id}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
         Volt::route('hr-liaison/activity-logs', 'user.admin.activtiy-logs.index')->name('hr-liaison.activity-logs.index');
@@ -58,4 +58,6 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     Volt::route('/user/confirm-password', 'pages.auth.confirm-password')->name('password.confirm');
     Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
+    // -------------------- Printing Routes --------------------
+    Volt::route('/print/print-grievance/{id}', 'print-files.print-grievance')->name('print-grievance');
 });

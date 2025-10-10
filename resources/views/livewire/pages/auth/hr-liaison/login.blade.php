@@ -7,53 +7,51 @@
 
     <form wire:submit="login" class="flex flex-col gap-5">
         <flux:error name="status" />
-        <!-- Email Address -->
-            <flux:field>
-                <div class="flex flex-col gap-2">
-                    <flux:label class="flex gap-2">
-                        <flux:icon.at-symbol />
-                        <span>Email</span>
-                    </flux:label>
-                    <flux:input.group>
-                            <flux:input
-                                wire:model="form.email"
-                                id="email"
-                                type="text"
-                                placeholder="Enter your email"
-                                clearable
-                            />
-
-                    </flux:input.group>
-                </div>
-
-                     <flux:error name="form.email" />
-            </flux:field>
-
-            <!-- Password -->
-            <flux:field>
-                <div class="flex flex-col gap-2">
-                    <flux:label class="flex gap-2">
-                        <flux:icon.key />
-                        <span>Password</span>
-                    </flux:label>
-
+        <flux:field>
+            <div class="flex flex-col gap-2">
+                <flux:label class="flex gap-2">
+                    <flux:icon.at-symbol class="text-mc_primary_color dark:text-white"/>
+                    <span class="text-lg font-bold">Email</span>
+                </flux:label>
                 <flux:input.group>
-                    <flux:input
-                        wire:model="form.password"
-                        id="password"
-                        type="password"
-                        class:input="hide-password-toggle"
-                        placeholder="Enter your password"
-                        viewable
-                        clearable
-                    />
+                        <flux:input
+                            wire:model="form.email"
+                            id="email"
+                            type="text"
+                            placeholder="Enter your email"
+                            class:input="text-lg font-semibold"
+                            clearable
+                        />
+
                 </flux:input.group>
-                </div>
+            </div>
 
-                <flux:error name="form.password" />
-            </flux:field>
+                    <flux:error name="form.email" />
+        </flux:field>
 
-        <!-- Remember Me -->
+        <flux:field>
+            <div class="flex flex-col gap-2">
+                <flux:label class="flex gap-2">
+                    <flux:icon.key class="text-mc_primary_color dark:text-white"/>
+                    <span class="text-lg font-bold">Password</span>
+                </flux:label>
+
+            <flux:input.group>
+                <flux:input
+                    wire:model="form.password"
+                    id="password"
+                    type="password"
+                    class:input="hide-password-toggle text-lg font-semibold"
+                    placeholder="Enter your password"
+                    viewable
+                    clearable
+                />
+            </flux:input.group>
+            </div>
+
+            <flux:error name="form.password" />
+        </flux:field>
+
         <div class="flex justify-between mt-4">
             <flux:field variant="inline">
                 <flux:checkbox

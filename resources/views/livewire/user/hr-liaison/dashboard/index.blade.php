@@ -26,7 +26,8 @@
             <div class="flex flex-col lg:flex-row gap-6">
                 <livewire:user.hr-liaison.dashboard.hr-liaison-stats
                     :start-date="$startDate"
-                    :end-date="$endDate"/>
+                    :end-date="$endDate"
+                    wire:key="hr-liaison-stats-{{ $startDate }}-{{ $endDate }}"/>
             </div>
         </section>
 
@@ -35,12 +36,14 @@
             <div class="w-full">
                 <livewire:bar-widget
                     :start-date="$startDate"
-                    :end-date="$endDate"/>
+                    :end-date="$endDate"
+                    wire:key="bar-widget-{{ $startDate }}-{{ $endDate }}" />
             </div>
             <div class="w-full">
                 <livewire:pie-widget
                     :start-date="$startDate"
-                    :end-date="$endDate"/>
+                    :end-date="$endDate"
+                    wire:key="pie-widget-{{ $startDate }}-{{ $endDate }}" />
             </div>
         </section>
 
@@ -63,8 +66,9 @@
                 <livewire:dashboard-grievance-table
                     :start-date="$startDate"
                     :end-date="$endDate"
-                    :wire:key="'grievances-table-'.$startDate.'-'.$endDate"/>
-                <livewire:dashboard-user-table/>
+                    wire:key="grievances-table-{{ $startDate }}-{{ $endDate }}" />
+
+                <livewire:dashboard-user-table />
             </div>
         </section>
 

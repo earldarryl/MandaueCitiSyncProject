@@ -7,16 +7,7 @@
 
 
     <form wire:submit="login" class="flex flex-col gap-5">
-        @if (session('status'))
-            <div class="flex gap-3 my-4 font-medium text-sm text-green-400">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-                {{ session('status') }}
-            </div>
-        @endif
         <flux:error name="status" />
-        <!-- Email Address -->
             <flux:field>
                 <div class="flex flex-col gap-2">
                     <flux:label class="flex gap-2">
@@ -39,7 +30,6 @@
                      <flux:error name="form.email" />
             </flux:field>
 
-            <!-- Password -->
             <flux:field>
                 <div class="flex flex-col gap-2">
                     <flux:label class="flex gap-2">
@@ -63,7 +53,6 @@
                 <flux:error name="form.password" />
             </flux:field>
 
-        <!-- Remember Me -->
         <div class="flex justify-between mt-4"  wire:target="openModalRegister, login" wire:loading.remove>
             <flux:field variant="inline">
                 <flux:checkbox
