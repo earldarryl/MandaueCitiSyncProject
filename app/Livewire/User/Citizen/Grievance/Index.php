@@ -24,18 +24,25 @@ class Index extends Component
     public $filterStatus = '';
     public $filterType = '';
     public $filterDate = '';
+    public $selected = [];
+    public $selectAll = false;
     public $totalGrievances = 0;
     public $highPriorityCount = 0;
     public $normalPriorityCount = 0;
     public $lowPriorityCount = 0;
-
     public $pendingCount = 0;
     public $inProgressCount = 0;
     public $resolvedCount = 0;
     public $closedCount = 0;
-    public array $selectedGrievances = [];
 
-    protected $updatesQueryString = ['search'];
+    protected $updatesQueryString = [
+        'search' => ['except' => ''],
+        'filterPriority' => ['except' => ''],
+        'filterStatus' => ['except' => ''],
+        'filterType' => ['except' => ''],
+        'filterDate' => ['except' => ''],
+    ];
+
     protected $listeners = [
         'poll' => '$refresh',
     ];
@@ -54,7 +61,6 @@ class Index extends Component
 
         if (session()->has('notification')) {
             $notif = session('notification');
-
             Notification::make()
                 ->title($notif['title'])
                 ->body($notif['body'])
@@ -63,57 +69,14 @@ class Index extends Component
         }
 
         $this->updateStats();
-
     }
 
-    public function deleteGrievance($grievanceId)
-    {
-        $grievance = Grievance::find($grievanceId);
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterPriority() { $this->resetPage(); }
+    public function updatingFilterStatus() { $this->resetPage(); }
+    public function updatingFilterType() { $this->resetPage(); }
+    public function updatingFilterDate() { $this->resetPage(); }
 
-        if ($grievance) {
-            $grievance->delete();
-
-            $this->updateStats();
-            $this->dispatch('$refresh');
-
-            Notification::make()
-                ->title('Grievance Deleted')
-                ->body("The grievance **{$grievance->grievance_title}** was successfully deleted.")
-                ->success()
-                ->send();
-
-        } else {
-            Notification::make()
-                ->title('Error')
-                ->body('Grievance not found or already deleted.')
-                ->danger()
-                ->send();
-        }
-    }
-
-    public function bulkDelete()
-    {
-        Grievance::whereIn('grievance_id', $this->selectedGrievances)->delete();
-        $this->selectedGrievances = [];
-        Notification::make()
-            ->title('Deleted')
-            ->body('Selected grievances deleted successfully.')
-            ->success()
-            ->send();
-    }
-
-    public function bulkMarkHigh()
-    {
-        Grievance::whereIn('grievance_id', $this->selectedGrievances)
-            ->update(['priority_level' => 'High']);
-
-        $this->selectedGrievances = [];
-        Notification::make()
-            ->title('Updated')
-            ->body('Selected grievances marked as High Priority.')
-            ->success()
-            ->send();
-    }
 
     public function applySearch()
     {
@@ -128,10 +91,81 @@ class Index extends Component
         $this->resetPage();
     }
 
-
-    public function updatingSearch()
+    public function deleteGrievance($grievanceId)
     {
-        $this->resetPage();
+        $grievance = Grievance::find($grievanceId);
+
+        if (! $grievance) {
+            Notification::make()
+                ->title('Error')
+                ->body('Grievance not found or already deleted.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $title = $grievance->grievance_title;
+        $grievance->delete();
+
+        $this->updateStats();
+        $this->dispatch('$refresh');
+        $this->dispatch('close-delete-modal-'.$grievanceId);
+
+        Notification::make()
+            ->title('Grievance Deleted')
+            ->body("{$title} was deleted successfully.")
+            ->success()
+            ->send();
+    }
+
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $grievances = Grievance::where('user_id', auth()->id())->latest()->get();
+            $this->selected = $grievances->pluck('grievance_id')->toArray();
+        } else {
+            $this->selected = [];
+        }
+    }
+
+     public function deleteSelected()
+    {
+        if (empty($this->selected)) return;
+
+        $grievances = Grievance::whereIn('grievance_id', $this->selected)->get();
+
+        foreach ($grievances as $grievance) {
+            $grievance->delete();
+        }
+
+        $this->selected = [];
+        $this->selectAll = false;
+        $this->updateStats();
+
+        Notification::make()
+            ->title('Bulk Delete')
+            ->body('Selected grievances were deleted successfully.')
+            ->success()
+            ->send();
+    }
+
+    public function markSelectedHighPriority()
+    {
+        if (empty($this->selected)) return;
+
+        Grievance::whereIn('grievance_id', $this->selected)
+            ->update(['priority_level' => 'High']);
+
+        $this->selected = [];
+        $this->selectAll = false;
+        $this->updateStats();
+
+        Notification::make()
+            ->title('Bulk Update')
+            ->body('Selected grievances were marked as High Priority.')
+            ->success()
+            ->send();
     }
 
     public function updateStats()
@@ -149,10 +183,7 @@ class Index extends Component
                 'Resolved'    => 'resolved',
                 'Closed'      => 'closed',
             ];
-
-            if (isset($map[$this->filterStatus])) {
-                $query->where('grievance_status', $map[$this->filterStatus]);
-            }
+            $query->when(isset($map[$this->filterStatus]), fn($q) => $q->where('grievance_status', $map[$this->filterStatus]));
         }
 
         if ($this->filterType) {
@@ -179,10 +210,10 @@ class Index extends Component
             }
         }
 
-        $this->totalGrievances   = $query->count();
-        $this->highPriorityCount = (clone $query)->where('priority_level', 'High')->count();
+        $this->totalGrievances     = $query->count();
+        $this->highPriorityCount   = (clone $query)->where('priority_level', 'High')->count();
         $this->normalPriorityCount = (clone $query)->where('priority_level', 'Normal')->count();
-        $this->lowPriorityCount  = (clone $query)->where('priority_level', 'Low')->count();
+        $this->lowPriorityCount    = (clone $query)->where('priority_level', 'Low')->count();
 
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
@@ -190,69 +221,52 @@ class Index extends Component
         $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
     }
 
-    public function updated($property)
-    {
-        if (in_array($property, ['filterPriority', 'filterStatus', 'filterType', 'filterDate'])) {
-            $this->updateStats();
-        }
-    }
-
     public function render()
     {
-        $grievances = Grievance::with([
-            'departments' => fn($query) => $query->distinct(),
-            'attachments',
-            'user',
-        ])
-        ->where('user_id', auth()->id())
-        ->when($this->filterPriority, fn($q) => $q->where('priority_level', $this->filterPriority))
-        ->when($this->filterStatus, function ($q) {
-            $map = [
-                'Pending'     => 'pending',
-                'In Progress' => 'in_progress',
-                'Resolved'    => 'resolved',
-                'Closed'      => 'closed',
-            ];
+        $grievances = Grievance::with(['departments' => fn($q) => $q->distinct(), 'attachments', 'user'])
+            ->where('user_id', auth()->id())
+            ->when($this->filterPriority, fn($q) => $q->where('priority_level', $this->filterPriority))
+            ->when($this->filterStatus, function($q) {
+                $map = [
+                    'Pending'     => 'pending',
+                    'In Progress' => 'in_progress',
+                    'Resolved'    => 'resolved',
+                    'Closed'      => 'closed',
+                ];
+                if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
+            })
+            ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
+            ->where(function($query) {
+                $query->where('grievance_title', 'like', '%'.$this->search.'%')
+                      ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
+                      ->orWhere('priority_level', 'like', '%'.$this->search.'%')
+                      ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
+                      ->orWhere('is_anonymous', 'like', '%'.$this->search.'%');
+            })
+            ->when($this->filterDate, function($q){
+                switch($this->filterDate){
+                    case 'Today':
+                        $q->whereDate('created_at', now()->toDateString());
+                        break;
+                    case 'Yesterday':
+                        $q->whereDate('created_at', now()->subDay()->toDateString());
+                        break;
+                    case 'This Week':
+                        $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                        break;
+                    case 'This Month':
+                        $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+                        break;
+                    case 'This Year':
+                        $q->whereYear('created_at', now()->year);
+                        break;
+                }
+            })
+            ->latest()
+            ->paginate($this->perPage);
 
-            if (isset($map[$this->filterStatus])) {
-                $q->where('grievance_status', $map[$this->filterStatus]);
-            }
-        })
-        ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
-        ->where(function($query) {
-            $query->where('grievance_title', 'like', '%'.$this->search.'%')
-                ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
-                ->orWhere('priority_level', 'like', '%'.$this->search.'%')
-                ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
-                ->orWhere('is_anonymous', 'like', '%'.$this->search.'%');
-        })
-        ->when($this->filterDate, function ($q) {
-            switch ($this->filterDate) {
-                case 'Today':
-                    $q->whereDate('created_at', now()->toDateString());
-                    break;
-
-                case 'Yesterday':
-                    $q->whereDate('created_at', now()->subDay()->toDateString());
-                    break;
-
-                case 'This Week':
-                    $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                    break;
-
-                case 'This Month':
-                    $q->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year);
-                    break;
-
-                case 'This Year':
-                    $q->whereYear('created_at', now()->year);
-                    break;
-            }
-        })
-        ->latest()
-        ->paginate($this->perPage);
-
-        return view('livewire.user.citizen.grievance.index', compact('grievances'));
+        return view('livewire.user.citizen.grievance.index', [
+            'grievances' => $grievances,
+        ]);
     }
 }

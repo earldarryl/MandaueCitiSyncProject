@@ -82,7 +82,7 @@
                                         w-[300px] sm:w-[350px] md:w-[400px] lg:w-[450px] p-3 sm:p-4 space-y-3">
 
                                 <!-- Profile -->
-                                <div class="relative border-box dark:bg-zinc-700 bg-gray-200 p-3 rounded-lg">
+                                <div class="relative border-box dark:bg-zinc-700/50 bg-gray-100 p-3 rounded-lg">
                                     <div class="flex items-center gap-3">
                                         <!-- Avatar -->
                                         <div class="rounded-full w-16 h-16 sm:w-20 sm:h-20 shrink-0">
@@ -99,15 +99,15 @@
 
                                         <!-- Info -->
                                         <div class="flex flex-col gap-1 min-w-0">
-                                            <span class="font-semibold text-sm truncate">{{ $userName }}</span>
-                                            <span class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 truncate">{{ $userEmail }}</span>
+                                            <span class="font-bold text-sm truncate">{{ $userName }}</span>
+                                            <span class="text-xs font-bold sm:text-sm text-gray-600 dark:text-gray-300 truncate">{{ $userEmail }}</span>
 
                                             <!-- Status (poll every 10s) -->
                                             <div wire:poll.10s="updateStatus" class="flex items-center gap-2">
                                                 <span class="{{ $status['color'] }} text-xs">
                                                     <i class="bi bi-circle-fill"></i>
                                                 </span>
-                                                <span class="text-xs sm:text-sm">{{ $status['text'] }}</span>
+                                                <span class="text-xs sm:text-sm font-bold">{{ $status['text'] }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -123,7 +123,7 @@
 
                                 <!-- Settings Link -->
                                 <x-responsive-nav-link href="{{ route('settings') }}"
-                                                    class="flex items-center gap-2 text-sm dark:text-white dark:hover:bg-zinc-700 hover:bg-gray-200 w-full px-2 py-1 rounded-md"
+                                                    class="flex items-center font-bold gap-2 text-sm dark:text-white dark:hover:bg-zinc-700 hover:bg-gray-200 w-full px-2 py-1 rounded-md"
                                                     wire:navigate>
                                     <flux:icon.cog-6-tooth/>
                                     <span>Settings</span>

@@ -27,6 +27,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     use WithFileUploads, InteractsWithForms, InteractsWithActions;
 
     public $showConfirmSubmitModal = false;
+    public $showConfirmModal;
     public $is_anonymous;
     public $grievance_type;
     public $priority_level;
@@ -65,6 +66,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->previewable(true)
                 ->reorderable()
                 ->disk('public')
+                ->panelLayout('grid')
                 ->directory('grievance_files')
                 ->maxSize(51200)
                 ->acceptedFileTypes([
@@ -102,7 +104,14 @@ class Create extends Component implements Forms\Contracts\HasForms
     {
         $this->showConfirmSubmitModal = false;
 
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->showConfirmModal = true;
+
+            $this->setErrorBag($e->validator->getMessageBag());
+            return;
+        }
 
         $data = $this->form->getState();
 

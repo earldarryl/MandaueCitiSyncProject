@@ -215,4 +215,30 @@
 
     </flux:modal>
 
+    <flux:modal wire:model.self="showConfirmModal" :closable="false">
+        <div class="p-6 flex flex-col items-center text-center space-y-4">
+            <div class="rounded-full bg-red-100 p-3 text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Missing Required Information
+            </h2>
+
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Some required fields are incomplete or invalid. Please review your input before proceeding.
+            </p>
+
+            <div class="flex justify-center gap-3 mt-4">
+                <flux:button
+                    variant="subtle" class="border border-gray-200 dark:border-zinc-800"
+                    @click="$wire.showConfirmModal = false"
+                >
+                    Close
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

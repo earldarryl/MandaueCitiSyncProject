@@ -2,7 +2,7 @@
     'name',
     'show' => false,
     'maxWidth' => '2xl',
-    'maxHeight' => 'auto', // 👈 Added height prop
+    'maxHeight' => 'auto',
 ])
 
 @php
@@ -21,6 +21,7 @@ $maxWidth = [
 ][$maxWidth];
 
 $maxHeight = [
+    'auto' => '',
     'sm' => 'sm:max-h-sm',
     'md' => 'sm:max-h-md',
     'lg' => 'sm:max-h-lg',
@@ -33,6 +34,7 @@ $maxHeight = [
     '7xl' => 'sm:max-h-7xl',
     'full' => 'sm:max-h-full',
 ][$maxHeight];
+
 @endphp
 
 <div

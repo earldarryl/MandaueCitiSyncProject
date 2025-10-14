@@ -20,44 +20,41 @@
             <flux:heading size="lg">Log Out</flux:heading>
             <flux:text class="mt-2">Are you sure you want to log out?</flux:text>
 
-            <div class="flex justify-end space-x-4 mt-6">
-                <flux:button
-                    type="button"
-                    variant="primary"
-                    color="zinc"
-                    @click="show = false"
-                >
-                    <span wire:loading.remove wire:target="close">
-                        Cancel
-                    </span>
+            <div class="flex flex-col w-full p-3 justify-center">
+                <div wire:loading.remove wire:target="logout">
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <flux:button
+                            type="button"
+                            variant="primary"
+                            color="zinc"
+                            icon="x-mark"
+                            @click="show = false"
+                        >
+                            <span>Close</span>
+                        </flux:button>
 
-                    <span wire:loading wire:target="close">
-                        <span class="flex items-center gap-2">
-                            <span class="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent"></span>
-                            <span>Closing...</span>
-                        </span>
-                    </span>
-                </flux:button>
+                        <flux:button
+                            variant="danger"
+                            wire:click="logout"
+                            wire:loading.attr="disabled"
+                            wire:target="logout"
+                            class="flex items-center justify-center gap-2"
+                            icon="arrow-left-end-on-rectangle"
+                        >
+                            <span>Log Out</span>
+                        </flux:button>
+                    </div>
+                </div>
 
-                <flux:button
-                    variant="danger"
-                    wire:click="logout"
-                    wire:loading.attr="disabled"
-                    wire:target="logout"
-                    class="flex items-center justify-center gap-2"
-                >
-                    <span wire:loading.remove wire:target="logout">
-                        {{ __('Log Out') }}
-                    </span>
-
-                    <span wire:loading wire:target="logout">
-                        <span class="flex items-center gap-2">
-                            <span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                            <span>Logging out...</span>
-                        </span>
-                    </span>
-                </flux:button>
+                <div wire:loading wire:target="logout">
+                    <div class="w-full flex items-center justify-center gap-2 py-4">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
 </div>

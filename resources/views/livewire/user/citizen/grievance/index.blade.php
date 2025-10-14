@@ -60,6 +60,7 @@
                     x-transition:leave-start="opacity-100 transform scale-100"
                     x-transition:leave-end="opacity-0 transform scale-95"
                     class="relative w-full flex flex-col h-auto"
+                    wire:poll.10s="updateStats"
                 >
 
                     <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
@@ -234,21 +235,25 @@
                         wire:model.defer="searchInput"
                         wire:keydown.enter="applySearch"
                         placeholder="Search grievances..."
-                        class="relative border border-gray-200 dark:border-zinc-700 p-2 pr-10 w-full bg-gray-100 rounded-l-md dark:bg-zinc-900"
+                        class="relative border border-gray-200 dark:border-zinc-700 p-2 pr-8 w-full bg-gray-100 rounded-md dark:bg-zinc-900 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-400 outline-none"
                     />
 
-                    <button
+                  <button
                         type="button"
                         wire:click="clearSearch"
-                        class="absolute p-3 rounded-lg inset-y-0 right-1 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:bg-gray-300 dark:hover:bg-zinc-700"
+                        class="absolute inset-y-0 right-1 flex items-center justify-center p-[5px] rounded-md
+                            text-gray-500 dark:text-gray-300
+                            hover:text-blue-600 dark:hover:text-blue-400
+                            transition-colors"
+                        style="margin: 2px;"
                     >
-                        <flux:icon.x-mark class="w-4 h-4"/>
+                        <flux:icon.x-mark class="w-3.5 h-3.5" />
                     </button>
                 </div>
 
                 <button
                     wire:click="applySearch"
-                    class="py-2 px-4 font-bold bg-mc_primary_color/20 text-mc_primary_color dark:bg-black dark:text-white border border-gray-200 dark:border-zinc-700 rounded-r-md"
+                    class="py-2 px-4 font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 border border-gray-200 dark:border-zinc-700 rounded-r-md"
                 >
                     <flux:icon.magnifying-glass />
                 </button>
@@ -257,84 +262,48 @@
 
             <x-responsive-nav-link
                 href="{{ route('citizen.grievance.create') }}"
-                class="flex gap-2 font-bold items-center justify-center border border-gray-200 dark:border-zinc-700 px-3 py-2 bg-mc_primary_color/20 text-mc_primary_color dark:bg-black dark:text-white rounded-lg w-full md:w-auto"
+                class="flex gap-2 font-bold items-center justify-center px-3 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg w-full md:w-auto"
             >
                 <flux:icon.document-plus />
                 <span>File Grievance</span>
             </x-responsive-nav-link>
     </header>
 
-    <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate">
-        @if ($grievances->count() > 0)
-            <div
-                x-data="{
-                    selected: @entangle('selectedGrievances').live,
-                    toggleAll(e) {
-                        if (e.target.checked) {
-                            this.selected = @js($grievances->pluck('grievance_id'));
-                        } else {
-                            this.selected = [];
-                        }
-                    }
-                }"
-                class="w-full"
-            >
-                <!-- Select All -->
-                <div class="flex items-center justify-between p-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            @change="toggleAll($event)"
-                            class="peer hidden"
-                        >
-                        <span class="w-5 h-5 flex items-center justify-center border-2 border-gray-300 rounded-md
-                                    peer-checked:border-mc_primary_color peer-checked:bg-mc_primary_color
-                                    transition duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor"
-                                class="w-3 h-3 text-white hidden peer-checked:block">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
-                        </span>
-                        <span class="text-md font-bold">Select All</span>
-                    </label>
-                </div>
+    <div class="flex items-center justify-between gap-2 mb-4 px-3">
+        <div class="flex items-center gap-2">
+            <flux:checkbox wire:model.live="selectAll" id="select-all"/>
+            <flux:label>Select All</flux:label>
+        </div>
 
-                <!-- Bulk Action Buttons -->
-                <template x-if="selected.length > 0">
-                    <div class="flex justify-between items-center p-3 rounded-md bg-gray-100 dark:bg-zinc-800">
-                        <span class="text-sm font-medium" x-text="`${selected.length} selected`"></span>
+        <div class="flex gap-2">
+            <button
+                wire:click="deleteSelected"
+                class="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 text-red-500 text-sm font-bold rounded-md hover:text-red-600">
+                <flux:icon.trash />
+                <span>Delete Selected</span>
+            </button>
 
-                        <div class="flex gap-2">
-                            <button
-                                wire:click="bulkDelete"
-                                class="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 text-red-500 text-sm font-bold rounded-md hover:text-red-600">
-                                <flux:icon.trash />
-                                <span>Delete Selected</span>
-                            </button>
-                            <button
-                                wire:click="bulkMarkHigh"
-                                class="flex items-center justify-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 text-sm font-bold rounded-md hover:text-amber-600">
-                                <flux:icon.document-check />
-                                <span>Mark as High Priority</span>
-                            </button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        @endif
+            <button
+                wire:click="markSelectedHighPriority"
+                class="flex items-center justify-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 text-sm font-bold rounded-md hover:text-amber-600">
+                <flux:icon.document-check />
+                <span>Mark as High Priority</span>
+            </button>
+        </div>
     </div>
-
 
     <div class="relative">
         <!-- Grid -->
         <div class="flex w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
             <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full"
                  wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
-            >
+             >
 
                 @forelse ($grievances as $grievance)
                     <div
+                        wire:key="grievance-{{ $grievance->grievance_id }}"
+                        x-data
+                        x-on:close-all-modals.window="showModal = null"
                         class="cursor-pointer rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 flex flex-col p-5 h-[350px]
                             transition-transform duration-300 ease-in-out hover:scale-[1.03] hover:shadow-lg active:scale-[0.98]">
 
@@ -343,7 +312,7 @@
                                 <div class="flex items-start gap-2">
                                     <div class="flex flex-col max-w-[250px]">
                                         <h2
-                                            class="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate"
+                                            class="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate"
                                             title="{{ strip_tags($grievance->grievance_title) }}"
                                         >
                                             {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
@@ -389,14 +358,13 @@
                                             </flux:menu.item>
 
                                             <!-- Delete -->
-                                            <flux:modal.trigger name="delete-{{ $grievance->grievance_id }}">
-                                                <flux:menu.item
-                                                    icon="trash"
-                                                    variant="danger"
-                                                >
-                                                    <span class="font-bold text-lg">Delete</span>
-                                                </flux:menu.item>
-                                            </flux:modal.trigger>
+                                            <flux:menu.item
+                                                icon="trash"
+                                                variant="danger"
+                                                @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"
+                                            >
+                                                <span class="font-bold text-lg">Delete</span>
+                                            </flux:menu.item>
                                         </flux:menu>
 
                                     </flux:dropdown>
@@ -410,78 +378,72 @@
 
                             <footer class="flex justify-between w-full items-center mt-2 pt-3">
                                 <div class="text-xs">{{ $grievance->created_at->format('M d, Y') }}</div>
-                                <div class="flex gap-2">
-
-                                    <!-- Bulk Select Checkbox -->
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            wire:model.live="selectedGrievances"
-                                            value="{{ $grievance->grievance_id }}"
-                                            class="peer hidden"
-                                        >
-                                        <span class="w-5 h-5 flex items-center justify-center border-2 border-gray-300 rounded-md
-                                                    peer-checked:border-mc_primary_color peer-checked:bg-mc_primary_color
-                                                    transition duration-200">
-
-                                            <!-- Checkmark Icon -->
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke-width="3"
-                                                stroke="currentColor"
-                                                class="w-3 h-3 text-white hidden peer-checked:block">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                            </svg>
-
-                                        </span>
-                                    </label>
-
-                                </div>
+                                <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}"/>
                             </footer>
                         </div>
-
-                         <flux:modal name="delete-{{ $grievance->grievance_id }}" class="md:w-1/3">
-                                <div class="flex flex-col items-center text-center p-6 space-y-4">
-                                    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
-                                        <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
-                                    </div>
-                                    <flux:heading size="lg" class="font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</flux:heading>
-                                    <flux:text class="text-sm leading-relaxed">
-                                        Are you sure you want to delete this grievance?
-                                    </flux:text>
-                                </div>
-                                <div class="flex items-center justify-center w-full">
-                                    <div
-                                        wire:loading.remove
-                                        wire:target="deleteGrievance({{ $grievance->grievance_id }})"
-                                        class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
-                                        <flux:modal.close>
-                                            <flux:button variant="subtle" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
-                                        </flux:modal.close>
-                                        <flux:button
-                                            variant="danger"
-                                            icon="trash"
-                                            wire:click="deleteGrievance({{ $grievance->grievance_id }})"
-                                        >
-                                            Yes, Delete
-                                        </flux:button>
-                                    </div>
-                                    <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
-                                        <div class="flex items-center justify-center gap-2 w-full">
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                        </flux:modal>
                     </div>
+
                 @empty
                     <p class="col-span-3 text-center text-gray-500">No grievances found.</p>
                 @endforelse
 
             </div>
+
+            @foreach ($grievances as $grievance)
+                <div
+                    x-data="{ showModal: false }"
+                    x-on:open-delete-modal-{{ $grievance->grievance_id }}.window="showModal = true"
+                    x-on:close-delete-modal-{{ $grievance->grievance_id }}.window="showModal = false"
+                    x-on:close-all-modals.window="showModal = false"
+                    x-show="showModal"
+                    x-cloak
+                    class="fixed inset-0 flex items-center justify-center z-50"
+                >
+                    <div x-show="showModal" x-transition.opacity class="absolute inset-0 bg-black/50"></div>
+                    <div x-show="showModal" x-transition.scale
+                        class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5 z-50">
+
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                            <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                        </div>
+
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                            Confirm Deletion
+                        </h2>
+
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            Are you sure you want to delete this grievance? This action cannot be undone.
+                        </p>
+
+                        <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})">
+                            <div class="flex items-center justify-center w-full gap-3 mt-4">
+                                <button
+                                    type="button"
+                                    @click="showModal = false"
+                                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <flux:button
+                                    variant="danger"
+                                    icon="trash"
+                                    wire:click="deleteGrievance({{ $grievance->grievance_id }})"
+                                >
+                                    Yes, Delete
+                                </flux:button>
+                            </div>
+                        </div>
+
+                        <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
+                            <div class="flex items-center justify-center gap-2 w-full">
+                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
 
         <!-- Skeleton Grid -->

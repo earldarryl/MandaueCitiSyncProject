@@ -35,11 +35,11 @@
             bg-gray-200 dark:bg-zinc-700"
     >
         <template x-for="(label, index) in value" :key="index">
-            <span class="inline-flex gap-2 items-center justify-content bg-mc_primary_color/10 dark:bg-mc_primary_color/20 border border-blue-500 text-mc_primary_color dark:text-blue-500 text-sm font-medium px-2 py-1 rounded-full">
+            <span class="inline-flex gap-2 items-center justify-content border border-black dark:border-white text-sm font-medium px-2 py-1 rounded-full">
                 <span x-text="label"></span>
                 <button
                     type="button"
-                    class="ml-1 text-mc_primary_color dark:text-blue-500 hover:text-red-500 dark:hover:text-red-400 focus:outline-none"
+                    class="ml-1 focus:outline-none"
                     @click.stop="remove(selected[index])"
                 >
                     ✕
@@ -84,10 +84,10 @@
                         "
                         class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
                         :class="selected.includes({{ $id }})
-                            ? 'bg-mc_primary_color/20 dark:bg-zinc-800 font-medium'
+                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
                         {{ $label }}
-                        <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4 text-mc_primary_color" />
+                        <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4" />
                     </button>
                 </li>
             @endforeach

@@ -118,13 +118,10 @@
         @endif
     </div>
 
-    <!-- Input Area (fixed height & sticky bottom) -->
-    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
+    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-black p-3">
         <form wire:submit.prevent="sendMessage" class="flex flex-col gap-2">
-            <!-- Message Input and Buttons -->
             <div class="flex items-center w-full gap-3">
 
-                <!-- Input + Send Button (Take full width) -->
                 <div class="flex flex-1 items-center border border-gray-300 dark:border-zinc-700 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
                     <input
                         type="text"
@@ -143,7 +140,6 @@
                     </flux:button>
                 </div>
 
-                <!-- Upload Modal Trigger Button -->
                 <div>
                     <flux:modal.trigger name="upload-file">
                         <flux:button
