@@ -1,14 +1,14 @@
 <div class="w-full m-4 px-2 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
 
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
-        <button
-            x-on:click="window.location.href='{{ route('citizen.grievance.index') }}'"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span class="hidden lg:inline">Return to Home</span>
-            <span class="lg:hidden">Home</span>
-        </button>
+        <x-responsive-nav-link href="{{ route('citizen.grievance.index') }}"
+            wire:navigate
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52">
+                <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <span class="hidden lg:inline">Return to Home</span>
+                <span class="lg:hidden">Home</span>
+            </x-responsive-nav-link>
+
 
         <button
             x-on:click="$dispatch('open-modal', 'chat')"

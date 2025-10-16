@@ -27,7 +27,7 @@ $breadcrumbs = Breadcrumbs::generate($currentRoute, ...Route::current()->paramet
                     @else
                         @if ($index === 0)
                             <flux:tooltip :content="$tooltipText" position="bottom">
-                                <flux:breadcrumbs.item href="{{ $crumb->url }}" icon="home">
+                                <flux:breadcrumbs.item href="{{ $crumb->url }}" icon="home" wire:navigate>
                                     {!! $crumb->title !!}
                                 </flux:breadcrumbs.item>
                             </flux:tooltip>

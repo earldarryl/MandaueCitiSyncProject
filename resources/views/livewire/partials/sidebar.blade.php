@@ -144,6 +144,7 @@
                                             {{ $isChildActive
                                                 ? 'bg-gray-200 dark:bg-zinc-800'
                                                 : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                                        wire:navigate
                                     >
                                         <i class="{{ $child['icon'] }}"></i>
                                         <span x-show="$store.sidebar.open" x-transition class="ml-2">
@@ -162,6 +163,7 @@
                             {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
                         x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
                         x-data="{ showTooltip: false }"
+                        wire:navigate
                         @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                         @mouseleave="showTooltip = false">
                         <span class="inline-block text-center">

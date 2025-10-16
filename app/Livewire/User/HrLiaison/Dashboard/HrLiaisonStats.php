@@ -16,13 +16,16 @@ class HrLiaisonStats extends Widget
     public $pending = 0;
     public $inProgress = 0;
     public $resolved = 0;
-    public $closed = 0;
+    public $rejected = 0;
     public $overdue = 0;
+
+    public $totalReceived = 0;
+    public $latestGrievanceId = null;
+    public $citizenCount = 0;
 
     protected $listeners = [
         'dateRangeUpdated' => 'updateDateRange',
     ];
-
 
     public function mount($startDate = null, $endDate = null)
     {
@@ -44,7 +47,6 @@ class HrLiaisonStats extends Widget
     {
         $start = Carbon::parse($this->startDate)->startOfDay();
         $end = Carbon::parse($this->endDate)->endOfDay();
-
         $userId = auth()->id();
 
         $baseQuery = Grievance::whereBetween('created_at', [$start, $end])
@@ -55,11 +57,20 @@ class HrLiaisonStats extends Widget
         $this->pending = (clone $baseQuery)->where('grievance_status', 'pending')->count();
         $this->inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
         $this->resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
-        $this->closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
-
+        $this->rejected = (clone $baseQuery)->where('grievance_status', 'rejected')->count();
         $this->overdue = (clone $baseQuery)
             ->where('grievance_status', '!=', 'resolved')
             ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])
             ->count();
+
+        $this->totalReceived = (clone $baseQuery)->count();
+
+        $this->latestGrievanceId = (clone $baseQuery)
+            ->orderBy('created_at', 'desc')
+            ->value('grievance_id');
+
+        $this->citizenCount = (clone $baseQuery)
+            ->distinct('user_id')
+            ->count('user_id');
     }
 }

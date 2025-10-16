@@ -33,7 +33,7 @@ class Index extends Component
     public $pendingCount = 0;
     public $inProgressCount = 0;
     public $resolvedCount = 0;
-    public $closedCount = 0;
+    public $rejectedCount = 0;
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -181,7 +181,7 @@ class Index extends Component
                 'Pending'     => 'pending',
                 'In Progress' => 'in_progress',
                 'Resolved'    => 'resolved',
-                'Closed'      => 'closed',
+                'Rejected'      => 'rejected',
             ];
             $query->when(isset($map[$this->filterStatus]), fn($q) => $q->where('grievance_status', $map[$this->filterStatus]));
         }
@@ -218,7 +218,7 @@ class Index extends Component
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
-        $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
+        $this->rejectedCount       = (clone $query)->where('grievance_status', 'rejected')->count();
     }
 
     public function render()
@@ -231,7 +231,7 @@ class Index extends Component
                     'Pending'     => 'pending',
                     'In Progress' => 'in_progress',
                     'Resolved'    => 'resolved',
-                    'Closed'      => 'closed',
+                    'Rejected'      => 'rejected',
                 ];
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
             })

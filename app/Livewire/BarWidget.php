@@ -16,7 +16,7 @@ class BarWidget extends BaseChartWidget
 
     protected $listeners = ['dateRangeUpdated'];
 
-    protected static ?int $contentHeight = 400;
+    protected static ?int $contentHeight = 800;
 
     public function dateRangeUpdated($start, $end)
     {

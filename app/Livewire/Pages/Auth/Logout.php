@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use Illuminate\Auth\Events\Logout as LogoutEvent;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\ActivityLog;
 use Livewire\Attributes\On;
+
 class Logout extends Component
 {
 
@@ -42,6 +44,7 @@ class Logout extends Component
             ]);
         }
 
+        event(new LogoutEvent('web', $user));
 
         if ($user) {
             $user->markOffline();

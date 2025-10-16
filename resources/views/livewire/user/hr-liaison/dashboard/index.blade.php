@@ -1,4 +1,9 @@
-<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative p-3">
+<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative p-3"
+     x-data
+     x-init="
+        Livewire.hook('message.sent', () => { document.body.style.overflow = 'hidden' });
+        Livewire.hook('message.processed', () => { document.body.style.overflow = '' });
+     ">
 
     <!-- Global Loader -->
     <div wire:loading wire:target="startDate,endDate"
@@ -31,19 +36,10 @@
             </div>
         </section>
 
-        <!-- Charts (Bar / Pie) -->
-        <section class="w-full flex flex-col md:flex-row gap-3 bg-white dark:bg-zinc-800 p-3 rounded-lg">
-            <div class="w-full">
-                <livewire:bar-widget
-                    :start-date="$startDate"
-                    :end-date="$endDate"
-                    wire:key="bar-widget-{{ $startDate }}-{{ $endDate }}" />
-            </div>
-            <div class="w-full">
-                <livewire:pie-widget
-                    :start-date="$startDate"
-                    :end-date="$endDate"
-                    wire:key="pie-widget-{{ $startDate }}-{{ $endDate }}" />
+        <!-- Bar Chart -->
+        <section class="w-full h-full p-4">
+            <div class="flex flex-col lg:flex-row w-full h-full">
+                <livewire:grievance-bar-chart />
             </div>
         </section>
 
@@ -68,7 +64,7 @@
                     :end-date="$endDate"
                     wire:key="grievances-table-{{ $startDate }}-{{ $endDate }}" />
 
-                <livewire:dashboard-user-table />
+                <livewire:dashboard-user-table/>
             </div>
         </section>
 

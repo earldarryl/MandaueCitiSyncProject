@@ -186,8 +186,8 @@
                                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                                 <flux:icon.x-circle class="h-8 w-8 text-gray-500 dark:text-gray-400" />
                             </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Closed</p>
-                            <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $closedCount }}</p>
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Rejected</p>
+                            <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $rejectedCount }}</p>
                         </div>
                     </div>
                 </div>
@@ -262,6 +262,7 @@
 
             <x-responsive-nav-link
                 href="{{ route('citizen.grievance.create') }}"
+                wire:navigate
                 class="flex gap-2 font-bold items-center justify-center px-3 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg w-full md:w-auto"
             >
                 <flux:icon.document-plus />
@@ -340,22 +341,21 @@
                                         />
 
                                        <flux:menu>
-
                                             <!-- View -->
-                                            <flux:menu.item
-                                                icon="eye"
-                                                x-on:click="window.location.href='{{ route('citizen.grievance.view', $grievance->grievance_id) }}'"
-                                            >
-                                                <span class="font-bold text-lg">View</span>
+                                            <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}"
+                                                wire:navigate>
+                                            <flux:menu.item icon="eye">
+                                                    <span class="font-bold text-lg">View</span>
                                             </flux:menu.item>
+                                            </a>
 
                                             <!-- Edit -->
-                                            <flux:menu.item
-                                                icon="pencil-square"
-                                                x-on:click="window.location.href='{{ route('citizen.grievance.edit', $grievance->grievance_id) }}'"
-                                            >
-                                                <span class="font-bold text-lg">Edit</span>
+                                            <a href="{{ route('citizen.grievance.edit', $grievance->grievance_id) }}"
+                                                wire:navigate>
+                                            <flux:menu.item icon="eye">
+                                                    <span class="font-bold text-lg">Edit</span>
                                             </flux:menu.item>
+                                            </a>
 
                                             <!-- Delete -->
                                             <flux:menu.item

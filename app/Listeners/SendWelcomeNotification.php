@@ -12,7 +12,6 @@ class SendWelcomeNotification
 {
     public function handle(Registered $event): void
     {
-        // Make sure we are using App\Models\User
         $user = $event->user instanceof User
             ? $event->user
             : User::find($event->user->getAuthIdentifier());
@@ -21,7 +20,6 @@ class SendWelcomeNotification
             return;
         }
 
-        // Send the welcome notification
         Notification::make()
             ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User') . ' 🎉')
             ->body('Thanks for registering! Explore your dashboard!')
@@ -29,7 +27,6 @@ class SendWelcomeNotification
             ->send()
             ->sendToDatabase($user);
 
-        // Record an activity log for registration
         $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
         ActivityLog::create([

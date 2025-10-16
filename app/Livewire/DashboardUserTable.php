@@ -4,19 +4,8 @@ namespace App\Livewire;
 
 use App\Models\User;
 use App\Models\Grievance;
-use Filament\Actions\ActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\FileUpload;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -31,90 +20,122 @@ use Illuminate\Support\Str;
 
 class DashboardUserTable extends TableWidget
 {
-    public $tableType = 'users'; // Default table type
+    public $tableType = 'users';
+    protected static bool $shouldPersistTableFiltersInSession = true;
+    protected static bool $shouldPersistTableSortInSession = true;
+    protected static bool $shouldPersistTablePaginationInSession = true;
 
-    // ----------------------
-    // Main table builder
-    // ----------------------
+
     public function table(Table $table): Table
     {
         TextColumn::configureUsing(fn (TextColumn $column) => $column->toggleable());
 
         return $table
-            ->header(view('tables.header', array_merge(
-                $this->getStats(),
-                ['tableType' => $this->tableType]
-            )))
-            ->striped()
-            ->query(fn (): Builder => $this->getTableQuery())
-            ->columns($this->getTableColumns())
-            ->filters($this->getTableFilters())
-            ->actions($this->getTableActions())
-            ->bulkActions($this->getTableBulkActions())
-            ->searchable()
-            ->reorderable('sort_order')
-            ->recordTitle(fn ($record) => $record->name ?? $record->grievance_title)
-            ->defaultSort('created_at', 'desc')
-            ->deferLoading()
-            ->paginated([5, 10, 25, 50, 100, 'all'])
-            ->poll(10);
+    ->header(view('tables.header', array_merge(
+        $this->getStats(),
+        ['tableType' => $this->tableType]
+    )))
+    ->striped()
+    ->query(fn (): Builder => $this->getTableQuery())
+    ->columns($this->getTableColumns())
+    ->filters($this->getTableFilters())
+    ->actions($this->getTableActions())
+    ->bulkActions($this->getTableBulkActions())
+    ->searchable()
+    ->recordTitle(fn ($record) => $record->name ?? $record->grievance_title)
+    ->paginated([5, 10, 25, 50, 100, 'all']);
+
     }
 
-    // ----------------------
-    // Dynamic header stats
-    // ----------------------
     protected function getStats(): array
     {
         $user = auth()->user();
 
-        $totalUsers = $user->hasRole('admin')
-            ? User::count()
-            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))->count();
+        $assignedCitizenIds = [];
 
-        $activeUsers = $user->hasRole('admin')
-            ? User::where('last_seen_at', '>=', now()->subMinutes(5))->count()
-            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))
-                  ->where('last_seen_at', '>=', now()->subMinutes(5))
-                  ->count();
+        if ($user->hasRole('hr_liaison')) {
+            $assignedCitizenIds = Grievance::whereIn('grievance_id', function ($query) use ($user) {
+                    $query->select('grievance_id')
+                        ->from('assignments')
+                        ->where('hr_liaison_id', $user->id);
+                })
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+        }
 
-        $todayUsers = $user->hasRole('admin')
-            ? User::whereDate('created_at', today())->count()
-            : User::whereHas('roles', fn($q) => $q->where('name','citizen'))
-                  ->whereDate('created_at', today())
-                  ->count();
+        if ($this->tableType === 'users') {
+            if ($user->hasRole('admin')) {
+                $totalUsers = User::count();
+                $activeUsers = User::where('last_seen_at', '>=', now()->subMinutes(5))->count();
+                $todayUsers = User::whereDate('created_at', today())->count();
+            } elseif ($user->hasRole('hr_liaison')) {
+                $totalUsers = User::whereIn('id', $assignedCitizenIds)->count();
+                $activeUsers = User::whereIn('id', $assignedCitizenIds)
+                    ->where('last_seen_at', '>=', now()->subMinutes(5))
+                    ->count();
+                $todayUsers = User::whereIn('id', $assignedCitizenIds)
+                    ->whereDate('created_at', today())
+                    ->count();
+            } else {
+                $totalUsers = User::whereHas('roles', fn($q) => $q->where('name', 'citizen'))->count();
+                $activeUsers = User::whereHas('roles', fn($q) => $q->where('name', 'citizen'))
+                    ->where('last_seen_at', '>=', now()->subMinutes(5))
+                    ->count();
+                $todayUsers = User::whereHas('roles', fn($q) => $q->where('name', 'citizen'))
+                    ->whereDate('created_at', today())
+                    ->count();
+            }
 
-        $totalGrievances = $user->hasRole('admin')
-            ? Grievance::count()
-            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))->count();
+            return [
+                'heading' => 'Users',
+                'totalUsers' => $totalUsers,
+                'activeUsers' => $activeUsers,
+                'todayUsers' => $todayUsers,
+            ];
+        }
 
-        $pendingGrievances = $user->hasRole('admin')
-            ? Grievance::where('grievance_status','pending')->count()
-            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
-                  ->where('grievance_status','pending')
-                  ->count();
+        if ($this->tableType === 'grievances') {
+            if ($user->hasRole('admin')) {
+                $totalGrievances = Grievance::count();
+                $pendingGrievances = Grievance::where('grievance_status', 'pending')->count();
+                $resolvedGrievances = Grievance::where('grievance_status', 'resolved')->count();
+            } elseif ($user->hasRole('hr_liaison')) {
+                $totalGrievances = Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))->count();
+                $pendingGrievances = Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+                    ->where('grievance_status', 'pending')
+                    ->count();
+                $resolvedGrievances = Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+                    ->where('grievance_status', 'resolved')
+                    ->count();
+            } else {
+                $totalGrievances = Grievance::count();
+                $pendingGrievances = Grievance::where('grievance_status', 'pending')->count();
+                $resolvedGrievances = Grievance::where('grievance_status', 'resolved')->count();
+            }
 
-        $resolvedGrievances = $user->hasRole('admin')
-            ? Grievance::where('grievance_status','resolved')->count()
-            : Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
-                  ->where('grievance_status','resolved')
-                  ->count();
+            return [
+                'heading' => 'Grievances',
+                'totalUsers' => $totalGrievances,
+                'activeUsers' => $pendingGrievances,
+                'todayUsers' => $resolvedGrievances,
+            ];
+        }
 
         return [
-            'heading' => $this->tableType === 'users' ? 'Users' : 'Grievances',
-            'totalUsers' => $this->tableType === 'users' ? $totalUsers : $totalGrievances,
-            'activeUsers' => $this->tableType === 'users' ? $activeUsers : $pendingGrievances,
-            'todayUsers' => $this->tableType === 'users' ? $todayUsers : $resolvedGrievances,
+            'heading' => 'Overview',
+            'totalUsers' => 0,
+            'activeUsers' => 0,
+            'todayUsers' => 0,
         ];
     }
 
-    // ----------------------
-    // Query per role
-    // ----------------------
     protected function getTableQuery(): Builder|\Illuminate\Database\Eloquent\Relations\Relation|null
     {
         $user = auth()->user();
 
         if ($this->tableType === 'users') {
+
             if ($user->hasRole('admin')) {
                 return User::query()->with('roles');
             }
@@ -122,6 +143,15 @@ class DashboardUserTable extends TableWidget
             if ($user->hasRole('hr_liaison')) {
                 return User::query()
                     ->whereHas('roles', fn ($q) => $q->where('name', 'citizen'))
+                    ->whereIn('id', function ($query) use ($user) {
+                        $query->select('user_id')
+                            ->from('grievances')
+                            ->whereIn('grievance_id', function ($sub) use ($user) {
+                                $sub->select('grievance_id')
+                                    ->from('assignments')
+                                    ->where('hr_liaison_id', $user->id);
+                            });
+                    })
                     ->with('roles');
             }
 
@@ -129,6 +159,7 @@ class DashboardUserTable extends TableWidget
         }
 
         if ($this->tableType === 'grievances') {
+
             if ($user->hasRole('admin')) {
                 return Grievance::query()->with('user');
             }
@@ -145,9 +176,7 @@ class DashboardUserTable extends TableWidget
         return User::query()->with('roles');
     }
 
-    // ----------------------
-    // Columns
-    // ----------------------
+
     protected function getTableColumns(): array
     {
         if ($this->tableType === 'users') {
@@ -187,18 +216,15 @@ class DashboardUserTable extends TableWidget
         }
 
         return [
-            TextColumn::make('grievance_title')->label('Title')->sortable()->searchable()->reorderable(),
-            TextColumn::make('category')->label('Category')->sortable()->reorderable(),
-            TextColumn::make('grievance_status')->label('Status')->badge()->sortable()->reorderable(),
-            TextColumn::make('grievance_type')->label('Type')->sortable()->reorderable(),
-            TextColumn::make('user.name')->label('Submitted By')->sortable()->reorderable(),
-            TextColumn::make('created_at')->label('Created')->dateTime('M d, Y')->sortable()->reorderable(),
+            TextColumn::make('grievance_title')->label('Title')->sortable()->searchable(),
+            TextColumn::make('category')->label('Category')->sortable(),
+            TextColumn::make('grievance_status')->label('Status')->badge()->sortable(),
+            TextColumn::make('grievance_type')->label('Type')->sortable(),
+            TextColumn::make('user.name')->label('Submitted By')->sortable(),
+            TextColumn::make('created_at')->label('Created')->dateTime('M d, Y')->sortable(),
         ];
     }
 
-    // ----------------------
-    // Filters
-    // ----------------------
     protected function getTableFilters(): array
     {
         $user = Auth::user();
@@ -248,9 +274,6 @@ class DashboardUserTable extends TableWidget
         return [];
     }
 
-    // ----------------------
-    // Bulk actions
-    // ----------------------
     protected function getTableBulkActions(): array
     {
         $user = Auth::user();

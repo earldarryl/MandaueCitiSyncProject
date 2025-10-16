@@ -7,6 +7,60 @@
         </h2>
     </div>
 
+    <div wire:loading.class="opacity-50"
+        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+
+        <!-- Citizens Served -->
+        <div
+            class="group relative bg-gradient-to-br from-teal-50 to-teal-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-teal-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-teal-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-teal-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <flux:icon.users class="h-8 w-8 text-teal-600 dark:text-teal-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Citizens Served</p>
+            <p class="relative text-3xl font-bold text-teal-600 dark:text-teal-400 tracking-tight">
+                {{ $citizenCount }}
+            </p>
+        </div>
+
+        <!-- Total Received -->
+        <div
+            class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-indigo-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <flux:icon.inbox class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Received</p>
+            <p class="relative text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $totalReceived }}</p>
+        </div>
+
+        <!-- Latest Grievance ID -->
+        <div
+            class="group relative bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-cyan-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-cyan-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <flux:icon.identification class="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Latest Grievance ID</p>
+            <p class="relative text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">
+                {{ $latestGrievanceId ?? '—' }}
+            </p>
+        </div>
+
+    </div>
+
     <!-- Stats Cards -->
     <div wire:loading.class="opacity-50"
         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -56,7 +110,7 @@
             <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $inProgress }}</p>
         </div>
 
-        <!-- Closed / Rejected -->
+        <!-- Rejected -->
         <div
             class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
                 border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -67,8 +121,8 @@
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.x-circle class="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
-            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Closed / Rejected</p>
-            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $closed }}</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Rejected</p>
+            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $rejected }}</p>
         </div>
 
         <!-- Overdue -->

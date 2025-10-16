@@ -63,7 +63,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPasswordNotification($token));
@@ -107,5 +106,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getProfilePicAttribute($value)
     {
         return $value ?: null;
+    }
+
+    public function grievances()
+    {
+        return $this->hasMany(Grievance::class, 'user_id');
     }
 }
