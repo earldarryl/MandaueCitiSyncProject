@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Models\User;
+use Filament\Notifications\Notification;
 use Livewire\Component;
 use App\Livewire\Forms\LoginForm;
 use Illuminate\Support\Facades\Session;
@@ -41,7 +43,6 @@ class Login extends Component
             $this->redirectLink = $redirect;
             $this->showSuccessModal = true;
         }
-
     }
 
     public function render()

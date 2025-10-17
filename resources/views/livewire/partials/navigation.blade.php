@@ -141,6 +141,7 @@
                     <div @click="$store.notifications.toggle();" class="relative cursor-pointer">
                         @if($unreadCount > 0)
                             <span
+                                wire:poll.10s="loadCounts"
                                 wire:loading.remove
                                 wire:target="markNotificationAsRead,markNotificationAsUnread,loadMore,deleteNotification,markAllAsRead,deleteAllUnread,markAllAsUnread,deleteAllRead"
                                 class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2 py-1 text-xs font-semibold"

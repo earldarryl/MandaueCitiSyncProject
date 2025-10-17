@@ -4,45 +4,99 @@ namespace App\Livewire\Partials;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification as FilamentNotification;
 
 class Notifications extends Component
 {
     public $user;
-
+    public $userId;
     public $unreadNotifications;
     public $readNotifications;
+    public $allNotifications;
 
     public $unreadCount = 0;
-    public $readCount = 0;
+    public $readCount   = 0;
 
     public $unreadLimit = 20;
-    public $readLimit = 20;
+    public $readLimit   = 20;
 
     protected $listeners = [
-        'notification-created'  => 'prependNewNotification',
-        'refreshNotifications' => 'refreshNotifications',
+        'notification-created' => 'prependNewNotification',
+        'refreshNotifications' => 'loadNotifications',
     ];
 
-    public function mount()
+    public function mount(): void
     {
         $this->user = Auth::user();
+        $this->userId = $this->user?->id;
+
         $this->unreadNotifications = collect();
-        $this->readNotifications   = collect();
+        $this->readNotifications = collect();
+        $this->allNotifications = collect(); // ✅ Initialize it
 
         if ($this->user) {
             $this->loadNotifications();
         }
     }
 
-    public function hydrate()
+    public function getListeners(): array
     {
-        $this->loadCounts();
+        if (! $this->userId) {
+            return [];
+        }
+
+        return [
+            "echo-private:notifications.{$this->userId},notification.created" => 'handleRealtimeNotification',
+        ];
     }
 
-    /** ------------------ NOTIFICATIONS ------------------ */
-    public function loadNotifications()
+    public function handleRealtimeNotification($payload): void
     {
-        if (!$this->user) return;
+        try {
+            \Log::info('📡 Reverb Notification received', ['payload' => $payload]);
+
+            $notification = $payload['notification'] ?? null;
+            if (! $notification) {
+                \Log::warning('⚠️ Missing notification in payload', ['payload' => $payload]);
+                return;
+            }
+
+            if (is_array($notification)) {
+                $notification = (object) $notification;
+            }
+
+            if (isset($notification->notifiable_id) && $notification->notifiable_id !== $this->userId) {
+                \Log::info('👤 Ignored: Notification is for another user', [
+                    'current_user' => $this->userId,
+                    'target_user' => $notification->notifiable_id,
+                ]);
+                return;
+            }
+
+            $this->prependNewNotification($notification);
+
+            FilamentNotification::make()
+                ->title($notification->data['title'] ?? 'New Notification')
+                ->body($notification->data['body'] ?? '')
+                ->success()
+                ->send();
+
+            \Log::info('✅ Filament notification shown successfully', [
+                'user_id' => $this->userId,
+                'notification_id' => $notification->id ?? null,
+                'title' => $notification->data['title'] ?? '(none)',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('❌ Failed to handle Reverb notification', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    public function loadNotifications(): void
+    {
+        if (! $this->user) return;
 
         $this->unreadNotifications = $this->user
             ->unreadNotifications()
@@ -56,127 +110,46 @@ class Notifications extends Component
             ->take($this->readLimit)
             ->get();
 
-        $this->loadCounts();
+        // ✅ Merge both for a unified display list
+        $this->allNotifications = $this->unreadNotifications
+            ->merge($this->readNotifications)
+            ->sortByDesc('created_at')
+            ->values();
+
+        $this->updateCounts();
     }
 
-    public function refreshNotifications()
+    private function updateCounts(): void
     {
-        $this->loadNotifications();
-    }
-
-    private function loadCounts()
-    {
-        if (!$this->user) return;
-
         $this->unreadCount = $this->user->unreadNotifications()->count();
         $this->readCount   = $this->user->readNotifications()->count();
+        $this->dispatch('updateUnreadCount');
     }
 
-    public function loadMore($type = 'all')
-    {
-        if (!$this->user) return;
-
-        if ($type === 'unread' || $type === 'all') {
-            $moreUnread = $this->user
-                ->unreadNotifications()
-                ->latest('created_at')
-                ->skip($this->unreadNotifications->count())
-                ->take(20)
-                ->get();
-            $this->unreadNotifications = $this->unreadNotifications->concat($moreUnread);
-            $this->unreadLimit += 20;
-        }
-
-        if ($type === 'read' || $type === 'all') {
-            $moreRead = $this->user
-                ->readNotifications()
-                ->latest('created_at')
-                ->skip($this->readNotifications->count())
-                ->take(20)
-                ->get();
-            $this->readNotifications = $this->readNotifications->concat($moreRead);
-            $this->readLimit += 20;
-        }
-
-        $this->loadCounts();
-    }
-
-    public function markNotificationAsRead($id)
-    {
-        $notification = $this->user->notifications()->where('id', $id)->first();
-        if (!$notification || !is_null($notification->read_at)) return;
-
-        $notification->markAsRead();
-
-        $this->unreadNotifications = $this->unreadNotifications->reject(fn($n) => $n->id === $id);
-        $fresh = $this->user->notifications()->where('id', $id)->first();
-        if ($fresh) $this->readNotifications->prepend($fresh);
-
-        $this->loadCounts();
-    }
-
-    public function markNotificationAsUnread($id)
-    {
-        $notification = $this->user->notifications()->where('id', $id)->first();
-        if (!$notification || is_null($notification->read_at)) return;
-
-        $notification->update(['read_at' => null]);
-
-        $this->readNotifications = $this->readNotifications->reject(fn($n) => $n->id === $id);
-        $fresh = $this->user->notifications()->where('id', $id)->first();
-        if ($fresh) $this->unreadNotifications->prepend($fresh);
-
-        $this->loadCounts();
-    }
-
-    public function deleteNotification($id)
-    {
-        $notif = $this->user->notifications()->where('id', $id)->first();
-        if (!$notif) return;
-
-        $notif->delete();
-
-        $this->unreadNotifications = $this->unreadNotifications->reject(fn($n) => $n->id === $id);
-        $this->readNotifications   = $this->readNotifications->reject(fn($n) => $n->id === $id);
-
-        $this->loadCounts();
-    }
-
-    /** ------------------ BULK ACTIONS ------------------ */
-    public function markAllAsRead()
-    {
-        $this->user->notifications()->whereNull('read_at')->update(['read_at' => now()]);
-        $this->loadNotifications();
-    }
-
-    public function markAllAsUnread()
-    {
-        $this->user->notifications()->whereNotNull('read_at')->update(['read_at' => null]);
-        $this->loadNotifications();
-    }
-
-    public function deleteAllUnread()
-    {
-        $this->user->notifications()->whereNull('read_at')->delete();
-        $this->loadNotifications();
-    }
-
-    public function deleteAllRead()
-    {
-        $this->user->notifications()->whereNotNull('read_at')->delete();
-        $this->loadNotifications();
-    }
-
-    /** ------------------ LISTENER HELPERS ------------------ */
-    public function prependNewNotification($notification = null)
+    public function prependNewNotification($notification): void
     {
         if (!$this->user || !$notification) return;
 
-        if (is_array($notification)) $notification = (object)$notification;
-        if (isset($notification->notifiable_id) && $notification->notifiable_id !== $this->user->id) return;
+        if (is_array($notification)) {
+            $notification = (object) $notification;
+        }
 
-        $this->unreadNotifications->prepend($notification);
-        $this->unreadCount++;
+        if (isset($notification->notifiable_id) && $notification->notifiable_id !== $this->user->id) {
+            return;
+        }
+
+        // ✅ Update collections properly
+        $this->unreadNotifications = $this->unreadNotifications->prepend($notification)->values();
+        $this->allNotifications = $this->allNotifications->prepend($notification)->values();
+
+        $this->unreadCount = $this->unreadNotifications->count();
+        $this->dispatch('updateUnreadCount');
+
+        FilamentNotification::make()
+            ->title($notification->data['title'] ?? 'New Notification')
+            ->body($notification->data['body'] ?? '')
+            ->success()
+            ->send();
     }
 
     public function render()

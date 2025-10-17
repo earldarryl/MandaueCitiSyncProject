@@ -108,7 +108,7 @@
                             </div>
                         @endif
 
-                        <span class="block text-[10px] text-white mt-1">
+                        <span class="block text-[10px] {{ $isSender ? 'text-white' : 'text-gray-700 dark:text-gray-200' }} mt-1">
                             {{ $msg['sender']['name'] ?? 'Unknown' }} ·
                             {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
                         </span>

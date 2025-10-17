@@ -16,3 +16,7 @@ Broadcast::channel('grievance.{grievance_id}', function ($user, $grievance_id) {
 
     return $grievance->assignments->contains('hr_liaison_id', $user->id);
 });
+
+Broadcast::channel('notifications.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
