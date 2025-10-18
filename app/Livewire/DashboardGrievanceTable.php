@@ -3,9 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Grievance;
-use Filament\Actions\ViewAction;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Section;
+use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Columns\TextColumn;
@@ -35,7 +33,7 @@ class DashboardGrievanceTable extends TableWidget
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('created_at', [
                 $this->startDate . ' 00:00:00',
-                $this->endDate . ' 23:59:59'
+                $this->endDate . ' 23:59:59',
             ]);
         }
 
@@ -47,10 +45,6 @@ class DashboardGrievanceTable extends TableWidget
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('category')
-                    ->label('Category')
-                    ->sortable(),
-
                 TextColumn::make('grievance_status')
                     ->label('Status')
                     ->badge()
@@ -58,6 +52,10 @@ class DashboardGrievanceTable extends TableWidget
 
                 TextColumn::make('grievance_type')
                     ->label('Type')
+                    ->sortable(),
+
+                TextColumn::make('priority_level')
+                    ->label('Priority')
                     ->sortable(),
 
                 TextColumn::make('user.name')
@@ -71,16 +69,13 @@ class DashboardGrievanceTable extends TableWidget
                     ->sortable(),
             ])
             ->actions([
-                ViewAction::make()->infolist([
-                    Section::make('Grievance Details')->schema([
-                        TextEntry::make('grievance_title')->label('Title'),
-                        TextEntry::make('category')->label('Category'),
-                        TextEntry::make('grievance_type')->label('Type'),
-                        TextEntry::make('grievance_status')->label('Status'),
-                        TextEntry::make('grievance_details')->label('Details'),
-                        TextEntry::make('user.name')->label('Submitted By'),
-                    ]),
-                ]),
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn (Grievance $record) => route(
+                        'hr-liaison.grievance.view',
+                        ['id' => $record->grievance_id]
+                    ))
+                    ->icon('heroicon-o-eye'),
             ])
             ->searchable()
             ->defaultSort('created_at', 'desc')

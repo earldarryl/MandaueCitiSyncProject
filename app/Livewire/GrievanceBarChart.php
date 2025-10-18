@@ -11,99 +11,40 @@ class GrievanceBarChart extends ChartWidget
     protected ?string $heading = 'Grievances Assigned (Dynamic Time Scale)';
     protected static ?int $sort = 1;
 
-    protected function getFilters(): ?array
+    // Accept start and end dates as props
+    public $startDate;
+    public $endDate;
+
+    protected function getType(): string
     {
-        $years = Grievance::selectRaw('YEAR(created_at) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-
-        foreach ($years as $year) {
-            $filters["year_{$year}"] = "Year {$year}";
-        }
-
-        $filters['scale_daily'] = 'By Day';
-        $filters['scale_weekly'] = 'By Week';
-        $filters['scale_monthly'] = 'By Month';
-
-        return $filters;
+        return 'bar';
     }
 
     /**
-     * Build chart data based on selected scale
+     * Build chart data based on selected scale (daily/weekly/monthly) within start and end date
      */
     protected function getData(): array
     {
-        $filter = $this->filter ?? 'scale_weekly';
-        $year = now()->year;
-        $scale = 'weekly';
         $userId = auth()->id();
 
-        // Detect if year or scale filter is selected
-        if (str_starts_with($filter, 'year_')) {
-            $year = str_replace('year_', '', $filter);
-        } elseif (str_starts_with($filter, 'scale_')) {
-            $scale = str_replace('scale_', '', $filter);
-        }
+        $baseQuery = Grievance::whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $userId))
+            ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate));
 
-        // Start query — filter by HR liaison assignments
-        $baseQuery = Grievance::whereHas('assignments', function ($query) use ($userId) {
-            $query->where('hr_liaison_id', $userId);
-        })->whereYear('created_at', $year);
+        // Default grouping: weekly
+        $grievances = $baseQuery
+            ->select(
+                DB::raw('YEARWEEK(created_at, 1) as week_key'),
+                DB::raw('WEEK(created_at, 1) as week_number'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->groupBy('week_key', 'week_number')
+            ->orderBy('week_key')
+            ->get();
 
-        switch ($scale) {
-            case 'daily':
-                $grievances = $baseQuery
-                    ->select(
-                        DB::raw('DATE(created_at) as date_key'),
-                        DB::raw('DATE_FORMAT(created_at, "%b %d") as date_label'),
-                        DB::raw('COUNT(*) as total')
-                    )
-                    ->groupBy('date_key', 'date_label')
-                    ->orderBy('date_key')
-                    ->get();
-
-                $labels = $grievances->pluck('date_label')->toArray();
-                $data = $grievances->pluck('total')->toArray();
-                $label = "Assigned Grievances per Day ({$year})";
-                break;
-
-            case 'monthly':
-                $grievances = $baseQuery
-                    ->select(
-                        DB::raw('MONTH(created_at) as month_number'),
-                        DB::raw('MONTHNAME(created_at) as month_label'),
-                        DB::raw('COUNT(*) as total')
-                    )
-                    ->groupBy('month_number', 'month_label')
-                    ->orderBy('month_number')
-                    ->get();
-
-                $labels = $grievances->pluck('month_label')->toArray();
-                $data = $grievances->pluck('total')->toArray();
-                $label = "Assigned Grievances per Month ({$year})";
-                break;
-
-            case 'weekly':
-            default:
-                $grievances = $baseQuery
-                    ->select(
-                        DB::raw('YEARWEEK(created_at, 1) as week_key'),
-                        DB::raw('WEEK(created_at, 1) as week_number'),
-                        DB::raw('COUNT(*) as total')
-                    )
-                    ->groupBy('week_key', 'week_number')
-                    ->orderBy('week_key')
-                    ->get();
-
-                $labels = $grievances->pluck('week_number')->map(fn ($week) => 'Week ' . $week)->toArray();
-                $data = $grievances->pluck('total')->toArray();
-                $label = "Assigned Grievances per Week ({$year})";
-                break;
-        }
+        $labels = $grievances->pluck('week_number')->map(fn($week) => 'Week ' . $week)->toArray();
+        $data = $grievances->pluck('total')->toArray();
+        $label = "Assigned Grievances";
 
         return [
             'datasets' => [
@@ -122,17 +63,13 @@ class GrievanceBarChart extends ChartWidget
         ];
     }
 
-    protected function getType(): string
-    {
-        return 'bar';
-    }
-
     protected function getOptions(): array
     {
         return [
             'indexAxis' => 'x',
             'responsive' => true,
             'maintainAspectRatio' => false,
+            'height' => 600,
             'scales' => [
                 'x' => [
                     'beginAtZero' => true,

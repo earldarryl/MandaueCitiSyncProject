@@ -32,10 +32,11 @@
         </div>
     @else
     <div class="flex h-full">
+
         <livewire:partials.sidebar />
         <livewire:partials.notifications />
+
         <div x-data class="relative flex flex-col flex-1 h-full overflow-y-auto overflow-x-auto">
-            <!-- Overlay only in content container -->
             <div
                 x-show="($store.sidebar.open && $store.sidebar.screen < 1024) || $store.notifications.open"
                 x-transition.opacity

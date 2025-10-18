@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Partials;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification as FilamentNotification;
-
 class Notifications extends Component
 {
     public $user;
@@ -32,7 +32,7 @@ class Notifications extends Component
 
         $this->unreadNotifications = collect();
         $this->readNotifications = collect();
-        $this->allNotifications = collect(); // ✅ Initialize it
+        $this->allNotifications = collect();
 
         if ($this->user) {
             $this->loadNotifications();
@@ -41,59 +41,27 @@ class Notifications extends Component
 
     public function getListeners(): array
     {
-        if (! $this->userId) {
-            return [];
-        }
-
         return [
-            "echo-private:notifications.{$this->userId},notification.created" => 'handleRealtimeNotification',
+            "echo-private:notifications.{$this->userId},NotificationCreated" => 'handleRealtimeNotification',
         ];
     }
 
     public function handleRealtimeNotification($payload): void
     {
-        try {
-            \Log::info('📡 Reverb Notification received', ['payload' => $payload]);
+        \Log::info('📡 Reverb Notification received', ['payload' => $payload]);
 
-            $notification = $payload['notification'] ?? null;
-            if (! $notification) {
-                \Log::warning('⚠️ Missing notification in payload', ['payload' => $payload]);
-                return;
-            }
+        $notification = $payload['notification'] ?? null;
 
-            if (is_array($notification)) {
-                $notification = (object) $notification;
-            }
+        $this->prependNewNotification($notification);
 
-            if (isset($notification->notifiable_id) && $notification->notifiable_id !== $this->userId) {
-                \Log::info('👤 Ignored: Notification is for another user', [
-                    'current_user' => $this->userId,
-                    'target_user' => $notification->notifiable_id,
-                ]);
-                return;
-            }
-
-            $this->prependNewNotification($notification);
-
-            FilamentNotification::make()
-                ->title($notification->data['title'] ?? 'New Notification')
-                ->body($notification->data['body'] ?? '')
-                ->success()
-                ->send();
-
-            \Log::info('✅ Filament notification shown successfully', [
-                'user_id' => $this->userId,
-                'notification_id' => $notification->id ?? null,
-                'title' => $notification->data['title'] ?? '(none)',
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('❌ Failed to handle Reverb notification', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-        }
+        FilamentNotification::make()
+            ->title($notification['data']['title'] ?? 'New Notification')
+            ->body($notification['data']['body'] ?? '')
+            ->success()
+            ->send();
     }
 
+    #[On('notificationUpdated')]
     public function loadNotifications(): void
     {
         if (! $this->user) return;
@@ -110,7 +78,6 @@ class Notifications extends Component
             ->take($this->readLimit)
             ->get();
 
-        // ✅ Merge both for a unified display list
         $this->allNotifications = $this->unreadNotifications
             ->merge($this->readNotifications)
             ->sortByDesc('created_at')
@@ -138,7 +105,6 @@ class Notifications extends Component
             return;
         }
 
-        // ✅ Update collections properly
         $this->unreadNotifications = $this->unreadNotifications->prepend($notification)->values();
         $this->allNotifications = $this->allNotifications->prepend($notification)->values();
 
@@ -150,6 +116,88 @@ class Notifications extends Component
             ->body($notification->data['body'] ?? '')
             ->success()
             ->send();
+    }
+
+    // 🔹 MARK AS READ
+    public function markNotificationAsRead($notificationId): void
+    {
+        $notification = $this->user->notifications()->find($notificationId);
+
+        if ($notification && is_null($notification->read_at)) {
+            $notification->markAsRead();
+            FilamentNotification::make()
+                ->title('Notification marked as read')
+                ->success()
+                ->send();
+        }
+
+    }
+
+    public function markNotificationAsUnread($notificationId): void
+    {
+        $notification = $this->user->notifications()->find($notificationId);
+
+        if ($notification && $notification->read_at) {
+            $notification->update(['read_at' => null]);
+            FilamentNotification::make()
+                ->title('Notification marked as unread')
+                ->success()
+                ->send();
+        }
+    }
+
+    public function deleteNotification($notificationId): void
+    {
+        $notification = $this->user->notifications()->find($notificationId);
+
+        if ($notification) {
+            $notification->delete();
+            FilamentNotification::make()
+                ->title('Notification deleted')
+                ->success()
+                ->send();
+        }
+    }
+
+    public function markAllAsRead(): void
+    {
+        $this->user->unreadNotifications->markAsRead();
+
+        FilamentNotification::make()
+            ->title('All notifications marked as read')
+            ->success()
+            ->send();
+    }
+
+    public function markAllAsUnread(): void
+    {
+        $this->user->notifications()
+            ->whereNotNull('read_at')
+            ->update(['read_at' => null]);
+
+        FilamentNotification::make()
+            ->title('All notifications marked as unread')
+            ->success()
+            ->send();
+
+    }
+
+    public function deleteAllNotifications(): void
+    {
+        $this->user->notifications()->delete();
+
+        FilamentNotification::make()
+            ->title('All notifications deleted')
+            ->success()
+            ->send();
+
+    }
+
+    public function loadMore($type = 'all'): void
+    {
+        $this->unreadLimit += 20;
+        $this->readLimit += 20;
+        $this->dispatch('notificationUpdated');
     }
 
     public function render()

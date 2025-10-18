@@ -16,12 +16,95 @@
 
     <!-- Date Filters -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 w-full px-4">
-        <div class="w-full md:w-1/2">
-            <flux:input label="Start Date" type="date" wire:model.live="startDate" class:input="w-full"/>
+
+        <!-- Start Date -->
+        <div class="w-full md:w-1/2 cursor-pointer" x-data x-init="$nextTick(() => {
+            const setupFlatpickr = (ref, livewireProperty) => {
+                const applyDarkMode = (instance, isDark) => {
+                    const calendar = instance.calendarContainer;
+                    if (!calendar) return;
+                    calendar.classList.toggle('flatpickr-dark', isDark);
+                };
+
+                const isDark = document.documentElement.classList.contains('dark');
+
+                if (!ref._flatpickr) {
+                    flatpickr(ref, {
+                        dateFormat: 'Y-m-d',
+                        defaultDate: ref.value || null,
+                        onChange: (selectedDates, dateStr) => {
+                            @this.set(livewireProperty, dateStr);
+                        },
+                        onReady: (selectedDates, dateStr, instance) => applyDarkMode(instance, isDark),
+                    });
+                } else {
+                    applyDarkMode(ref._flatpickr, isDark);
+                }
+
+                // Observe dark mode changes
+                const observer = new MutationObserver(() => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    if (ref._flatpickr) applyDarkMode(ref._flatpickr, isDark);
+                });
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            };
+
+            setupFlatpickr($refs.startInput, 'startDate');
+        })">
+            <flux:input
+                type="text"
+                label="Start Date"
+                placeholder="Select start date"
+                x-ref="startInput"
+                readonly
+                class:input="w-full"
+                value="{{ $startDate }}" />
         </div>
-        <div class="w-full md:w-1/2">
-            <flux:input label="End Date" type="date" wire:model.live="endDate" class:input="w-full"/>
+
+        <!-- End Date -->
+        <div class="w-full md:w-1/2 cursor-pointer" x-data x-init="$nextTick(() => {
+            const setupFlatpickr = (ref, livewireProperty) => {
+                const applyDarkMode = (instance, isDark) => {
+                    const calendar = instance.calendarContainer;
+                    if (!calendar) return;
+                    calendar.classList.toggle('flatpickr-dark', isDark);
+                };
+
+                const isDark = document.documentElement.classList.contains('dark');
+
+                if (!ref._flatpickr) {
+                    flatpickr(ref, {
+                        dateFormat: 'Y-m-d',
+                        defaultDate: ref.value || null,
+                        onChange: (selectedDates, dateStr) => {
+                            @this.set(livewireProperty, dateStr);
+                        },
+                        onReady: (selectedDates, dateStr, instance) => applyDarkMode(instance, isDark),
+                    });
+                } else {
+                    applyDarkMode(ref._flatpickr, isDark);
+                }
+
+                // Observe dark mode changes
+                const observer = new MutationObserver(() => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    if (ref._flatpickr) applyDarkMode(ref._flatpickr, isDark);
+                });
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            };
+
+            setupFlatpickr($refs.endInput, 'endDate');
+        })">
+            <flux:input
+                type="text"
+                label="End Date"
+                placeholder="Select end date"
+                x-ref="endInput"
+                readonly
+                class:input="w-full"
+                value="{{ $endDate }}" />
         </div>
+
     </div>
 
     <div class="flex flex-col gap-4 border-box">
@@ -37,35 +120,30 @@
         </section>
 
         <!-- Bar Chart -->
-        <section class="w-full h-full p-4">
-            <div class="flex flex-col lg:flex-row w-full h-full">
-                <livewire:grievance-bar-chart />
+       <section class="w-full h-full p-4">
+            <div class="flex flex-col lg:flex-row gap-6 w-full h-full">
+                <div class="flex-1 w-full">
+                    <livewire:grievance-bar-chart
+                        :start-date="$startDate"
+                        :end-date="$endDate"
+                        wire:key="grievance-bar-{{ $startDate }}-{{ $endDate }}"/>
+                </div>
+
+                <div class="flex-1 w-full">
+                    <livewire:hr-liaison-user-grievance-chart
+                        :start-date="$startDate"
+                        :end-date="$endDate"
+                        wire:key="user-grievance-chart-{{ $startDate }}-{{ $endDate }}"/>
+                </div>
             </div>
         </section>
 
         <!-- Grievance Table -->
-        <section class="w-full p-4 bg-white dark:bg-zinc-800 relative rounded-lg">
-            <div class="shadow-sm rounded-lg p-4 overflow-x-auto relative">
-                <div
-                    wire:loading
-                    wire:target="activeTab"
-                    class="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-gray-900/70 z-50 rounded-lg"
-                >
-                    <div class="flex flex-col items-center">
-                        <flux:icon.loading class="h-12 w-12 text-blue-600"/>
-                        <span class="mt-2 text-gray-700 dark:text-gray-300 text-sm">
-                            Loading grievances…
-                        </span>
-                    </div>
-                </div>
-
+        <section class="w-full p-4 relative rounded-lg">
                 <livewire:dashboard-grievance-table
                     :start-date="$startDate"
                     :end-date="$endDate"
                     wire:key="grievances-table-{{ $startDate }}-{{ $endDate }}" />
-
-                <livewire:dashboard-user-table/>
-            </div>
         </section>
 
     </div>

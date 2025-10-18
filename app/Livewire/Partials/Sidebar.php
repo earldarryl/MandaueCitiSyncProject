@@ -34,6 +34,11 @@ class Sidebar extends Component
                     'icon' => 'bi bi-clock-history',
                     'route' => 'admin.activity-logs.index',
                 ],
+                [
+                    'label' => 'Reports & Analytics',
+                    'icon' => 'bi bi-file-bar-graph',
+                    'route' => 'admin.activity-logs.index',
+                ],
             ];
         }
         elseif ($user->hasRole('hr_liaison')) {
@@ -55,6 +60,11 @@ class Sidebar extends Component
                     'label' => 'Activity Logs',
                     'icon' => 'bi bi-clock-history',
                     'route' => 'hr-liaison.activity-logs.index',
+                ],
+                [
+                    'label' => 'Reports & Analytics',
+                    'icon' => 'bi bi-file-bar-graph',
+                    'route' => 'admin.activity-logs.index',
                 ],
             ];
         }
