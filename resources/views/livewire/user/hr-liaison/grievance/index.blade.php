@@ -127,37 +127,57 @@
         </div>
     </header>
 
-    <!-- Search -->
     <div class="flex w-full flex-1 px-3 mb-3">
 
         <div class="relative w-full font-bold">
-            <input
-                type="text"
-                wire:model.defer="searchInput"
-                wire:keydown.enter="applySearch"
-                placeholder="Search grievances..."
-                class="relative border border-gray-200 dark:border-zinc-700 p-2 pr-8 w-full bg-gray-100 rounded-md dark:bg-zinc-900 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 focus:border-blue-400 outline-none"
-            />
+            <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
 
-            <button
-                type="button"
-                wire:click="clearSearch"
-                class="absolute inset-y-0 right-1 flex items-center justify-center p-[5px] rounded-md
-                    text-gray-500 dark:text-gray-300
-                    hover:text-blue-600 dark:hover:text-blue-400
-                    transition-colors"
-                style="margin: 2px;"
-            >
-                <flux:icon.x-mark class="w-3.5 h-3.5" />
-            </button>
+            <div class="relative w-full">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                    </svg>
+                </div>
+
+                <input
+                    type="text"
+                    id="search"
+                    wire:model.defer="searchInput"
+                    wire:keydown.enter="applySearch"
+                    placeholder="Search grievances..."
+                    class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
+                        bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                        dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                />
+
+                <button
+                    type="button"
+                    wire:click="clearSearch"
+                    class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500
+                        hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
+                >
+                    <flux:icon.x-mark class="w-4 h-4" />
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="applySearch"
+                    class="absolute inset-y-0 right-0 my-auto inline-flex items-center gap-2
+                        px-4 py-2 text-sm font-bold rounded-lg
+                        bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                        border border-blue-400 dark:border-blue-600
+                        hover:bg-blue-200 dark:hover:bg-blue-800/50
+                        focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700
+                        transition-all duration-200"
+                >
+                    <x-heroicon-o-magnifying-glass class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    Search
+                </button>
+            </div>
         </div>
-
-        <button
-            wire:click="applySearch"
-            class="py-2 px-4 font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 border border-gray-200 dark:border-zinc-700 rounded-r-md"
-        >
-            <flux:icon.magnifying-glass />
-        </button>
 
     </div>
 
@@ -199,15 +219,60 @@
                                     </span>
                                 </div>
 
-                                <!-- Priority badge -->
-                                <span class="text-xs font-semibold px-2 py-1 rounded-full
-                                    {{ $grievance->priority_level === 'High'
-                                        ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
-                                        : ($grievance->priority_level === 'Normal'
-                                            ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300'
-                                            : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300') }}">
-                                    {!! $highlight($grievance->priority_level, $search) !!}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
+
+                                    <span class="text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm border
+                                        {{ $grievance->priority_level === 'High'
+                                            ? 'bg-red-100 text-red-800 border-red-400 dark:bg-gray-700 dark:text-red-400'
+                                            : ($grievance->priority_level === 'Normal'
+                                                ? 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-gray-700 dark:text-yellow-300'
+                                                : 'bg-green-100 text-green-800 border-green-400 dark:bg-gray-700 dark:text-green-400') }}">
+                                        {!! $highlight($grievance->priority_level, $search) !!}
+                                    </span>
+
+                                    <flux:dropdown>
+                                        <flux:button
+                                            icon="ellipsis-horizontal"
+                                            class="!p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+                                        />
+
+                                        <flux:menu>
+
+                                            <flux:menu.item>
+                                                <button
+                                                    wire:click="downloadPdf({{ $grievance->grievance_id }})"
+                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                                                        bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                                                        hover:bg-green-200 dark:hover:bg-green-800/50
+                                                        border border-green-300 dark:border-green-700
+                                                        transition-all duration-200 w-full sm:w-52"
+                                                >
+                                                    <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
+                                                    <span class="hidden lg:inline">Download PDF</span>
+                                                    <span class="lg:hidden">Download</span>
+                                                </button>
+                                            </flux:menu.item>
+
+                                            <flux:menu.item>
+                                                <button
+                                                    wire:click="print({{ $grievance->grievance_id }})"
+                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                                                        bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300
+                                                        hover:bg-purple-200 dark:hover:bg-purple-800/50
+                                                        border border-purple-300 dark:border-purple-700
+                                                        transition-all duration-200 w-full sm:w-52"
+                                                >
+                                                    <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                    <span class="hidden lg:inline">Print</span>
+                                                    <span class="lg:hidden">Print</span>
+                                                </button>
+                                            </flux:menu.item>
+
+                                        </flux:menu>
+                                    </flux:dropdown>
+
+                                </div>
                             </header>
 
                             <!-- Details -->
@@ -218,9 +283,20 @@
                             <!-- Footer -->
                             <footer class="flex justify-between w-full items-center mt-2 pt-3">
                                 <div class="text-xs">{{ $grievance->created_at->format('M d, Y') }}</div>
-                                <a href="{{ route('hr-liaison.grievance.view', $grievance->grievance_id) }}" wire:navigate class="text-blue-600 dark:text-blue-400 text-sm font-semibold hover:underline">
-                                    View
-                                </a>
+
+                                <div class="flex items-center gap-2">
+
+                                    <!-- View -->
+                                    <a href="{{ route('hr-liaison.grievance.view', $grievance->grievance_id) }}"
+                                        wire:navigate
+                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-300 text-gray-700 bg-gray-50
+                                            hover:bg-gray-100 hover:border-gray-400
+                                            dark:bg-zinc-700 dark:text-gray-200 dark:border-zinc-600 dark:hover:bg-zinc-600 dark:hover:border-zinc-500
+                                            transition">
+                                        View
+                                    </a>
+
+                                </div>
                             </footer>
                         </div>
                     </div>

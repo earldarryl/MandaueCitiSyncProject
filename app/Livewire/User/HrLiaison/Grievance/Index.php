@@ -4,6 +4,7 @@ namespace App\Livewire\User\HrLiaison\Grievance;
 
 use App\Models\Grievance;
 use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -60,6 +61,36 @@ class Index extends Component
                 ->{$notif['type']}()
                 ->send();
         }
+    }
+
+    public function downloadPdf($id)
+    {
+        $grievance = Grievance::with(['departments', 'attachments', 'user'])->find($id);
+
+        if (! $grievance) {
+            Notification::make()
+                ->title('Error')
+                ->body('Grievance not found or already deleted.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $pdf = Pdf::loadView('pdf.grievance', [
+            'grievance' => $grievance,
+        ])->setPaper('A4', 'portrait');
+
+        $filename = 'grievance-' . $grievance->grievance_id . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename
+        );
+    }
+
+    public function print($id)
+    {
+        return redirect()->route('print-grievance', ['id' => $id]);
     }
 
     public function updatingSearch() { $this->resetPage(); }

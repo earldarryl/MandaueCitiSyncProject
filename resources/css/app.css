@@ -20,6 +20,7 @@
 @source '../**/*.js';
 @source '../**/*.vue';
 
+
 /* ============================= */
 /*         Tailwind Theme        */
 /* ============================= */
@@ -302,3 +303,5 @@ body {
     color: #93c5fd !important;  /* blue-300 for visibility */
     font-weight: 500 !important;
 }
+
+

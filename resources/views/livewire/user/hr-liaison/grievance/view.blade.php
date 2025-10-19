@@ -2,40 +2,31 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
-        <x-responsive-nav-link href="{{ route('hr-liaison.grievance.index') }}"
+        <x-responsive-nav-link
+            href="{{ route('hr-liaison.grievance.index') }}"
             wire:navigate
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52">
-                <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span class="hidden lg:inline">Return to Home</span>
-                <span class="lg:hidden">Home</span>
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+                border border-gray-500 dark:border-gray-200
+                hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-home class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <span class="hidden lg:inline">Return to Home</span>
+            <span class="lg:hidden">Home</span>
         </x-responsive-nav-link>
 
         <button
             x-on:click="$dispatch('open-modal', 'chat')"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                border border-blue-400 dark:border-blue-600
+                hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
         >
             <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <span class="hidden lg:inline">Chat with Citizen</span>
             <span class="lg:hidden">Chat</span>
         </button>
 
-        <button
-            wire:click="downloadPdf"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span class="hidden lg:inline">Download PDF</span>
-            <span class="lg:hidden">Download</span>
-        </button>
-
-        <button
-            wire:click="print({{ $grievance->grievance_id }})"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            <span class="hidden lg:inline">Print</span>
-            <span class="lg:hidden">Print</span>
-        </button>
     </div>
 
     <!-- Grievance Header & Info -->
@@ -84,7 +75,13 @@
                 $info = [
                     ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
                     ['label' => 'Priority', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
-                    ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
+                    [
+                        'label' => 'Submitted By',
+                        'value' => $grievance->is_anonymous
+                            ? 'Anonymous User'
+                            : ($grievance->user->name ?? 'Unknown'),
+                        'icon' => 'user',
+                    ],
                     ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
                     ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
                 ];
@@ -119,9 +116,15 @@
                     <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     Departments
                 </h4>
-                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
+                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-8 ">
                     @forelse ($grievance->departments->unique('department_id') as $department)
-                        <span class="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg text-sm font-medium mr-1 mb-1">
+                        <span
+                            class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
+                                border border-blue-400 dark:border-blue-600
+                                text-blue-700 dark:text-blue-300 font-medium text-sm
+                                px-3 py-1.5 rounded-full shadow-sm
+                                hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
+                        >
                             {{ $department->department_name }}
                         </span>
                     @empty
@@ -357,7 +360,7 @@
                     />
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex-1 overflow-y-auto p-6">
                     <livewire:grievance.chat :grievance="$grievance" />
                 </div>
 

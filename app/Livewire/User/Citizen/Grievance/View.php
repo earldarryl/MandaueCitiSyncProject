@@ -3,7 +3,6 @@
 namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\Grievance;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -17,25 +16,6 @@ class View extends Component
     public function mount($id)
     {
         $this->grievance = Grievance::with('attachments', 'assignments', 'departments')->findOrFail($id);
-    }
-
-    public function downloadPdf()
-    {
-        $pdf = Pdf::loadView('pdf.grievance', [
-            'grievance' => $this->grievance,
-        ])->setPaper('A4', 'portrait');
-
-        $filename = 'grievance-' . $this->grievance->grievance_id . '.pdf';
-
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename
-        );
-    }
-
-    public function print($id)
-    {
-        return redirect()->route('print-grievance', ['id' => $id]);
     }
 
     public function render()

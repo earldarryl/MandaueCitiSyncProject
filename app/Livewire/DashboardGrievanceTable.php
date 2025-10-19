@@ -22,14 +22,14 @@ class DashboardGrievanceTable extends TableWidget
         // Base query
         $query = Grievance::query()->with('user');
 
-        // Role-based visibility
+        // Restrict view for HR Liaison
         if ($user->hasRole('hr_liaison')) {
             $query->whereHas('assignments', function (Builder $q) use ($user) {
                 $q->where('hr_liaison_id', $user->id);
             });
         }
 
-        // Global date filter
+        // Filter by date range
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('created_at', [
                 $this->startDate . ' 00:00:00',
@@ -61,7 +61,15 @@ class DashboardGrievanceTable extends TableWidget
                 TextColumn::make('user.name')
                     ->label('Submitted By')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->is_anonymous
+                            ? 'Anonymous User'
+                            : $state;
+                    })
+                    ->tooltip(fn ($record) => $record->is_anonymous
+                        ? 'Anonymous grievance'
+                        : $record->user?->email),
 
                 TextColumn::make('created_at')
                     ->label('Created')

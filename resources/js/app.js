@@ -68,3 +68,4 @@ document.addEventListener('alpine:init', () => {
 // import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 // import FilePondPluginImageValidateSize from 'filepond-plugin-image-validate-size';
 // import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
+

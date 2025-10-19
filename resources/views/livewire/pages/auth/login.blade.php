@@ -11,8 +11,8 @@
             <flux:field>
                 <div class="flex flex-col gap-2">
                     <flux:label class="flex gap-2">
-                        <flux:icon.at-symbol class="text-mc_primary_color dark:text-white"/>
-                        <span class="text-lg font-bold">Email</span>
+                        <flux:icon.at-symbol/>
+                        <span class="text-lg font-medium">Email</span>
                     </flux:label>
                     <flux:input.group>
                             <flux:input
@@ -33,8 +33,8 @@
             <flux:field>
                 <div class="flex flex-col gap-2">
                     <flux:label class="flex gap-2">
-                        <flux:icon.key class="text-mc_primary_color dark:text-white"/>
-                        <span class="text-lg font-bold">Password</span>
+                        <flux:icon.key/>
+                        <span class="text-lg font-medium">Password</span>
                     </flux:label>
 
                 <flux:input.group>

@@ -1,40 +1,30 @@
 <div class="w-full m-4 px-2 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
 
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
-        <x-responsive-nav-link href="{{ route('citizen.grievance.index') }}"
-            wire:navigate
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52">
-                <x-heroicon-o-home class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span class="hidden lg:inline">Return to Home</span>
-                <span class="lg:hidden">Home</span>
-            </x-responsive-nav-link>
 
+        <x-responsive-nav-link
+            href="{{ route('citizen.grievance.index') }}"
+            wire:navigate
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+                border border-gray-500 dark:border-gray-200
+                hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-home class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <span class="hidden lg:inline">Return to Home</span>
+            <span class="lg:hidden">Home</span>
+        </x-responsive-nav-link>
 
         <button
             x-on:click="$dispatch('open-modal', 'chat')"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                border border-blue-400 dark:border-blue-600
+                hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
         >
             <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <span class="hidden lg:inline">Chat with HR Liaison</span>
             <span class="lg:hidden">Chat</span>
-        </button>
-
-        <button
-            wire:click="downloadPdf"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span class="hidden lg:inline">Download PDF</span>
-            <span class="lg:hidden">Download</span>
-        </button>
-
-        <button
-            wire:click="print({{ $grievance->grievance_id }})"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            <span class="hidden lg:inline">Print</span>
-            <span class="lg:hidden">Print</span>
         </button>
 
     </div>
@@ -127,7 +117,13 @@
                 </h4>
                 <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
                     @forelse ($grievance->departments->unique('department_id') as $department)
-                        <span class="inline-block bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg text-sm font-medium mr-1 mb-1">
+                        <span
+                            class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
+                                border border-blue-400 dark:border-blue-600
+                                text-blue-700 dark:text-blue-300 font-medium text-sm
+                                px-3 py-1.5 rounded-full shadow-sm
+                                hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
+                        >
                             {{ $department->department_name }}
                         </span>
                     @empty
@@ -231,7 +227,6 @@
                         x-transition.scale
                         class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-[90%] max-h-[85vh] overflow-hidden"
                     >
-                        <!-- Header -->
                         <header class="sticky top-0 bg-white dark:bg-gray-900 z-10 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                             <h2 class="flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                                 <x-heroicon-o-folder-plus class="w-6 h-6 sm:w-7 sm:h-7 text-gray-500 dark:text-gray-400" />
@@ -247,7 +242,6 @@
                             </button>
                         </header>
 
-                        <!-- Content -->
                         <div class="p-6 overflow-y-auto max-h-[70vh]">
                             @if($extraAttachments->isEmpty())
                                 <div class="text-center text-gray-500 dark:text-gray-400 py-12">
@@ -364,7 +358,7 @@
 
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex-1 overflow-y-auto p-6">
                     <livewire:grievance.chat :grievance="$grievance" />
                 </div>
 

@@ -198,62 +198,52 @@
     </div>
     </div>
 
-        <div class="relative flex flex-col"
-            x-data="{ showTooltip: false, loadingLogoutModal: false }"
-            x-on:logout-modal-started.window="loadingLogoutModal = true"
-            x-on:logout-modal-finished.window="loadingLogoutModal = false"
-        >
+    <div class="relative flex flex-col"
+        x-data="{ showTooltip: false, loadingLogoutModal: false }"
+    >
+        <div
+            class="flex items-center px-4 py-3 w-full cursor-pointer text-white relative
+                bg-red-600 hover:bg-red-500 shadow-md"
+                @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                @mouseleave="showTooltip = false"
+                @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
+                x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+            >
+            <!-- Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="size-6 mr-2"
+                :class="{ 'mr-0': !$store.sidebar.open }">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+            </svg>
+
+            <!-- Text -->
             <div
-                class="flex items-center px-4 py-3 w-full cursor-pointer text-white relative
-                    bg-red-600 hover:bg-red-500 shadow-md"
-                    @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                    @mouseleave="showTooltip = false"
-                    @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
-                    x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
-                >
-                <!-- Icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor" class="size-6 mr-2"
-                    :class="{ 'mr-0': !$store.sidebar.open }">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
-                </svg>
-
-                <!-- Text -->
-                <div
-                    x-cloak
-                    :class="{
-                            'left-15 opacity-100 transition-all duration-200': $store.sidebar.open,
-                            'opacity-0 ': !$store.sidebar.open,
-                        }"
-                    class="absolute left-12"
-                >
-                    <!-- Show text when not loading -->
-                    <span x-show="!loadingLogoutModal">Log out</span>
-
-                    <!-- Show spinner instead of text when loading -->
-                    <span
-                        x-show="loadingLogoutModal"
-                        class="flex items-center gap-2"
-                    >
-                        <span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                        Loading..
-                    </span>
-                </div>
-
-                <!-- Tooltip -->
-                <span
-                    x-show="showTooltip && !$store.sidebar.open"
-                    x-cloak
-                class="fixed w-auto text-left left-14 -bottom-1 p-3 transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
-                >
-                    <span x-show="!loadingLogoutModal">Log out</span>
-                    <span
-                        x-show="loadingLogoutModal"
-                        class="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent inline-block"
-                    ></span>
+                x-cloak
+                :class="{
+                        'left-15 opacity-100 transition-all duration-200': $store.sidebar.open,
+                        'opacity-0 ': !$store.sidebar.open,
+                    }"
+                class="absolute left-12"
+            >
+                <span class="flex items-center">
+                   Log out
                 </span>
             </div>
+
+            <!-- Tooltip -->
+            <span
+                x-show="showTooltip && !$store.sidebar.open"
+                x-cloak
+            class="fixed w-auto text-left left-14 -bottom-1 p-3 transition-all text-left bg-red-500 duration-300 rounded-tr-lg rounded-br-lg z-100 whitespace-nowrap"
+            >
+                <span x-show="!loadingLogoutModal">Log out</span>
+                <span
+                    x-show="loadingLogoutModal"
+                    class="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent inline-block"
+                ></span>
+            </span>
         </div>
+    </div>
 </aside>

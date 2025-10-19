@@ -28,7 +28,7 @@ class GrievanceSeeder extends Seeder
             $grievance = Grievance::create([
                 'user_id'          => $user->id,
                 'grievance_type'   => fake()->randomElement(['Workplace Issue', 'Discrimination', 'Harassment', 'Payroll Concern']),
-                'priority_level'   => fake()->randomElement(['Low', 'Medium', 'High']),
+                'priority_level'   => fake()->randomElement(['Low', 'Normal', 'High']),
                 'grievance_title'  => fake()->sentence(6),
                 'grievance_details'=> fake()->paragraph(4),
                 'is_anonymous'     => fake()->boolean(20),

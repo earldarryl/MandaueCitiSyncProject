@@ -7,27 +7,10 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\ActivityLog;
-use Livewire\Attributes\On;
 
 class Logout extends Component
 {
 
-    public $show = false;
-
-    #[On('logout-modal')]
-    public function openLogOutModal()
-    {
-        $this->dispatch('logout-modal-started');
-
-        $this->show = true;
-
-        $this->dispatch('logout-modal-finished');
-    }
-
-    public function close()
-    {
-        $this->show = false;
-    }
     public function logout()
     {
         $user = auth()->user();
@@ -43,8 +26,6 @@ class Logout extends Component
                 'device_info'=> request()->header('User-Agent'),
             ]);
         }
-
-        event(new LogoutEvent('web', $user));
 
         if ($user) {
             $user->markOffline();
