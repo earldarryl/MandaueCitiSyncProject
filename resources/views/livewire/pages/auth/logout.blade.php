@@ -13,7 +13,7 @@
     ></div>
 
     <div
-        class="fixed inset-0 flex items-center justify-center z-50"
+        class="fixed inset-0 flex items-center justify-center z-[55]"
         x-show="showModal"
         x-transition.scale
     >

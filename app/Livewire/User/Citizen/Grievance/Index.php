@@ -142,12 +142,11 @@ class Index extends Component
         $this->dispatch('close-delete-modal-'.$grievanceId);
 
         Notification::make()
-            ->title('Grievance Deleted')
-            ->body("{$title} was deleted successfully.")
+            ->title('Grievance Removed')
+            ->body("{$title} was removed successfully.")
             ->success()
             ->send();
     }
-
 
     public function updatedSelectAll($value)
     {
@@ -159,7 +158,7 @@ class Index extends Component
         }
     }
 
-     public function deleteSelected()
+    public function deleteSelected()
     {
         if (empty($this->selected)) return;
 
@@ -174,8 +173,8 @@ class Index extends Component
         $this->updateStats();
 
         Notification::make()
-            ->title('Bulk Delete')
-            ->body('Selected grievances were deleted successfully.')
+            ->title('Bulk Remove')
+            ->body('Selected grievances were removed successfully.')
             ->success()
             ->send();
     }
@@ -268,10 +267,11 @@ class Index extends Component
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
             ->where(function($query) {
                 $query->where('grievance_title', 'like', '%'.$this->search.'%')
-                      ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
-                      ->orWhere('priority_level', 'like', '%'.$this->search.'%')
-                      ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
-                      ->orWhere('is_anonymous', 'like', '%'.$this->search.'%');
+                    ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
+                    ->orWhere('priority_level', 'like', '%'.$this->search.'%')
+                    ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
+                    ->orWhere('is_anonymous', 'like', '%'.$this->search.'%')
+                    ->orWhereRaw('CAST(grievance_id AS CHAR) like ?', ['%'.$this->search.'%']);
             })
             ->when($this->filterDate, function($q){
                 switch($this->filterDate){

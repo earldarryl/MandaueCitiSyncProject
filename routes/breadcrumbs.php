@@ -48,6 +48,22 @@ Breadcrumbs::for('citizen.grievance.edit', function (Trail $trail, $id) {
     );
 });
 
+Breadcrumbs::for('citizen.feedback-form', function (Trail $trail) {
+    $trail->push(
+        '<i class="bi bi-file-earmark-text"></i> Grievances',
+        route('citizen.feedback-form'),
+        ['tooltip' => 'Send a feedback']
+    );
+});
+
+
+Breadcrumbs::for('citizen.submission-history', function (Trail $trail) {
+    $trail->push(
+        '<i class="bi bi-file-earmark-text"></i> Grievances',
+        route('citizen.submission-history'),
+        ['tooltip' => 'View submission history']
+    );
+});
 /*
 |--------------------------------------------------------------------------
 | HR Liaison Routes

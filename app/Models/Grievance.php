@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Grievance extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'grievance_id';
     const PRIORITY_LOW = 'Low';
@@ -22,8 +22,10 @@ class Grievance extends Model
         'processing_days',
         'grievance_title',
         'grievance_details',
+        'is_cleared',
     ];
 
+    protected $dates = ['deleted_at'];
     public function attachments()
     {
         return $this->hasMany(GrievanceAttachment::class, 'grievance_id', 'grievance_id');

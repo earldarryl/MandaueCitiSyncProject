@@ -28,8 +28,6 @@ class SendLogoutNotification
                 ->body("{$authUser->name} has logged out of the system.")
                 ->success()
                 ->sendToDatabase($liaison);
-
-            broadcast(new NotificationCreated($notification, $liaison->id));
         }
     }
 }

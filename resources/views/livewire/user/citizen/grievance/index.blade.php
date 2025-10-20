@@ -248,9 +248,9 @@
                             wire:keydown.enter="applySearch"
                             placeholder="Search grievances..."
                             class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
-                                bg-gray-50 focus:ring-blue-500 focus:border-blue-500
+                                bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-                                dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                         />
 
                         <button
@@ -284,10 +284,13 @@
             <x-responsive-nav-link
                 href="{{ route('citizen.grievance.create') }}"
                 wire:navigate
-                class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                class="flex items-center justify-center sm:justify-start gap-2 p-4 text-sm font-bold rounded-lg
                     bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
                     border border-blue-500 dark:border-blue-400
-                    hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-auto"
+                    hover:bg-blue-200 dark:hover:bg-blue-800/50
+                    focus:outline-none
+                    focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                    transition-all duration-200 w-full sm:w-auto"
             >
                 <flux:icon.document-plus class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <span>File Grievance</span>
@@ -307,7 +310,10 @@
                 class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
                     border border-red-500 dark:border-red-400
-                    hover:bg-red-200 dark:hover:bg-red-800/50 transition-all duration-200 w-full sm:w-auto"
+                    hover:bg-red-200 dark:hover:bg-red-800/50
+                    focus:outline-none
+                    focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                    transition-all duration-200 w-full sm:w-auto"
             >
                 <flux:icon.trash class="w-5 h-5 text-red-600 dark:text-red-400" />
                 <span>Delete Selected</span>
@@ -318,11 +324,15 @@
                 class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
                     border border-amber-500 dark:border-amber-400
-                    hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-all duration-200 w-full sm:w-auto"
+                    hover:bg-amber-200 dark:hover:bg-amber-800/50
+                    focus:outline-none
+                    focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
+                    transition-all duration-200 w-full sm:w-auto"
             >
                 <flux:icon.document-check class="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 <span>Mark as High Priority</span>
             </button>
+
         </div>
 
     </div>
@@ -347,6 +357,11 @@
                             <header class="flex justify-between items-start mb-3">
                                 <div class="flex items-start gap-2">
                                     <div class="flex flex-col max-w-[250px]">
+
+                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                                            ID: {!! $highlight($grievance->grievance_id, $search) !!}
+                                        </span>
+
                                         <h2
                                             class="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate"
                                             title="{{ strip_tags($grievance->grievance_title) }}"

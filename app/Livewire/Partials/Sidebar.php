@@ -77,14 +77,14 @@ class Sidebar extends Component
                     'activePattern' => 'citizen.grievance.*',
                 ],
                 [
-                    'label' => 'Submission History',
-                    'icon' => 'bi bi-clock-history',
-                    'route' => 'citizen.grievance.index',
-                ],
-                [
                     'label' => 'Feedback Form',
                     'icon' => 'bi bi-chat-right-dots-fill',
-                    'route' => 'citizen.grievance.index',
+                    'route' => 'citizen.feedback-form',
+                ],
+                [
+                    'label' => 'Submission History',
+                    'icon' => 'bi bi-clock-history',
+                    'route' => 'citizen.submission-history',
                 ],
             ];
 

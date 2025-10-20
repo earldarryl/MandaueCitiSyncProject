@@ -28,7 +28,6 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
     public $showConfirmUpdateModal = false;
 
-    // Fields
     public $is_anonymous;
     public $grievance_type;
     public $priority_level;
@@ -138,6 +137,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 ->body("The file **{$attachment->file_name}** was successfully removed.")
                 ->success()
                 ->send();
+
         }
     }
 

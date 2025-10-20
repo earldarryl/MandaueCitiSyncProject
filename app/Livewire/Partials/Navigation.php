@@ -44,6 +44,8 @@ class Navigation extends Component
         'citizen.grievance.create'   => 'File a Grievance',
         'citizen.grievance.edit'     => 'Edit Grievance',
         'citizen.grievance.view'     => 'View Grievance',
+        'citizen.feedback-form'     => 'Feedback Form',
+        'citizen.submission-history'     => 'Submission History',
 
         'settings'              => 'Settings',
         'settings.profile'      => 'Profile Settings',
@@ -81,6 +83,8 @@ class Navigation extends Component
             'File a Grievance' => 'bi bi-file-earmark-plus',
             'Edit Grievance' => 'bi bi-pencil-square',
             'View Grievance' => 'bi bi-eye',
+            'Feedback Form' => 'bi bi-chat-right-dots-fill',
+            'Submission History' => 'bi bi-clock-history',
             'Grievance List' => 'bi bi-file-earmark-text',
 
             'Settings' => 'bi bi-gear',

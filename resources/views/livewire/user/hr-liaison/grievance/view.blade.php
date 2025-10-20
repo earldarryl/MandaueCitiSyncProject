@@ -74,7 +74,7 @@
             @php
                 $info = [
                     ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
-                    ['label' => 'Priority', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
+                    ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
                     [
                         'label' => 'Submitted By',
                         'value' => $grievance->is_anonymous

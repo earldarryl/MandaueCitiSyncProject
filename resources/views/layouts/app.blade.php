@@ -50,7 +50,6 @@
             ></div>
 
             <livewire:partials.navigation />
-            <livewire:partials.breadcrumbs/>
 
             <div class="flex-1 flex">
                 {{ $slot }}
@@ -58,12 +57,8 @@
         </div>
     </div>
 
-    {{-- Logout modal --}}
     <livewire:pages.auth.logout />
 
-
-
-    {{-- Scripts --}}
     @livewireScripts
     <script>
         window.Laravel = {

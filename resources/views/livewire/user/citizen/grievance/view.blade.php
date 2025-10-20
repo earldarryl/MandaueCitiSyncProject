@@ -78,7 +78,7 @@
             @php
                 $info = [
                     ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
-                    ['label' => 'Priority', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
+                    ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
                     ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
                     ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
                     ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
