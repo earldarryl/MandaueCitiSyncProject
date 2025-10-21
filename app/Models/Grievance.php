@@ -51,4 +51,15 @@ class Grievance extends Model
     {
         return $this->hasMany(Message::class, 'grievance_id', 'grievance_id');
     }
+
+    public function getFormattedCreatedAtAttribute(): ?string
+    {
+        return $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null;
+    }
+
+    public function getFormattedUpdatedAtAttribute(): ?string
+    {
+        return $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null;
+    }
+
 }

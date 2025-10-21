@@ -4,14 +4,13 @@ namespace App\Livewire;
 
 use App\Models\Grievance;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Js;
 
 class HrLiaisonUserGrievanceChart extends ChartWidget
 {
-    protected ?string $heading = 'Total Grievances Submitted';
+    protected ?string $heading = 'Grievances Assigned (Known vs Anonymous)';
     protected static ?int $sort = 2;
 
-    // Accept start and end dates as props
     public $startDate;
     public $endDate;
 
@@ -24,54 +23,86 @@ class HrLiaisonUserGrievanceChart extends ChartWidget
     {
         $hrLiaisonId = auth()->id();
 
-        // Count total grievances assigned to this HR liaison
-        $totalGrievances = Grievance::query()
+        $grievanceCounts = Grievance::query()
             ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $hrLiaisonId))
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
-            ->count();
+            ->selectRaw("
+                CASE
+                    WHEN is_anonymous = 1 THEN 'Anonymous'
+                    ELSE 'Known'
+                END as submitter_type,
+                COUNT(*) as total
+            ")
+            ->groupBy('submitter_type')
+            ->pluck('total', 'submitter_type');
+
+        $labels = ['Known', 'Anonymous'];
+        $data = collect($labels)->map(fn($label) => $grievanceCounts[$label] ?? 0);
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Total Grievances Submitted',
-                    'data' => [$totalGrievances],
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.6)',
-                    'borderColor' => '#3b82f6',
-                    'borderWidth' => 1,
-                    'borderRadius' => 4,
-                    'barPercentage' => 0.6,
-                    'barThickness' => 60,
+                    'label' => 'Grievances Submitted',
+                    'data' => $data,
+                    'backgroundColor' => [
+                        '#2563eb',
+                        'rgba(255, 179, 0, 0.8)',
+                    ],
+                    'borderColor' => [
+                        '#2563eb',
+                        'rgba(255, 179, 0, 0.8)',
+                    ],
+                    'borderWidth' => 3,
+                    'barThickness' => 80,
+                    'maxBarThickness' => 100,
                 ],
             ],
-            'labels' => ['Grievances'], // Single label
+            'labels' => $labels,
         ];
     }
 
     protected function getOptions(): array
     {
         return [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'height' => 400,
+            'plugins' => [
+                'tooltip' => [
+                    'enabled' => true,
+                    'backgroundColor' => 'rgba(17, 24, 39, 0.95)',
+                    'titleColor' => '#f9fafb',
+                    'bodyColor' => '#e5e7eb',
+                    'borderColor' => 'rgba(255, 255, 255, 0.1)',
+                    'borderWidth' => 1,
+                    'cornerRadius' => 10,
+                    'padding' => 12,
+                    'displayColors' => true,
+                    'usePointStyle' => true,
+                    'caretPadding' => 8,
+                    'caretSize' => 6,
+                    'boxPadding' => 6,
+                    'titleFont' => [
+                        'size' => 15,
+                        'weight' => 'bold',
+                        'lineHeight' => 1.4,
+                    ],
+                    'bodyFont' => [
+                        'size' => 13,
+                        'lineHeight' => 1.3,
+                    ],
+                ],
+            ],
             'scales' => [
                 'x' => [
-                    'title' => [
-                        'display' => true,
-                        'text' => 'Grievances',
+                    'ticks' => [
+                        'font' => ['size' => 13],
                     ],
                 ],
                 'y' => [
                     'beginAtZero' => true,
-                    'title' => [
-                        'display' => true,
-                        'text' => 'Number of Grievances',
+                    'ticks' => [
+                        'font' => ['size' => 13],
+                        'precision' => 0,
                     ],
-                ],
-            ],
-            'plugins' => [
-                'legend' => [
-                    'display' => true,
                 ],
             ],
         ];

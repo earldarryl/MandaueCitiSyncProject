@@ -1,5 +1,18 @@
 <div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full mx-6 border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50">
 
+    <x-responsive-nav-link
+        href="{{ route('citizen.grievance.index') }}"
+        wire:navigate
+        class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+            bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+            border border-gray-500 dark:border-gray-200
+            hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 w-full sm:w-52"
+    >
+        <x-heroicon-o-home class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        <span class="hidden lg:inline">Return to Home</span>
+        <span class="lg:hidden">Home</span>
+    </x-responsive-nav-link>
+
     <div class="flex flex-col w-full p-3 rounded-lg">
         <div class="p-6 bg-gray-200/20 dark:bg-zinc-800/50 rounded-lg border border-gray-300 dark:border-zinc-700 w-full">
 
@@ -24,6 +37,7 @@
                                     'label' => 'Yes',
                                     'desc' => 'Your identity will be hidden from HR Liaisons.',
                                     'color' => 'blue',
+                                    'icon' => 'eye-slash',
                                 ],
                                 [
                                     'id' => 'anonymous-no',
@@ -31,16 +45,19 @@
                                     'label' => 'No',
                                     'desc' => 'Your name will be visible to assigned HR Liaisons.',
                                     'color' => 'amber',
+                                    'icon' => 'eye',
                                 ],
                             ] as $option)
                                 @php $color = $option['color']; @endphp
-                                <li>
+                                <li class="relative">
                                     <label
                                         for="{{ $option['id'] }}"
-                                        class="group relative inline-flex items-center justify-between w-full p-5 text-gray-700 bg-gray-50 border border-gray-200 cursor-pointer
-                                            dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700
-                                            transition-all duration-200 ease-in-out rounded-lg shadow-sm hover:shadow-md
-                                            hover:bg-{{ $color }}-50 dark:hover:bg-{{ $color }}-900/20 hover:border-{{ $color }}-400">
+                                        class="group relative inline-flex items-center justify-between w-full p-5
+                                            rounded-xl cursor-pointer shadow-sm transition-all duration-300 ease-in-out
+                                            text-gray-800 dark:text-gray-200 bg-white dark:bg-zinc-900
+                                            border border-gray-200 dark:border-zinc-700 hover:shadow-md overflow-hidden
+                                            hover:border-{{ $color }}-400 hover:bg-{{ $color }}-50/50 dark:hover:bg-{{ $color }}-900/20"
+                                    >
                                         <input
                                             type="radio"
                                             id="{{ $option['id'] }}"
@@ -49,31 +66,43 @@
                                             wire:model="is_anonymous"
                                             class="hidden peer"
                                         />
-                                        <div>
-                                            <div class="text-base font-semibold">{{ $option['label'] }}</div>
+
+                                        <span
+                                            @class([
+                                                'absolute inset-0 rounded-xl z-0 opacity-0 transition-all duration-300 peer-checked:opacity-100',
+                                                'bg-blue-100 border-2 border-blue-500 dark:bg-blue-900/40 dark:border-blue-400' => $color === 'blue',
+                                                'bg-amber-100 border-2 border-amber-500 dark:bg-amber-900/40 dark:border-amber-400' => $color === 'amber',
+                                            ])>
+                                        </span>
+
+                                        <div class="relative z-10 flex flex-col gap-1">
+                                            <div class="text-base font-bold flex items-center gap-2">
+                                                @switch($option['icon'])
+                                                    @case('eye-slash')
+                                                        <flux:icon.eye-slash class="w-5 h-5" />
+                                                        @break
+
+                                                    @case('eye')
+                                                        <flux:icon.eye class="w-5 h-5" />
+                                                        @break
+                                                @endswitch
+
+                                                <span>{{ $option['label'] }}</span>
+                                            </div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ $option['desc'] }}</div>
                                         </div>
-
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             fill="none" viewBox="0 0 24 24"
-                                             stroke-width="3" stroke="currentColor"
-                                             class="w-7 h-7 hidden peer-checked:block text-{{ $color }}-600 dark:text-{{ $color }}-400 transition-all duration-200">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-
-                                        <span class="absolute inset-0 rounded-lg pointer-events-none border-2 opacity-0
-                                            peer-checked:opacity-100 peer-checked:border-{{ $color }}-500 peer-checked:bg-{{ $color }}-200/50
-                                            dark:peer-checked:border-{{ $color }}-400 dark:peer-checked:bg-{{ $color }}-900/30 transition-all duration-200"></span>
                                     </label>
+
                                 </li>
                             @endforeach
                         </ul>
                     </div>
+
                     <flux:error name="is_anonymous" />
                 </flux:field>
 
                 <flux:field class="flex-1">
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
                         <flux:label class="flex gap-2 items-center">
                             <flux:icon.squares-2x2 />
                             <span>Grievance Type</span>
@@ -83,7 +112,7 @@
                             What kind of grievance would you like to file?
                         </h3>
 
-                        <ul class="grid w-full gap-3">
+                        <ul class="grid w-full gap-4 md:grid-cols-1">
                             @foreach ([
                                 [
                                     'id' => 'grievance-complaint',
@@ -91,6 +120,7 @@
                                     'label' => 'Complaint',
                                     'desc' => 'Reports an issue or dissatisfaction needing corrective action.',
                                     'color' => 'amber',
+                                    'icon' => 'hand-raised',
                                 ],
                                 [
                                     'id' => 'grievance-inquiry',
@@ -98,6 +128,7 @@
                                     'label' => 'Inquiry',
                                     'desc' => 'Seeks clarification or information on HR-related matters.',
                                     'color' => 'violet',
+                                    'icon' => 'question-mark-circle',
                                 ],
                                 [
                                     'id' => 'grievance-request',
@@ -105,16 +136,19 @@
                                     'label' => 'Request',
                                     'desc' => 'Asks for assistance, approval, or support from HR.',
                                     'color' => 'green',
+                                    'icon' => 'chat-bubble-bottom-center-text',
                                 ],
                             ] as $option)
                                 @php $color = $option['color']; @endphp
-                                <li>
+                                <li class="relative">
                                     <label
                                         for="{{ $option['id'] }}"
-                                        class="group relative inline-flex items-center justify-between w-full p-5 text-gray-700 bg-gray-50 border border-gray-200 cursor-pointer
-                                            dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700
-                                            transition-all duration-200 ease-in-out rounded-lg shadow-sm hover:shadow-md
-                                            hover:bg-{{ $color }}-50 dark:hover:bg-{{ $color }}-900/20 hover:border-{{ $color }}-400">
+                                        class="group relative inline-flex items-center justify-between w-full p-5
+                                            rounded-xl cursor-pointer shadow-sm transition-all duration-300 ease-in-out
+                                            text-gray-800 dark:text-gray-200 bg-white dark:bg-zinc-900
+                                            border border-gray-200 dark:border-zinc-700 hover:shadow-md overflow-hidden
+                                            hover:border-{{ $color }}-400 hover:bg-{{ $color }}-50/50 dark:hover:bg-{{ $color }}-900/20"
+                                    >
                                         <input
                                             type="radio"
                                             id="{{ $option['id'] }}"
@@ -123,31 +157,48 @@
                                             wire:model="grievance_type"
                                             class="hidden peer"
                                         />
-                                        <div>
-                                            <div class="text-base font-semibold">{{ $option['label'] }}</div>
+
+                                        <span
+                                            @class([
+                                                'absolute inset-0 rounded-xl z-0 opacity-0 transition-all duration-300 peer-checked:opacity-100',
+                                                'bg-amber-100 border-2 border-amber-500 dark:bg-amber-900/40 dark:border-amber-400' => $color === 'amber',
+                                                'bg-violet-100 border-2 border-violet-500 dark:bg-violet-900/40 dark:border-violet-400' => $color === 'violet',
+                                                'bg-green-100 border-2 border-green-500 dark:bg-green-900/40 dark:border-green-400' => $color === 'green',
+                                            ])>
+                                        </span>
+
+                                        <div class="relative z-10 flex flex-col gap-1">
+                                            <div class="text-base font-bold flex items-center gap-2">
+                                                @switch($option['icon'])
+                                                    @case('hand-raised')
+                                                        <flux:icon.hand-raised class="w-5 h-5" />
+                                                        @break
+
+                                                    @case('question-mark-circle')
+                                                        <flux:icon.question-mark-circle class="w-5 h-5" />
+                                                        @break
+
+                                                    @case('chat-bubble-bottom-center-text')
+                                                        <flux:icon.chat-bubble-bottom-center-text class="w-5 h-5" />
+                                                        @break
+                                                @endswitch
+
+                                                <span>{{ $option['label'] }}</span>
+                                            </div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ $option['desc'] }}</div>
                                         </div>
-
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             fill="none" viewBox="0 0 24 24"
-                                             stroke-width="3" stroke="currentColor"
-                                             class="w-7 h-7 hidden peer-checked:block text-{{ $color }}-600 dark:text-{{ $color }}-400 transition-all duration-200">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-
-                                        <span class="absolute inset-0 rounded-lg pointer-events-none border-2 opacity-0
-                                            peer-checked:opacity-100 peer-checked:border-{{ $color }}-500 peer-checked:bg-{{ $color }}-200/50
-                                            dark:peer-checked:border-{{ $color }}-400 dark:peer-checked:bg-{{ $color }}-900/30 transition-all duration-200"></span>
                                     </label>
+
                                 </li>
                             @endforeach
                         </ul>
                     </div>
+
                     <flux:error name="grievance_type" />
                 </flux:field>
 
                 <flux:field class="flex-1">
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
                         <flux:label class="flex gap-2 items-center">
                             <flux:icon.clock />
                             <span>Priority Level</span>
@@ -157,7 +208,7 @@
                             How urgent is this grievance?
                         </h3>
 
-                        <ul class="grid w-full gap-3">
+                        <ul class="grid w-full gap-4 md:grid-cols-1">
                             @foreach ([
                                 [
                                     'id' => 'priority-low',
@@ -165,6 +216,7 @@
                                     'label' => 'Low',
                                     'desc' => 'Can be handled later; urgent attention not required.',
                                     'color' => 'green',
+                                    'icon' => 'arrow-trending-down',
                                 ],
                                 [
                                     'id' => 'priority-normal',
@@ -172,6 +224,7 @@
                                     'label' => 'Normal',
                                     'desc' => 'Standard processing applies.',
                                     'color' => 'blue',
+                                    'icon' => 'arrow-long-right',
                                 ],
                                 [
                                     'id' => 'priority-high',
@@ -179,16 +232,19 @@
                                     'label' => 'High',
                                     'desc' => 'Requires immediate attention from HR Liaisons.',
                                     'color' => 'red',
+                                    'icon' => 'arrow-trending-up',
                                 ],
                             ] as $option)
                                 @php $color = $option['color']; @endphp
-                                <li>
+                                <li class="relative">
                                     <label
                                         for="{{ $option['id'] }}"
-                                        class="group relative inline-flex items-center justify-between w-full p-5 text-gray-700 bg-gray-50 border border-gray-200 cursor-pointer
-                                            dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700
-                                            transition-all duration-200 ease-in-out rounded-lg shadow-sm hover:shadow-md
-                                            hover:bg-{{ $color }}-50 dark:hover:bg-{{ $color }}-900/20 hover:border-{{ $color }}-400">
+                                        class="group relative inline-flex items-center justify-between w-full p-5
+                                            rounded-xl cursor-pointer shadow-sm transition-all duration-300 ease-in-out
+                                            text-gray-800 dark:text-gray-200 bg-white dark:bg-zinc-900
+                                            border border-gray-200 dark:border-zinc-700 hover:shadow-md overflow-hidden
+                                            hover:border-{{ $color }}-400 hover:bg-{{ $color }}-50/50 dark:hover:bg-{{ $color }}-900/20"
+                                    >
                                         <input
                                             type="radio"
                                             id="{{ $option['id'] }}"
@@ -197,26 +253,43 @@
                                             wire:model="priority_level"
                                             class="hidden peer"
                                         />
-                                        <div>
-                                            <div class="text-base font-semibold">{{ $option['label'] }}</div>
+
+                                        <span
+                                            @class([
+                                                'absolute inset-0 rounded-xl z-0 opacity-0 transition-all duration-300 peer-checked:opacity-100',
+                                                'bg-green-100 border-2 border-green-500 dark:bg-green-900/40 dark:border-green-400' => $color === 'green',
+                                                'bg-blue-100 border-2 border-blue-500 dark:bg-blue-900/40 dark:border-blue-400' => $color === 'blue',
+                                                'bg-red-100 border-2 border-red-500 dark:bg-red-900/40 dark:border-red-400' => $color === 'red',
+                                            ])>
+                                        </span>
+
+                                        <div class="relative z-10 flex flex-col gap-1">
+                                            <div class="text-base font-bold flex items-center gap-2">
+                                                @switch($option['icon'])
+                                                    @case('arrow-trending-down')
+                                                        <flux:icon.arrow-trending-down class="w-5 h-5" />
+                                                        @break
+
+                                                    @case('arrow-long-right')
+                                                        <flux:icon.arrow-long-right class="w-5 h-5" />
+                                                        @break
+
+                                                    @case('arrow-trending-up')
+                                                        <flux:icon.arrow-trending-up class="w-5 h-5" />
+                                                        @break
+                                                @endswitch
+
+                                                <span>{{ $option['label'] }}</span>
+                                            </div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">{{ $option['desc'] }}</div>
                                         </div>
-
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             fill="none" viewBox="0 0 24 24"
-                                             stroke-width="3" stroke="currentColor"
-                                             class="w-7 h-7 hidden peer-checked:block text-{{ $color }}-600 dark:text-{{ $color }}-400 transition-all duration-200">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-
-                                        <span class="absolute inset-0 rounded-lg pointer-events-none border-2 opacity-0
-                                            peer-checked:opacity-100 peer-checked:border-{{ $color }}-500 peer-checked:bg-{{ $color }}-200/50
-                                            dark:peer-checked:border-{{ $color }}-400 dark:peer-checked:bg-{{ $color }}-900/30 transition-all duration-200"></span>
                                     </label>
+
                                 </li>
                             @endforeach
                         </ul>
                     </div>
+
                     <flux:error name="priority_level" />
                 </flux:field>
 

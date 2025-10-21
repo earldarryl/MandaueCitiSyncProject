@@ -31,7 +31,6 @@
                 class="relative w-full h-auto flex flex-col"
             >
 
-                <!-- Toggle Button -->
                 <div class="flex justify-center items-center mb-4">
                     <button
                         @click="openStats = !openStats"
@@ -49,7 +48,6 @@
                     </button>
                 </div>
 
-                <!-- Slide Transition -->
                 <div
                     x-show="openStats"
                     x-collapse
@@ -65,7 +63,6 @@
 
                     <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
 
-                        <!-- Total Grievances -->
                         <div
                             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -97,7 +94,6 @@
                             <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $highPriorityCount }}</p>
                         </div>
 
-                        <!-- Normal Priority -->
                         <div
                             class="group relative bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -112,7 +108,6 @@
                             <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">{{ $normalPriorityCount }}</p>
                         </div>
 
-                        <!-- Low Priority -->
                         <div
                             class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -130,7 +125,6 @@
 
                     <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
 
-                        <!-- Pending -->
                         <div
                             class="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-yellow-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -145,7 +139,6 @@
                             <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">{{ $pendingCount }}</p>
                         </div>
 
-                        <!-- In Progress -->
                         <div
                             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -160,7 +153,6 @@
                             <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $inProgressCount }}</p>
                         </div>
 
-                        <!-- Resolved -->
                         <div
                             class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -175,7 +167,6 @@
                             <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $resolvedCount }}</p>
                         </div>
 
-                        <!-- Closed -->
                         <div
                             class="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -249,7 +240,7 @@
                             placeholder="Search grievances..."
                             class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
                                 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                                dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                                dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
                                 dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                         />
 
@@ -262,19 +253,19 @@
                             <flux:icon.x-mark class="w-4 h-4" />
                         </button>
 
-                        <button
+                       <button
                             type="button"
                             wire:click="applySearch"
-                            class="absolute inset-y-0 right-0 my-auto inline-flex items-center gap-2
+                            class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
                                 px-4 py-2 text-sm font-bold rounded-lg
                                 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                                border border-blue-400 dark:border-blue-600
+                                border border-blue-500 dark:border-blue-400
                                 hover:bg-blue-200 dark:hover:bg-blue-800/50
-                                focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
                                 transition-all duration-200"
                         >
                             <x-heroicon-o-magnifying-glass class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                            Search
+                            <span>Search</span>
                         </button>
                     </div>
                 </div>
@@ -338,7 +329,6 @@
     </div>
 
     <div class="relative">
-        <!-- Grid -->
         <div class="flex w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
             <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full"
                  wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
@@ -353,7 +343,6 @@
 
                         <div class="flex flex-col flex-1 justify-between">
 
-                            <!-- Header -->
                             <header class="flex justify-between items-start mb-3">
                                 <div class="flex items-start gap-2">
                                     <div class="flex flex-col max-w-[250px]">
@@ -375,57 +364,70 @@
                                 </div>
 
                                 <div class="flex items-center gap-2">
-                                    <!-- Checkbox beside Priority -->
                                     <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
 
-                                    <span class="text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm border
+                                   <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
+                                        shadow-sm backdrop-blur-sm transition-all duration-200
                                         {{ $grievance->priority_level === 'High'
-                                            ? 'bg-red-100 text-red-800 border-red-400 dark:bg-gray-700 dark:text-red-400'
+                                            ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-400 dark:from-red-900/40 dark:to-red-800/30 dark:text-red-300 dark:border-red-500'
                                             : ($grievance->priority_level === 'Normal'
-                                                ? 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-gray-700 dark:text-yellow-300'
-                                                : 'bg-green-100 text-green-800 border-green-400 dark:bg-gray-700 dark:text-green-400') }}">
+                                                ? 'bg-gradient-to-r from-amber-100 to-yellow-200 text-amber-800 border-amber-400 dark:from-amber-900/40 dark:to-yellow-800/30 dark:text-amber-300 dark:border-amber-500'
+                                                : 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400 dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500') }}">
                                         {!! $highlight($grievance->priority_level, $search) !!}
                                     </span>
 
                                     <flux:dropdown>
                                         <flux:button
                                             icon="ellipsis-horizontal"
-                                            class="!p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
                                         />
 
-                                        <flux:menu>
+                                       <flux:menu>
 
-                                            <flux:menu.item>
-                                                <button
-                                                    wire:click="downloadPdf({{ $grievance->grievance_id }})"
-                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                                                        bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
-                                                        hover:bg-green-200 dark:hover:bg-green-800/50
-                                                        border border-green-300 dark:border-green-700
-                                                        transition-all duration-200 w-full sm:w-52"
-                                                >
-                                                    <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-                                                    <span class="hidden lg:inline">Download PDF</span>
-                                                    <span class="lg:hidden">Download</span>
-                                                </button>
+                                            <flux:menu.item
+                                                wire:click="downloadPdf({{ $grievance->grievance_id }})"
+                                                class="!bg-green-100 dark:!bg-green-900/40
+                                                    text-green-700 dark:text-green-300
+                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
+                                                    border border-green-300 dark:border-green-700
+                                                    hover:!bg-green-200 dark:hover:!bg-green-800/50
+                                                    transition-all duration-200 w-full sm:w-52"
+                                            >
+                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
+                                                <span class="hidden lg:inline">Download PDF</span>
+                                                <span class="lg:hidden">Download</span>
                                             </flux:menu.item>
 
-                                            <flux:menu.item>
-                                                <button
-                                                    wire:click="print({{ $grievance->grievance_id }})"
-                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                                                        bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300
-                                                        hover:bg-purple-200 dark:hover:bg-purple-800/50
-                                                        border border-purple-300 dark:border-purple-700
-                                                        transition-all duration-200 w-full sm:w-52"
-                                                >
-                                                    <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                                    <span class="hidden lg:inline">Print</span>
-                                                    <span class="lg:hidden">Print</span>
-                                                </button>
+                                            <flux:menu.item
+                                                wire:click="print({{ $grievance->grievance_id }})"
+                                                class="!bg-purple-100 dark:!bg-purple-900/40
+                                                    text-purple-700 dark:text-purple-300
+                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
+                                                    border border-purple-300 dark:border-purple-700
+                                                    hover:!bg-purple-200 dark:hover:!bg-purple-800/50
+                                                    transition-all duration-200 w-full sm:w-52"
+                                            >
+                                                <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                <span class="hidden lg:inline">Print</span>
+                                                <span class="lg:hidden">Print</span>
                                             </flux:menu.item>
+
+                                            <flux:menu.item
+                                                wire:click="downloadCsv({{ $grievance->grievance_id }})"
+                                                class="!bg-amber-100 dark:!bg-amber-900/40
+                                                    text-amber-700 dark:text-amber-300
+                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
+                                                    border border-amber-300 dark:border-amber-700
+                                                    hover:!bg-amber-200 dark:hover:!bg-amber-800/50
+                                                    transition-all duration-200 w-full sm:w-52"
+                                            >
+                                                <x-heroicon-o-document-arrow-down class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                                <span class="hidden lg:inline">Download CSV</span>
+                                                <span class="lg:hidden">CSV</span>
+                                            </flux:menu.item>
+
 
                                         </flux:menu>
+
                                     </flux:dropdown>
 
                                 </div>

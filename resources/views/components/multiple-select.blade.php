@@ -36,12 +36,12 @@
     >
         <template x-for="(label, index) in value" :key="index">
             <span
-                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
                     border border-blue-400 text-blue-800 bg-blue-100/70
-                    hover:bg-blue-200 hover:border-blue-500 hover:text-blue-900
-                    dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-300
-                    dark:hover:bg-blue-800/40 dark:hover:border-blue-400
-                    transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                    hover:bg-blue-200 hover:border-blue-500
+                    dark:bg-blue-900/30 dark:border-blue-500
+                    dark:text-blue-300 dark:hover:bg-blue-800/40
+                    transition-all duration-200 ease-in-out hover:shadow-md"
             >
                 <span x-text="label"></span>
                 <button
@@ -76,7 +76,7 @@
         x-transition
         class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white border-gray-200/50 dark:border-zinc-600 rounded-md shadow-md"
     >
-        <ul class="py-1 max-h-60 overflow-y-auto" role="listbox">
+        <ul class="max-h-60 overflow-y-auto" role="listbox">
             @foreach ($options as $id => $label)
                 <li>
                     <button
@@ -89,7 +89,7 @@
                             }
                             $wire.set('{{ $name }}', selected, true);
                         "
-                        class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
+                        class="w-full flex items-center justify-between text-left px-4 py-2 text-sm"
                         :class="selected.includes({{ $id }})
                             ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
                             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">

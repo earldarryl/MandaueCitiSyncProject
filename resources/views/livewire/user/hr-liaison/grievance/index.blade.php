@@ -257,7 +257,7 @@
                                             <flux:menu.item>
                                                 <button
                                                     wire:click="print({{ $grievance->grievance_id }})"
-                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                                                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
                                                         bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300
                                                         hover:bg-purple-200 dark:hover:bg-purple-800/50
                                                         border border-purple-300 dark:border-purple-700

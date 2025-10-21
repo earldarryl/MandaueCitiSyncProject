@@ -1,4 +1,3 @@
-<!-- Drawer Panel -->
 <div
     class="fixed z-[40] right-0 w-96 bg-white dark:bg-zinc-900 shadow-2xl h-screen ml-auto flex flex-col transform transition-transform duration-300 border-l border-gray-200 dark:border-zinc-700"
     x-data
@@ -13,7 +12,6 @@
         document.querySelectorAll('[role=menu]').forEach(el => el.remove());
     "
 >
-    <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0 bg-gray-50 dark:bg-zinc-800">
         <span class="flex gap-2 items-center text-xl font-semibold text-gray-800 dark:text-gray-100">
             <flux:icon.bell class="w-6 h-6" />
@@ -21,9 +19,10 @@
         </span>
     </div>
 
-    <!-- Bulk Actions -->
-    <div class="flex justify-between items-center p-3 gap-2 border-b border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 w-full">
-            <flux:button wire:click="markAllAsRead" wire:loading.attr="disabled">
+    <div class="flex flex-col justify-center p-2 gap-2 border-b border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 w-full">
+
+        <div class="flex gap-2 w-full">
+             <flux:button wire:click="markAllAsRead" icon="check" wire:loading.attr="disabled" class="w-full">
                 <span wire:loading.remove wire:target="markAllAsRead">Mark All Read</span>
                 <span wire:loading wire:target="markAllAsRead">
                     <div class="relative w-full flex items-center justify-center gap-2">
@@ -33,7 +32,7 @@
                     </div>
                 </span>
             </flux:button>
-            <flux:button wire:click="markAllAsUnread" wire:loading.attr="disabled">
+            <flux:button wire:click="markAllAsUnread" icon="x-mark" wire:loading.attr="disabled" class="w-full">
                 <span wire:loading.remove wire:target="markAllAsUnread">Mark All Unread</span>
                 <span wire:loading wire:target="markAllAsUnread">
                     <div class="relative w-full flex items-center justify-center gap-2">
@@ -43,20 +42,23 @@
                     </div>
                 </span>
             </flux:button>
+        </div>
 
-        <flux:button variant="danger" wire:click="deleteAllNotifications" wire:loading.attr="disabled">
-            <span wire:loading.remove wire:target="deleteAllNotifications">Delete All</span>
-            <span wire:loading wire:target="deleteAllNotifications">
-                <div class="relative w-full flex items-center justify-center gap-2">
-                    <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                </div>
-            </span>
-        </flux:button>
+        <div class="flex justify-between items-center w-full">
+            <flux:button variant="danger" wire:click="deleteAllNotifications" icon="trash" wire:loading.attr="disabled" class="w-full">
+                <span wire:loading.remove wire:target="deleteAllNotifications">Delete All</span>
+                <span wire:loading wire:target="deleteAllNotifications">
+                    <div class="relative w-full flex items-center justify-center gap-2">
+                        <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-4 h-4 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
+                </span>
+            </flux:button>
+        </div>
+
     </div>
 
-    <!-- Scrollable Content -->
     <div
         class="relative flex-1 overflow-y-auto px-4 py-3 space-y-3"
         wire:poll.5s="loadNotifications"
@@ -125,7 +127,6 @@
             <p class="text-gray-500 dark:text-gray-400 text-center py-6">No notifications.</p>
         @endforelse
 
-        <!-- Load More -->
         @if ($unreadCount + $readCount > $this->allNotifications->count())
             <div class="mt-4 flex justify-center">
                 <flux:button wire:click="loadMore('all')" wire:loading.attr="disabled" variant="secondary">

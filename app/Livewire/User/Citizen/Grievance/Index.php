@@ -5,6 +5,7 @@ namespace App\Livewire\User\Citizen\Grievance;
 use App\Models\Grievance;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -101,6 +102,59 @@ class Index extends Component
     {
         return redirect()->route('print-grievance', ['id' => $id]);
     }
+
+    public function downloadCsv($id)
+    {
+        $grievance = Grievance::with(['user.info', 'departments'])->findOrFail($id);
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="grievance_' . $grievance->grievance_id . '.csv"',
+        ];
+
+        $callback = function () use ($grievance) {
+            $handle = fopen('php://output', 'w');
+
+                fputcsv($handle, [
+                    'Grievance ID',
+                    'Grievance Title',
+                    'Grievance Type',
+                    'Priority Level',
+                    'Status',
+                    'Submitted By',
+                    'Departments Involved',
+                    'Details',
+                    'Created At',
+                    'Updated At',
+                ]);
+
+            $submittedBy = $grievance->is_anonymous
+                ? 'Anonymous'
+                : ($grievance->user?->info
+                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+                    : $grievance->user?->name);
+
+            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+            fputcsv($handle, [
+                $grievance->grievance_id,
+                $grievance->grievance_title,
+                $grievance->grievance_type,
+                $grievance->priority_level,
+                $grievance->grievance_status,
+                $submittedBy,
+                $departments,
+                strip_tags($grievance->grievance_details),
+                $grievance->formatted_created_at,
+                $grievance->formatted_updated_at,
+            ]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterPriority() { $this->resetPage(); }
     public function updatingFilterStatus() { $this->resetPage(); }

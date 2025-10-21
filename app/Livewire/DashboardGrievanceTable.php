@@ -15,21 +15,18 @@ class DashboardGrievanceTable extends TableWidget
     public ?string $startDate = null;
     public ?string $endDate = null;
 
-    public function table(Table $table): Table
+    protected function baseQuery(): Builder
     {
         $user = Auth::user();
 
-        // Base query
         $query = Grievance::query()->with('user');
 
-        // Restrict view for HR Liaison
         if ($user->hasRole('hr_liaison')) {
             $query->whereHas('assignments', function (Builder $q) use ($user) {
                 $q->where('hr_liaison_id', $user->id);
             });
         }
 
-        // Filter by date range
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('created_at', [
                 $this->startDate . ' 00:00:00',
@@ -37,8 +34,34 @@ class DashboardGrievanceTable extends TableWidget
             ]);
         }
 
+        return $query;
+    }
+
+    protected function getSummaryData(): array
+    {
+        $query = $this->baseQuery();
+
+        return [
+            'total' => (clone $query)->count(),
+            'open' => (clone $query)->where('grievance_status', 'Open')->count(),
+            'resolved' => (clone $query)->where('grievance_status', 'Resolved')->count(),
+            'highPriority' => (clone $query)->where('priority_level', 'High')->count(),
+        ];
+    }
+
+    public function table(Table $table): Table
+    {
+        $query = $this->baseQuery();
+
         return $table
             ->query($query)
+            ->header(function () {
+                $summary = $this->getSummaryData();
+
+                return view('widget-headers.grievance-table-header-summary', [
+                    'summary' => $summary,
+                ]);
+            })
             ->columns([
                 TextColumn::make('grievance_title')
                     ->label('Title')
@@ -62,14 +85,8 @@ class DashboardGrievanceTable extends TableWidget
                     ->label('Submitted By')
                     ->sortable()
                     ->searchable()
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->is_anonymous
-                            ? 'Anonymous User'
-                            : $state;
-                    })
-                    ->tooltip(fn ($record) => $record->is_anonymous
-                        ? 'Anonymous grievance'
-                        : $record->user?->email),
+                    ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'Anonymous User' : $state)
+                    ->tooltip(fn ($record) => $record->is_anonymous ? 'Anonymous grievance' : $record->user?->email),
 
                 TextColumn::make('created_at')
                     ->label('Created')
@@ -79,10 +96,7 @@ class DashboardGrievanceTable extends TableWidget
             ->actions([
                 Action::make('view')
                     ->label('View')
-                    ->url(fn (Grievance $record) => route(
-                        'hr-liaison.grievance.view',
-                        ['id' => $record->grievance_id]
-                    ))
+                    ->url(fn (Grievance $record) => route('hr-liaison.grievance.view', ['id' => $record->grievance_id]))
                     ->icon('heroicon-o-eye'),
             ])
             ->searchable()
