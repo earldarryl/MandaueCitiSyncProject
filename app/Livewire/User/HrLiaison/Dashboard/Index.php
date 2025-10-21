@@ -27,6 +27,13 @@ class Index extends Component
         }
     }
 
+    public function applyDates($start, $end)
+    {
+        $this->startDate = $start;
+        $this->endDate = $end;
+
+        $this->dispatch('dateRangeUpdated', $this->startDate, $this->endDate);
+    }
     public function render()
     {
         return view('livewire.user.hr-liaison.dashboard.index', [

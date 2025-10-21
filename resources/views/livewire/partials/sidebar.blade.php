@@ -15,7 +15,6 @@
     <div class="relative flex flex-col">
 
     <div class="relative flex flex-col h-[500px] sm:h-[550px] md:h-[550px] lg:h-[550px] overflow-x-hidden overflow-y-auto">
-         <!-- Navigation -->
         <div
             x-cloak
             x-data="{
@@ -53,13 +52,11 @@
                 @endphp
 
                 @if ($hasChildren)
-                    <!-- Parent Dropdown Item -->
                     <div class="relative"
                         x-data="{ showTooltip: false }"
                         @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                         @mouseleave="showTooltip = false">
 
-                       <!-- Parent Dropdown Button -->
                         <div
                             @click="
                                 if ($store.sidebar.open) {
@@ -75,12 +72,10 @@
                             @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                             @mouseleave="showTooltip = false"
                         >
-                            <!-- Icon -->
                             <span class="inline-block text-center">
                                 <i class="{{ $item['icon'] }}"></i>
                             </span>
 
-                            <!-- Label (when sidebar is open) -->
                             <div
                                 x-cloak
                                 :class="{
@@ -94,7 +89,6 @@
                                 </span>
                             </div>
 
-                            <!-- Dropdown Arrow (when sidebar is open) -->
                             <svg x-show="$store.sidebar.open"
                                 :class="{ 'rotate-180': dropdowns[{{ $index }}] }"
                                 class="w-4 h-4 transition-transform duration-200 ml-auto mr-2"
@@ -106,7 +100,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                             </svg>
 
-                            <!-- Tooltip (when sidebar is collapsed) -->
                             <span x-show="showTooltip && !$store.sidebar.open"
                                 x-transition
                                 x-cloak
@@ -116,7 +109,6 @@
                             </span>
                         </div>
 
-                        <!-- Dropdown Children -->
                         <div
                             x-show="$store.sidebar.open"
                             x-ref="dropdown{{ $index }}"
@@ -130,8 +122,6 @@
                             style="height: 0;"
                         >
                             <div class="relative flex flex-col items-start pl-6 mt-1 pb-1">
-                                <!-- Line -->
-                                <div class="absolute top-0 left-5 h-full w-0.5 bg-mc_primary_color dark:bg-white"></div>
 
                                 @foreach ($item['children'] as $child)
                                     @php
@@ -156,7 +146,6 @@
                         </div>
                     </div>
                 @else
-                    <!-- Single Link Item -->
                     <x-responsive-nav-link
                         href="{{ route($item['route']) }}"
                         class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition overflow-hidden select-none
@@ -183,7 +172,6 @@
                         </span>
                         </div>
 
-                        <!-- Tooltip (collapsed) -->
                         <span x-show="showTooltip && !$store.sidebar.open"
                             x-transition
                             x-cloak
@@ -209,7 +197,6 @@
                 @click="$dispatch('logout-modal-started'); $dispatch('logout-modal')"
                 x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
             >
-            <!-- Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24" stroke-width="2"
                 stroke="currentColor" class="size-6 mr-2"
@@ -218,7 +205,6 @@
                     d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
             </svg>
 
-            <!-- Text -->
             <div
                 x-cloak
                 :class="{
@@ -232,7 +218,6 @@
                 </span>
             </div>
 
-            <!-- Tooltip -->
             <span
                 x-show="showTooltip && !$store.sidebar.open"
                 x-cloak

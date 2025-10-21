@@ -1,115 +1,94 @@
-<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative p-3"
-     x-data
-     x-init="
-        Livewire.hook('message.sent', () => { document.body.style.overflow = 'hidden' });
-        Livewire.hook('message.processed', () => { document.body.style.overflow = '' });
-     ">
+<div class="w-full flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 relative p-3" x-data>
 
-    <!-- Global Loader -->
-    <div wire:loading wire:target="startDate,endDate"
-         class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
-        <div class="flex flex-col mt-6 items-center">
-            <flux:icon.loading class="h-12 w-12 text-blue-600"/>
-            <span class="mt-3 text-gray-700 dark:text-gray-300 text-sm">Refreshing dashboard…</span>
+    <div wire:loading wire:target="applyDates">
+        <div class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+            <div class="flex flex-col mt-6 items-center">
+                <flux:icon.loading class="h-12 w-12 text-blue-600"/>
+                <span class="mt-3 text-gray-700 dark:text-gray-300 text-sm">Refreshing dashboard…</span>
+            </div>
         </div>
     </div>
 
-    <!-- Date Filters -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 w-full px-4">
-
-        <!-- Start Date -->
-        <div class="w-full md:w-1/2 cursor-pointer" x-data x-init="$nextTick(() => {
-            const setupFlatpickr = (ref, livewireProperty) => {
-                const applyDarkMode = (instance, isDark) => {
-                    const calendar = instance.calendarContainer;
-                    if (!calendar) return;
-                    calendar.classList.toggle('flatpickr-dark', isDark);
-                };
-
-                const isDark = document.documentElement.classList.contains('dark');
-
-                if (!ref._flatpickr) {
-                    flatpickr(ref, {
-                        dateFormat: 'Y-m-d',
-                        defaultDate: ref.value || null,
-                        onChange: (selectedDates, dateStr) => {
-                            @this.set(livewireProperty, dateStr);
-                        },
-                        onReady: (selectedDates, dateStr, instance) => applyDarkMode(instance, isDark),
-                    });
-                } else {
-                    applyDarkMode(ref._flatpickr, isDark);
-                }
-
-                // Observe dark mode changes
-                const observer = new MutationObserver(() => {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    if (ref._flatpickr) applyDarkMode(ref._flatpickr, isDark);
-                });
-                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-            };
-
-            setupFlatpickr($refs.startInput, 'startDate');
+    <div class="w-full flex flex-col bg-gray-50 dark:bg-gray-900 relative p-3"
+        x-data="{ start: '{{ $startDate }}', end: '{{ $endDate }}' }"
+        x-init="$nextTick(() => {
+            flatpickr($refs.startInput, {
+                dateFormat: 'Y-m-d',
+                defaultDate: start,
+                onChange: (selectedDates, dateStr) => start = dateStr
+            });
+            flatpickr($refs.endInput, {
+                dateFormat: 'Y-m-d',
+                defaultDate: end,
+                onChange: (selectedDates, dateStr) => end = dateStr
+            });
         })">
-            <flux:input
-                type="text"
-                label="Start Date"
-                placeholder="Select start date"
-                x-ref="startInput"
-                readonly
-                class:input="w-full"
-                value="{{ $startDate }}" />
+
+        <!-- Loading overlay -->
+        <div wire:loading wire:target="applyDates"
+            class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+            <div class="flex flex-col mt-6 items-center">
+                <flux:icon.loading class="h-12 w-12 text-blue-600"/>
+                <span class="mt-3 text-gray-700 dark:text-gray-300 text-sm">Refreshing dashboard…</span>
+            </div>
         </div>
 
-        <!-- End Date -->
-        <div class="w-full md:w-1/2 cursor-pointer" x-data x-init="$nextTick(() => {
-            const setupFlatpickr = (ref, livewireProperty) => {
-                const applyDarkMode = (instance, isDark) => {
-                    const calendar = instance.calendarContainer;
-                    if (!calendar) return;
-                    calendar.classList.toggle('flatpickr-dark', isDark);
-                };
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 w-full px-4">
 
-                const isDark = document.documentElement.classList.contains('dark');
+            <!-- Start Date -->
+            <div class="flex flex-col gap-2 w-full md:w-1/2 cursor-pointer">
+                <div class="flex items-center gap-2 font-bold mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Start Date</span>
+                </div>
+                <flux:input
+                    type="text"
+                    x-ref="startInput"
+                    readonly
+                    x-model="start"
+                    class:input="w-full cursor-pointer font-bold"
+                ></flux:input>
+            </div>
 
-                if (!ref._flatpickr) {
-                    flatpickr(ref, {
-                        dateFormat: 'Y-m-d',
-                        defaultDate: ref.value || null,
-                        onChange: (selectedDates, dateStr) => {
-                            @this.set(livewireProperty, dateStr);
-                        },
-                        onReady: (selectedDates, dateStr, instance) => applyDarkMode(instance, isDark),
-                    });
-                } else {
-                    applyDarkMode(ref._flatpickr, isDark);
-                }
+            <!-- End Date -->
+            <div class="flex flex-col gap-2 w-full md:w-1/2 cursor-pointer">
+                <div class="flex items-center gap-2 font-bold mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>End Date</span>
+                </div>
+                <flux:input
+                    type="text"
+                    x-ref="endInput"
+                    readonly
+                    x-model="end"
+                    class:input="w-full cursor-pointer font-bold"
+                ></flux:input>
+            </div>
 
-                // Observe dark mode changes
-                const observer = new MutationObserver(() => {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    if (ref._flatpickr) applyDarkMode(ref._flatpickr, isDark);
-                });
-                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-            };
+        </div>
 
-            setupFlatpickr($refs.endInput, 'endDate');
-        })">
-            <flux:input
-                type="text"
-                label="End Date"
-                placeholder="Select end date"
-                x-ref="endInput"
-                readonly
-                class:input="w-full"
-                value="{{ $endDate }}" />
+        <!-- Apply button -->
+        <div class="px-4">
+            <button
+                type="button"
+                class="flex gap-2 items-center justify-center font-bold w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 transition duration-300 ease-in-out text-white p-3 rounded-lg"
+                @click="$wire.applyDates(start, end)"
+            >
+                <x-heroicon-o-check class="w-5 h-5"/>
+                <span>Apply</span>
+            </button>
         </div>
 
     </div>
+
+
 
     <div class="flex flex-col gap-4 border-box">
 
-        <!-- HR Liaison Stats -->
         <section class="w-full p-4">
             <div class="flex flex-col lg:flex-row gap-6">
                 <livewire:user.hr-liaison.dashboard.hr-liaison-stats
@@ -119,11 +98,10 @@
             </div>
         </section>
 
-        <!-- Bar Chart -->
        <section class="w-full h-full p-4">
             <div class="flex flex-col lg:flex-row gap-6 w-full h-full">
                 <div class="flex-1 w-full">
-                    <livewire:grievance-bar-chart
+                    <livewire:grievance-line-chart
                         :start-date="$startDate"
                         :end-date="$endDate"
                         wire:key="grievance-bar-{{ $startDate }}-{{ $endDate }}"/>
@@ -138,7 +116,6 @@
             </div>
         </section>
 
-        <!-- Grievance Table -->
         <section class="w-full p-4 relative rounded-lg">
                 <livewire:dashboard-grievance-table
                     :start-date="$startDate"
