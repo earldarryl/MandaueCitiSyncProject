@@ -24,7 +24,6 @@
             });
         })">
 
-        <!-- Loading overlay -->
         <div wire:loading wire:target="applyDates"
             class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
             <div class="flex flex-col mt-6 items-center">
@@ -35,7 +34,6 @@
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 w-full px-4">
 
-            <!-- Start Date -->
             <div class="flex flex-col gap-2 w-full md:w-1/2 cursor-pointer">
                 <div class="flex items-center gap-2 font-bold mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -52,7 +50,6 @@
                 ></flux:input>
             </div>
 
-            <!-- End Date -->
             <div class="flex flex-col gap-2 w-full md:w-1/2 cursor-pointer">
                 <div class="flex items-center gap-2 font-bold mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -71,7 +68,6 @@
 
         </div>
 
-        <!-- Apply button -->
         <div class="px-4">
             <button
                 type="button"

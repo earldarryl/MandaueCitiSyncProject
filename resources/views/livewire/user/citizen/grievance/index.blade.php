@@ -366,7 +366,28 @@
                                 <div class="flex items-center gap-2">
                                     <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
 
-                                   <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
+                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
+                                        shadow-sm backdrop-blur-sm transition-all duration-200
+                                        {{ match($grievance->grievance_status) {
+                                            'pending' => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
+                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
+
+                                            'in_progress' => 'bg-gradient-to-r from-blue-100 to-cyan-200 text-blue-800 border-blue-400
+                                                            dark:from-blue-900/40 dark:to-cyan-800/30 dark:text-blue-300 dark:border-blue-500',
+
+                                            'resolved' => 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400
+                                                        dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500',
+
+                                            'rejected' => 'bg-gradient-to-r from-red-100 to-rose-200 text-red-800 border-red-400
+                                                        dark:from-red-900/40 dark:to-rose-800/30 dark:text-red-300 dark:border-red-500',
+
+                                            default => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
+                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
+                                        } }}">
+                                        {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
+                                    </span>
+
+                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
                                         shadow-sm backdrop-blur-sm transition-all duration-200
                                         {{ $grievance->priority_level === 'High'
                                             ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-400 dark:from-red-900/40 dark:to-red-800/30 dark:text-red-300 dark:border-red-500'

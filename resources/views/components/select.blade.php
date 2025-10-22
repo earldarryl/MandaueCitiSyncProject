@@ -28,7 +28,6 @@
     "
     class="relative w-full"
 >
-    <!-- Trigger -->
     <div
         @click="open = !open"
         @keydown.enter.prevent="open = !open"
@@ -52,9 +51,7 @@
                     : selected)"
         />
 
-        <!-- Right controls -->
         <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-            <!-- Clear button -->
             <flux:button
                 x-show="!!selected"
                 size="sm"
@@ -68,7 +65,6 @@
                 "
             />
 
-            <!-- Chevron -->
             <div class="h-5 w-5 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="2" stroke="currentColor"
@@ -81,7 +77,6 @@
         </div>
     </div>
 
-    <!-- Dropdown -->
     <div
         x-show="open"
         @click.outside="open = false"

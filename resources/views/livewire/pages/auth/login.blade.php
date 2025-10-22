@@ -88,7 +88,7 @@
                 >
                     <span class="flex items-center justify-center gap-2">
                         <span>
-                            <flux:icon.arrow-right-circle variant="micro"/>
+                            <flux:icon.arrow-right-end-on-rectangle/>
                         </span>
                         <span>{{ __('Log in') }} </span>
                     </span>
@@ -98,15 +98,14 @@
                 <flux:button
                     type="button"
                     variant="primary"
-                    color="zinc"
-                    class="w-full transition duration-300 ease-in-out"
+                    class="w-full transition duration-300 border !border-black hover:!bg-gray-100 dark:hover:!bg-zinc-600 !bg-white dark:!bg-zinc-800 dark:!border-white dark:!text-white ease-in-out"
                     wire:click="openModalRegister"
                     wire:target="openModalRegister, login"
                     wire:loading.attr="disabled"
                     wire:loading.remove
                 >
                     <span class="flex items-center justify-center gap-2">
-                        <flux:icon.pencil-square variant="micro"/>
+                        <flux:icon.pencil-square />
                         <span>{{ __('Register') }}</span>
                     </span>
                 </flux:button>
@@ -121,7 +120,7 @@
         </div>
     </form>
 
-    <flux:modal wire:model.self="showSuccessModal" class="md:w-1/2" :closable="false">
+    <flux:modal wire:model.self="showSuccessModal" class="md:w-1/2" :closable="false" :dismissible="false">
         <div
             x-data="{
                 redirectLink: @entangle('redirectLink'),

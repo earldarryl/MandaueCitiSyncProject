@@ -1,119 +1,172 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
-    <div class="flex justify-end gap-2 mb-4">
-        <button wire:click="clearHistory" class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md border border-yellow-400 hover:bg-yellow-200">
-            Clear History
+
+    <div class="flex justify-end gap-3 mb-5">
+        <button
+            wire:click="clearHistory"
+            class="flex gap-2 justify-start px-5 py-2.5 text-sm font-semibold rounded-lg border
+                bg-red-100 text-red-800 border-red-300
+                hover:bg-red-200 hover:border-red-400
+                dark:bg-red-900/40 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-800/50
+                transition-all duration-200">
+            <flux:icon.trash />
+            <span>Clear History</span>
         </button>
 
-        <button wire:click="restoreHistory" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md border border-blue-400 hover:bg-blue-200">
-            Restore History
+        <button
+            wire:click="restoreHistory"
+            @disabled(!$canRestore)
+            class="flex gap-2 justify-start px-5 py-2.5 text-sm font-semibold rounded-lg border
+                bg-blue-100 text-blue-800 border-blue-300
+                hover:bg-blue-200 hover:border-blue-400
+                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed">
+            <flux:icon.arrow-path />
+            <span>Restore History</span>
         </button>
     </div>
 
-    <ol class="relative border-s border-gray-200 dark:border-gray-700">
-        @forelse ($grievances as $grievance)
-            <li class="mb-10 ms-6 group">
-                <span
-                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-zinc-900 dark:bg-blue-900 group-hover:scale-110 transition-transform duration-200">
-                    <svg class="w-2.5 h-2.5 text-blue-800 dark:text-blue-300" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                    </svg>
-                </span>
+    @forelse ($groupedGrievances as $dateLabel => $grievances)
+        <div wire:key="group-{{ md5($dateLabel) }}">
+            <h2 class="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">{{ $dateLabel }}</h2>
 
-                <div
-                    class="px-6 py-2 bg-gray-50 dark:bg-zinc-800/80 border-2 border-gray-200 dark:border-zinc-700 rounded-2xl hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300">
+            <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
+                @foreach ($grievances as $grievance)
+                    <li class="mb-10 ms-5 group w-full" wire:key="grievance-{{ $grievance->grievance_id }}">
+                        <span
+                            class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-zinc-900 dark:bg-blue-900 group-hover:scale-110 transition-transform duration-200">
+                            <svg class="w-2.5 h-2.5 text-blue-800 dark:text-blue-300" xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                            </svg>
+                        </span>
 
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-                                {{ $grievance->grievance_title ?? 'Untitled Grievance' }}
-                            </h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                                Submitted on <span class="font-medium text-gray-700 dark:text-gray-300">{{ $grievance->created_at->format('F j, Y - g:i A') }}</span>
-                            </p>
-                        </div>
+                        <div wire:target="removeFromHistory({{ $grievance->grievance_id }})" wire:loading.remove>
+                            <div
+                                class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
+                                    hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                        @if ($loop->first)
-                            <span
-                                class="bg-blue-100 text-blue-800 text-lg font-semibold px-4 py-2 rounded-full border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-800 shadow-sm">
-                                 Latest!
-                            </span>
-                        @endif
-                    </div>
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        <span class="self-start text-xs font-semibold px-2.5 py-0.5 rounded-md border
+                                            shadow-sm backdrop-blur-sm transition-all duration-200
+                                            {{ match($grievance->grievance_status) {
+                                                'pending' => 'bg-gray-100 text-gray-800 border-gray-400
+                                                            dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
 
-                    <div class="py-3 border-t border-gray-200 dark:border-zinc-700">
-                        <h4 class="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 tracking-wide">
-                            <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                            Departments
-                        </h4>
-                        @if ($grievance->departments->isNotEmpty())
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($grievance->departments as $dept)
-                                    <span
-                                        class="text-xs font-medium px-2.5 py-0.5 rounded-md border border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:border-blue-700 dark:text-blue-300">
-                                        {{ $dept->department_name }}
-                                    </span>
-                                @endforeach
+                                                'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400
+                                                                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-600',
+
+                                                'resolved' => 'bg-green-100 text-green-800 border-green-400
+                                                            dark:bg-green-900/40 dark:text-green-300 dark:border-green-600',
+
+                                                'rejected' => 'bg-red-100 text-red-800 border-red-400
+                                                            dark:bg-red-900/40 dark:text-red-300 dark:border-red-600',
+
+                                                default => 'bg-gray-100 text-gray-800 border-gray-400
+                                                            dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
+                                            } }}">
+                                            {{ ucfirst(str_replace('_', ' ', $grievance->grievance_status)) }}
+                                        </span>
+
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
+                                            {{ $grievance->grievance_title ?? 'Untitled Grievance' }}
+                                        </h3>
+
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Submitted on
+                                            <span class="font-medium text-gray-700 dark:text-gray-300">
+                                                {{ $grievance->created_at->format('F j, Y - g:i A') }}
+                                            </span>
+                                        </p>
+                                    </div>
+
+                                    @if ($loop->first && $loop->parent->first)
+                                        <span
+                                            class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full border
+                                                border-blue-300 dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800 shadow-sm">
+                                            Latest
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="border-t border-gray-200 dark:border-zinc-700/70 my-3"></div>
+
+                                <div class="flex justify-end items-center gap-2">
+                                    <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}" wire:navigate
+                                        class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md border
+                                            border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200
+                                            dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600
+                                            dark:hover:bg-gray-600 dark:hover:border-gray-500 transition">
+                                        <flux:icon.eye class="w-4 h-4" />
+                                        View Details
+                                    </a>
+
+                                    <button wire:click="removeFromHistory({{ $grievance->grievance_id }})"
+                                        class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
+                                            bg-red-100 text-red-800 border border-red-300 hover:bg-red-200
+                                            dark:bg-red-900/40 dark:text-red-300 dark:border-red-700
+                                            dark:hover:bg-red-800/60 transition-all duration-200">
+                                        <flux:icon.trash class="w-4 h-4" />
+                                        Remove
+                                    </button>
+                                </div>
                             </div>
-                        @else
-                            <p class="text-xs text-gray-400 dark:text-gray-500">No departments assigned.</p>
-                        @endif
-                    </div>
-
-                    <div class="py-3 border-t border-gray-200 dark:border-zinc-700">
-                        <h4 class="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 tracking-wide">
-                            <x-heroicon-o-document-text class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                            Details
-                        </h4>
-                        <div
-                            class="text-[15px] text-gray-800 dark:text-gray-100 leading-relaxed bg-gray-100 dark:bg-zinc-700/80 border border-gray-200 dark:border-zinc-600 rounded-lg p-4">
-                            {!! $grievance->grievance_details ?? '<em class="text-gray-400 dark:text-gray-500">No description provided.</em>' !!}
                         </div>
-                    </div>
 
-                    <div class="py-3 border-t border-gray-200 dark:border-zinc-700">
-                        <h4 class="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 tracking-wide">
-                            <x-heroicon-o-exclamation-circle class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                            Priority Level
-                        </h4>
-                        @if (!empty($grievance->priority_level))
-                            <span
-                                class="inline-flex items-center text-xs font-medium px-3 py-1 rounded-full border shadow-sm
-                                    {{ $grievance->priority_level === 'High'
-                                        ? 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900 dark:text-red-300 dark:border-red-700'
-                                        : ($grievance->priority_level === 'Normal'
-                                            ? 'bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-700'
-                                            : 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900 dark:text-green-300 dark:border-green-700') }}">
-                                {{ $grievance->priority_level }}
-                            </span>
-                        @else
-                            <p class="text-xs text-gray-400 dark:text-gray-500">No priority level set.</p>
-                        @endif
-                    </div>
+                        <div wire:target="removeFromHistory({{ $grievance->grievance_id }})" wire:loading>
+                            <div
+                                class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex flex-col gap-2">
+                                        <div class="h-4 w-24 rounded-md bg-gray-200 dark:bg-zinc-700"></div>
+                                        <div class="h-5 w-48 rounded-md bg-gray-200 dark:bg-zinc-700"></div>
+                                        <div class="h-3 w-32 rounded-md bg-gray-200 dark:bg-zinc-700"></div>
+                                    </div>
+                                    <div class="h-5 w-14 rounded-full bg-gray-200 dark:bg-zinc-700"></div>
+                                </div>
 
-                    <div class="py-2 border-t border-gray-200 dark:border-zinc-700 flex justify-end gap-2">
+                                <div class="border-t border-gray-200 dark:border-zinc-700/70 my-3"></div>
 
-                        @if ($grievance->grievance_id)
-                            <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}" wire:navigate
-                                class="px-4 py-3.5 text-xs font-semibold rounded-md border border-gray-300 text-gray-700 bg-gray-100
-                                            hover:bg-gray-100 hover:border-gray-400
-                                            dark:bg-zinc-700 dark:text-gray-200 dark:border-zinc-600 dark:hover:bg-zinc-600 dark:hover:border-zinc-500
-                                            transition">
-                                View Details
-                            </a>
-                        @endif
+                                <div class="flex justify-end items-center gap-2">
+                                    <div class="h-8 w-24 rounded-md bg-gray-200 dark:bg-zinc-700"></div>
+                                    <div class="h-8 w-20 rounded-md bg-gray-200 dark:bg-zinc-700"></div>
+                                </div>
+                            </div>
+                        </div>
 
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    @empty
+        <div class="flex flex-col items-center justify-center py-10 text-center text-gray-500 dark:text-gray-400 w-full">
+            <x-heroicon-o-archive-box-x-mark class="w-10 h-10 mb-2 text-gray-400 dark:text-gray-500" />
+            <p class="text-sm font-medium">No grievances submitted yet</p>
+        </div>
+    @endforelse
 
-                        <button wire:click="removeFromHistory({{ $grievance->grievance_id }})"
-                            class="px-3 py-1 text-xs font-semibold rounded-md bg-yellow-100 text-yellow-700 border border-yellow-400 hover:bg-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700 dark:hover:bg-yellow-800">
-                            Remove from History
-                        </button>
-                    </div>
-                </div>
-            </li>
-        @empty
-            <li class="ms-6 text-gray-500 dark:text-gray-400">No grievances submitted yet.</li>
-        @endforelse
-    </ol>
+    @if ($hasMore)
+    <div class="flex justify-center items-center">
+        <div wire:target="loadMore" wire:loading.remove>
+            <div class="flex justify-center mt-6">
+                <button wire:click="loadMore"
+                    class="px-6 py-2.5 text-sm font-semibold rounded-md bg-blue-100 text-blue-800 border border-blue-300
+                        hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
+                        dark:hover:bg-blue-800/60 transition-all duration-200">
+                    Load More
+                </button>
+            </div>
+        </div>
+
+        <div wire:target="loadMore" wire:loading>
+            <div class="w-full flex items-center justify-center gap-2">
+                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

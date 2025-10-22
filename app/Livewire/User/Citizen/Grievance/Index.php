@@ -5,7 +5,6 @@ namespace App\Livewire\User\Citizen\Grievance;
 use App\Models\Grievance;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -55,7 +54,7 @@ class Index extends Component
 
         if (session()->pull('just_logged_in', false)) {
             Notification::make()
-                ->title('Welcome back, ' . $this->user->name . ' 👋')
+                ->title('Welcome back, ' . $this->user->name)
                 ->body('Good to see you again! Here’s your dashboard.')
                 ->success()
                 ->send();
@@ -319,13 +318,21 @@ class Index extends Component
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
             })
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
-            ->where(function($query) {
-                $query->where('grievance_title', 'like', '%'.$this->search.'%')
-                    ->orWhere('grievance_details', 'like', '%'.$this->search.'%')
-                    ->orWhere('priority_level', 'like', '%'.$this->search.'%')
-                    ->orWhere('grievance_status', 'like', '%'.$this->search.'%')
-                    ->orWhere('is_anonymous', 'like', '%'.$this->search.'%')
-                    ->orWhereRaw('CAST(grievance_id AS CHAR) like ?', ['%'.$this->search.'%']);
+            ->when($this->search, function ($query) {
+                $term = trim($this->search);
+
+                $normalized = str_replace([' ', '-'], '_', strtolower($term));
+
+                $query->where(function ($sub) use ($term, $normalized) {
+                    $sub->where('grievance_title', 'like', "%{$term}%")
+                        ->orWhere('grievance_details', 'like', "%{$term}%")
+                        ->orWhere('priority_level', 'like', "%{$term}%")
+                        ->orWhere('grievance_type', 'like', "%{$term}%")
+                        ->orWhere('is_anonymous', 'like', "%{$term}%")
+                        ->orWhereRaw('CAST(grievance_id AS CHAR) like ?', ["%{$term}%"])
+                        ->orWhere('grievance_status', 'like', "%{$term}%")
+                        ->orWhere('grievance_status', 'like', "%{$normalized}%");
+                });
             })
             ->when($this->filterDate, function($q){
                 switch($this->filterDate){

@@ -52,15 +52,6 @@
             <flux:error name="form.password" />
         </flux:field>
 
-        <div class="flex justify-between mt-4">
-            <flux:field variant="inline">
-                <flux:checkbox
-                    wire:model="form.remember"
-                />
-                <flux:label for="remember">{{ __('Remember me') }}</flux:label>
-            </flux:field>
-        </div>
-
         <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full">
             <flux:button
                 variant="primary"
@@ -73,7 +64,7 @@
                 >
                     <span class="flex items-center justify-center gap-2">
                         <span>
-                            <flux:icon.arrow-right-circle variant="micro"/>
+                            <flux:icon.arrow-right-end-on-rectangle variant="micro"/>
                         </span>
                         <span>{{ __('Log in') }} </span>
                     </span>
@@ -88,7 +79,7 @@
         </div>
     </form>
 
-    <flux:modal wire:model.self="showSuccessModal" class="md:w-1/2" :closable="false">
+    <flux:modal wire:model.self="showSuccessModal" class="md:w-1/2" :closable="false" :dismissible="false">
         <div
             x-data="{
                 redirectLink: @entangle('redirectLink'),

@@ -325,7 +325,6 @@
         @endif
     </div>
 
-    <!-- Chat with Citizen Modal -->
     <div
         x-data="{ open: false }"
         x-on:open-modal.window="if ($event.detail === 'chat') open = true"

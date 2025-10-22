@@ -21,10 +21,13 @@ class Register extends Component
     public string $barangay = '';
     public string $sitio = '';
     public string $birthdate = '';
+    public string $contact = '';
+    public string $emergency_contact_name ='';
+    public string $emergency_contact_number ='';
+    public string $emergency_relationship = '';
     public int $age;
     public string $name = '';
     public string $email = '';
-    public string $contact = '';
     public string $password = '';
     public $profile_pic;
     public $showConfirmModal;
@@ -49,9 +52,12 @@ class Register extends Component
             'barangay',
             'sitio',
             'birthdate',
+            'contact',
+            'emergency_contact_name',
+            'emergency_contact_number',
+            'emergency_relationship',
             'name',
             'email',
-            'contact',
             'password',
             'password_confirmation',
             'agreed_terms',
@@ -66,7 +72,6 @@ class Register extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'contact' => ['required', 'regex:/^9\d{9}$/'],
             'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
             'password_confirmation' => ['required', 'same:password'],
         ];
@@ -84,6 +89,10 @@ class Register extends Component
             'barangay' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
             'sitio' => ['required', 'string', 'max:255'],
             'birthdate' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
+            'contact' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
+            'emergency_contact_number' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
+            'emergency_contact_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
+            'emergency_relationship' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
         ];
     }
 
@@ -122,9 +131,12 @@ class Register extends Component
             'barangay' => ['required', 'string', 'regex:/^[A-Za-z\s\-]+$/'],
             'sitio' => ['required', 'string', 'max:255'],
             'birthdate' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
+            'contact' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
+            'emergency_contact_number' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
+            'emergency_contact_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
+            'emergency_relationship' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s\-]+$/'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/', 'unique:users,email'],
-            'contact' => ['required', 'regex:/^9\d{9}$/'], // Starts with 9 + 9 digits (e.g., 9123456789)
             'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
             'password_confirmation' => ['required', 'same:password'],
             'agreed_terms' => ['accepted'],
@@ -158,7 +170,13 @@ class Register extends Component
 
             $validated = $this->validate();
 
+            $validated['contact'] = ltrim(preg_replace('/\D/', '', $validated['contact']), '0');
+            $validated['emergency_contact_number'] = ltrim(preg_replace('/\D/', '', $validated['emergency_contact_number']), '0');
+
             $validated['contact'] = '+63' . $validated['contact'];
+            $validated['emergency_contact_number'] = '+63' . $validated['emergency_contact_number'];
+
+
 
             $user = User::create([
                 'name' => ucwords(strtolower(trim($validated['name']))),
@@ -183,6 +201,10 @@ class Register extends Component
                 'sitio' => ucwords(strtolower(trim($validated['sitio']))),
                 'birthdate' => $validated['birthdate'],
                 'age' => $this->age,
+                'phone_number' => trim($validated['contact']),
+                'emergency_contact_name' => ucwords(strtolower(trim($validated['emergency_contact_name']))),
+                'emergency_contact_number' => trim($validated['emergency_contact_number']),
+                'emergency_relationship' => ucwords(strtolower(trim($validated['emergency_relationship']))),
             ]);
 
             event(new Registered($user));
