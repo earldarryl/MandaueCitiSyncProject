@@ -1,4 +1,4 @@
-<div class="w-full m-4 px-2 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
+<div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
@@ -29,113 +29,206 @@
 
     </div>
 
-    <!-- Grievance Header & Info -->
-    <header class="border border-gray-300 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-5 transition">
-        <!-- ID & Last Updated -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
+    <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 dark:text-gray-100 flex items-center gap-2 flex-wrap">
                 <x-heroicon-o-identification class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                Grievance ID:
-                <span class="text-blue-600 dark:text-blue-400 font-extrabold text-2xl sm:text-3xl">
+                ID:
+                <span class="text-blue-700 dark:text-blue-400 text-3xl sm:text-4xl font-black">
                     #{{ $grievance->grievance_id }}
                 </span>
             </h2>
 
-            <p class="hidden sm:flex text-sm text-gray-600 dark:text-gray-400 italic items-center gap-1 shrink-0">
+            <p class="hidden sm:flex text-sm text-gray-500 dark:text-gray-400 italic items-center gap-1 shrink-0">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
                 <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
             </p>
         </div>
 
-        <!-- Title -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
                 <x-heroicon-o-tag class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
                 Title:
                 <span
-                    class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize text-ellipsis max-w-full sm:max-w-[600px]"
+                    class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize max-w-full sm:max-w-[600px]"
                     title="{{ $grievance->grievance_title }}"
                 >
                     {{ $grievance->grievance_title }}
                 </span>
             </h2>
         </div>
+
         <div class="sm:hidden mt-2">
-            <p class="text-xs text-gray-600 dark:text-gray-400 italic flex items-center gap-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 italic flex items-center gap-1">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
                 <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
             </p>
         </div>
     </header>
 
-    <!-- Grievance Info & Departments -->
-    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 font-sans">
-        <div class="flex-1 flex flex-col gap-2">
-            @php
-                $info = [
-                    ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
-                    ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
-                    [
-                        'label' => 'Submitted By',
-                        'value' => $grievance->is_anonymous
-                            ? 'Anonymous User'
-                            : ($grievance->user->name ?? 'Unknown'),
-                        'icon' => 'user',
-                    ],
-                    ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
-                    ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
-                ];
-            @endphp
+    @if (!$grievance->is_anonymous && $grievance->user?->userInfo)
+        @php
+            $info = $grievance->user->userInfo;
 
-            @foreach ($info as $item)
-                <div class="flex items-start justify-between border-b border-gray-300 dark:border-zinc-700 py-2">
-                    <div class="flex items-center gap-2 w-40">
-                        <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                        <span class="text-[16px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
+            $citizenInfo = [
+                [
+                    'label' => 'Full Name',
+                    'value' => trim("{$info->first_name} {$info->middle_name} {$info->last_name} {$info->suffix}") ?: 'N/A',
+                    'icon'  => 'user',
+                ],
+                [
+                    'label' => 'Gender',
+                    'value' => ucfirst($info->gender ?? 'N/A'),
+                    'icon'  => 'adjustments-vertical',
+                ],
+                [
+                    'label' => 'Civil Status',
+                    'value' => ucfirst($info->civil_status ?? 'N/A'),
+                    'icon'  => 'heart',
+                ],
+                [
+                    'label' => 'Barangay / Sitio',
+                    'value' => trim(($info->barangay ?? 'N/A') . ($info->sitio ? ', ' . $info->sitio : '')),
+                    'icon'  => 'map-pin',
+                ],
+                [
+                    'label' => 'Birthdate / Age',
+                    'value' => ($info->birthdate
+                        ? \Carbon\Carbon::parse($info->birthdate)->format('M d, Y')
+                        : 'N/A') . ' / ' . ($info->age ?? 'N/A'),
+                    'icon'  => 'calendar-days',
+                ],
+                [
+                    'label' => 'Phone Number',
+                    'value' => $info->phone_number ?? 'N/A',
+                    'icon'  => 'phone',
+                ],
+                [
+                    'label' => 'Emergency Contact',
+                    'value' => ($info->emergency_contact_name ?? 'N/A')
+                        . ($info->emergency_relationship ? " ({$info->emergency_relationship})" : '')
+                        . ($info->emergency_contact_number ? " - {$info->emergency_contact_number}" : ''),
+                    'icon'  => 'lifebuoy',
+                ],
+            ];
+        @endphp
+
+        <div class="flex flex-col gap-2 font-sans p-3 rounded-sm">
+            <h4 class="flex items-center gap-2 text-[17px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide uppercase">
+                <x-heroicon-o-user-circle class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                Citizen Information
+            </h4>
+
+            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+                @foreach ($citizenInfo as $item)
+                    <div class="flex items-start justify-between py-2">
+                        <div class="flex items-center gap-2 w-44">
+                            <x-dynamic-component
+                                :component="'heroicon-o-' . $item['icon']"
+                                class="w-5 h-5 text-gray-500 dark:text-gray-400 shrink-0"
+                            />
+                            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                                {{ $item['label'] }}
+                            </span>
+                        </div>
+                        <span class="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex-1 text-right break-words">
+                            {{ $item['value'] }}
+                        </span>
                     </div>
-                    <span class="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex-1 text-right">
-                        {{ $item['value'] }}
-                    </span>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
 
-        <div class="flex-1 flex flex-col gap-4">
-            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
-                <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
-                    <x-heroicon-o-document-text class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    Details
+    @else
+        <div class="flex items-center gap-3 font-sans p-4 rounded-sm border border-gray-300 dark:border-zinc-700">
+            <x-heroicon-o-user class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+            <div class="flex flex-col">
+                <h4 class="text-[17px] font-semibold text-gray-600 dark:text-gray-400 tracking-wide uppercase">
+                    Anonymous User
                 </h4>
-                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
-                    {!! $grievance->grievance_details !!}
-                </div>
+                <p class="text-[15px] text-gray-700 dark:text-gray-300">
+                    This grievance was filed anonymously. No personal information is available.
+                </p>
+            </div>
+        </div>
+    @endif
+
+    <div class="p-3 rounded-sm">
+        <h4 class="flex items-center gap-2 text-[17px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide uppercase">
+            <x-heroicon-o-clipboard-document-list class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            Grievance Information
+        </h4>
+
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
+            {{-- Left Column --}}
+            <div class="flex-1 flex flex-col gap-2">
+                @php
+                    $info = [
+                        ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
+                        ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
+                        [
+                            'label' => 'Submitted By',
+                            'value' => $grievance->is_anonymous
+                                ? 'Anonymous User'
+                                : ($grievance->user->name ?? 'Unknown'),
+                            'icon' => 'user',
+                        ],
+                        ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
+                        ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
+                    ];
+                @endphp
+
+                @foreach ($info as $item)
+                    <div class="flex items-start justify-between border-b border-gray-300 dark:border-zinc-700 py-2">
+                        <div class="flex items-center gap-2 w-44">
+                            <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
+                        </div>
+                        <span class="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex-1 text-right">
+                            {{ $item['value'] }}
+                        </span>
+                    </div>
+                @endforeach
             </div>
 
-            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
-                <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
-                    <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    Departments
-                </h4>
-                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-8 ">
-                    @forelse ($grievance->departments->unique('department_id') as $department)
-                        <span
-                            class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
-                                border border-blue-400 dark:border-blue-600
-                                text-blue-700 dark:text-blue-300 font-medium text-sm
-                                px-3 py-1.5 rounded-full shadow-sm
-                                hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
-                        >
-                            {{ $department->department_name }}
-                        </span>
-                    @empty
-                        <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
-                    @endforelse
+            {{-- Right Column --}}
+            <div class="flex-1 flex flex-col gap-4">
+                <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
+                    <h4 class="flex items-center gap-2 mb-2">
+                        <x-heroicon-o-document-text class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Details</span>
+                    </h4>
+                    <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
+                        {!! $grievance->grievance_details !!}
+                    </div>
+                </div>
+
+                <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
+                    <h4 class="flex items-center gap-2 mb-2">
+                        <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Departments</span>
+                    </h4>
+                    <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-8">
+                        @forelse ($grievance->departments->unique('department_id') as $department)
+                            <span
+                                class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
+                                    border border-blue-400 dark:border-blue-600
+                                    text-blue-700 dark:text-blue-300 font-medium text-sm
+                                    px-3 py-1.5 rounded-full shadow-sm
+                                    hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
+                            >
+                                {{ $department->department_name }}
+                            </span>
+                        @empty
+                            <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="flex flex-col gap-3" x-data="{ showMore: false, zoomSrc: null }">
+    <div class="flex flex-col gap-3 p-3 rounded-sm" x-data="{ showMore: false, zoomSrc: null }">
         <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
             <x-heroicon-o-paper-clip class="w-5 h-5 text-gray-500 dark:text-gray-400" /> Attachments
         </h4>

@@ -96,7 +96,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(
             Department::class,
-            'hr_liaison_department',
+            'hr_liaison_departments',
             'hr_liaison_id',
             'department_id',
             'id',
@@ -111,5 +111,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function grievances()
     {
         return $this->hasMany(Grievance::class, 'user_id');
+    }
+
+    public function userInfo()
+    {
+        return $this->hasOne(UserInfo::class, 'user_id');
     }
 }

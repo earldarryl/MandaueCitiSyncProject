@@ -38,7 +38,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $departmentOptions;
     public function mount(): void
     {
-          $this->departmentOptions = Department::whereHas('hrLiaisons')
+        $this->departmentOptions = Department::whereHas('hrLiaisons')
             ->pluck('department_name', 'department_id')
             ->toArray();
         $this->form->fill();
@@ -143,7 +143,7 @@ class Create extends Component implements Forms\Contracts\HasForms
 
             foreach ($this->department as $deptId) {
                 $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $deptId))
+                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $deptId))
                     ->get();
 
                 foreach ($hrLiaisons as $hr) {

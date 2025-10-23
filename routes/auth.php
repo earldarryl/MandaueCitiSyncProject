@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('hr-liaison/department/index', 'user.hr-liaison.department.index')->name('hr-liaison.department.index');
         Volt::route('hr-liaison/grievance/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
         Volt::route('hr-liaison/grievance/view/{id}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
+        Volt::route('hr-liaison/grievance/edit/{id}', 'user.hr-liaison.grievance.edit')->name('hr-liaison.grievance.edit');
         Volt::route('hr-liaison/activity-logs', 'user.admin.activtiy-logs.index')->name('hr-liaison.activity-logs.index');
     });
 

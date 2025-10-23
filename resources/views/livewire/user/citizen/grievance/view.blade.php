@@ -1,4 +1,4 @@
-<div class="w-full m-4 px-2 bg-gray-100/20 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
+<div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
 
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
 
@@ -29,47 +29,41 @@
 
     </div>
 
-    <header class="border border-gray-300 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-5 transition">
+    <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 dark:text-gray-100 flex items-center gap-2 flex-wrap">
+                <x-heroicon-o-identification class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
+                ID:
+                <span class="text-blue-700 dark:text-blue-400 text-3xl sm:text-4xl font-black">
+                    #{{ $grievance->grievance_id }}
+                </span>
+            </h2>
 
-        <div class="flex flex-col gap-4">
-
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
-                    <x-heroicon-o-identification class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                    Grievance ID:
-                    <span class="text-blue-600 dark:text-blue-400 font-extrabold text-2xl sm:text-3xl">
-                        #{{ $grievance->grievance_id }}
-                    </span>
-                </h2>
-
-                <p class="hidden sm:flex text-sm text-gray-600 dark:text-gray-400 italic items-center gap-1 shrink-0">
-                    <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
-                    <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
-                </p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
-                    <x-heroicon-o-tag class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                    Title:
-                    <span
-                        class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize text-ellipsis max-w-full sm:max-w-[600px]"
-                        title="{{ $grievance->grievance_title }}"
-                    >
-                        {{ $grievance->grievance_title }}
-                    </span>
-                </h2>
-
-            </div>
-        </div>
-
-        <div class="sm:hidden mt-2">
-            <p class="text-xs text-gray-600 dark:text-gray-400 italic flex items-center gap-1">
+            <p class="hidden sm:flex text-sm text-gray-500 dark:text-gray-400 italic items-center gap-1 shrink-0">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
                 <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
             </p>
         </div>
 
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
+                <x-heroicon-o-tag class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
+                Title:
+                <span
+                    class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize max-w-full sm:max-w-[600px]"
+                    title="{{ $grievance->grievance_title }}"
+                >
+                    {{ $grievance->grievance_title }}
+                </span>
+            </h2>
+        </div>
+
+        <div class="sm:hidden mt-2">
+            <p class="text-xs text-gray-500 dark:text-gray-400 italic flex items-center gap-1">
+                <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
+                <span>Last updated {{ $grievance->updated_at->diffForHumans() }}</span>
+            </p>
+        </div>
     </header>
 
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 font-sans">
@@ -101,9 +95,9 @@
         <div class="flex-1 flex flex-col gap-4">
 
             <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
-                <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
+                <h4 class="flex items-center gap-2 mb-2">
                     <x-heroicon-o-document-text class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    Details
+                    <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Details</span>
                 </h4>
                 <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
                     {!! $grievance->grievance_details !!}
@@ -111,9 +105,9 @@
             </div>
 
             <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
-                <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
+                <h4 class="flex items-center gap-2 mb-2">
                     <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    Departments
+                    <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Departments</span>
                 </h4>
                 <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
                     @forelse ($grievance->departments->unique('department_id') as $department)
@@ -135,193 +129,187 @@
         </div>
     </div>
 
-   <div class="flex flex-col gap-3" x-data="{ showMore: false, zoomSrc: null }">
-        <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
-            <x-heroicon-o-paper-clip class="w-5 h-5 text-gray-500 dark:text-gray-400" /> Attachments
-        </h4>
+   <div class="flex flex-col w-full p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm"
+        x-data="{ showMore: false, zoomSrc: null }">
 
-        @if ($grievance->attachments->isNotEmpty())
+        @if(!empty($existing_attachments))
+            <div class="flex items-center gap-2 mb-4">
+                <x-heroicon-o-folder class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <h4 class="text-[14px] font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                    Existing Attachments
+                </h4>
+            </div>
+
             @php
-                $visibleAttachments = $grievance->attachments->take(4);
-                $extraAttachments = $grievance->attachments->slice(3);
+                $visibleAttachments = collect($existing_attachments)->take(4);
+                $extraAttachments = collect($existing_attachments)->slice(4);
             @endphp
 
-            <div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    @foreach ($visibleAttachments as $index => $attachment)
-                        @php
-                            $url = Storage::url($attachment->file_path);
-                            $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
-                            $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
-                        @endphp
+            <!-- Attachment Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                @foreach($visibleAttachments as $index => $attachment)
+                    @php
+                        $extension = pathinfo($attachment['file_name'], PATHINFO_EXTENSION);
+                        $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                        $url = Storage::url($attachment['file_path']);
+                    @endphp
 
-                        @if ($loop->iteration < 4 && $grievance->attachments->count() > 4)
-                            <div class="bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-zinc-700 overflow-hidden relative group transition">
-                                @if ($isImage)
-                                    <img
-                                        src="{{ $url }}"
-                                        alt="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
-                                        class="w-full h-36 object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                                        @click="zoomSrc = '{{ $url }}'"
-                                    />
-                                @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
-                                        <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
-                                        </span>
-                                    </a>
-                                @endif
-                            </div>
-
-                        @elseif ($loop->iteration === 4 && $grievance->attachments->count() > 4)
-                            <div
-                                class="relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-zinc-700 overflow-hidden cursor-pointer group"
-                                @click="showMore = true"
-                            >
-                                @if ($isImage)
-                                    <img src="{{ $url }}" class="w-full h-36 object-cover opacity-60" />
-                                @else
-                                    <div class="flex items-center justify-center w-full h-36 bg-gray-200 dark:bg-gray-700">
-                                        <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                    </div>
-                                @endif
-
-                                <div class="absolute inset-0 flex items-center justify-center bg-black/60 text-white font-semibold text-lg">
-                                    +{{ $grievance->attachments->count() - 3 }} more
-                                </div>
-                            </div>
-
-                        @else
-                            <div class="bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-zinc-700 overflow-hidden relative group transition">
-                                @if ($isImage)
-                                    <img
-                                        src="{{ $url }}"
-                                        alt="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
-                                        class="w-full h-36 object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                                        @click="zoomSrc = '{{ $url }}'"
-                                    />
-                                @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
-                                        <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
-                                        </span>
-                                    </a>
-                                @endif
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-
-                <div
-                    x-show="showMore"
-                    x-transition.opacity
-                    x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-                    @click.self="showMore = false"
-                >
-                    <div
-                        x-transition.scale
-                        class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-[90%] max-h-[85vh] overflow-hidden"
-                    >
-                        <header class="sticky top-0 bg-white dark:bg-gray-900 z-10 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-                            <h2 class="flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
-                                <x-heroicon-o-folder-plus class="w-6 h-6 sm:w-7 sm:h-7 text-gray-500 dark:text-gray-400" />
-                                More Attachments
-                            </h2>
-
-                            <button
-                                @click="showMore = false"
-                                class="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-300 dark:border-zinc-700 rounded-full p-2 transition-all duration-200"
-                                aria-label="Close"
-                            >
-                                <x-heroicon-o-x-mark class="w-5 h-5" />
-                            </button>
-                        </header>
-
-                        <div class="p-6 overflow-y-auto max-h-[70vh]">
-                            @if($extraAttachments->isEmpty())
-                                <div class="text-center text-gray-500 dark:text-gray-400 py-12">
-                                    <x-heroicon-o-inbox class="w-12 h-12 mx-auto mb-3 opacity-70" />
-                                    <p>No extra attachments found.</p>
-                                </div>
+                    <!-- Normal attachment cards -->
+                    @if ($loop->iteration < 4 || $extraAttachments->isEmpty())
+                        <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
+                            @if($isImage)
+                                <img
+                                    src="{{ $url }}"
+                                    alt="{{ $attachment['file_name'] }}"
+                                    class="w-full h-36 object-cover cursor-pointer transition-all duration-200 group-hover:opacity-85"
+                                    @click.stop.prevent="zoomSrc = '{{ $url }}'"
+                                />
                             @else
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-                                    @foreach ($extraAttachments as $attachment)
-                                        @php
-                                            $url = Storage::url($attachment->file_path);
-                                            $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
-                                            $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
-                                        @endphp
+                                <a href="{{ $url }}" target="_blank"
+                                class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center hover:bg-gray-200/60 dark:hover:bg-gray-700/60 transition-all duration-200">
+                                    <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
+                                    <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
+                                        {{ $attachment['file_name'] }}
+                                    </span>
+                                </a>
+                            @endif
 
-                                        <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
-                                            @if ($isImage)
-                                                <img
-                                                    src="{{ $url }}"
-                                                    alt="Attachment"
-                                                    class="w-full h-40 object-cover cursor-pointer transition-all duration-200 group-hover:opacity-85"
-                                                    @click="zoomSrc = '{{ $url }}'"
-                                                />
-                                            @else
-                                                <a
-                                                    href="{{ $url }}"
-                                                    target="_blank"
-                                                    class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
-                                                >
-                                                    <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                                    <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
-                                                        {{ $attachment->file_name ?? basename($attachment->file_path) }}
-                                                    </span>
-                                                </a>
-                                            @endif
-                                        </div>
-                                    @endforeach
+                            <!-- Dropdown Actions -->
+                            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <flux:dropdown>
+                                    <flux:button icon="ellipsis-horizontal" class="!p-2 !rounded-full bg-white/80 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition" />
+                                    <flux:menu>
+                                        <flux:menu.item
+                                            icon="arrow-down-tray"
+                                            tag="a"
+                                            href="{{ $url }}"
+                                            download="{{ $attachment['file_name'] }}">
+                                            Download
+                                        </flux:menu.item>
+                                        <flux:menu.item
+                                            icon="trash"
+                                            variant="danger"
+                                            @click="$dispatch('open-delete-attachment-modal-{{ $attachment['attachment_id'] }}')">
+                                            Delete
+                                        </flux:menu.item>
+                                    </flux:menu>
+                                </flux:dropdown>
+                            </div>
+                        </div>
+                    @elseif ($loop->iteration === 4 && !$extraAttachments->isEmpty())
+                        <!-- See More Card -->
+                        <div class="relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden cursor-pointer group"
+                            @click="showMore = true">
+                            @if($isImage)
+                                <img src="{{ $url }}" class="w-full h-36 object-cover opacity-60" />
+                            @else
+                                <div class="flex items-center justify-center w-full h-36 bg-gray-200 dark:bg-gray-700">
+                                    <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
                                 </div>
                             @endif
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/60 text-white font-semibold text-lg">
+                                +{{ count($existing_attachments) - 3 }} more
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    @endif
+                @endforeach
+            </div>
 
+            <!-- "See More" Modal -->
+            <div
+                x-show="showMore"
+                x-transition.opacity
+                x-cloak
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                @click.self="showMore = false">
                 <div
-                    x-show="zoomSrc"
-                    x-cloak
-                    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
-                    @click.self="zoomSrc = null"
-                >
-                    <div class="relative max-w-5xl w-[90%] flex items-center justify-center">
-                        <img :src="zoomSrc" class="w-full max-h-[85vh] object-contain rounded-lg shadow-lg" />
+                    x-transition.scale
+                    class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-[90%] max-h-[85vh] overflow-hidden">
+                    <!-- Header -->
+                    <header class="sticky top-0 bg-white dark:bg-gray-900 z-10 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+                        <h2 class="flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                            <x-heroicon-o-folder-plus class="w-6 h-6 sm:w-7 sm:h-7 text-gray-500 dark:text-gray-400" />
+                            More Attachments
+                        </h2>
+                        <button
+                            @click="showMore = false"
+                            class="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-300 dark:border-zinc-700 rounded-full p-2 transition-all duration-200"
+                            aria-label="Close">
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
+                    </header>
 
-                        <div class="absolute top-4 right-4 flex items-center gap-2">
-                            <a
-                                :href="zoomSrc"
-                                download
-                                class="bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition"
-                                title="Download Image"
-                            >
-                                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                            </a>
+                    <!-- Extra attachments grid -->
+                    <div class="p-6 overflow-y-auto max-h-[70vh]">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                            @foreach ($extraAttachments as $attachment)
+                                @php
+                                    $url = Storage::url($attachment['file_path']);
+                                    $extension = pathinfo($attachment['file_name'], PATHINFO_EXTENSION);
+                                    $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                                @endphp
+                                <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
+                                    @if($isImage)
+                                        <img
+                                            src="{{ $url }}"
+                                            alt="{{ $attachment['file_name'] }}"
+                                            class="w-full h-40 object-cover cursor-pointer group-hover:opacity-85 transition"
+                                            @click="zoomSrc = '{{ $url }}'"
+                                        />
+                                    @else
+                                        <a href="{{ $url }}" target="_blank"
+                                            class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center hover:bg-gray-200/60 dark:hover:bg-gray-700/60 transition">
+                                            <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
+                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                {{ $attachment['file_name'] }}
+                                            </span>
+                                        </a>
+                                    @endif
 
-                            <button
-                                @click="zoomSrc = null"
-                                class="bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition"
-                                title="Close"
-                            >
-                                <x-heroicon-o-x-mark class="w-5 h-5" />
-                            </button>
+                                    <!-- Dropdown -->
+                                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <flux:dropdown>
+                                            <flux:button icon="ellipsis-horizontal" class="!p-2 !rounded-full bg-white/80 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition" />
+                                            <flux:menu>
+                                                <flux:menu.item icon="arrow-down-tray" tag="a" href="{{ $url }}" download="{{ $attachment['file_name'] }}">Download</flux:menu.item>
+                                                <flux:menu.item icon="trash" variant="danger" @click="$dispatch('open-delete-attachment-modal-{{ $attachment['attachment_id'] }}')">Delete</flux:menu.item>
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Image Zoom Modal -->
+            <div
+                x-show="zoomSrc"
+                x-cloak
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+                @click.self="zoomSrc = null">
+                <div class="relative max-w-5xl w-[90%] flex items-center justify-center">
+                    <img :src="zoomSrc" class="w-full max-h-[85vh] object-contain rounded-lg shadow-lg" />
+                    <div class="absolute top-4 right-4 flex items-center gap-2">
+                        <a :href="zoomSrc" download class="bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition" title="Download Image">
+                            <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        </a>
+                        <button @click="zoomSrc = null" class="bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition" title="Close">
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         @else
-            <div class="flex flex-col items-center justify-center py-10 text-center text-gray-500 dark:text-gray-400 w-full">
+            <div class="flex flex-col items-center justify-center py-10 text-center text-gray-500 dark:text-gray-400">
                 <x-heroicon-o-archive-box-x-mark class="w-10 h-10 mb-2 text-gray-400 dark:text-gray-500" />
-                <p class="text-sm font-medium">No attachments available</p>
+                <p class="text-sm font-medium">No existing attachments</p>
             </div>
         @endif
     </div>
+
 
     <div
         x-data="{ open: false }"

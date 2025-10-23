@@ -38,6 +38,7 @@ class Navigation extends Component
         'hr-liaison.activity-logs.index' => 'Activity Logs',
         'hr-liaison.department.index' => 'Department Info',
         'hr-liaison.grievance.index' => 'Grievance List',
+        'hr-liaison.grievance.edit'     => 'Edit Grievance',
         'hr-liaison.grievance.view' => 'View Grievance',
 
         'citizen.grievance.index'    => 'My Grievances',

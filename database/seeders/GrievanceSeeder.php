@@ -27,7 +27,7 @@ class GrievanceSeeder extends Seeder
 
             $grievance = Grievance::create([
                 'user_id'          => $user->id,
-                'grievance_type'   => fake()->randomElement(['Workplace Issue', 'Discrimination', 'Harassment', 'Payroll Concern']),
+                'grievance_type'   => fake()->randomElement(['Complaint', 'Request', 'Inquiry']),
                 'priority_level'   => fake()->randomElement(['Low', 'Normal', 'High']),
                 'grievance_title'  => fake()->sentence(6),
                 'grievance_details'=> fake()->paragraph(4),
@@ -40,7 +40,7 @@ class GrievanceSeeder extends Seeder
 
             foreach ($selectedDepartments as $dept) {
                 $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_department.department_id', $dept->department_id))
+                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $dept->department_id))
                     ->get();
 
                 foreach ($hrLiaisons as $hr) {

@@ -149,6 +149,16 @@ class Chat extends Component implements Forms\Contracts\HasForms
 
         broadcast(new MessageSent($message));
 
+        $receiver = \App\Models\User::find($message->receiver_id);
+        if ($receiver) {
+            Notification::make()
+                ->title('New Message Received')
+                ->body("{$message->sender->name} sent you a message in Grievance #{$this->grievance->grievance_id}.")
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->broadcast($receiver)
+                ->sendToDatabase($receiver, isEventDispatched: true);
+        }
+
         $this->reset(['newMessage']);
         $this->form->fill();
         $this->loadMessages();
@@ -158,6 +168,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
+
 
     private function getReceiverId()
     {

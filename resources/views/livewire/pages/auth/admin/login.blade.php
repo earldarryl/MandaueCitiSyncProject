@@ -10,8 +10,8 @@
         <flux:field>
             <div class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
-                    <flux:icon.at-symbol class="text-mc_primary_color dark:text-white"/>
-                    <span class="text-lg font-bold">Email</span>
+                    <flux:icon.at-symbol/>
+                    <span>Email</span>
                 </flux:label>
                 <flux:input.group>
                         <flux:input
@@ -32,8 +32,8 @@
         <flux:field>
             <div class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
-                    <flux:icon.key class="text-mc_primary_color dark:text-white"/>
-                    <span class="text-lg font-bold">Password</span>
+                    <flux:icon.key/>
+                    <span>Password</span>
                 </flux:label>
 
             <flux:input.group>
@@ -64,7 +64,7 @@
                 >
                     <span class="flex items-center justify-center gap-2">
                         <span>
-                            <flux:icon.arrow-right-end-on-rectangle variant="micro"/>
+                            <flux:icon.arrow-right-end-on-rectangle/>
                         </span>
                         <span>{{ __('Log in') }} </span>
                     </span>

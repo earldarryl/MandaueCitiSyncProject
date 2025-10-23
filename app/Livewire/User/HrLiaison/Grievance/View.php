@@ -18,9 +18,15 @@ class View extends Component
     {
         $user = auth()->user();
 
-        $this->grievance = Grievance::with('attachments', 'assignments', 'departments')
-            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
-            ->findOrFail($id);
+        $this->grievance = Grievance::with([
+            'attachments',
+            'assignments',
+            'departments',
+            'user.userInfo'
+        ])
+        ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+        ->findOrFail($id);
+
     }
 
     public function downloadPdf()

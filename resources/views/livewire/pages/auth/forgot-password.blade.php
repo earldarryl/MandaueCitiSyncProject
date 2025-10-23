@@ -24,8 +24,8 @@
         <flux:field class="flex flex-col gap-2">
             <div class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
-                    <flux:icon.at-symbol class="text-mc_primary_color dark:text-white"/>
-                    <span class="text-lg font-bold">Email</span>
+                    <flux:icon.at-symbol/>
+                    <span>Email</span>
                 </flux:label>
 
                 <flux:input.group>

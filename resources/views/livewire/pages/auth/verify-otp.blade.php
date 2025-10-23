@@ -34,7 +34,7 @@
             <flux:field class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
                         <flux:icon.device-phone-mobile/>
-                        <span class="text-lg font-medium">Enter OTP</span>
+                        <span>Enter OTP</span>
                     </flux:label>
                 <flux:input id="otp" name="otp" type="text" wire:model.defer="otp" class="mt-1 w-full" autofocus />
                 <flux:error name="otp" />

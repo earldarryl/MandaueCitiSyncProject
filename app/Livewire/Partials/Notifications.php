@@ -6,19 +6,19 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Support\Collection;
+
 class Notifications extends Component
 {
     public $user;
     public $userId;
-    public $unreadNotifications;
-    public $readNotifications;
-    public $allNotifications;
+    public $groupedNotifications = [];
 
     public $unreadCount = 0;
     public $readCount   = 0;
 
-    public $unreadLimit = 20;
-    public $readLimit   = 20;
+    public $limit = 20;
+    public $totalNotifications = 0;
 
     protected $listeners = [
         'notification-created' => 'prependNewNotification',
@@ -29,11 +29,6 @@ class Notifications extends Component
     {
         $this->user = Auth::user();
         $this->userId = $this->user?->id;
-
-        $this->unreadNotifications = collect();
-        $this->readNotifications = collect();
-        $this->allNotifications = collect();
-
         if ($this->user) {
             $this->loadNotifications();
         }
@@ -48,10 +43,7 @@ class Notifications extends Component
 
     public function handleRealtimeNotification($payload): void
     {
-        \Log::info('📡 Reverb Notification received', ['payload' => $payload]);
-
         $notification = $payload['notification'] ?? null;
-
         $this->prependNewNotification($notification);
 
         FilamentNotification::make()
@@ -66,25 +58,46 @@ class Notifications extends Component
     {
         if (! $this->user) return;
 
-        $this->unreadNotifications = $this->user
-            ->unreadNotifications()
+        $notifications = $this->user
+            ->notifications()
             ->latest('created_at')
-            ->take($this->unreadLimit)
+            ->take($this->limit)
             ->get();
 
-        $this->readNotifications = $this->user
-            ->readNotifications()
-            ->latest('created_at')
-            ->take($this->readLimit)
-            ->get();
+        $this->totalNotifications = $this->user->notifications()->count();
 
-        $this->allNotifications = $this->unreadNotifications
-            ->merge($this->readNotifications)
-            ->sortByDesc('created_at')
-            ->values();
-
+        $this->groupedNotifications = $this->groupByTimeline($notifications);
         $this->updateCounts();
     }
+
+    private function groupByTimeline(Collection $notifications): array
+    {
+        return $notifications->groupBy(function ($notification) {
+            $date = $notification->created_at->startOfDay();
+            $today = now()->startOfDay();
+            $yesterday = now()->subDay()->startOfDay();
+
+            if ($date->equalTo($today)) {
+                return 'Today';
+            } elseif ($date->equalTo($yesterday)) {
+                return 'Yesterday';
+            } else {
+                return $notification->created_at->format('F j, Y');
+            }
+        })->map(function ($group) {
+            return $group->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'title' => $n->data['title'] ?? '',
+                    'body' => $n->data['body'] ?? '',
+                    'read_at' => $n->read_at,
+                    'created_at' => $n->created_at?->toDateTimeString(),
+                    'diff' => $n->created_at?->diffForHumans(),
+                ];
+            })->values()->toArray();
+        })->toArray();
+    }
+
 
     private function updateCounts(): void
     {
@@ -105,98 +118,64 @@ class Notifications extends Component
             return;
         }
 
-        $this->unreadNotifications = $this->unreadNotifications->prepend($notification)->values();
-        $this->allNotifications = $this->allNotifications->prepend($notification)->values();
-
-        $this->unreadCount = $this->unreadNotifications->count();
-        $this->dispatch('updateUnreadCount');
-
-        FilamentNotification::make()
-            ->title($notification->data['title'] ?? 'New Notification')
-            ->body($notification->data['body'] ?? '')
-            ->success()
-            ->send();
+        $this->loadNotifications();
     }
 
-    // 🔹 MARK AS READ
-    public function markNotificationAsRead($notificationId): void
-    {
-        $notification = $this->user->notifications()->find($notificationId);
-
-        if ($notification && is_null($notification->read_at)) {
-            $notification->markAsRead();
-            FilamentNotification::make()
-                ->title('Notification marked as read')
-                ->success()
-                ->send();
-        }
-
-    }
-
-    public function markNotificationAsUnread($notificationId): void
-    {
-        $notification = $this->user->notifications()->find($notificationId);
-
-        if ($notification && $notification->read_at) {
-            $notification->update(['read_at' => null]);
-            FilamentNotification::make()
-                ->title('Notification marked as unread')
-                ->success()
-                ->send();
-        }
-    }
-
-    public function deleteNotification($notificationId): void
-    {
-        $notification = $this->user->notifications()->find($notificationId);
-
-        if ($notification) {
-            $notification->delete();
-            FilamentNotification::make()
-                ->title('Notification deleted')
-                ->success()
-                ->send();
-        }
-    }
-
+    /** BULK ACTIONS — optimized for fewer DB queries */
     public function markAllAsRead(): void
     {
-        $this->user->unreadNotifications->markAsRead();
-
-        FilamentNotification::make()
-            ->title('All notifications marked as read')
-            ->success()
-            ->send();
+        $this->user->unreadNotifications()->update(['read_at' => now()]);
+        $this->refreshAfterBulk('All notifications marked as read');
     }
 
     public function markAllAsUnread(): void
     {
-        $this->user->notifications()
-            ->whereNotNull('read_at')
-            ->update(['read_at' => null]);
-
-        FilamentNotification::make()
-            ->title('All notifications marked as unread')
-            ->success()
-            ->send();
-
+        $this->user->notifications()->whereNotNull('read_at')->update(['read_at' => null]);
+        $this->refreshAfterBulk('All notifications marked as unread');
     }
 
     public function deleteAllNotifications(): void
     {
         $this->user->notifications()->delete();
-
-        FilamentNotification::make()
-            ->title('All notifications deleted')
-            ->success()
-            ->send();
-
+        $this->refreshAfterBulk('All notifications deleted');
     }
 
-    public function loadMore($type = 'all'): void
+    private function refreshAfterBulk(string $message): void
     {
-        $this->unreadLimit += 20;
-        $this->readLimit += 20;
+        $this->loadNotifications();
+        FilamentNotification::make()
+            ->title($message)
+            ->success()
+            ->send();
+    }
+
+    public function markNotificationAsRead($notificationId): void
+    {
+        if ($n = $this->user->notifications()->find($notificationId)) {
+            $n->markAsRead();
+            $this->loadNotifications();
+        }
+    }
+
+    public function markNotificationAsUnread($notificationId): void
+    {
+        if ($n = $this->user->notifications()->find($notificationId)) {
+            $n->update(['read_at' => null]);
+            $this->loadNotifications();
+        }
+    }
+
+    public function deleteNotification($notificationId): void
+    {
+        if ($n = $this->user->notifications()->find($notificationId)) {
+            $n->delete();
+            $this->loadNotifications();
+        }
+    }
+
+    public function loadMore(): void
+    {
+        $this->limit += 20;
         $this->dispatch('notificationUpdated');
     }
 

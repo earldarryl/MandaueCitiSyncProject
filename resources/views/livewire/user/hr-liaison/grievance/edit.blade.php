@@ -1,7 +1,7 @@
 <div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50">
 
     <x-responsive-nav-link
-        href="{{ route('citizen.grievance.index') }}"
+        href="{{ route('hr-liaison.grievance.index') }}"
         wire:navigate
         class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
             bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200

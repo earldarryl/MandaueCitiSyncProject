@@ -50,8 +50,8 @@
         <flux:field class="flex flex-col gap-2">
             <div class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
-                    <flux:icon.check-circle class="text-mc_primary_color dark:text-white"/>
-                    <span class="text-lg font-bold">Confirm Password</span>
+                    <flux:icon.check-circle/>
+                    <span>Confirm Password</span>
                 </flux:label>
 
                 <flux:input.group>

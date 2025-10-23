@@ -25,6 +25,11 @@ class Grievance extends Model
         'is_cleared',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected $dates = ['deleted_at'];
     public function attachments()
     {

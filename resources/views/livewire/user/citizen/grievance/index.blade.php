@@ -257,14 +257,13 @@
                             type="button"
                             wire:click="applySearch"
                             class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
-                                px-4 py-2 text-sm font-bold rounded-lg
-                                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                                border border-blue-500 dark:border-blue-400
-                                hover:bg-blue-200 dark:hover:bg-blue-800/50
-                                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
-                                transition-all duration-200"
+                                px-4 py-2 text-sm font-semibold rounded-lg
+                                text-white bg-gradient-to-r from-blue-600 to-blue-700
+                                hover:from-blue-700 hover:to-blue-800
+                                focus:outline-none focus:ring-0
+                                shadow-sm hover:shadow-md transition-all duration-200"
                         >
-                            <x-heroicon-o-magnifying-glass class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                             <span>Search</span>
                         </button>
                     </div>
@@ -500,7 +499,10 @@
                         </div>
                     </div>
                 @empty
-                    <p class="col-span-3 text-center text-gray-500 dark:text-gray-400">No grievances found.</p>
+                    <div class="col-span-3 flex flex-col items-center justify-center py-10 text-center text-gray-500 dark:text-gray-400 w-full">
+                        <x-heroicon-o-archive-box-x-mark class="w-10 h-10 mb-2 text-gray-400 dark:text-gray-500" />
+                        <p class="text-sm font-medium">No grievances found</p>
+                    </div>
                 @endforelse
 
             </div>
