@@ -2,9 +2,9 @@
 
 namespace App\Livewire\User\Citizen;
 
+use App\Models\HistoryLog;
 use Filament\Notifications\Notification;
 use Livewire\Component;
-use App\Models\Grievance;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
@@ -23,42 +23,38 @@ class SubmissionHistory extends Component
 
     private function updateRestoreStatus(): void
     {
-        $this->canRestore = Grievance::where('user_id', auth()->id())
-            ->where('is_cleared', true)
-            ->whereNull('deleted_at')
+        $this->canRestore = HistoryLog::onlyTrashed()
+            ->where('user_id', auth()->id())
             ->exists();
     }
 
-    public function removeFromHistory(int $grievanceId): void
+    public function removeFromHistory(int $logId): void
     {
-        $grievance = Grievance::where('user_id', auth()->id())
-            ->where('grievance_id', $grievanceId)
+        $log = HistoryLog::where('user_id', auth()->id())
+            ->where('id', $logId)
             ->first();
 
-        if ($grievance) {
-            $grievance->update(['is_cleared' => true]);
+        if ($log) {
+            $log->delete();
             $this->updateRestoreStatus();
 
             Notification::make()
-                ->title('Grievance Removed')
+                ->title('Removed from History')
                 ->success()
-                ->body('This grievance has been removed from your history.')
+                ->body('This record has been removed from your submission history.')
                 ->send();
         }
     }
 
     public function clearHistory(): void
     {
-        Grievance::where('user_id', auth()->id())
-            ->where('is_cleared', false)
-            ->update(['is_cleared' => true]);
-
+        HistoryLog::where('user_id', auth()->id())->delete();
         $this->updateRestoreStatus();
 
         Notification::make()
-            ->title('Submission History Cleared')
+            ->title('History Cleared')
             ->success()
-            ->body('All grievance records have been hidden from your history.')
+            ->body('All submission records have been hidden from your history.')
             ->send();
     }
 
@@ -68,22 +64,21 @@ class SubmissionHistory extends Component
             Notification::make()
                 ->title('Nothing to Restore')
                 ->warning()
-                ->body('There are no grievances available to restore.')
+                ->body('There are no hidden records available to restore.')
                 ->send();
             return;
         }
 
-        Grievance::where('user_id', auth()->id())
-            ->where('is_cleared', true)
-            ->whereNull('deleted_at')
-            ->update(['is_cleared' => false]);
+        HistoryLog::onlyTrashed()
+            ->where('user_id', auth()->id())
+            ->restore();
 
         $this->updateRestoreStatus();
 
         Notification::make()
             ->title('History Restored')
             ->success()
-            ->body('All grievances have been restored to your history.')
+            ->body('All records have been restored to your submission history.')
             ->send();
     }
 
@@ -92,25 +87,22 @@ class SubmissionHistory extends Component
         $this->limit += $this->increment;
     }
 
-    public function getGroupedGrievancesProperty()
+    public function getGroupedLogsProperty()
     {
-        $grievances = Grievance::with(['departments', 'attachments'])
-            ->where('user_id', auth()->id())
-            ->where('is_cleared', false)
-            ->whereNull('deleted_at')
+        $logs = HistoryLog::where('user_id', auth()->id())
             ->latest()
             ->take($this->limit)
             ->get();
 
-        return $grievances->groupBy(function ($grievance) {
-            $date = $grievance->created_at->startOfDay();
+        return $logs->groupBy(function ($log) {
+            $date = $log->created_at->startOfDay();
             $today = now()->startOfDay();
             $yesterday = now()->subDay()->startOfDay();
 
             return match (true) {
                 $date->equalTo($today) => 'Today',
                 $date->equalTo($yesterday) => 'Yesterday',
-                default => $grievance->created_at->format('F j, Y'),
+                default => $log->created_at->format('F j, Y'),
             };
         });
     }
@@ -119,13 +111,10 @@ class SubmissionHistory extends Component
     {
         $this->updateRestoreStatus();
 
-        $totalCount = Grievance::where('user_id', auth()->id())
-            ->where('is_cleared', false)
-            ->whereNull('deleted_at')
-            ->count();
+        $totalCount = HistoryLog::where('user_id', auth()->id())->count();
 
         return view('livewire.user.citizen.submission-history', [
-            'groupedGrievances' => $this->groupedGrievances,
+            'groupedLogs' => $this->groupedLogs,
             'canRestore' => $this->canRestore,
             'hasMore' => $totalCount > $this->limit,
         ]);

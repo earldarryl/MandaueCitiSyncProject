@@ -2,8 +2,8 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use App\Models\HistoryLog;
 use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Forms;
@@ -155,6 +155,15 @@ class Create extends Component implements Forms\Contracts\HasForms
                     ]);
                 }
             }
+
+            HistoryLog::create([
+                'user_id'         => auth()->id(),
+                'action_type'     => 'grievance_submission',
+                'description'     => "Submitted a new grievance titled '{$this->grievance_title}'.",
+                'reference_id'    => $grievance->grievance_id,
+                'reference_table' => 'grievances',
+                'ip_address' => request()->ip(),
+            ]);
 
             Notification::make()
                 ->title('Grievance Submitted')

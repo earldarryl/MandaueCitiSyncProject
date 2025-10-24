@@ -29,25 +29,6 @@ class View extends Component
 
     }
 
-    public function downloadPdf()
-    {
-        $pdf = Pdf::loadView('pdf.grievance', [
-            'grievance' => $this->grievance,
-        ])->setPaper('A4', 'portrait');
-
-        $filename = 'grievance-' . $this->grievance->grievance_id . '.pdf';
-
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename
-        );
-    }
-
-    public function print($id)
-    {
-        return redirect()->route('print-grievance', ['id' => $id]);
-    }
-
     public function render()
     {
         return view('livewire.user.hr-liaison.grievance.view');

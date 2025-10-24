@@ -95,7 +95,6 @@
     </div>
   </div>
 
-    <!-- Citizen’s Charter Section -->
     <div class="border border-gray-200 dark:border-zinc-700 rounded-lg p-6 bg-white dark:bg-zinc-900 shadow-sm">
         <div class="flex flex-col gap-2 mb-3 border-b border-gray-200 dark:border-zinc-700">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Citizen's Charter (CC)</h3>
@@ -161,9 +160,8 @@
             }
         }
     }"
-    class="space-y-8 max-w-5xl mx-auto bg-white dark:bg-zinc-900 shadow-md rounded-2xl p-8 border border-gray-100 dark:border-zinc-800 mt-10"
+    class="space-y-8 max-w-5xl mx-auto bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-gray-300 dark:border-zinc-800 mt-10"
 >
-    <!-- Header -->
     <div class="flex flex-col gap-2">
         <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Service Quality & Delivery (SQD)</h3>
         <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
@@ -172,7 +170,6 @@
         </p>
     </div>
 
-    <!-- Table -->
     <div class="overflow-x-auto mt-6">
         <div class="min-w-[800px]">
             <div class="grid grid-cols-8 gap-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-zinc-700 pb-3">
@@ -210,8 +207,7 @@
 
 
 
-  <!-- Suggestions -->
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3 mt-3">
     <div>
         <flux:field>
         <flux:label class="flex gap-2 items-center">
@@ -224,7 +220,6 @@
         </flux:field>
     </div>
 
-    <!-- Email -->
     <div>
         <flux:field>
         <flux:label class="flex gap-2 items-center">
@@ -240,11 +235,67 @@
         </flux:field>
     </div>
 
-    <!-- Actions -->
     <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-zinc-800">
-        <flux:button type="reset" color="gray">Reset</flux:button>
-        <flux:button type="submit" color="primary" spinner="submit">Submit Feedback</flux:button>
+
+        <button
+            type="button"
+            wire:click="resetForm"
+            wire:loading.attr="disabled"
+            wire:target="resetForm"
+            class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                bg-gray-100 text-gray-800 border-gray-300
+                hover:bg-gray-200 hover:border-gray-400
+                dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800/50
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed">
+            <x-heroicon-o-x-mark class="w-4 h-4"/>
+            <span wire:loading.remove wire:target="resetForm">Reset</span>
+            <span wire:loading wire:target="resetForm">Processing...</span>
+        </button>
+
+        <button
+            type="submit"
+            wire:loading.attr="disabled"
+            wire:target="submit"
+            class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                bg-blue-100 text-blue-800 border-blue-300
+                hover:bg-blue-200 hover:border-blue-400
+                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed">
+            <x-heroicon-o-check class="w-4 h-4"/>
+            <span wire:loading.remove wire:target="submit">Submit Feedback</span>
+            <span wire:loading wire:target="submit">Submitting...</span>
+        </button>
+
     </div>
+
   </div>
 
+  <flux:modal wire:model.self="showConfirmModal" :closable="false">
+    <div class="p-6 flex flex-col items-center text-center space-y-4">
+        <div class="rounded-full bg-red-100 p-3 text-red-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
+            </svg>
+        </div>
+
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Missing Required Information
+        </h2>
+
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+            Some required fields are incomplete or invalid. Please review your input before proceeding.
+        </p>
+
+        <div class="flex justify-center gap-3 mt-4">
+            <flux:button
+                variant="subtle" class="border border-gray-200 dark:border-zinc-800"
+                @click="$wire.showConfirmModal = false"
+            >
+                Close
+            </flux:button>
+        </div>
+    </div>
+</flux:modal>
 </form>

@@ -16,6 +16,7 @@ class View extends Component
     public function mount($id)
     {
         $this->grievance = Grievance::with('attachments', 'assignments', 'departments')->findOrFail($id);
+        $this->existing_attachments = $this->grievance->attachments->toArray();
     }
 
     public function render()
