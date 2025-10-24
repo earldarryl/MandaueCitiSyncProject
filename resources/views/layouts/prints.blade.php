@@ -10,13 +10,54 @@
 
     <title>{{ $title ?? 'My App' }}</title>
 
-    <style>
-         @media print {
-            @page { size: A4; margin: 1in; }
-            body { background: white !important; color: black !important; }
-            .no-print { display: none !important; }
+  <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 1in;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .bg-white,
+            .bg-gray-100,
+            .dark\:bg-gray-800,
+            .dark\:bg-zinc-900 {
+                background: white !important;
+                color: black !important;
+            }
+
+            .shadow,
+            .shadow-sm,
+            .shadow-md,
+            .shadow-lg {
+                box-shadow: none !important;
+            }
+
+            * {
+                opacity: 1 !important;
+            }
+
+            img {
+                opacity: 1 !important;
+            }
+
+            [x-cloak], [x-show], [x-data], .fixed, .absolute {
+                display: none !important;
+            }
         }
-        body { font-family: 'Inter', sans-serif; padding: 2rem; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 2rem;
+        }
     </style>
 
     @livewireStyles

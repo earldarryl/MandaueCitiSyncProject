@@ -1,14 +1,32 @@
 <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow">
-    <h1 class="text-2xl font-semibold mb-4 text-center">Grievance Report</h1>
+
+     <div class="text-center border-b pb-6">
+        <h1 class="text-2xl font-semibold mb-4 text-center">Grievance Report</h1>
+        <p class="text-gray-600 mt-2">
+            HR Liaison: <strong>{{ $hr_liaison->name }}</strong>
+        </p>
+        <p class="text-gray-500 text-sm">{{ now()->format('F j, Y, g:i A') }}</p>
+        <button onclick="window.print()" class="no-print mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+            Print
+        </button>
+    </div>
 
     <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-            <p><strong>Complainant:</strong> {{ $grievance->user->name }}</p>
+            <p>
+                <strong>Citizen:</strong>
+                @if ($grievance->is_anonymous)
+                    <span class="italic text-gray-500">Anonymous</span>
+                @else
+                    {{ $grievance->user->name ?? 'N/A' }}
+                @endif
+            </p>
             <p><strong>Department:</strong> {{ $grievance->assignments->first()?->department->name ?? 'N/A' }}</p>
         </div>
         <div>
             <p><strong>Date Filed:</strong> {{ $grievance->created_at->format('F j, Y') }}</p>
-            <p><strong>Status:</strong> {{ ucfirst($grievance->status) }}</p>
+            <p><strong>Priority Level:</strong> {{ ucfirst($grievance->priority_level) }}</p>
+            <p><strong>Status:</strong> {{ ucwords(str_replace('_', ' ', $grievance->grievance_status ?? 'N/A')) }}</p>
         </div>
     </div>
 

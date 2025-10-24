@@ -111,8 +111,115 @@ class Index extends Component
             : [];
     }
 
+    public function printSelectedGrievances()
+    {
+        if (empty($this->selected)) {
+            Notification::make()
+                ->title('No Grievances Selected')
+                ->body('Please select at least one grievance to print.')
+                ->warning()
+                ->send();
+            return;
+        }
 
+        $user = auth()->user();
 
+        $grievances = Grievance::with(['departments', 'user', 'attachments'])
+            ->whereIn('grievance_id', $this->selected)
+            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Grievances Found')
+                ->body('The selected grievances were not found or are not assigned to you.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        return redirect()->route('print-selected-grievances', [
+            'selected' => implode(',', $this->selected),
+        ]);
+    }
+
+    public function exportSelectedGrievancesCsv()
+    {
+        if (empty($this->selected)) {
+            Notification::make()
+                ->title('No Grievances Selected')
+                ->body('Please select at least one grievance to export.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $user = auth()->user();
+
+        $grievances = Grievance::with(['user.info', 'departments'])
+            ->whereIn('grievance_id', $this->selected)
+            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Grievances Found')
+                ->body('The selected grievances were not found or are not assigned to you.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $filename = 'selected_grievances_' . now()->format('Y_m_d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($grievances) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Grievance ID',
+                'Grievance Title',
+                'Grievance Type',
+                'Priority Level',
+                'Status',
+                'Submitted By',
+                'Departments Involved',
+                'Details',
+                'Created At',
+                'Updated At',
+            ]);
+
+            foreach ($grievances as $grievance) {
+                $submittedBy = $grievance->is_anonymous
+                    ? 'Anonymous'
+                    : ($grievance->user?->info
+                        ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+                        : $grievance->user?->name);
+
+                $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+                fputcsv($handle, [
+                    $grievance->grievance_id,
+                    $grievance->grievance_title,
+                    $grievance->grievance_type,
+                    $grievance->priority_level,
+                    ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                    $submittedBy,
+                    $departments,
+                    strip_tags($grievance->grievance_details),
+                    $grievance->created_at->format('Y-m-d H:i:s'),
+                    $grievance->updated_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 
     public function rerouteSelectedGrievances(): void
     {
@@ -203,6 +310,28 @@ class Index extends Component
     public function print($id)
     {
         return redirect()->route('print-grievance', ['id' => $id]);
+    }
+
+    public function printAllGrievances()
+    {
+        $user = auth()->user();
+
+        $grievances = Grievance::with(['departments', 'user', 'attachments'])
+            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Grievances Found')
+                ->body('There are no grievances assigned to you to print.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        return redirect()->route('print-all-grievances', ['grievances' => $grievances, 'hr_liaison' => $user]);
+
     }
 
     public function downloadCsv($id)

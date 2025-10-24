@@ -241,6 +241,32 @@
 
     <div x-data="{ openRerouteModal: false }" x-on:reroute-success.window="openRerouteModal = false" class="flex flex-col w-full">
 
+        <div class="flex items-center justify-end gap-2 mb-2 px-3">
+            <button
+                wire:click="downloadGrievancesCsv"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    hover:bg-green-200 dark:hover:bg-green-800/50
+                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span>Export All in CSV</span>
+            </button>
+
+            <button
+                wire:click="printAllGrievances"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300
+                    border border-gray-500 dark:border-gray-400
+                    hover:bg-gray-200 dark:hover:bg-gray-800/50
+                    focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
+                    transition-all duration-200">
+                <x-heroicon-o-printer class="w-4 h-4" />
+                Print All
+            </button>
+        </div>
+
         <div class="flex items-center justify-between gap-2 mb-4 px-3">
             <div class="flex items-center gap-2">
                 <input type="checkbox" wire:model.live="selectAll" id="select-all"
@@ -248,53 +274,66 @@
                 <label for="select-all" class="text-sm font-medium text-gray-700 dark:text-gray-300">Select All</label>
             </div>
 
-            <div class="flex flex-wrap gap-2">
-                <button wire:click="deleteSelected"
-                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                        bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
-                        border border-red-500 dark:border-red-400
-                        hover:bg-red-200 dark:hover:bg-red-800/50
-                        focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
-                        transition-all duration-200">
-                    <x-heroicon-o-trash class="w-5 h-5" />
-                    <span>Delete Selected</span>
-                </button>
+            @if(count($selected) > 0)
+                <div class="flex flex-wrap gap-2">
+                    <button wire:click="exportSelectedGrievancesCsv"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                            border border-green-500 dark:border-green-400
+                            hover:bg-green-200 dark:hover:bg-green-800/50
+                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span>Export Selected</span>
+                    </button>
 
-                <button wire:click="markSelectedHighPriority"
-                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                        bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
-                        border border-amber-500 dark:border-amber-400
-                        hover:bg-amber-200 dark:hover:bg-amber-800/50
-                        focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
-                        transition-all duration-200">
-                    <x-heroicon-o-document-check class="w-5 h-5" />
-                    <span>Mark as High Priority</span>
-                </button>
+                    <button wire:click="printSelectedGrievances"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300
+                            border border-gray-500 dark:border-gray-400
+                            hover:bg-gray-200 dark:hover:bg-gray-800/50
+                            focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
+                            transition-all duration-200">
+                        <x-heroicon-o-printer class="w-5 h-5" />
+                        <span>Print Selected</span>
+                    </button>
 
-                <button
-                    wire:click="downloadGrievancesCsv"
-                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                        bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
-                        border border-green-500 dark:border-green-400
-                        hover:bg-green-200 dark:hover:bg-green-800/50
-                        focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
-                        transition-all duration-200">
-                    <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                    <span>Export CSV</span>
-                </button>
+                    <button wire:click="deleteSelected"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200">
+                        <x-heroicon-o-trash class="w-5 h-5" />
+                        <span>Delete Selected</span>
+                    </button>
 
-                <button
-                    @click="openRerouteModal = true"
-                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                        bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                        border border-blue-500 dark:border-blue-400
-                        hover:bg-blue-200 dark:hover:bg-blue-800/50
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
-                        transition-all duration-200">
-                    <x-heroicon-o-arrow-path class="w-5 h-5" />
-                    <span>Reroute Selected</span>
-                </button>
-            </div>
+                    <button wire:click="markSelectedHighPriority"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
+                            border border-amber-500 dark:border-amber-400
+                            hover:bg-amber-200 dark:hover:bg-amber-800/50
+                            focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
+                            transition-all duration-200">
+                        <x-heroicon-o-document-check class="w-5 h-5" />
+                        <span>Mark as High Priority Selected</span>
+                    </button>
+
+                    <button
+                        @click="openRerouteModal = true"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                            border border-blue-500 dark:border-blue-400
+                            hover:bg-blue-200 dark:hover:bg-blue-800/50
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-path class="w-5 h-5" />
+                        <span>Reroute Selected</span>
+                    </button>
+
+                </div>
+            @endif
         </div>
 
         <div
@@ -363,8 +402,6 @@
         </div>
 
     </div>
-
-
 
     <div class="relative">
         <!-- Grid -->

@@ -124,9 +124,9 @@
                                 wire:poll.10s="loadCounts"
                                 wire:loading.remove
                                 wire:target="markNotificationAsRead,markNotificationAsUnread,loadMore,deleteNotification,markAllAsRead,deleteAllUnread,markAllAsUnread,deleteAllRead"
-                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2 py-1 text-xs font-semibold"
+                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 text-xs font-semibold"
                             >
-                                {{ $unreadCount }}
+                                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                             </span>
                         @endif
                         <div class="p-2 rounded-full dark:bg-zinc-800 bg-gray-200 text-mc_primary_color dark:text-white">

@@ -71,14 +71,43 @@ class DashboardGrievanceTable extends TableWidget
                 TextColumn::make('grievance_status')
                     ->label('Status')
                     ->badge()
+                    ->searchable()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'pending' => 'Pending',
+                        'in_progress' => 'In Progress',
+                        'resolved' => 'Resolved',
+                        'rejected' => 'Rejected',
+                        default => ucfirst($state),
+                    })
+                    ->colors([
+                        'gray' => 'pending',
+                        'warning' => 'in_progress',
+                        'success' => 'resolved',
+                        'danger' => 'rejected',
+                    ])
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('grievance_type')
                     ->label('Type')
+                    ->badge()
+                    ->colors([
+                        'danger' => 'Complaint',
+                        'info' => 'Request',
+                        'success' => 'Inquiry',
+                    ])
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('priority_level')
                     ->label('Priority')
+                    ->badge()
+                    ->colors([
+                        'success' => 'Low',
+                        'info' => 'Normal',
+                        'danger' => 'High',
+                    ])
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('user.name')
@@ -91,6 +120,7 @@ class DashboardGrievanceTable extends TableWidget
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime('M d, Y')
+                    ->searchable()
                     ->sortable(),
             ])
             ->actions([
@@ -101,6 +131,6 @@ class DashboardGrievanceTable extends TableWidget
             ])
             ->searchable()
             ->defaultSort('created_at', 'desc')
-            ->paginated([5, 10, 25, 50]);
+            ->paginated([5, 10, 25, 50, 'all']);
     }
 }
