@@ -49,7 +49,6 @@ class VerifyOtp extends Component
             return;
         }
 
-        // Check rate limit (1 attempt per 60 seconds)
         if (RateLimiter::tooManyAttempts($this->getLimiterKey(), 1)) {
             $this->cooldown = RateLimiter::availableIn($this->getLimiterKey());
             $this->addError('otp', 'Please wait before resending another OTP.');
@@ -98,6 +97,7 @@ class VerifyOtp extends Component
                 default: route('citizen.grievance.index', absolute: false),
                 navigate: true
             );
+
             session()->flash('success', 'Email verified successfully.');
             return;
         }

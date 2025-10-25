@@ -3,7 +3,6 @@
 namespace App\Livewire\User\HrLiaison\Grievance;
 
 use App\Models\Grievance;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;

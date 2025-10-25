@@ -147,12 +147,10 @@ class Edit extends Component implements Forms\Contracts\HasForms
         $data = $this->form->getState();
 
         try {
-            // Update grievance details
             $this->grievance->update([
                 'grievance_details' => $data['grievance_details'],
             ]);
 
-            // Upload new attachments if any
             if (!empty($this->grievance_files)) {
                 foreach ($this->grievance_files as $file) {
                     $storedPath = is_string($file)
@@ -167,7 +165,6 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 }
             }
 
-            // Reassign departments (if changed)
             Assignment::where('grievance_id', $this->grievance->grievance_id)->delete();
 
             foreach ($this->department as $deptId) {

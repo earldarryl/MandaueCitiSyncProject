@@ -93,7 +93,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Theme Switch -->
                                 <flux:radio.group x-data variant="segmented" x-model="$flux.appearance"
                                                 class="flex justify-center sm:justify-start">
                                     <flux:radio value="light" icon="sun" />
@@ -101,7 +100,6 @@
                                     <flux:radio value="system" icon="computer-desktop" />
                                 </flux:radio.group>
 
-                                <!-- Settings Link -->
                                 <x-responsive-nav-link href="{{ route('settings') }}"
                                                     class="flex items-center font-bold gap-2 text-sm dark:text-white dark:hover:bg-zinc-700 hover:bg-gray-200 w-full px-2 py-1 rounded-md"
                                                     wire:navigate>
@@ -113,11 +111,8 @@
                     </div>
                 </div>
             </div>
-            <!-- End Profile Section -->
 
-                <!-- Notification Section -->
                 <div class="relative" x-data="{ modalOpen: null }">
-                    <!-- Bell Icon -->
                     <div @click="$store.notifications.toggle();" class="relative cursor-pointer">
                         @if($unreadCount > 0)
                             <span

@@ -15,6 +15,7 @@ class SubmissionHistory extends Component
     public bool $canRestore = false;
     public int $limit = 5;
     public int $increment = 5;
+    public string $filter = '';
 
     public function mount()
     {
@@ -89,10 +90,14 @@ class SubmissionHistory extends Component
 
     public function getGroupedLogsProperty()
     {
-        $logs = HistoryLog::where('user_id', auth()->id())
-            ->latest()
-            ->take($this->limit)
-            ->get();
+        $query = HistoryLog::where('user_id', auth()->id());
+
+        $query->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
+            ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedbacks'));
+
+        $logs = $query->latest()
+                    ->take($this->limit)
+                    ->get();
 
         return $logs->groupBy(function ($log) {
             $date = $log->created_at->startOfDay();
@@ -111,12 +116,16 @@ class SubmissionHistory extends Component
     {
         $this->updateRestoreStatus();
 
-        $totalCount = HistoryLog::where('user_id', auth()->id())->count();
+        $totalCount = HistoryLog::where('user_id', auth()->id())
+            ->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
+            ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'))
+            ->count();
 
         return view('livewire.user.citizen.submission-history', [
             'groupedLogs' => $this->groupedLogs,
-            'canRestore' => $this->canRestore,
-            'hasMore' => $totalCount > $this->limit,
+            'canRestore'  => $this->canRestore,
+            'hasMore'     => $totalCount > $this->limit,
         ]);
     }
+
 }

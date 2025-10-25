@@ -40,6 +40,13 @@
         </div>
     </div>
 
+   @php
+        $palette = [
+            '0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899',
+            '14B8A6','6366F1','F97316','84CC16',
+        ];
+    @endphp
+
     @if (empty($departments) || count($departments) === 0)
         <div class="bg-yellow-50 dark:bg-zinc-800 border border-yellow-300 dark:border-zinc-700 rounded-xl p-6 text-center">
             <x-heroicon-o-information-circle class="w-8 h-8 mx-auto text-yellow-500 mb-3" />
@@ -48,17 +55,27 @@
     @else
         <div class="@if(count($departments) === 1) grid grid-cols-1 @else grid sm:grid-cols-2 lg:grid-cols-3 gap-6 @endif">
             @foreach ($departments as $department)
-                <div class="group relative bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm
-                            overflow-hidden">
+                @php
+                    $index = crc32($department->department_name) % count($palette);
+                    $bgColor = $palette[$index];
+
+                    $departmentBg = $department->department_bg
+                        ? Storage::url($department->department_bg)
+                        : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=512';
+
+                    $departmentProfile = $department->department_profile
+                        ? Storage::url($department->department_profile)
+                        : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=128';
+                @endphp
+
+                <div class="group relative bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm overflow-hidden">
 
                     <div class="relative h-32 w-full">
-                        <img src="{{ $department->department_bg_url }}"
-                            class="w-full h-full object-cover"
-                            alt="Department Background">
+                        <img src="{{ $departmentBg }}" class="w-full h-full object-cover" alt="Department Background">
                         <div class="absolute inset-0 bg-black/25"></div>
 
                         <div class="absolute bottom-0 left-4 translate-y-1/2">
-                            <img src="{{ $department->department_profile_url }}"
+                            <img src="{{ $departmentProfile }}"
                                 class="w-16 h-16 rounded-full border-4 border-white shadow-md object-cover"
                                 alt="Department Profile">
                         </div>
@@ -76,9 +93,21 @@
                             <span>Code: <span class="font-medium">{{ $department->department_code }}</span></span>
                             <span>Created: {{ $department->created_at->format('M d, Y') }}</span>
                         </div>
+
+                        <div class="flex items-center justify-end">
+                            <a href="{{ route('hr-liaison.department.view', $department->department_id) }}" wire:navigate
+                                class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
+                                    bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200
+                                    dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
+                                    dark:hover:bg-blue-800/60 transition-all duration-200">
+                                <flux:icon.eye class="w-4 h-4" />
+                                View
+                            </a>
+                        </div>
                     </div>
                 </div>
             @endforeach
         </div>
     @endif
+
 </div>

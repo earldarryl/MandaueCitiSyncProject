@@ -1,37 +1,42 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
-    <div class="flex justify-end gap-3 mb-5">
-        <button
-            wire:click="clearHistory"
-            wire:loading.attr="disabled"
-            wire:target="clearHistory"
-            class="flex gap-2 justify-start px-5 py-2.5 text-sm font-semibold rounded-lg border
-                bg-red-100 text-red-800 border-red-300
-                hover:bg-red-200 hover:border-red-400
-                dark:bg-red-900/40 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-800/50
-                transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+    <div class="flex flex-col sm:flex-row justify-between gap-3 mb-5 items-start sm:items-center">
 
-            <flux:icon.trash wire:loading.remove wire:target="clearHistory" />
-            <span wire:loading.remove wire:target="clearHistory">Clear History</span>
-            <span wire:loading wire:target="clearHistory">Processing...</span>
-        </button>
+        <div class="w-full sm:w-64">
+            <x-filter-select
+                name="filter"
+                placeholder="Filter by type"
+                :options="['Grievances', 'Feedbacks']"
+            />
+        </div>
 
-        <button
-            wire:click="restoreHistory"
-            wire:loading.attr="disabled"
-            wire:target="restoreHistory"
-            @disabled(!$canRestore)
-            class="flex gap-2 justify-start px-5 py-2.5 text-sm font-semibold rounded-lg border
-                bg-blue-100 text-blue-800 border-blue-300
-                hover:bg-blue-200 hover:border-blue-400
-                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
-                transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed">
+        <div class="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0 w-full sm:w-auto">
+            <button
+                wire:click="clearHistory"
+                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                    w-full sm:w-auto
+                    bg-red-100 text-red-800 border-red-300
+                    hover:bg-red-200 hover:border-red-400
+                    dark:bg-red-900/40 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-800/50
+                    transition-all duration-200">
+                <flux:icon.trash class="w-4 h-4" />
+                Clear History
+            </button>
 
-            <flux:icon.arrow-path wire:loading.remove wire:target="restoreHistory" />
-            <span wire:loading.remove wire:target="restoreHistory">Restore History</span>
-            <span wire:loading wire:target="restoreHistory">Processing...</span>
-        </button>
+            <button
+                wire:click="restoreHistory"
+                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                    w-full sm:w-auto
+                    bg-blue-100 text-blue-800 border-blue-300
+                    hover:bg-blue-200 hover:border-blue-400
+                    dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
+                    transition-all duration-200">
+                <flux:icon.arrow-path class="w-4 h-4" />
+                Restore History
+            </button>
+        </div>
+
+
     </div>
 
     @forelse ($groupedLogs as $dateLabel => $logs)
@@ -40,13 +45,21 @@
 
             <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
                 @foreach ($logs as $log)
+                    @php
+                        if ($log->reference_table === 'grievances') {
+                            $bgColor  = 'bg-green-400 dark:bg-green-700';
+                            $svgColor = 'text-white';
+                        } else {
+                            $bgColor  = 'bg-purple-500 dark:bg-purple-700';
+                            $svgColor = 'text-white';
+                        }
+                    @endphp
+
                     <li class="mb-10 ms-5 group w-full" wire:key="log-{{ $log->id }}">
                         <span
-                            class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-zinc-900 dark:bg-blue-900 group-hover:scale-110 transition-transform duration-200">
-                            <svg class="w-2.5 h-2.5 text-blue-800 dark:text-blue-300" xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                            class="absolute flex items-center justify-center w-6 h-6 {{ $bgColor }} rounded-full -start-3 ring-8 ring-white dark:ring-zinc-900 group-hover:scale-110 transition-transform duration-200">
+                            <svg class="w-2.5 h-2.5 {{ $svgColor }}" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
                             </svg>
                         </span>
 

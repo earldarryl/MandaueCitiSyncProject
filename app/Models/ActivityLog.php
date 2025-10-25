@@ -21,6 +21,10 @@ class ActivityLog extends Model
         'device_info',
     ];
 
+    protected $casts = [
+        'timestamp' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -30,4 +34,5 @@ class ActivityLog extends Model
     {
         return $this->belongsTo(\Spatie\Permission\Models\Role::class);
     }
+
 }

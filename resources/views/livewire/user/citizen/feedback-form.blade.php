@@ -118,8 +118,14 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         @for ($i = 1; $i <= 5; $i++)
-                            <label class="inline-flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
-                                <input type="radio" wire:model="{{ $field }}" value="{{ $i }}" class="text-blue-600 focus:ring-blue-500" />
+                            <label class="relative flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900 transition cursor-pointer">
+                                <input type="radio" wire:model="{{ $field }}" value="{{ $i }}" class="sr-only peer" />
+
+                                <div class="w-5 h-5 rounded-full border-2 border-blue-400 flex-shrink-0
+                                            peer-checked:border-blue-600 peer-checked:bg-blue-600 transition flex items-center justify-center">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-white peer-checked:bg-white transition"></div>
+                                </div>
+
                                 <span class="text-sm text-gray-700 dark:text-gray-300">
                                     {{ match($i) {
                                         1 => '1. I know what a CC is and I saw this office’s CC / Easy to see / Helped very much',
