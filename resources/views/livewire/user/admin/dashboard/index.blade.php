@@ -64,20 +64,7 @@
                         </div>
                     </div>
 
-                    <!-- Tables -->
-                    @if($activeTab === 'grievances')
-                        <livewire:dashboard-grievance-table
-                            :start-date="$startDate"
-                            :end-date="$endDate"
-                            :wire:key="'grievances-table-'.$startDate.'-'.$endDate"
-                        />
-                    @elseif($activeTab === 'users')
-                        <livewire:dashboard-user-table
-                            :start-date="$startDate"
-                            :end-date="$endDate"
-                            :wire:key="'users-table-'.$startDate.'-'.$endDate"
-                        />
-                    @endif
+
 
                 </div>
             @endcan

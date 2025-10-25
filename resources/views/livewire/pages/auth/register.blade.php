@@ -187,8 +187,7 @@
 
                                             <div class="flex justify-center gap-3 mt-4">
                                                 <flux:button
-                                                    color="zinc"
-                                                    variant="primary"
+                                                    variant="subtle" class="border border-gray-200 dark:border-zinc-800"
                                                     @click="$wire.showConfirmModal = false"
                                                 >
                                                     Close

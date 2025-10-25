@@ -22,7 +22,6 @@ class Grievance extends Model
         'processing_days',
         'grievance_title',
         'grievance_details',
-        'is_cleared',
     ];
 
     protected $casts = [
@@ -65,6 +64,22 @@ class Grievance extends Model
     public function getFormattedUpdatedAtAttribute(): ?string
     {
         return $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null;
+    }
+
+    public function acknowledgeIfPending($user)
+    {
+        if ($this->grievance_status === 'pending') {
+            $this->update(['grievance_status' => 'acknowledged']);
+
+            ActivityLog::create([
+                'user_id'     => $user->id,
+                'role_id'     => $user->roles->first()?->id,
+                'action'      => "Acknowledged grievance #{$this->grievance_id}",
+                'timestamp'   => now(),
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('User-Agent'),
+            ]);
+        }
     }
 
 }

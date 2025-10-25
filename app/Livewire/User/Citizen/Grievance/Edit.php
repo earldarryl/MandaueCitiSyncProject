@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use App\Models\ActivityLog;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Notifications\Notification;
@@ -31,7 +32,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
     public $is_anonymous;
     public $grievance_type;
     public $priority_level;
-    public $department = [];
+    public $department;
     public $grievance_title;
     public $grievance_details;
     public $grievance_files = [];
@@ -42,26 +43,21 @@ class Edit extends Component implements Forms\Contracts\HasForms
     {
         $this->grievance = Grievance::with('attachments', 'assignments')->findOrFail($id);
 
-        $this->is_anonymous     = (bool) $this->grievance->is_anonymous;
-        $this->grievance_type   = $this->grievance->grievance_type;
-        $this->priority_level   = $this->grievance->priority_level;
-        $this->grievance_title  = $this->grievance->grievance_title;
+        $this->is_anonymous = (bool) $this->grievance->is_anonymous;
+        $this->grievance_type = $this->grievance->grievance_type;
+        $this->priority_level = $this->grievance->priority_level;
+        $this->grievance_title = $this->grievance->grievance_title;
         $this->grievance_details = $this->grievance->grievance_details;
-        $this->department = $this->grievance
-            ->assignments
-            ->pluck('department_id')
-            ->unique()
-            ->values()
-            ->toArray();
+        $this->department = Department::whereIn(
+            'department_id',
+            $this->grievance->assignments->pluck('department_id')->unique()
+        )->pluck('department_name')->first();
+
         $this->existing_attachments = $this->grievance->attachments->toArray();
 
-       $this->departmentOptions = Department::whereIn('department_id', function ($query) {
-            $query->select('department_id')
-                ->from('assignments')
-                ->distinct();
-        })
-        ->pluck('department_name', 'department_id')
-        ->toArray();
+       $this->departmentOptions = Department::whereHas('hrLiaisons')
+            ->pluck('department_name', 'department_name')
+            ->toArray();
 
         $this->form->fill([
             'grievance_details' => $this->grievance->grievance_details,
@@ -114,8 +110,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
             'is_anonymous'      => ['required', 'boolean'],
             'grievance_type'    => ['required', 'string', 'max:255'],
             'priority_level'    => ['required', 'string', 'max:50'],
-            'department'        => ['required', 'array', 'min:1'],
-            'department.*'      => ['exists:departments,department_id'],
+            'department' => ['required', 'exists:departments,department_name'],
             'grievance_title'   => ['required', 'string', 'max:255'],
             'grievance_details' => ['required', 'string'],
             'grievance_files.*' => ['nullable', 'file', 'max:51200'],
@@ -141,13 +136,29 @@ class Edit extends Component implements Forms\Contracts\HasForms
         }
     }
 
-    public function submit(): void
+   public function submit(): void
     {
-        $this->validate();
+        $this->showConfirmUpdateModal = false;
+
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->showConfirmUpdateModal = true;
+
+            $this->setErrorBag($e->validator->getMessageBag());
+            return;
+        }
 
         $data = $this->form->getState();
 
         try {
+            $processingDays = match ($this->priority_level) {
+                'High'   => 3,
+                'Normal' => 7,
+                'Low'    => 15,
+                default  => 7,
+            };
+
             $this->grievance->update([
                 'user_id'          => auth()->id(),
                 'grievance_type'   => $this->grievance_type,
@@ -155,6 +166,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 'grievance_title'  => $this->grievance_title,
                 'grievance_details'=> $data['grievance_details'],
                 'is_anonymous'     => (int) $this->is_anonymous,
+                'processing_days'  => $processingDays,
             ]);
 
             if (!empty($this->grievance_files)) {
@@ -173,20 +185,29 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
             Assignment::where('grievance_id', $this->grievance->grievance_id)->delete();
 
-            foreach ($this->department as $deptId) {
-                $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $deptId))
-                    ->get();
+            $department = Department::where('department_name', $this->department)->firstOrFail();
 
-                foreach ($hrLiaisons as $hr) {
-                    Assignment::create([
-                        'grievance_id'  => $this->grievance->grievance_id,
-                        'department_id' => $deptId,
-                        'assigned_at'   => now(),
-                        'hr_liaison_id' => $hr->id,
-                    ]);
-                }
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+                ->get();
+
+            foreach ($hrLiaisons as $hr) {
+                Assignment::create([
+                    'grievance_id'  => $this->grievance->grievance_id,
+                    'department_id' => $department->department_id,
+                    'assigned_at'   => now(),
+                    'hr_liaison_id' => $hr->id,
+                ]);
             }
+
+            ActivityLog::create([
+                'user_id'     => auth()->id(),
+                'role_id'     => auth()->user()->roles->first()?->id,
+                'action'      => "Updated grievance #{$this->grievance->grievance_id} ({$this->grievance_title})",
+                'timestamp'   => now(),
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('User-Agent'),
+            ]);
 
             Notification::make()
                 ->title('Grievance Updated')
@@ -201,7 +222,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Update Failed')
-                ->body('Something went wrong: ' . $e->getMessage())
+                ->body('Something went wrong while updating your grievance. Please try again.')
                 ->danger()
                 ->send();
 

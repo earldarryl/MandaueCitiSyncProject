@@ -31,7 +31,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $is_anonymous;
     public $grievance_type;
     public $priority_level;
-    public $department = [];
+    public $department;
     public $grievance_files = [];
     public $grievance_title;
     public $grievance_details;
@@ -39,8 +39,9 @@ class Create extends Component implements Forms\Contracts\HasForms
     public function mount(): void
     {
         $this->departmentOptions = Department::whereHas('hrLiaisons')
-            ->pluck('department_name', 'department_id')
+            ->pluck('department_name', 'department_name')
             ->toArray();
+
         $this->form->fill();
     }
 
@@ -91,8 +92,7 @@ class Create extends Component implements Forms\Contracts\HasForms
             'is_anonymous'      => ['required', 'boolean'],
             'grievance_type'    => ['required', 'string', 'max:255'],
             'priority_level'    => ['required', 'string', 'max:50'],
-            'department'        => ['required', 'array', 'min:1'],
-            'department.*'      => ['exists:departments,department_id'],
+            'department' => ['required', 'exists:departments,department_name'],
             'grievance_title'   => ['required', 'string', 'max:255'],
             'grievance_details' => ['required', 'string'],
             'grievance_files.*' => ['nullable', 'file', 'max:51200'],
@@ -116,6 +116,14 @@ class Create extends Component implements Forms\Contracts\HasForms
         $data = $this->form->getState();
 
         try {
+
+            $processingDays = match ($this->priority_level) {
+                'High'   => 3,
+                'Normal' => 7,
+                'Low'    => 15,
+                default  => 7,
+            };
+
             $grievance = Grievance::create([
                 'user_id'          => auth()->id(),
                 'grievance_type'   => $this->grievance_type,
@@ -124,7 +132,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'grievance_details'=> $data['grievance_details'],
                 'is_anonymous'     => (int) $this->is_anonymous,
                 'grievance_status' => 'pending',
-                'processing_days'  => 0,
+                'processing_days'  => $processingDays,
             ]);
 
             if (!empty($this->grievance_files)) {
@@ -141,19 +149,25 @@ class Create extends Component implements Forms\Contracts\HasForms
                 }
             }
 
-            foreach ($this->department as $deptId) {
-                $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                    ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $deptId))
-                    ->get();
+            $departmentName = $this->department;
 
-                foreach ($hrLiaisons as $hr) {
-                    Assignment::create([
-                        'grievance_id'  => $grievance->grievance_id,
-                        'department_id' => $deptId,
-                        'assigned_at'   => now(),
-                        'hr_liaison_id' => $hr->id,
-                    ]);
-                }
+            $department = Department::where('department_name', $departmentName)->first();
+
+            if (!$department) {
+                throw new \Exception("Invalid department selected.");
+            }
+
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+                ->get();
+
+            foreach ($hrLiaisons as $hr) {
+                Assignment::create([
+                    'grievance_id'  => $grievance->grievance_id,
+                    'department_id' => $department->department_id,
+                    'assigned_at'   => now(),
+                    'hr_liaison_id' => $hr->id,
+                ]);
             }
 
             HistoryLog::create([

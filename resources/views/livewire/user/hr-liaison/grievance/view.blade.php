@@ -191,7 +191,6 @@
                 @endforeach
             </div>
 
-            {{-- Right Column --}}
             <div class="flex-1 flex flex-col gap-4">
                 <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
                     <h4 class="flex items-center gap-2 mb-2">

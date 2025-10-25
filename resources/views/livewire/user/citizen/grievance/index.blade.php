@@ -290,41 +290,39 @@
 
     <div class="flex items-center justify-between gap-2 mb-4 px-3">
         <div class="flex items-center gap-2">
-            <flux:checkbox wire:model.live="selectAll" id="select-all"/>
+            <flux:checkbox wire:model.live="selectAll" id="select-all" />
             <flux:label>Select All</flux:label>
         </div>
 
-        <div class="flex flex-wrap gap-2">
-            <button
-                wire:click="deleteSelected"
-                class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                    bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
-                    border border-red-500 dark:border-red-400
-                    hover:bg-red-200 dark:hover:bg-red-800/50
-                    focus:outline-none
-                    focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
-                    transition-all duration-200 w-full sm:w-auto"
-            >
-                <flux:icon.trash class="w-5 h-5 text-red-600 dark:text-red-400" />
-                <span>Delete Selected</span>
-            </button>
+        @if(count($selected) > 0)
+            <div class="flex flex-wrap gap-2">
+                <button
+                    wire:click="deleteSelected"
+                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                        border border-red-500 dark:border-red-400
+                        hover:bg-red-200 dark:hover:bg-red-800/50
+                        focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                        transition-all duration-200 w-full sm:w-auto"
+                >
+                    <flux:icon.trash class="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span>Delete Selected</span>
+                </button>
 
-            <button
-                wire:click="markSelectedHighPriority"
-                class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                    bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
-                    border border-amber-500 dark:border-amber-400
-                    hover:bg-amber-200 dark:hover:bg-amber-800/50
-                    focus:outline-none
-                    focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
-                    transition-all duration-200 w-full sm:w-auto"
-            >
-                <flux:icon.document-check class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                <span>Mark as High Priority</span>
-            </button>
-
-        </div>
-
+                <button
+                    wire:click="markSelectedHighPriority"
+                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
+                        border border-amber-500 dark:border-amber-400
+                        hover:bg-amber-200 dark:hover:bg-amber-800/50
+                        focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
+                        transition-all duration-200 w-full sm:w-auto"
+                >
+                    <flux:icon.document-check class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <span>Mark as High Priority</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     <div class="relative">

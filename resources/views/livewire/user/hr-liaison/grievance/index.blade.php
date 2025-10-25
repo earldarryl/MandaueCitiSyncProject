@@ -269,9 +269,8 @@
 
         <div class="flex items-center justify-between gap-2 mb-4 px-3">
             <div class="flex items-center gap-2">
-                <input type="checkbox" wire:model.live="selectAll" id="select-all"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                <label for="select-all" class="text-sm font-medium text-gray-700 dark:text-gray-300">Select All</label>
+                <flux:checkbox wire:model.live="selectAll" id="select-all" />
+                <flux:label>Select All</flux:label>
             </div>
 
             @if(count($selected) > 0)
