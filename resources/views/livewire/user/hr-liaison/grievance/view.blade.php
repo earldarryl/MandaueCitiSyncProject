@@ -15,18 +15,6 @@
             <span class="lg:hidden">Home</span>
         </x-responsive-nav-link>
 
-        <button
-            x-on:click="$dispatch('open-modal', 'chat')"
-            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                border border-blue-400 dark:border-blue-600
-                hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-all duration-200 w-full sm:w-52"
-        >
-            <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span class="hidden lg:inline">Chat with Citizen</span>
-            <span class="lg:hidden">Chat</span>
-        </button>
-
     </div>
 
     <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
@@ -77,38 +65,9 @@
                     'icon'  => 'user',
                 ],
                 [
-                    'label' => 'Gender',
-                    'value' => ucfirst($info->gender ?? 'N/A'),
-                    'icon'  => 'adjustments-vertical',
-                ],
-                [
-                    'label' => 'Civil Status',
-                    'value' => ucfirst($info->civil_status ?? 'N/A'),
-                    'icon'  => 'heart',
-                ],
-                [
                     'label' => 'Barangay / Sitio',
                     'value' => trim(($info->barangay ?? 'N/A') . ($info->sitio ? ', ' . $info->sitio : '')),
                     'icon'  => 'map-pin',
-                ],
-                [
-                    'label' => 'Birthdate / Age',
-                    'value' => ($info->birthdate
-                        ? \Carbon\Carbon::parse($info->birthdate)->format('M d, Y')
-                        : 'N/A') . ' / ' . ($info->age ?? 'N/A'),
-                    'icon'  => 'calendar-days',
-                ],
-                [
-                    'label' => 'Phone Number',
-                    'value' => $info->phone_number ?? 'N/A',
-                    'icon'  => 'phone',
-                ],
-                [
-                    'label' => 'Emergency Contact',
-                    'value' => ($info->emergency_contact_name ?? 'N/A')
-                        . ($info->emergency_relationship ? " ({$info->emergency_relationship})" : '')
-                        . ($info->emergency_contact_number ? " - {$info->emergency_contact_number}" : ''),
-                    'icon'  => 'lifebuoy',
                 ],
             ];
         @endphp
@@ -160,21 +119,57 @@
         </h4>
 
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
-            {{-- Left Column --}}
             <div class="flex-1 flex flex-col gap-2">
                 @php
+                    use Carbon\Carbon;
+
+                    $status = strtolower($grievance->grievance_status);
+
+                    $isCompleted = in_array($status, ['resolved', 'rejected', 'closed']);
+                    $isEscalated = $status === 'escalated';
+
+                    $endDate = $isCompleted ? $grievance->updated_at : now();
+
+                    $created = Carbon::parse($grievance->created_at);
+                    $ended = Carbon::parse($endDate);
+
+                    $processingDays = ceil($created->diffInHours($ended) / 24);
+
+                    $expectedDays = match (strtolower($grievance->priority_level)) {
+                        'low' => 7,
+                        'medium' => 5,
+                        'high' => 3,
+                        default => 7,
+                    };
+
+                    $isOverdue = !$isCompleted && $processingDays > $expectedDays;
+
+                    $processingDisplay = match (true) {
+                        $isCompleted => "{$processingDays} / {$expectedDays} days (Completed)",
+                        $isEscalated => "{$processingDays} / {$expectedDays} days (Escalated — under review)",
+                        $isOverdue   => "{$processingDays} / {$expectedDays} days (Overdue)",
+                        default      => "{$processingDays} / {$expectedDays} days (Ongoing)",
+                    };
+
+                    $class = match (true) {
+                        $isCompleted => 'text-green-600 font-semibold',
+                        $isEscalated => 'text-amber-600 font-semibold',
+                        $isOverdue   => 'text-red-600 font-semibold',
+                        default      => '',
+                    };
+
                     $info = [
                         ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
                         ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
-                        [
-                            'label' => 'Submitted By',
-                            'value' => $grievance->is_anonymous
-                                ? 'Anonymous User'
-                                : ($grievance->user->name ?? 'Unknown'),
-                            'icon' => 'user',
-                        ],
+                        ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
                         ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
-                        ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
+                        [
+                            'label' => 'Processing Days',
+                            'value' => $processingDisplay,
+                            'icon'  => 'clock',
+                            'class' => $class,
+                        ],
+                        ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', $grievance->grievance_status)), 'icon' => 'chart-bar'],
                     ];
                 @endphp
 
@@ -184,7 +179,9 @@
                             <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
                         </div>
-                        <span class="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex-1 text-right">
+                        <span
+                            class="text-[15px] font-bold flex-1 text-right
+                            text-gray-900 dark:text-gray-100 {{ $item['class'] ?? '' }}">
                             {{ $item['value'] }}
                         </span>
                     </div>
@@ -225,6 +222,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <div class="flex flex-col gap-3 p-3 rounded-sm" x-data="{ showMore: false, zoomSrc: null }">
@@ -417,46 +415,17 @@
         @endif
     </div>
 
-    <div
-        x-data="{ open: false }"
-        x-on:open-modal.window="if ($event.detail === 'chat') open = true"
-        x-on:close-modal.window="if ($event.detail === 'chat') open = false"
-        x-cloak
-    >
-        <div
-            x-show="open"
-            x-transition.opacity
-            class="fixed inset-0 bg-black/60 z-40"
-            @click.self="open = false"
-        ></div>
+    <div class="flex flex-col gap-3 mt-8 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
+        <h4 class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            Conversation
+        </h4>
 
-        <div
-            x-show="open"
-            x-transition
-            x-transition.scale
-            class="fixed inset-0 z-[45] flex items-center justify-center"
-        >
-            <div
-                class="w-full max-w-7xl h-full bg-white dark:bg-black border border-gray-300 dark:border-zinc-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-            >
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-zinc-700 bg-white dark:bg-black">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <x-heroicon-o-chat-bubble-left-ellipsis class="w-5 h-5" />
-                        Conversation with Citizen
-                    </h3>
-                    <flux:button
-                        @click="$dispatch('close-modal', 'chat')"
-                        icon="x-mark"
-                        variant="subtle"
-                    />
-                </div>
-
-                <div class="flex-1 overflow-y-auto p-6">
-                    <livewire:grievance.chat :grievance="$grievance" />
-                </div>
-
-            </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p>Discuss updates or feedback regarding this grievance below.</p>
         </div>
+
+        <livewire:grievance.chat :grievance="$grievance" />
     </div>
 
 </div>

@@ -18,7 +18,7 @@ class Index extends Component
 
     protected $paginationTheme = 'tailwind';
     public $user;
-    public $perPage = 4;
+    public $perPage = 10;
     public $search = '';
     public $searchInput = '';
     public $filterPriority = '';
@@ -154,17 +154,22 @@ class Index extends Component
         return response()->stream($callback, 200, $headers);
     }
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterPriority() { $this->resetPage(); }
-    public function updatingFilterStatus() { $this->resetPage(); }
-    public function updatingFilterType() { $this->resetPage(); }
-    public function updatingFilterDate() { $this->resetPage(); }
-
-
     public function applySearch()
     {
         $this->search = $this->searchInput;
         $this->resetPage();
+    }
+
+    public function applyFilters()
+    {
+        $this->resetPage();
+        $this->updateStats();
+
+        Notification::make()
+            ->title('Filters Applied')
+            ->body('Your grievance list has been updated based on your selected filters.')
+            ->success()
+            ->send();
     }
 
     public function clearSearch()
@@ -260,10 +265,13 @@ class Index extends Component
 
         if ($this->filterStatus) {
             $map = [
-                'Pending'     => 'pending',
+                'Pending' => 'pending',
+                'Acknowledged' => 'acknowledged',
                 'In Progress' => 'in_progress',
-                'Resolved'    => 'resolved',
-                'Rejected'      => 'rejected',
+                'Escalated' => 'escalated',
+                'Resolved' => 'resolved',
+                'Rejected' => 'rejected',
+                'Closed' => 'closed',
             ];
             $query->when(isset($map[$this->filterStatus]), fn($q) => $q->where('grievance_status', $map[$this->filterStatus]));
         }
@@ -298,9 +306,12 @@ class Index extends Component
         $this->lowPriorityCount    = (clone $query)->where('priority_level', 'Low')->count();
 
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
+        $this->acknowledgedCount = (clone $query)->where('grievance_status', 'acknowledged')->count();
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
+        $this->escalatedCount    = (clone $query)->where('grievance_status', 'escalated')->count();
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
-        $this->rejectedCount       = (clone $query)->where('grievance_status', 'rejected')->count();
+        $this->rejectedCount     = (clone $query)->where('grievance_status', 'rejected')->count();
+        $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
     }
 
     public function render()
@@ -310,10 +321,13 @@ class Index extends Component
             ->when($this->filterPriority, fn($q) => $q->where('priority_level', $this->filterPriority))
             ->when($this->filterStatus, function($q) {
                 $map = [
-                    'Pending'     => 'pending',
+                    'Pending' => 'pending',
+                    'Acknowledged' => 'acknowledged',
                     'In Progress' => 'in_progress',
-                    'Resolved'    => 'resolved',
-                    'Rejected'      => 'rejected',
+                    'Escalated' => 'escalated',
+                    'Resolved' => 'resolved',
+                    'Rejected' => 'rejected',
+                    'Closed' => 'closed',
                 ];
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
             })

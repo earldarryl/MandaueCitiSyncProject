@@ -11,20 +11,19 @@
         toggle(option) {
             this.selected = option;
             $refs.hidden.value = option;
-            $refs.hidden.dispatchEvent(new Event('input', { bubbles: true }));
+            $refs.hidden.dispatchEvent(new Event('input'));
             this.open = false;
         },
         clear() {
             this.selected = '';
             $refs.hidden.value = '';
-            $refs.hidden.dispatchEvent(new Event('input', { bubbles: true }));
+            $refs.hidden.dispatchEvent(new Event('input'));
         }
     }"
     x-init="selected = $refs.hidden.value || ''"
     class="relative w-full"
 >
-    <!-- Hidden input bound to Livewire (will update instantly because of .live) -->
-    <input x-ref="hidden" type="hidden" wire:model.live="{{ $name }}" />
+    <input x-ref="hidden" type="hidden" wire:model="{{ $name }}" />
 
     <!-- Trigger -->
     <div
@@ -53,7 +52,6 @@
                 class="h-6 w-6 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"
                 aria-label="Clear selection"
             >
-                <!-- simple X icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>

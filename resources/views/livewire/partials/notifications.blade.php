@@ -31,12 +31,15 @@
                     border border-blue-500 dark:border-blue-400
                     hover:bg-blue-200 dark:hover:bg-blue-800/50
                     focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
-                    transition-all duration-200"
+                    transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 wire:loading.attr="disabled"
+                @disabled($totalNotifications === 0)
             >
                 <x-heroicon-o-check class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>Mark All Read</span>
+                <span wire:loading.remove wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Mark All Read</span>
+                <span wire:loading wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Processing...</span>
             </button>
+
             <button
                 type="button"
                 wire:click="markAllAsUnread"
@@ -46,11 +49,13 @@
                     border border-blue-500 dark:border-blue-400
                     hover:bg-blue-200 dark:hover:bg-blue-800/50
                     focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
-                    transition-all duration-200"
+                    transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 wire:loading.attr="disabled"
+                @disabled($totalNotifications === 0)
             >
                 <x-heroicon-o-x-mark class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>Mark All Unread</span>
+                <span wire:loading.remove wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Mark All Unread</span>
+                <span wire:loading wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Processing...</span>
             </button>
         </div>
 
@@ -64,14 +69,15 @@
                     border border-red-500 dark:border-red-400
                     hover:bg-red-200 dark:hover:bg-red-800/50
                     focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
-                    transition-all duration-200"
+                    transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 wire:loading.attr="disabled"
+                @disabled($totalNotifications === 0)
             >
                 <x-heroicon-o-trash class="w-4 h-4 text-red-600 dark:text-red-400" />
-                <span>Delete All</span>
+                <span wire:loading.remove wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Delete All</span>
+                <span wire:loading wire:target="markAllAsRead,markAllAsUnread,deleteAllNotifications">Processing...</span>
             </button>
         </div>
-
     </div>
 
     <div

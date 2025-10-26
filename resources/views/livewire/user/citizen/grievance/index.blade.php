@@ -20,7 +20,7 @@
 
         <div class="flex flex-col flex-1 gap-2 w-full">
 
-            <div
+            {{-- <div
                 x-data="{
                     openStats: $store.sidebar.screen >= 768,
                     updateStatsVisibility() {
@@ -182,10 +182,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <div
-                class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 mb-2"
+                class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2"
                 >
                     <x-filter-select
                         name="filterPriority"
@@ -196,7 +196,7 @@
                     <x-filter-select
                         name="filterStatus"
                         placeholder="Status"
-                        :options="['Pending', 'In Progress', 'Resolved', 'Closed']"
+                        :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Rejected', 'Closed']"
                     />
 
                     <x-filter-select
@@ -211,7 +211,13 @@
                         :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
                     />
             </div>
-
+            <div class="flex justify-center w-full px-3">
+                <button
+                    wire:click="applyFilters"
+                    class="px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                    Apply Filters
+                </button>
+            </div>
         </div>
 
     </header>
@@ -257,7 +263,7 @@
                             type="button"
                             wire:click="applySearch"
                             class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
-                                px-4 py-2 text-sm font-semibold rounded-lg
+                                px-4 py-2 text-sm font-semibold rounded-r-xl
                                 text-white bg-gradient-to-r from-blue-600 to-blue-700
                                 hover:from-blue-700 hover:to-blue-800
                                 focus:outline-none focus:ring-0
@@ -289,10 +295,6 @@
     </header>
 
     <div class="flex items-center justify-between gap-2 mb-4 px-3">
-        <div class="flex items-center gap-2">
-            <flux:checkbox wire:model.live="selectAll" id="select-all" />
-            <flux:label>Select All</flux:label>
-        </div>
 
         @if(count($selected) > 0)
             <div class="flex flex-wrap gap-2">
@@ -325,196 +327,148 @@
         @endif
     </div>
 
-    <div class="relative">
-        <div class="flex w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
-            <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full"
-                 wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
-             >
+   <div class="relative">
+        <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-                @forelse ($grievances as $grievance)
-                    <div
-                        wire:key="grievance-{{ $grievance->grievance_id }}"
-                        x-data
-                        class="cursor-pointer rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 flex flex-col p-5 h-[350px]
-                            transition-transform duration-300 ease-in-out hover:scale-[1.03] hover:shadow-lg active:scale-[0.98]">
+            <!-- Table view -->
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, deleteSelected, markSelectedHighPriority, clearSearch, selectAll">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                        <thead class="bg-gray-100 dark:bg-zinc-900">
+                            <tr>
+                                <!-- Select all checkbox -->
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <flux:checkbox wire:model.live="selectAll" id="select-all" />
+                                </th>
 
-                        <div class="flex flex-col flex-1 justify-between">
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Identity Type</th>
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
 
-                            <header class="flex justify-between items-start mb-3">
-                                <div class="flex items-start gap-2">
-                                    <div class="flex flex-col max-w-[250px]">
-
-                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                                            ID: {!! $highlight($grievance->grievance_id, $search) !!}
-                                        </span>
-
-                                        <h2
-                                            class="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate"
-                                            title="{{ strip_tags($grievance->grievance_title) }}"
-                                        >
-                                            {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
-                                        </h2>
-                                        <span class="text-xs italic text-gray-500 dark:text-gray-400">
-                                            {{ $grievance->is_anonymous ? 'Submitted Anonymously' : 'Submitted by ' . $grievance->user->name }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-2">
+                        <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                            @forelse($grievances as $grievance)
+                            <tr wire:key="grievance-{{ $grievance->grievance_id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
+                                <!-- Row checkbox -->
+                                <td class="px-4 py-2 whitespace-nowrap">
                                     <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
+                                </td>
 
-                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
-                                        shadow-sm backdrop-blur-sm transition-all duration-200
+                                <td class="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    {!! $highlight($grievance->grievance_id, $search) !!}
+                                </td>
+
+                                <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
+                                    {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
+                                </td>
+
+                                <td class="px-4 py-2 text-xs text-center font-semibold">
+                                    <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                        {{ $grievance->is_anonymous
+                                            ? 'bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-500'
+                                            : 'bg-emerald-100 text-emerald-800 border-emerald-400 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-500'
+                                        }}">
+                                        {{ $grievance->is_anonymous ? 'Anonymous' : 'Identified' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-2 text-xs text-center font-semibold">
+                                    <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
                                         {{ match($grievance->grievance_status) {
-                                            'pending' => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
-                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
-
-                                            'in_progress' => 'bg-gradient-to-r from-blue-100 to-cyan-200 text-blue-800 border-blue-400
-                                                            dark:from-blue-900/40 dark:to-cyan-800/30 dark:text-blue-300 dark:border-blue-500',
-
-                                            'resolved' => 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400
-                                                        dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500',
-
-                                            'rejected' => 'bg-gradient-to-r from-red-100 to-rose-200 text-red-800 border-red-400
-                                                        dark:from-red-900/40 dark:to-rose-800/30 dark:text-red-300 dark:border-red-500',
-
-                                            default => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
-                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
+                                            'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                            'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                                            'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                            'rejected' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                            default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
                                         } }}">
                                         {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
                                     </span>
+                                </td>
 
-                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
-                                        shadow-sm backdrop-blur-sm transition-all duration-200
+                                <td class="px-4 py-2 text-xs text-center font-semibold">
+                                    <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
                                         {{ $grievance->priority_level === 'High'
-                                            ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-400 dark:from-red-900/40 dark:to-red-800/30 dark:text-red-300 dark:border-red-500'
+                                            ? 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500'
                                             : ($grievance->priority_level === 'Normal'
-                                                ? 'bg-gradient-to-r from-amber-100 to-yellow-200 text-amber-800 border-amber-400 dark:from-amber-900/40 dark:to-yellow-800/30 dark:text-amber-300 dark:border-amber-500'
-                                                : 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400 dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500') }}">
+                                                ? 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500'
+                                                : 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500') }}">
                                         {!! $highlight($grievance->priority_level, $search) !!}
                                     </span>
+                                </td>
 
-                                    <flux:dropdown>
-                                        <flux:button
-                                            icon="ellipsis-horizontal"
-                                        />
+                                <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
+                                    {{ $grievance->created_at->format('M d, Y h:i A') }}
+                                </td>
 
-                                       <flux:menu>
+                                <td class="px-4 py-2 text-center space-x-1">
+                                    <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}" wire:navigate
+                                        class="px-2 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
 
-                                            <flux:menu.item
-                                                wire:click="downloadPdf({{ $grievance->grievance_id }})"
-                                                class="!bg-green-100 dark:!bg-green-900/40
-                                                    text-green-700 dark:text-green-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-green-300 dark:border-green-700
-                                                    hover:!bg-green-200 dark:hover:!bg-green-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-                                                <span class="hidden lg:inline">Download PDF</span>
-                                                <span class="lg:hidden">Download</span>
-                                            </flux:menu.item>
+                                    <a href="{{ route('citizen.grievance.edit', $grievance->grievance_id) }}" wire:navigate
+                                        class="px-2 py-1 text-xs rounded-md border border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300">Edit</a>
 
-                                            <flux:menu.item
-                                                wire:click="print({{ $grievance->grievance_id }})"
-                                                class="!bg-purple-100 dark:!bg-purple-900/40
-                                                    text-purple-700 dark:text-purple-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-purple-300 dark:border-purple-700
-                                                    hover:!bg-purple-200 dark:hover:!bg-purple-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                                <span class="hidden lg:inline">Print</span>
-                                                <span class="lg:hidden">Print</span>
-                                            </flux:menu.item>
-
-                                            <flux:menu.item
-                                                wire:click="downloadCsv({{ $grievance->grievance_id }})"
-                                                class="!bg-amber-100 dark:!bg-amber-900/40
-                                                    text-amber-700 dark:text-amber-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-amber-300 dark:border-amber-700
-                                                    hover:!bg-amber-200 dark:hover:!bg-amber-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-document-arrow-down class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                                <span class="hidden lg:inline">Download CSV</span>
-                                                <span class="lg:hidden">CSV</span>
-                                            </flux:menu.item>
-
-
-                                        </flux:menu>
-
-                                    </flux:dropdown>
-
-                                </div>
-                            </header>
-
-                            <!-- Details -->
-                            <div class="text-sm bg-gray-200 dark:bg-zinc-700 p-5 text-gray-600 rounded-xl dark:text-gray-300 prose dark:prose-invert overflow-y-auto flex-1">
-                                {!! $highlight(Str::limit($grievance->grievance_details, 150), $search) !!}
-                            </div>
-
-                            <!-- Footer -->
-                            <footer class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200 dark:border-zinc-700">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $grievance->created_at->format('M d, Y') }}
-                                </div>
-
-                               <div class="flex items-center gap-2">
-                                    <!-- View -->
-                                    <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}"
-                                        wire:navigate
-                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-300 text-gray-700 bg-gray-50
-                                            hover:bg-gray-100 hover:border-gray-400
-                                            dark:bg-zinc-700 dark:text-gray-200 dark:border-zinc-600 dark:hover:bg-zinc-600 dark:hover:border-zinc-500
-                                            transition">
-                                        View
-                                    </a>
-
-                                    <!-- Edit -->
-                                    <a href="{{ route('citizen.grievance.edit', $grievance->grievance_id) }}"
-                                        wire:navigate
-                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-blue-300 text-blue-700 bg-blue-50
-                                            hover:bg-blue-100 hover:border-blue-400
-                                            dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-800/50 dark:hover:border-blue-700
-                                            transition">
-                                        Edit
-                                    </a>
-
-                                    <!-- Delete -->
-                                    <button
-                                        @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"
-                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-red-300 text-red-700 bg-red-50
-                                            hover:bg-red-100 hover:border-red-400
-                                            dark:bg-red-900/40 dark:text-red-300 dark:border-red-800 dark:hover:bg-red-800/50 dark:hover:border-red-700
-                                            transition">
-                                        Delete
-                                    </button>
-                                </div>
-                            </footer>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-3 flex flex-col items-center justify-center py-10 text-center text-gray-500 dark:text-gray-400 w-full">
-                        <x-heroicon-o-archive-box-x-mark class="w-10 h-10 mb-2 text-gray-400 dark:text-gray-500" />
-                        <p class="text-sm font-medium">No grievances found</p>
-                    </div>
-                @endforelse
-
+                                    <button @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"
+                                        class="px-2 py-1 text-xs rounded-md border border-red-300 text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300">Delete</button>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                    <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                    No grievances found
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- Skeleton Loader (table) -->
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, deleteSelected, markSelectedHighPriority, clearSearch, selectAll"
+                 class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                    <thead class="bg-gray-100 dark:bg-zinc-900">
+                        <tr>
+                            @for ($i = 0; $i < 8; $i++)
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
+                                </th>
+                            @endfor
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                        @for ($row = 0; $row < 5; $row++)
+                            <tr>
+                                @for ($col = 0; $col < 8; $col++)
+                                    <td class="px-4 py-3 align-middle">
+                                        @if($col === 0)
+                                            <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>
+                                        @else
+                                            <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
+                                        @endif
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Delete Modals -->
             @foreach ($grievances as $grievance)
-                <div
-                    x-data="{ showModal: false }"
+                <div x-data="{ showModal: false }"
                     x-on:open-delete-modal-{{ $grievance->grievance_id }}.window="showModal = true"
                     x-on:close-delete-modal-{{ $grievance->grievance_id }}.window="showModal = false"
                     x-on:close-all-modals.window="showModal = false"
-                    x-show="showModal"
-                    x-cloak
-                    class="fixed inset-0 flex items-center justify-center z-50"
-                >
+                    x-show="showModal" x-cloak
+                    class="fixed inset-0 flex items-center justify-center z-50">
                     <div x-show="showModal" x-transition.opacity class="absolute inset-0 bg-black/50"></div>
                     <div x-show="showModal" x-transition.scale
                         class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5 z-50">
@@ -523,90 +477,33 @@
                             <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                         </div>
 
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
-                            Confirm Deletion
-                        </h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this grievance? This action cannot be undone.</p>
 
-                        <p class="text-sm text-gray-600 dark:text-gray-300">
-                            Are you sure you want to delete this grievance? This action cannot be undone.
-                        </p>
-
-                        <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})">
-                            <div class="flex items-center justify-center w-full gap-3 mt-4">
-                                <button
-                                    type="button"
-                                    @click="showModal = false"
-                                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <flux:button
-                                    variant="danger"
-                                    icon="trash"
-                                    wire:click="deleteGrievance({{ $grievance->grievance_id }})"
-                                >
-                                    Yes, Delete
-                                </flux:button>
-                            </div>
+                        <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
+                            <button type="button" @click="showModal = false"
+                                class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                                Cancel
+                            </button>
+                            <flux:button variant="danger" icon="trash" wire:click="deleteGrievance({{ $grievance->grievance_id }})">
+                                Yes, Delete
+                            </flux:button>
                         </div>
 
-                        <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
-                            <div class="flex items-center justify-center gap-2 w-full">
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                            </div>
+                        <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex items-center justify-center gap-2 w-full">
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                         </div>
                     </div>
                 </div>
             @endforeach
-        </div>
 
-        <!-- Skeleton Grid -->
-        <div
-            wire:loading
-            wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
-            class="w-full bg-gray-50 dark:bg-zinc-900 px-6 py-8"
-        >
-            <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-pulse">
-                @for ($i = 0; $i < 4; $i++)
-                    <div class="rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 p-6 h-[350px] flex flex-col justify-between">
-
-                        <!-- Header -->
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex flex-col gap-2 w-3/4">
-                                <div class="h-5 bg-gray-300 dark:bg-zinc-600 rounded w-3/4"></div>
-                                <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/2"></div>
-                            </div>
-                            <div class="flex gap-2">
-                                <div class="h-6 w-12 bg-gray-200 dark:bg-zinc-700 rounded-full"></div>
-                                <div class="h-8 w-8 bg-gray-200 dark:bg-zinc-700 rounded-full"></div>
-                            </div>
-                        </div>
-
-                        <!-- Content -->
-                        <div class="flex-1 space-y-3">
-                            <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-5/6"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-4/6"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4"></div>
-                            <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-2/3"></div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="flex justify-between items-center mt-5">
-                            <div class="h-3 w-20 bg-gray-200 dark:bg-zinc-700 rounded"></div>
-                            <div class="h-5 w-5 bg-gray-200 dark:bg-zinc-700 rounded-md"></div>
-                        </div>
-                    </div>
-                @endfor
+            <!-- Pagination -->
+            <div class="p-4">
+                {{ $grievances->links() }}
             </div>
         </div>
-
-        <!-- Pagination -->
-        <div class="p-4">
-            {{ $grievances->links() }}
-        </div>
-
     </div>
+
 </div>

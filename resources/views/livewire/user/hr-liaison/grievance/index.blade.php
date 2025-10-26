@@ -16,7 +16,6 @@
             : $text;
     @endphp
 
-    <!-- Header with Stats -->
     <header class="relative w-full flex flex-col items-center justify-center">
 
         <div class="flex flex-col flex-1 gap-2 w-full">
@@ -32,7 +31,6 @@
                 class="relative w-full h-auto flex flex-col"
             >
 
-                <!-- Toggle Stats Button -->
                 <div class="flex justify-center items-center mb-4">
                     <button
                         @click="openStats = !openStats"
@@ -50,7 +48,6 @@
                     </button>
                 </div>
 
-                <!-- Stats Grid -->
                 <div
                     x-show="openStats"
                     x-collapse
@@ -63,59 +60,113 @@
                     class="relative w-full flex flex-col h-auto"
                     wire:poll.10s="updateStats"
                 >
+                    <!-- Total Grievances -->
+                    <div class="w-full grid grid-cols-1 gap-4 mx-auto px-3 mb-6">
+                        <div
+                            class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                        >
+                            <!-- Glowing hover overlay -->
+                            <div
+                                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"
+                            ></div>
 
-                    <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
-                        <!-- Total Grievances -->
-                        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
-                                    border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
-                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                            <div
+                                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                            >
                                 <flux:icon.document-check class="h-8 w-8 text-blue-600 dark:text-blue-400" />
                             </div>
+
                             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Grievances</p>
-                            <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $totalGrievances }}</p>
-                        </div>
-
-                        <!-- High Priority -->
-                        <div class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
-                                    border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-red-200/50
-                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                                <flux:icon.exclamation-triangle class="h-8 w-8 text-red-600 dark:text-red-400" />
-                            </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">High Priority</p>
-                            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $highPriorityCount }}</p>
-                        </div>
-
-                        <!-- Normal Priority -->
-                        <div class="group relative bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
-                                    border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-amber-200/50
-                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                                <flux:icon.information-circle class="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
-                            </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Normal Priority</p>
-                            <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">{{ $normalPriorityCount }}</p>
-                        </div>
-
-                        <!-- Low Priority -->
-                        <div class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
-                                    border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
-                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                                <flux:icon.arrow-down-circle class="h-8 w-8 text-green-600 dark:text-green-400" />
-                            </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Low Priority</p>
-                            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $lowPriorityCount }}</p>
+                            <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                                {{ $totalGrievances }}
+                            </p>
                         </div>
                     </div>
 
-                    <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
+                    <!-- Priorities -->
+                    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
+                        <!-- High Priority -->
+                        <div
+                            class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                        >
+                            <!-- Glow -->
+                            <div
+                                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"
+                            ></div>
 
+                            <div
+                                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-red-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                            >
+                                <flux:icon.exclamation-triangle class="h-8 w-8 text-red-600 dark:text-red-400" />
+                            </div>
+
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">High Priority</p>
+                            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">
+                                {{ $highPriorityCount }}
+                            </p>
+                        </div>
+
+                        <!-- Normal Priority -->
+                        <div
+                            class="group relative bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                        >
+                            <!-- Glow -->
+                            <div
+                                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"
+                            ></div>
+
+                            <div
+                                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-amber-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                            >
+                                <flux:icon.information-circle class="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
+                            </div>
+
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Normal Priority</p>
+                            <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">
+                                {{ $normalPriorityCount }}
+                            </p>
+                        </div>
+
+                        <!-- Low Priority -->
+                        <div
+                            class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                        >
+                            <!-- Glow -->
+                            <div
+                                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"
+                            ></div>
+
+                            <div
+                                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                            >
+                                <flux:icon.arrow-down-circle class="h-8 w-8 text-green-600 dark:text-green-400" />
+                            </div>
+
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Low Priority</p>
+                            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
+                                {{ $lowPriorityCount }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="w-full grid grid-cols-4 md:grid-cols-7 gap-4 mx-auto px-3 mb-6">
+                        <!-- Pending -->
                         <div
                             class="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-yellow-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -130,6 +181,22 @@
                             <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">{{ $pendingCount }}</p>
                         </div>
 
+                        <!-- Acknowledged -->
+                        <div
+                            class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-200/20 to-transparent opacity-0
+                                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-indigo-200/50
+                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                                <flux:icon.hand-raised class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Acknowledged</p>
+                            <p class="relative text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $acknowledgedCount }}</p>
+                        </div>
+
+                        <!-- In Progress -->
                         <div
                             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -144,6 +211,22 @@
                             <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $inProgressCount }}</p>
                         </div>
 
+                        <!-- Escalated -->
+                        <div
+                            class="group relative bg-gradient-to-br from-amber-50 to-orange-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-200/20 to-transparent opacity-0
+                                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-amber-200/50
+                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                                <flux:icon.arrow-up-on-square-stack class="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Escalated</p>
+                            <p class="relative text-3xl font-bold text-amber-600 dark:text-amber-400 tracking-tight">{{ $escalatedCount }}</p>
+                        </div>
+
+                        <!-- Resolved -->
                         <div
                             class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -158,6 +241,7 @@
                             <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $resolvedCount }}</p>
                         </div>
 
+                        <!-- Rejected -->
                         <div
                             class="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -171,16 +255,66 @@
                             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Rejected</p>
                             <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $rejectedCount }}</p>
                         </div>
+
+                        <!-- Closed -->
+                        <div
+                            class="group relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-purple-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-200/20 to-transparent opacity-0
+                                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-purple-200/50
+                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                                <flux:icon.lock-closed class="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Closed</p>
+                            <p class="relative text-3xl font-bold text-purple-600 dark:text-purple-400 tracking-tight">{{ $closedCount }}</p>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
-            <!-- Filters -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 mb-4">
-                <x-filter-select name="filterPriority" placeholder="Priority" :options="['High', 'Normal', 'Low']" />
-                <x-filter-select name="filterStatus" placeholder="Status" :options="['Pending', 'In Progress', 'Resolved', 'Rejected']" />
-                <x-filter-select name="filterType" placeholder="Type" :options="['Complaint', 'Request', 'Inquiry']" />
-                <x-filter-select name="filterDate" placeholder="Date" :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']" />
+            <div
+                class="grid grid-cols-3 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2"
+                >
+                    <x-filter-select
+                        name="filterPriority"
+                        placeholder="Priority"
+                        :options="['High', 'Normal', 'Low']"
+                    />
+
+                    <x-filter-select
+                        name="filterStatus"
+                        placeholder="Status"
+                        :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Rejected', 'Closed']"
+                    />
+
+                    <x-filter-select
+                        name="filterType"
+                        placeholder="Type"
+                        :options="['Complaint', 'Request', 'Inquiry']"
+                    />
+
+                    <x-filter-select
+                        name="filterDate"
+                        placeholder="Date"
+                        :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
+                    />
+
+                    <x-filter-select
+                        name="filterIdentity"
+                        placeholder="Identity"
+                        :options="['Not Anonymous', 'Anonymous']"
+                    />
+
+            </div>
+            <div class="flex justify-center w-full px-3 mb-3">
+                <button
+                    wire:click="applyFilters"
+                    class="px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                    Apply Filters
+                </button>
             </div>
 
         </div>
@@ -225,7 +359,7 @@
                     type="button"
                     wire:click="applySearch"
                     class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
-                        px-4 py-2 text-sm font-semibold rounded-lg
+                        px-4 py-2 text-sm font-semibold rounded-r-xl
                         text-white bg-gradient-to-r from-blue-600 to-blue-700
                         hover:from-blue-700 hover:to-blue-800
                         focus:outline-none focus:ring-0
@@ -239,7 +373,12 @@
 
     </div>
 
-    <div x-data="{ openRerouteModal: false }" x-on:reroute-success.window="openRerouteModal = false" class="flex flex-col w-full">
+    <div
+        x-data="{ openRerouteModal: false, openStatusModal: false }"
+        x-on:reroute-success.window="openRerouteModal = false"
+        x-on:status-update-success.window="openStatusModal = false"
+        class="flex flex-col w-full"
+    >
 
         <div class="flex items-center justify-end gap-2 mb-2 px-3">
             <button
@@ -268,10 +407,6 @@
         </div>
 
         <div class="flex items-center justify-between gap-2 mb-4 px-3">
-            <div class="flex items-center gap-2">
-                <flux:checkbox wire:model.live="selectAll" id="select-all" />
-                <flux:label>Select All</flux:label>
-            </div>
 
             @if(count($selected) > 0)
                 <div class="flex flex-wrap gap-2">
@@ -297,28 +432,6 @@
                         <span>Print Selected</span>
                     </button>
 
-                    <button wire:click="deleteSelected"
-                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
-                            border border-red-500 dark:border-red-400
-                            hover:bg-red-200 dark:hover:bg-red-800/50
-                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
-                            transition-all duration-200">
-                        <x-heroicon-o-trash class="w-5 h-5" />
-                        <span>Delete Selected</span>
-                    </button>
-
-                    <button wire:click="markSelectedHighPriority"
-                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                            bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
-                            border border-amber-500 dark:border-amber-400
-                            hover:bg-amber-200 dark:hover:bg-amber-800/50
-                            focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
-                            transition-all duration-200">
-                        <x-heroicon-o-document-check class="w-5 h-5" />
-                        <span>Mark as High Priority Selected</span>
-                    </button>
-
                     <button
                         @click="openRerouteModal = true"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
@@ -329,6 +442,18 @@
                             transition-all duration-200">
                         <x-heroicon-o-arrow-path class="w-5 h-5" />
                         <span>Reroute Selected</span>
+                    </button>
+
+                    <button
+                        @click="openStatusModal = true"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300
+                            border border-yellow-500 dark:border-yellow-400
+                            hover:bg-yellow-200 dark:hover:bg-yellow-800/50
+                            focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-700
+                            transition-all duration-200">
+                        <x-heroicon-o-pencil-square class="w-5 h-5" />
+                        <span>Update Selected Status</span>
                     </button>
 
                 </div>
@@ -363,8 +488,8 @@
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
-                    <x-multiple-select
-                        wire:model.defer="department"
+
+                    <x-searchable-select
                         name="department"
                         placeholder="Select department(s)"
                         :options="$departmentOptions"
@@ -400,214 +525,211 @@
             </div>
         </div>
 
+        <div
+            x-show="openStatusModal"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+        >
+            <div
+                @click.outside="openStatusModal = false"
+                class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+            >
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <x-heroicon-o-pencil-square class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                        Update Selected Grievance Status
+                    </h2>
+                    <button
+                        @click="openStatusModal = false"
+                        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                        aria-label="Close"
+                    >
+                        <x-heroicon-o-x-mark class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    Choose a new grievance status to apply to all selected records.
+                </p>
+
+                <div class="flex flex-col gap-2 mb-2">
+                    <x-searchable-select
+                        name="status"
+                        placeholder="Select Status"
+                        :options="[
+                            'pending' => 'Pending',
+                            'acknowledged' => 'Acknowledged',
+                            'in_progress' => 'In Progress',
+                            'escalated' => 'Escalated',
+                            'resolved' => 'Resolved',
+                            'rejected' => 'Rejected',
+                            'closed' => 'Closed',
+                        ]"
+                    />
+                    <div class="space-y-1">
+                        <flux:error name="status" />
+                        <flux:error name="selected" />
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                <div class="flex justify-end gap-3">
+                    <button
+                        @click="openStatusModal = false"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                    >
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                        Cancel
+                    </button>
+
+                    <button
+                        wire:click="updateSelectedGrievanceStatus"
+                        wire:loading.attr="disabled"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition"
+                    >
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="updateSelectedGrievanceStatus">Update</span>
+                        <span wire:loading wire:target="updateSelectedGrievanceStatus">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="relative">
-        <!-- Grid -->
-        <div class="flex w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
-            <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full"
-                wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
-            >
+    <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-                @forelse ($grievances as $grievance)
-                    <div
-                        wire:key="grievance-{{ $grievance->grievance_id }}"
-                        x-data
-                        x-on:close-all-modals.window="showModal = null"
-                        class="cursor-pointer rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 flex flex-col p-5
-                            transition-transform duration-300 ease-in-out hover:scale-[1.03] hover:shadow-lg active:scale-[0.98]"
-                    >
+        <!-- Table view -->
+        <div wire:loading.remove wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch, selectAll">
+            <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                    <thead class="bg-gray-100 dark:bg-zinc-900">
+                        <tr>
+                            <!-- Select all checkbox -->
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <flux:checkbox wire:model.live="selectAll" id="select-all" />
+                            </th>
 
-                        <div class="flex flex-col flex-1 justify-between">
-                            <!-- Header -->
-                            <header class="flex justify-between items-start mb-3">
-                                <div class="flex flex-col max-w-[250px]">
-                                    <!-- Grievance ID -->
-                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                                        ID: {!! $highlight($grievance->grievance_id, $search) !!}
-                                    </span>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submitted By</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
 
-                                    <!-- Title -->
-                                    <h2
-                                        class="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate"
-                                        title="{{ strip_tags($grievance->grievance_title) }}"
-                                    >
-                                        {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
-                                    </h2>
+                    <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                        @forelse($grievances as $grievance)
+                        <tr wire:key="grievance-{{ $grievance->grievance_id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
+                            <!-- Row checkbox -->
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
+                            </td>
 
-                                    <span class="text-xs italic text-gray-500 dark:text-gray-400">
-                                        {{ $grievance->is_anonymous ? 'Submitted Anonymously' : 'Submitted by ' . $grievance->user->name }}
-                                    </span>
-                                </div>
+                            <td class="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {!! $highlight($grievance->grievance_id, $search) !!}
+                            </td>
 
-                                <div class="flex items-center gap-2">
-                                    <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
+                            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
+                                {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
+                            </td>
 
-                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
-                                        shadow-sm backdrop-blur-sm transition-all duration-200
+                            <td class="px-4 py-2 text-xs text-center font-semibold">
+                                <span
+                                    class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                        {{ $grievance->is_anonymous
+                                            ? 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600'
+                                            : 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500' }}"
+                                >
+                                    {{ $grievance->is_anonymous ? 'Anonymous' : $grievance->user->name }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2 text-xs text-center font-semibold">
+                                <span
+                                    class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
                                         {{ match($grievance->grievance_status) {
-                                            'pending' => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
-                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
+                                            'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                            'acknowledged' => 'bg-indigo-100 text-indigo-800 border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-500',
+                                            'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                                            'escalated' => 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500',
+                                            'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                            'rejected' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                            'closed' => 'bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500',
+                                            default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                        } }}"
+                                >
+                                    {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
+                                </span>
+                            </td>
 
-                                            'in_progress' => 'bg-gradient-to-r from-blue-100 to-cyan-200 text-blue-800 border-blue-400
-                                                            dark:from-blue-900/40 dark:to-cyan-800/30 dark:text-blue-300 dark:border-blue-500',
+                            <td class="px-4 py-2 text-xs text-center font-semibold">
+                                <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                    {{ $grievance->priority_level === 'High'
+                                        ? 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500'
+                                        : ($grievance->priority_level === 'Normal'
+                                            ? 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500'
+                                            : 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500') }}">
+                                    {!! $highlight($grievance->priority_level, $search) !!}
+                                </span>
+                            </td>
 
-                                            'resolved' => 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400
-                                                        dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500',
+                            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
+                                {{ $grievance->created_at->format('M d, Y h:i A') }}
+                            </td>
 
-                                            'rejected' => 'bg-gradient-to-r from-red-100 to-rose-200 text-red-800 border-red-400
-                                                        dark:from-red-900/40 dark:to-rose-800/30 dark:text-red-300 dark:border-red-500',
+                            <td class="px-4 py-2 text-center space-x-1">
+                                <a href="{{ route('hr-liaison.grievance.view', $grievance->grievance_id) }}" wire:navigate
+                                    class="px-2 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
 
-                                            default => 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-400
-                                                        dark:from-gray-900/40 dark:to-gray-800/30 dark:text-gray-300 dark:border-gray-600',
-                                        } }}">
-                                        {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
-                                    </span>
-
-                                    <span class="text-xs font-semibold me-2 px-2.5 py-0.5 rounded-md border
-                                        shadow-sm backdrop-blur-sm transition-all duration-200
-                                        {{ $grievance->priority_level === 'High'
-                                            ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-400 dark:from-red-900/40 dark:to-red-800/30 dark:text-red-300 dark:border-red-500'
-                                            : ($grievance->priority_level === 'Normal'
-                                                ? 'bg-gradient-to-r from-amber-100 to-yellow-200 text-amber-800 border-amber-400 dark:from-amber-900/40 dark:to-yellow-800/30 dark:text-amber-300 dark:border-amber-500'
-                                                : 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-400 dark:from-green-900/40 dark:to-emerald-800/30 dark:text-green-300 dark:border-green-500') }}">
-                                        {!! $highlight($grievance->priority_level, $search) !!}
-                                    </span>
-
-                                    <flux:dropdown>
-                                        <flux:button
-                                            icon="ellipsis-horizontal"
-                                            class="!p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
-                                        />
-
-                                        <flux:menu>
-
-                                            <flux:menu.item
-                                                wire:click="downloadPdf({{ $grievance->grievance_id }})"
-                                                class="!bg-green-100 dark:!bg-green-900/40
-                                                    text-green-700 dark:text-green-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-green-300 dark:border-green-700
-                                                    hover:!bg-green-200 dark:hover:!bg-green-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-                                                <span class="hidden lg:inline">Download PDF</span>
-                                                <span class="lg:hidden">Download</span>
-                                            </flux:menu.item>
-
-                                            <flux:menu.item
-                                                wire:click="print({{ $grievance->grievance_id }})"
-                                                class="!bg-purple-100 dark:!bg-purple-900/40
-                                                    text-purple-700 dark:text-purple-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-purple-300 dark:border-purple-700
-                                                    hover:!bg-purple-200 dark:hover:!bg-purple-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-printer class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                                <span class="hidden lg:inline">Print</span>
-                                                <span class="lg:hidden">Print</span>
-                                            </flux:menu.item>
-
-                                            <flux:menu.item
-                                                wire:click="downloadCsv({{ $grievance->grievance_id }})"
-                                                class="!bg-amber-100 dark:!bg-amber-900/40
-                                                    text-amber-700 dark:text-amber-300
-                                                    flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold
-                                                    border border-amber-300 dark:border-amber-700
-                                                    hover:!bg-amber-200 dark:hover:!bg-amber-800/50
-                                                    transition-all duration-200 w-full sm:w-52"
-                                            >
-                                                <x-heroicon-o-document-arrow-down class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                                <span class="hidden lg:inline">Download CSV</span>
-                                                <span class="lg:hidden">CSV</span>
-                                            </flux:menu.item>
-
-
-                                        </flux:menu>
-
-                                    </flux:dropdown>
-
-                                </div>
-                            </header>
-
-                            <!-- Details -->
-                            <div class="text-sm bg-gray-200 dark:bg-zinc-700 p-5 text-gray-600 rounded-xl dark:text-gray-300 prose dark:prose-invert overflow-y-auto max-h-60 flex-1">
-                                {!! $highlight(Str::limit($grievance->grievance_details, 150), $search) !!}
-                            </div>
-
-                            <!-- Footer -->
-                            <footer class="flex justify-between w-full items-center mt-2 pt-3">
-                                <div class="text-xs">{{ $grievance->created_at->format('M d, Y') }}</div>
-
-                                <div class="flex items-center gap-2">
-
-                                    <!-- View -->
-                                    <a href="{{ route('hr-liaison.grievance.view', $grievance->grievance_id) }}"
-                                        wire:navigate
-                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-300 text-gray-700 bg-gray-50
-                                            hover:bg-gray-100 hover:border-gray-400
-                                            dark:bg-zinc-700 dark:text-gray-200 dark:border-zinc-600 dark:hover:bg-zinc-600 dark:hover:border-zinc-500
-                                            transition">
-                                        View
-                                    </a>
-
-                                    <a href="{{ route('hr-liaison.grievance.edit', $grievance->grievance_id) }}"
-                                        wire:navigate
-                                        class="px-3 py-1.5 text-xs font-semibold rounded-md border border-blue-300 text-blue-700 bg-blue-50
-                                            hover:bg-blue-100 hover:border-blue-400
-                                            dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-800/50 dark:hover:border-blue-700
-                                            transition">
-                                        Edit
-                                    </a>
-                                </div>
-                            </footer>
-                        </div>
-                    </div>
-                @empty
-                    <p class="col-span-3 text-center text-gray-500">No grievances found.</p>
-                @endforelse
-
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                No grievances found
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <!-- Skeleton Grid -->
-            <div
-                wire:loading
-                wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
-                class="w-full bg-gray-50 dark:bg-zinc-900 px-6 py-8"
-            >
-                <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-pulse">
-                    @for ($i = 0; $i < 4; $i++)
-                        <div class="rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 p-6 flex flex-col justify-between">
+        <div wire:loading wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch, selectAll"
+             class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                <thead class="bg-gray-100 dark:bg-zinc-900">
+                    <tr>
+                        @for ($i = 0; $i < 8; $i++)
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
+                            </th>
+                        @endfor
+                    </tr>
+                </thead>
 
-                            <!-- Header -->
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="flex flex-col gap-2 w-3/4">
-                                    <div class="h-5 bg-gray-300 dark:bg-zinc-600 rounded w-3/4"></div>
-                                    <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/2"></div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <div class="h-6 w-12 bg-gray-200 dark:bg-zinc-700 rounded-full"></div>
-                                </div>
-                            </div>
-
-                            <!-- Content -->
-                            <div class="flex-1 space-y-3">
-                                <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
-                                <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-5/6"></div>
-                                <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-4/6"></div>
-                                <div class="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4"></div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class="flex justify-between items-center mt-5">
-                                <div class="h-3 w-20 bg-gray-200 dark:bg-zinc-700 rounded"></div>
-                            </div>
-                        </div>
+                <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                    @for ($row = 0; $row < 5; $row++)
+                        <tr>
+                            @for ($col = 0; $col < 8; $col++)
+                                <td class="px-4 py-3 align-middle">
+                                    @if($col === 0)
+                                        <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>
+                                    @else
+                                        <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
+                                    @endif
+                                </td>
+                            @endfor
+                        </tr>
                     @endfor
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
 
         <!-- Pagination -->
@@ -615,4 +737,7 @@
             {{ $grievances->links() }}
         </div>
     </div>
+</div>
+
+
 </div>

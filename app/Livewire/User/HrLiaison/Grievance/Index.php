@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\HrLiaison\Grievance;
 
+use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\Department;
 use App\Models\Grievance;
@@ -25,22 +26,28 @@ class Index extends Component
     public $search = '';
     public $searchInput = '';
     public $filterPriority = '';
-    public $filterStatus = '';
+    public $filterStatus = 'Pending';
     public $filterType = '';
     public $filterDate = '';
+    public $filterIdentity = '';
     public $selectAll = false;
     public $selected = [];
-    public $department = [];
+    public $department;
+    public $status;
     public $departmentOptions;
 
     public $totalGrievances = 0;
     public $highPriorityCount = 0;
     public $normalPriorityCount = 0;
     public $lowPriorityCount = 0;
-    public $pendingCount = 0;
-    public $inProgressCount = 0;
-    public $resolvedCount = 0;
-    public $rejectedCount = 0;
+    public $pendingCount;
+    public $acknowledgedCount;
+    public $inProgressCount;
+    public $escalatedCount;
+    public $resolvedCount;
+    public $rejectedCount;
+    public $closedCount;
+
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -67,8 +74,13 @@ class Index extends Component
                 ->send();
         }
 
+        $currentHrLiaison = auth()->user();
+
+        $excludedDepartmentIds = $currentHrLiaison->departments->pluck('department_id');
+
         $this->departmentOptions = Department::whereHas('hrLiaisons')
-            ->pluck('department_name', 'department_id')
+            ->whereNotIn('department_id', $excludedDepartmentIds)
+            ->pluck('department_name', 'department_name')
             ->toArray();
 
     }
@@ -82,9 +94,12 @@ class Index extends Component
             ->when($this->filterStatus, function ($q) {
                 $map = [
                     'Pending' => 'pending',
+                    'Acknowledged' => 'acknowledged',
                     'In Progress' => 'in_progress',
+                    'Escalated' => 'escalated',
                     'Resolved' => 'resolved',
                     'Rejected' => 'rejected',
+                    'Closed' => 'closed',
                 ];
                 if (isset($map[$this->filterStatus])) {
                     $q->where('grievance_status', $map[$this->filterStatus]);
@@ -225,46 +240,45 @@ class Index extends Component
     {
         $this->validate([
             'selected' => 'required|array|min:1',
-            'department' => 'required|array|min:1',
+            'department' => 'required|exists:departments,department_name',
         ], [
             'selected.required' => 'Please select at least one grievance to reroute.',
-            'department.required' => 'Please choose at least one department for rerouting.',
+            'department.required' => 'Please choose a department for rerouting.',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $liaisonsByDept = [];
-            foreach ($this->department as $deptId) {
-                $liaisonsByDept[$deptId] = User::whereHas('roles', fn($q) =>
-                        $q->where('name', 'hr_liaison')
-                    )
-                    ->whereHas('departments', fn($q) =>
-                        $q->where('hr_liaison_departments.department_id', $deptId)
-                    )
-                    ->get();
-            }
+            $department = Department::where('department_name', $this->department)->firstOrFail();
+
+            $hrLiaisons = User::whereHas('roles', fn($q) =>
+                    $q->where('name', 'hr_liaison')
+                )
+                ->whereHas('departments', fn($q) =>
+                    $q->where('hr_liaison_departments.department_id', $department->id)
+                )
+                ->get();
 
             foreach ($this->selected as $grievanceId) {
                 Assignment::where('grievance_id', $grievanceId)->delete();
 
-                foreach ($liaisonsByDept as $deptId => $hrLiaisons) {
-                    foreach ($hrLiaisons as $hr) {
-                        Assignment::create([
-                            'grievance_id'  => $grievanceId,
-                            'department_id' => $deptId,
-                            'assigned_at'   => now(),
-                            'hr_liaison_id' => $hr->id,
-                        ]);
-                    }
+                foreach ($hrLiaisons as $hr) {
+                    Assignment::create([
+                        'grievance_id'  => $grievanceId,
+                        'department_id' => $department->id,
+                        'assigned_at'   => now(),
+                        'hr_liaison_id' => $hr->id,
+                    ]);
                 }
             }
 
             DB::commit();
 
+            $this->dispatch('reroute-success');
+
             Notification::make()
                 ->title('Grievances Rerouted Successfully')
-                ->body('All selected grievances have been reassigned to the selected department(s) and their HR liaisons.')
+                ->body('All selected grievances have been reassigned to ' . $this->department . ' department and its HR liaisons.')
                 ->success()
                 ->send();
 
@@ -281,6 +295,64 @@ class Index extends Component
         }
     }
 
+    public function updateSelectedGrievanceStatus(): void
+    {
+        $this->validate([
+            'selected' => 'required|array|min:1',
+            'status' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,rejected,closed',
+        ], [
+            'selected.required' => 'Please select at least one grievance to update.',
+            'status.required' => 'Please choose a grievance status.',
+            'status.in' => 'Invalid grievance status selected.',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($this->selected as $grievanceId) {
+                $grievance = Grievance::find($grievanceId);
+
+                if ($grievance) {
+                    $oldStatus = $grievance->grievance_status;
+
+                    $grievance->update([
+                        'grievance_status' => $this->status,
+                        'updated_at' => now(),
+                    ]);
+
+                    ActivityLog::create([
+                        'user_id'     => auth()->id(),
+                        'role_id'     => auth()->user()->roles->first()?->id,
+                        'action'      => "Changed grievance #{$grievance->grievance_id} status from {$oldStatus} to {$this->status}",
+                        'timestamp'   => now(),
+                        'ip_address'  => request()->ip(),
+                        'device_info' => request()->header('User-Agent'),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $this->dispatch('status-update-success');
+
+            Notification::make()
+                ->title('Grievance Status Updated')
+                ->body('The selected grievances have been updated to "' . ucwords(str_replace('_', ' ', $this->status)) . '".')
+                ->success()
+                ->send();
+
+            $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Notification::make()
+                ->title('Status Update Failed')
+                ->body('An error occurred while updating grievance statuses: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
 
     public function downloadPdf($id)
     {
@@ -454,18 +526,22 @@ class Index extends Component
         return response()->stream($callback, 200, $headers);
     }
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterPriority() { $this->resetPage(); }
-    public function updatingFilterStatus() { $this->resetPage(); }
-    public function updatingFilterType() { $this->resetPage(); }
-    public function updatingFilterDate() { $this->resetPage(); }
-
     public function applySearch()
     {
         $this->search = $this->searchInput;
         $this->resetPage();
     }
+    public function applyFilters()
+    {
+        $this->resetPage();
+        $this->updateStats();
 
+        Notification::make()
+            ->title('Filters Applied')
+            ->body('Your grievance list has been updated based on your selected filters.')
+            ->success()
+            ->send();
+    }
     public function clearSearch()
     {
         $this->searchInput = '';
@@ -488,12 +564,15 @@ class Index extends Component
             $query->where('priority_level', $this->filterPriority);
         }
 
-        if ($this->filterStatus) {
+        if ($this->filterStatus && $this->filterStatus !== 'Show All') {
             $map = [
                 'Pending' => 'pending',
+                'Acknowledged' => 'acknowledged',
                 'In Progress' => 'in_progress',
+                'Escalated' => 'escalated',
                 'Resolved' => 'resolved',
                 'Rejected' => 'rejected',
+                'Closed' => 'closed',
             ];
             if (isset($map[$this->filterStatus])) {
                 $query->where('grievance_status', $map[$this->filterStatus]);
@@ -522,6 +601,15 @@ class Index extends Component
                     $query->whereYear('created_at', now()->year);
                     break;
             }
+
+        if ($this->filterIdentity) {
+                if ($this->filterIdentity === 'Anonymous') {
+                    $query->where('is_anonymous', true);
+                } elseif ($this->filterIdentity === 'Not Anonymous') {
+                    $query->where('is_anonymous', false);
+                }
+            }
+
         }
 
         $this->totalGrievances     = $query->count();
@@ -530,9 +618,13 @@ class Index extends Component
         $this->lowPriorityCount    = (clone $query)->where('priority_level', 'Low')->count();
 
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
+        $this->acknowledgedCount = (clone $query)->where('grievance_status', 'acknowledged')->count();
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
+        $this->escalatedCount    = (clone $query)->where('grievance_status', 'escalated')->count();
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
         $this->rejectedCount     = (clone $query)->where('grievance_status', 'rejected')->count();
+        $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
+
     }
 
     public function render()
@@ -545,11 +637,17 @@ class Index extends Component
             ->when($this->filterStatus, function($q) {
                 $map = [
                     'Pending' => 'pending',
+                    'Acknowledged' => 'acknowledged',
                     'In Progress' => 'in_progress',
+                    'Escalated' => 'escalated',
                     'Resolved' => 'resolved',
                     'Rejected' => 'rejected',
+                    'Closed' => 'closed',
                 ];
-                if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
+
+                if ($this->filterStatus !== 'Show All' && isset($map[$this->filterStatus])) {
+                    $q->where('grievance_status', $map[$this->filterStatus]);
+                }
             })
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
             ->when($this->search, function ($query) {
@@ -585,6 +683,13 @@ class Index extends Component
                     case 'This Year':
                         $q->whereYear('created_at', now()->year);
                         break;
+                }
+            })
+            ->when($this->filterIdentity, function($q) {
+                if ($this->filterIdentity === 'Anonymous') {
+                    $q->where('is_anonymous', true);
+                } elseif ($this->filterIdentity === 'Not Anonymous') {
+                    $q->where('is_anonymous', false);
                 }
             })
             ->latest()

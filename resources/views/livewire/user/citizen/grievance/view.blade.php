@@ -106,7 +106,7 @@
                         'icon'  => 'clock',
                         'class' => $class,
                     ],
-                    ['label' => 'Status', 'value' => ucfirst($grievance->grievance_status), 'icon' => 'chart-bar'],
+                    ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', $grievance->grievance_status)), 'icon' => 'chart-bar'],
                 ];
             @endphp
 
@@ -116,7 +116,9 @@
                         <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <span class="text-[16px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
                     </div>
-                    <span class="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex-1 text-right">
+                    <span
+                        class="text-[15px] font-bold flex-1 text-right
+                        text-gray-900 dark:text-gray-100 {{ $item['class'] ?? '' }}">
                         {{ $item['value'] }}
                     </span>
                 </div>
@@ -358,7 +360,7 @@
         @endif
     </div>
 
-    <div class="mt-8 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
+    <div class="flex flex-col gap-3 mt-8 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
         <h4 class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
             <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Conversation

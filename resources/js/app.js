@@ -10,7 +10,7 @@ NProgress.configure({
 
 document.addEventListener('alpine:init', () => {
     Alpine.store('sidebar', {
-        open: window.innerWidth >= 1024,
+        open: false,
         screen: window.innerWidth,
         toggle() {
             this.open = !this.open;
