@@ -21,7 +21,8 @@ class Index extends Component
     use WithPagination;
 
     protected $paginationTheme = 'tailwind';
-
+    public ?string $sortField = null;
+    public string $sortDirection = 'asc';
     public $perPage = 4;
     public $search = '';
     public $searchInput = '';
@@ -83,6 +84,18 @@ class Index extends Component
             ->pluck('department_name', 'department_name')
             ->toArray();
 
+    }
+
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->resetPage();
     }
 
     public function updatedSelectAll($value)
@@ -320,13 +333,24 @@ class Index extends Component
                         'updated_at' => now(),
                     ]);
 
+                    $roleName = ucfirst(auth()->user()->roles->first()?->name ?? 'User');
+
                     ActivityLog::create([
-                        'user_id'     => auth()->id(),
-                        'role_id'     => auth()->user()->roles->first()?->id,
-                        'action'      => "Changed grievance #{$grievance->grievance_id} status from {$oldStatus} to {$this->status}",
-                        'timestamp'   => now(),
-                        'ip_address'  => request()->ip(),
-                        'device_info' => request()->header('User-Agent'),
+                        'user_id'      => auth()->id(),
+                        'role_id'      => auth()->user()->roles->first()?->id,
+                        'module'       => 'Grievance Management',
+                        'action'       => "Updated grievance #{$grievance->grievance_id} ({$grievance->grievance_title})",
+                        'action_type'  => 'update',
+                        'description'  => "{$roleName} ({auth()->user()->email}) updated grievance #{$grievance->grievance_id} from {$oldStatus} to {$this->status}.",
+                        'status'       => 'success',
+                        'model_type'   => 'App\\Models\\Grievance',
+                        'model_id'     => $grievance->grievance_id,
+                        'ip_address'   => request()->ip(),
+                        'device_info'  => request()->header('User-Agent'),
+                        'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                        'platform'     => php_uname('s'),
+                        'location'     => null,
+                        'timestamp'    => now(),
                     ]);
                 }
             }
@@ -692,7 +716,11 @@ class Index extends Component
                     $q->where('is_anonymous', false);
                 }
             })
-            ->latest()
+            ->when($this->sortField, function($query) {
+                $query->orderBy($this->sortField, $this->sortDirection);
+            }, function($query) {
+                $query->orderBy('created_at', 'desc');
+            })
             ->paginate($this->perPage);
 
         return view('livewire.user.hr-liaison.grievance.index', compact('grievances'));

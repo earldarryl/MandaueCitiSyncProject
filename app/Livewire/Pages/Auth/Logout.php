@@ -19,12 +19,18 @@ class Logout extends Component
             $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
             ActivityLog::create([
-                'user_id'    => $user->id,
-                'role_id'    => $user->roles->first()?->id,
-                'action'     => $roleName . ' logged out',
-                'ip_address' => request()->ip(),
-                'device_info'=> request()->header('User-Agent'),
+                'user_id'      => $user->id,
+                'role_id'      => $user->roles->first()?->id,
+                'action'       => $roleName . ' logged out',
+                'action_type'  => 'logout',
+                'module_name'  => 'Authentication',
+                'description'  => $roleName . ' (' . $user->email . ') successfully logged out.',
+                'ip_address'   => request()->ip(),
+                'device_info'  => request()->header('User-Agent'),
+                'created_by'   => $user->id,
+                'updated_by'   => $user->id,
             ]);
+
         }
 
         if ($user) {

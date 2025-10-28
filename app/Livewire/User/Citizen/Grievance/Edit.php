@@ -201,12 +201,17 @@ class Edit extends Component implements Forms\Contracts\HasForms
             }
 
             ActivityLog::create([
-                'user_id'     => auth()->id(),
-                'role_id'     => auth()->user()->roles->first()?->id,
-                'action'      => "Updated grievance #{$this->grievance->grievance_id} ({$this->grievance_title})",
-                'timestamp'   => now(),
-                'ip_address'  => request()->ip(),
-                'device_info' => request()->header('User-Agent'),
+                'user_id'      => auth()->id(),
+                'role_id'      => auth()->user()->roles->first()?->id,
+                'action'       => "Updated grievance #{$this->grievance->grievance_id} ({$this->grievance_title})",
+                'action_type'  => 'update',
+                'module_name'  => 'Grievance Management',
+                'description'  => 'Grievance details were modified by ' . auth()->user()->name,
+                'timestamp'    => now(),
+                'ip_address'   => request()->ip(),
+                'device_info'  => request()->header('User-Agent'),
+                'created_by'   => auth()->id(),
+                'updated_by'   => auth()->id(),
             ]);
 
             Notification::make()

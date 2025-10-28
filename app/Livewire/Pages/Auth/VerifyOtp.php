@@ -86,11 +86,17 @@ class VerifyOtp extends Component
             $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
             ActivityLog::create([
-                'user_id'    => $user->id,
-                'role_id'    => $user->roles->first()?->id,
-                'action'     => $roleName . ' logged in',
-                'ip_address' => RequestFacade::ip(),
-                'device_info'=> RequestFacade::header('User-Agent'),
+                'user_id'      => $user->id,
+                'role_id'      => $user->roles->first()?->id,
+                'action'       => $roleName . ' logged in',
+                'action_type'  => 'login',
+                'module_name'  => 'Authentication',
+                'description'  => $roleName . ' (' . $user->email . ') logged in successfully.',
+                'timestamp'    => now(),
+                'ip_address'   => RequestFacade::ip(),
+                'device_info'  => RequestFacade::header('User-Agent'),
+                'created_by'   => $user->id,
+                'updated_by'   => $user->id,
             ]);
 
             $this->redirectIntended(

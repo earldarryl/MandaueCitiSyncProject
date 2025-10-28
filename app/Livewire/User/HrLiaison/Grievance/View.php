@@ -17,10 +17,18 @@ class View extends Component
     public function mount($id)
     {
         $user = auth()->user();
+        $roleName = ucfirst($user->roles->first()?->name ?? 'User');
 
         $this->grievance = Grievance::with(['attachments', 'assignments', 'departments', 'user.userInfo'])
-            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+            ->whereHas('assignments', function ($query) use ($user) {
+                $query->where('hr_liaison_id', $user->id);
+            })
             ->findOrFail($id);
+
+        $isAssigned = $this->grievance->assignments->contains('hr_liaison_id', $user->id);
+        if (!$isAssigned) {
+            abort(403, 'You are not authorized to view this grievance.');
+        }
 
         if ($this->grievance->grievance_status === 'pending') {
             $this->grievance->forceFill([
@@ -28,12 +36,21 @@ class View extends Component
             ])->save();
 
             ActivityLog::create([
-                'user_id'     => $user->id,
-                'role_id'     => $user->roles->first()?->id,
-                'action'      => "Acknowledged grievance #{$this->grievance->grievance_id}",
-                'timestamp'   => now(),
-                'ip_address'  => request()->ip(),
-                'device_info' => request()->header('User-Agent'),
+                'user_id'      => $user->id,
+                'role_id'      => $user->roles->first()?->id,
+                'module'       => 'Grievance Management',
+                'action'       => "Acknowledged grievance #{$this->grievance->grievance_id}",
+                'action_type'  => 'acknowledge',
+                'model_type'   => 'App\\Models\\Grievance',
+                'model_id'     => $this->grievance->grievance_id,
+                'description'  => "{$roleName} ({$user->email}) acknowledged grievance #{$this->grievance->grievance_id}.",
+                'status'       => 'success',
+                'ip_address'   => request()->ip(),
+                'device_info'  => request()->header('User-Agent'),
+                'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                'platform'     => php_uname('s'),
+                'location'     => null,
+                'timestamp'    => now(),
             ]);
         }
     }

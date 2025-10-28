@@ -15,14 +15,25 @@ class ActivityLog extends Model
     protected $fillable = [
         'user_id',
         'role_id',
+        'module',
         'action',
-        'timestamp',
+        'action_type',
+        'model_type',
+        'model_id',
+        'description',
+        'changes',
+        'status',
         'ip_address',
         'device_info',
+        'user_agent',
+        'platform',
+        'location',
+        'timestamp',
     ];
 
     protected $casts = [
         'timestamp' => 'datetime',
+        'changes' => 'array',
     ];
 
     public function user()

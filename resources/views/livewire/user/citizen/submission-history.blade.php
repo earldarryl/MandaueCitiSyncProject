@@ -1,41 +1,60 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
-    <div class="flex flex-col sm:flex-row justify-between gap-3 mb-5 items-start sm:items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
 
-        <div class="w-full sm:w-64">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
             <x-filter-select
                 name="filter"
                 placeholder="Filter by type"
                 :options="['Grievances', 'Feedbacks']"
             />
+
+            <button
+                wire:click="applyFilter"
+                wire:loading.attr="disabled"
+                wire:target="applyFilter"
+                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                    bg-gray-100 text-gray-800 border-gray-300
+                    hover:bg-gray-200 hover:border-gray-400
+                    dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
+                    dark:hover:bg-zinc-700
+                    whitespace-nowrap
+                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
+                <span wire:loading wire:target="applyFilter">Processing...</span>
+            </button>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row gap-2 w-full mt-2 sm:mt-0">
             <button
                 wire:click="clearHistory"
+                wire:loading.attr="disabled"
+                wire:target="clearHistory"
                 class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    w-full sm:w-auto
                     bg-red-100 text-red-800 border-red-300
                     hover:bg-red-200 hover:border-red-400
                     dark:bg-red-900/40 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-800/50
-                    transition-all duration-200">
+                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
                 <flux:icon.trash class="w-4 h-4" />
-                Clear History
+                <span wire:loading.remove wire:target="clearHistory">Clear History</span>
+                <span wire:loading wire:target="clearHistory">Processing...</span>
             </button>
 
             <button
                 wire:click="restoreHistory"
+                wire:loading.attr="disabled"
+                wire:target="restoreHistory"
                 class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    w-full sm:w-auto
                     bg-blue-100 text-blue-800 border-blue-300
                     hover:bg-blue-200 hover:border-blue-400
                     dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
-                    transition-all duration-200">
+                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
                 <flux:icon.arrow-path class="w-4 h-4" />
-                Restore History
+                <span wire:loading.remove wire:target="restoreHistory">Restore History</span>
+                <span wire:loading wire:target="restoreHistory">Processing...</span>
             </button>
         </div>
-
 
     </div>
 

@@ -17,7 +17,7 @@ class SubmissionHistory extends Component
     public int $increment = 5;
     public string $filter = '';
 
-    public function mount()
+    public function mount(): void
     {
         $this->updateRestoreStatus();
     }
@@ -88,16 +88,27 @@ class SubmissionHistory extends Component
         $this->limit += $this->increment;
     }
 
+    public function applyFilter(): void
+    {
+        $this->limit = 5;
+
+        Notification::make()
+            ->title('Filter Applied')
+            ->success()
+            ->body('Showing ' . ($this->filter ?: 'all') . ' records.')
+            ->send();
+    }
+
     public function getGroupedLogsProperty()
     {
         $query = HistoryLog::where('user_id', auth()->id());
 
         $query->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
-            ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedbacks'));
+              ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'));
 
         $logs = $query->latest()
-                    ->take($this->limit)
-                    ->get();
+                      ->take($this->limit)
+                      ->get();
 
         return $logs->groupBy(function ($log) {
             $date = $log->created_at->startOfDay();
@@ -127,5 +138,4 @@ class SubmissionHistory extends Component
             'hasMore'     => $totalCount > $this->limit,
         ]);
     }
-
 }

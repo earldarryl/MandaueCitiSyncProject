@@ -17,6 +17,8 @@ class Index extends Component
     use WithPagination;
 
     protected $paginationTheme = 'tailwind';
+    public ?string $sortField = null;
+    public string $sortDirection = 'asc';
     public $user;
     public $perPage = 10;
     public $search = '';
@@ -70,6 +72,18 @@ class Index extends Component
         }
 
         $this->updateStats();
+    }
+
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->resetPage();
     }
 
     public function downloadPdf($id)
@@ -367,7 +381,11 @@ class Index extends Component
                         break;
                 }
             })
-            ->latest()
+            ->when($this->sortField, function($query) {
+                $query->orderBy($this->sortField, $this->sortDirection);
+            }, function($query) {
+                $query->orderBy('created_at', 'desc');
+            })
             ->paginate($this->perPage);
 
         return view('livewire.user.citizen.grievance.index', [

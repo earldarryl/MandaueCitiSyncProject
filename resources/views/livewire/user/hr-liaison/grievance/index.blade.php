@@ -312,8 +312,9 @@
             <div class="flex justify-center w-full px-3 mb-3">
                 <button
                     wire:click="applyFilters"
-                    class="px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
-                    Apply Filters
+                    class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                    <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                    <span>Apply Filters</span>
                 </button>
             </div>
 
@@ -605,20 +606,114 @@
         <div wire:loading.remove wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch, selectAll">
             <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                    <thead class="bg-gray-100 dark:bg-zinc-900">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <!-- Select all checkbox -->
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 text-center">
                                 <flux:checkbox wire:model.live="selectAll" id="select-all" />
                             </th>
 
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submitted By</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            <th wire:click="sortBy('grievance_id')" scope="col" class="px-6 py-3 cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <span>#</span>
+
+                                    <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                        @if($sortField === 'grievance_id')
+                                            @if($sortDirection === 'asc')
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @else
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @endif
+                                        @else
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                        @endif
+                                    </span>
+                                </div>
+                            </th>
+
+                            <th wire:click="sortBy('grievance_title')" scope="col" class="px-6 py-3 cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <span>Title</span>
+
+                                    <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                        @if($sortField === 'grievance_title')
+                                            @if($sortDirection === 'asc')
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @else
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @endif
+                                        @else
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                        @endif
+                                    </span>
+                                </div>
+                            </th>
+
+                            <th scope="col" class="px-6 py-3">
+                                Identity Type
+                            </th>
+
+                            <th wire:click="sortBy('grievance_status')" scope="col" class="px-6 py-3 cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <span>Status</span>
+
+                                    <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                        @if($sortField === 'grievance_status')
+                                            @if($sortDirection === 'asc')
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @else
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @endif
+                                        @else
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                        @endif
+                                    </span>
+                                </div>
+                            </th>
+
+                            <th wire:click="sortBy('priority_level')" scope="col" class="px-6 py-3 cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <span>Priority</span>
+
+                                    <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                        @if($sortField === 'priority_level')
+                                            @if($sortDirection === 'asc')
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @else
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @endif
+                                        @else
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                        @endif
+                                    </span>
+                                </div>
+                            </th>
+
+                            <th wire:click="sortBy('created_at')" scope="col" class="px-6 py-3 cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <span>Date</span>
+
+                                    <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                        @if($sortField === 'created_at')
+                                            @if($sortDirection === 'asc')
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @else
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                            @endif
+                                        @else
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                        @endif
+                                    </span>
+                                </div>
+                            </th>
+
+                            <th scope="col" class="px-6 py-3 text-center">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
 
@@ -678,7 +773,7 @@
                                 </span>
                             </td>
 
-                            <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
+                            <td class="px-4 py-2 text-[12px] font-bold text-gray-800 dark:text-gray-100">
                                 {{ $grievance->created_at->format('M d, Y h:i A') }}
                             </td>
 
