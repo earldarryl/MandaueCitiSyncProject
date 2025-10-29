@@ -129,7 +129,7 @@ class Index extends Component
             $handle = fopen('php://output', 'w');
 
                 fputcsv($handle, [
-                    'Grievance ID',
+                    'Grievance Ticket ID',
                     'Grievance Title',
                     'Grievance Type',
                     'Priority Level',
@@ -150,7 +150,7 @@ class Index extends Component
             $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
 
             fputcsv($handle, [
-                $grievance->grievance_id,
+                $grievance->grievance_ticket_id,
                 $grievance->grievance_title,
                 $grievance->grievance_type,
                 $grievance->priority_level,
@@ -178,12 +178,6 @@ class Index extends Component
     {
         $this->resetPage();
         $this->updateStats();
-
-        Notification::make()
-            ->title('Filters Applied')
-            ->body('Your grievance list has been updated based on your selected filters.')
-            ->success()
-            ->send();
     }
 
     public function clearSearch()
@@ -228,6 +222,27 @@ class Index extends Component
         } else {
             $this->selected = [];
         }
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetSelection();
+    }
+
+    public function updatedFilters()
+    {
+        $this->resetSelection();
+    }
+
+    public function updatingPage()
+    {
+        $this->resetSelection();
+    }
+
+    protected function resetSelection()
+    {
+        $this->selectAll = false;
+        $this->selected = [];
     }
 
     public function deleteSelected()
@@ -357,7 +372,7 @@ class Index extends Component
                         ->orWhere('priority_level', 'like', "%{$term}%")
                         ->orWhere('grievance_type', 'like', "%{$term}%")
                         ->orWhere('is_anonymous', 'like', "%{$term}%")
-                        ->orWhereRaw('CAST(grievance_id AS CHAR) like ?', ["%{$term}%"])
+                        ->orWhereRaw('CAST(grievance_ticket_id AS CHAR) like ?', ["%{$term}%"])
                         ->orWhere('grievance_status', 'like', "%{$term}%")
                         ->orWhere('grievance_status', 'like', "%{$normalized}%");
                 });

@@ -25,8 +25,8 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     Route::middleware('role:citizen')->group(function () {
         Volt::route('citizen/grievance/index', 'user.citizen.grievance.index')->name('citizen.grievance.index');
         Volt::route('citizen/grievance/create', 'user.citizen.grievance.create')->name('citizen.grievance.create');
-        Volt::route('citizen/grievance/view/{id}', 'user.citizen.grievance.view')->name('citizen.grievance.view');
-        Volt::route('citizen/grievance/edit/{id}', 'user.citizen.grievance.edit')->name('citizen.grievance.edit');
+        Volt::route('citizen/grievance/view/{grievance}', 'user.citizen.grievance.view')->name('citizen.grievance.view');
+        Volt::route('citizen/grievance/edit/{grievance}', 'user.citizen.grievance.edit')->name('citizen.grievance.edit');
         Volt::route('citizen/feedback-form', 'user.citizen.feedback-form')->name('citizen.feedback-form');
         Volt::route('citizen/submission-history', 'user.citizen.submission-history')->name('citizen.submission-history');
     });
@@ -36,8 +36,8 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('hr-liaison/department/index', 'user.hr-liaison.department.index')->name('hr-liaison.department.index');
         Volt::route('hr-liaison/department/{department}', 'user.hr-liaison.department.view')->name('hr-liaison.department.view');
         Volt::route('hr-liaison/grievance/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
-        Volt::route('hr-liaison/grievance/view/{id}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
-        Volt::route('hr-liaison/grievance/edit/{id}', 'user.hr-liaison.grievance.edit')->name('hr-liaison.grievance.edit');
+        Volt::route('hr-liaison/grievance/view/{grievance}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
+        Volt::route('hr-liaison/grievance/edit/{grievance}', 'user.hr-liaison.grievance.edit')->name('hr-liaison.grievance.edit');
         Volt::route('hr-liaison/activity-logs', 'user.hr-liaison.activity-logs.index')->name('hr-liaison.activity-logs.index');
     });
 

@@ -485,7 +485,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Please select one or more departments to reroute all selected grievances.
+                    Please select a department to reroute all selected grievances.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -550,7 +550,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Choose a new grievance status to apply to all selected records.
+                    Choose a new status to apply to all selected grievances.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -602,8 +602,7 @@
     <div class="relative">
     <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-        <!-- Table view -->
-        <div wire:loading.remove wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch, selectAll">
+        <div wire:loading.remove wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch">
             <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -614,7 +613,7 @@
 
                             <th wire:click="sortBy('grievance_id')" scope="col" class="px-6 py-3 cursor-pointer">
                                 <div class="flex items-center justify-between">
-                                    <span>#</span>
+                                    <span>Ticket ID</span>
 
                                     <span class="w-2.5 h-full font-bold text-black dark:text-white">
                                         @if($sortField === 'grievance_id')
@@ -720,13 +719,12 @@
                     <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                         @forelse($grievances as $grievance)
                         <tr wire:key="grievance-{{ $grievance->grievance_id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
-                            <!-- Row checkbox -->
                             <td class="px-4 py-2 whitespace-nowrap">
                                 <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
                             </td>
 
                             <td class="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-700 dark:text-gray-300">
-                                {!! $highlight($grievance->grievance_id, $search) !!}
+                                {!! $highlight($grievance->grievance_ticket_id, $search) !!}
                             </td>
 
                             <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
@@ -778,7 +776,7 @@
                             </td>
 
                             <td class="px-4 py-2 text-center space-x-1">
-                                <a href="{{ route('hr-liaison.grievance.view', $grievance->grievance_id) }}" wire:navigate
+                                <a href="{{ route('hr-liaison.grievance.view', $grievance) }}" wire:navigate
                                     class="px-2 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
 
                             </td>
@@ -796,7 +794,7 @@
             </div>
         </div>
 
-        <div wire:loading wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch, selectAll"
+        <div wire:loading wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
              class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                 <thead class="bg-gray-100 dark:bg-zinc-900">

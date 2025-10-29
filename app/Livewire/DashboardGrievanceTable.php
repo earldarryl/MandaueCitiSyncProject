@@ -184,23 +184,23 @@ class DashboardGrievanceTable extends TableWidget
             ])
             ->actions([
               Action::make('view')
-                ->label('View')
-                ->url(fn (Grievance $record) => route('hr-liaison.grievance.view', ['id' => $record->grievance_id]))
-                ->extraAttributes([
-                    'wire:navigate' => true,
-                    'class' => '
-                        !inline-flex !items-center !gap-1.5
-                        !px-2.5 !py-1.5 !text-xs !font-semibold
-                        !rounded-md !border !border-gray-300
-                        !bg-gray-50 !text-gray-700
-                        hover:!bg-gray-100 hover:!border-gray-400
-                        dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
-                        dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
-                        !transition-all !duration-200 !shadow-sm !cursor-pointer
-                    ',
-                ])
-                ->tooltip('View grievance details')
-                ->button(),
+                    ->label('View')
+                    ->url(fn (Grievance $record) => route('hr-liaison.grievance.view', $record))
+                    ->extraAttributes([
+                        'wire:navigate' => true,
+                        'class' => '
+                            !inline-flex !items-center !gap-1.5
+                            !px-2.5 !py-1.5 !text-xs !font-semibold
+                            !rounded-md !border !border-gray-300
+                            !bg-gray-50 !text-gray-700
+                            hover:!bg-gray-100 hover:!border-gray-400
+                            dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
+                            dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
+                            !transition-all !duration-200 !shadow-sm !cursor-pointer
+                        ',
+                    ])
+                    ->tooltip('View grievance details')
+                    ->button(),
             ])
             ->searchable()
             ->defaultSort('created_at', 'desc')

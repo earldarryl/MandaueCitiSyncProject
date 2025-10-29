@@ -39,14 +39,14 @@ class Edit extends Component implements Forms\Contracts\HasForms
     public $department = [];
     public $departmentOptions = [];
 
-    public function mount($id): void
+    public function mount(Grievance $grievance): void
     {
-        $this->assignment = Assignment::with('grievance.attachments')
+        $this->grievance = $grievance->load(['attachments', 'assignments']);
+        $this->assignment = $this->grievance->assignments
             ->where('hr_liaison_id', Auth::id())
-            ->where('grievance_id', $id)
-            ->firstOrFail();
+            ->first();
 
-        $this->grievance = $this->assignment->grievance;
+        abort_unless((bool) $this->assignment, 403, 'You are not authorized to edit this grievance.');
 
         $this->is_anonymous     = (bool) $this->grievance->is_anonymous;
         $this->grievance_type   = $this->grievance->grievance_type;
@@ -56,7 +56,6 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
         $this->existing_attachments = $this->grievance->attachments->toArray();
         $this->department = $this->grievance->assignments->pluck('department_id')->unique()->values()->toArray();
-
         $this->departmentOptions = Department::pluck('department_name', 'department_id')->toArray();
 
         $this->form->fill([

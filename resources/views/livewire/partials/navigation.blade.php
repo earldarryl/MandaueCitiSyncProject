@@ -119,7 +119,7 @@
                                 wire:poll.10s="loadCounts"
                                 wire:loading.remove
                                 wire:target="markNotificationAsRead,markNotificationAsUnread,loadMore,deleteNotification,markAllAsRead,deleteAllUnread,markAllAsUnread,deleteAllRead"
-                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 text-xs font-semibold"
+                                class="absolute -top-2 -right-2 flex items-center bg-red-600 text-white rounded-full p-1 text-xs font-semibold"
                             >
                                 {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                             </span>

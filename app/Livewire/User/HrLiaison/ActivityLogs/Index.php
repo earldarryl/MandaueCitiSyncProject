@@ -20,8 +20,9 @@ class Index extends Component
 
     public int $limit = 10;
     public ?string $filter = null;
+    public ?string $roleFilter = null;
+    protected $queryString = ['filter', 'roleFilter'];
 
-    protected $queryString = ['filter'];
 
     public function applyFilter(): void
     {
@@ -64,6 +65,13 @@ class Index extends Component
         $query = ActivityLog::query()
             ->whereIn('user_id', $userIds)
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->roleFilter, function ($q) {
+                if ($this->roleFilter === 'HR Liaison') {
+                    $q->where('role_id', 2);
+                } elseif ($this->roleFilter === 'Citizen') {
+                    $q->where('role_id', 3);
+                }
+            })
             ->latest('timestamp');
 
         $logs = $query->paginate($this->limit);

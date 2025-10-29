@@ -18,14 +18,16 @@
     </div>
 
     <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 dark:text-gray-100 flex items-center gap-2 flex-wrap">
-                <x-heroicon-o-identification class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                ID:
-                <span class="text-blue-700 dark:text-blue-400 text-3xl sm:text-4xl font-black">
-                    #{{ $grievance->grievance_id }}
-                </span>
-            </h2>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 dark:border-zinc-800">
+            <div class="flex flex-col gap-2">
+                <h2 class="flex items-center gap-2 flex-wrap text-md font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
+                    <x-heroicon-o-identification class="w-4 h-4 inline mr-1 text-gray-500 dark:text-gray-400" />
+                    TICKET ID
+                </h2>
+                <p class="text-3xl sm:text-4xl font-extrabold text-blue-700 dark:text-blue-400 leading-tight">
+                    {{ $grievance->grievance_ticket_id }}
+                </p>
+            </div>
 
             <p class="hidden sm:flex text-sm text-gray-500 dark:text-gray-400 italic items-center gap-1 shrink-0">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
@@ -33,17 +35,17 @@
             </p>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
-                <x-heroicon-o-tag class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                Title:
-                <span
-                    class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize max-w-full sm:max-w-[600px]"
-                    title="{{ $grievance->grievance_title }}"
-                >
-                    {{ $grievance->grievance_title }}
-                </span>
+        <div class="flex flex-col gap-2">
+            <h2 class="flex items-center gap-2 flex-wrap text-md font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
+                <x-heroicon-o-tag class="w-4 h-4 inline mr-1 text-gray-500 dark:text-gray-400" />
+                TITLE
             </h2>
+            <p
+                class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate overflow-hidden capitalize leading-tight"
+                title="{{ $grievance->grievance_title }}"
+            >
+                {{ $grievance->grievance_title }}
+            </p>
         </div>
 
         <div class="sm:hidden mt-2">

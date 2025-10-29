@@ -1,6 +1,11 @@
-<div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6">
+<div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
+     x-data="{ openRerouteModal: false, openStatusModal: false, showModal: false }"
+     x-on:close-status-modal.window="openStatusModal = false"
+     x-on:update-success-modal.window="showModal = true"
+     x-on:close-success-modal.window="showModal = false"
+     x-on:close-all-modals.window="showModal = false"
+     >
 
-    <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
         <x-responsive-nav-link
             href="{{ route('hr-liaison.grievance.index') }}"
@@ -15,17 +20,43 @@
             <span class="lg:hidden">Home</span>
         </x-responsive-nav-link>
 
+        <button
+            @click="openRerouteModal = true"
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                border border-blue-500 dark:border-blue-400
+                hover:bg-blue-200 dark:hover:bg-blue-800/50
+                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                transition-all duration-200">
+            <x-heroicon-o-arrow-path class="w-5 h-5" />
+            <span>Reroute</span>
+        </button>
+
+        <button
+            @click="openStatusModal = true"
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300
+                border border-yellow-500 dark:border-yellow-400
+                hover:bg-yellow-200 dark:hover:bg-yellow-800/50
+                focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-700
+                transition-all duration-200">
+            <x-heroicon-o-pencil-square class="w-5 h-5" />
+            <span>Update Status</span>
+        </button>
+
     </div>
 
     <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 dark:text-gray-100 flex items-center gap-2 flex-wrap">
-                <x-heroicon-o-identification class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                ID:
-                <span class="text-blue-700 dark:text-blue-400 text-3xl sm:text-4xl font-black">
-                    #{{ $grievance->grievance_id }}
-                </span>
-            </h2>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 dark:border-zinc-800">
+            <div class="flex flex-col gap-2">
+                <h2 class="flex items-center gap-2 flex-wrap text-md font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
+                    <x-heroicon-o-identification class="w-4 h-4 inline mr-1 text-gray-500 dark:text-gray-400" />
+                    TICKET ID
+                </h2>
+                <p class="text-3xl sm:text-4xl font-extrabold text-blue-700 dark:text-blue-400 leading-tight">
+                    {{ $grievance->grievance_ticket_id }}
+                </p>
+            </div>
 
             <p class="hidden sm:flex text-sm text-gray-500 dark:text-gray-400 italic items-center gap-1 shrink-0">
                 <x-heroicon-o-clock class="w-4 h-4 shrink-0" />
@@ -33,17 +64,17 @@
             </p>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 flex-wrap">
-                <x-heroicon-o-tag class="w-6 sm:w-7 h-6 sm:h-7 text-gray-500 dark:text-gray-400" />
-                Title:
-                <span
-                    class="text-xl sm:text-3xl text-blue-600 dark:text-blue-400 font-extrabold truncate overflow-hidden capitalize max-w-full sm:max-w-[600px]"
-                    title="{{ $grievance->grievance_title }}"
-                >
-                    {{ $grievance->grievance_title }}
-                </span>
+        <div class="flex flex-col gap-2">
+            <h2 class="flex items-center gap-2 flex-wrap text-md font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
+                <x-heroicon-o-tag class="w-4 h-4 inline mr-1 text-gray-500 dark:text-gray-400" />
+                TITLE
             </h2>
+            <p
+                class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate overflow-hidden capitalize leading-tight"
+                title="{{ $grievance->grievance_title }}"
+            >
+                {{ $grievance->grievance_title }}
+            </p>
         </div>
 
         <div class="sm:hidden mt-2">
@@ -426,6 +457,178 @@
         </div>
 
         <livewire:grievance.chat :grievance="$grievance" />
+    </div>
+
+
+    <div
+        x-show="openRerouteModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+    >
+        <div
+            @click.outside="openRerouteModal = false"
+            class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <x-heroicon-o-arrow-path class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Reroute Selected Grievances
+                </h2>
+                <button
+                    @click="openRerouteModal = false"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                    aria-label="Close"
+                >
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+            </div>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Please select departments to reroute this particular grievance.
+            </p>
+
+            <div class="flex flex-col gap-2 mb-2">
+
+                <x-searchable-select
+                    name="selectedDepartment"
+                    placeholder="Select department(s)"
+                    :options="$departmentOptions"
+                />
+
+                <div class="space-y-1">
+                    <flux:error name="department" />
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+            <div class="flex justify-end gap-3">
+                <button
+                    @click="openRerouteModal = false"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                >
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                    Cancel
+                </button>
+
+                <button
+                    wire:click="reroute"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
+                >
+                    <x-heroicon-o-arrow-path class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="reroute">Reroute</span>
+                    <span wire:loading wire:target="reroute">Processing...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        x-show="openStatusModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+    >
+        <div
+            @click.outside="openStatusModal = false"
+            class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <x-heroicon-o-pencil-square class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                    Update Selected Grievance Status
+                </h2>
+                <button
+                    @click="openStatusModal = false"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                    aria-label="Close"
+                >
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+            </div>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Choose a new status to update this particular grievance.
+            </p>
+
+            <div class="flex flex-col gap-2 mb-2">
+                <x-searchable-select
+                    name="statusUpdate"
+                    placeholder="Select Status"
+                    :options="[
+                        'pending' => 'Pending',
+                        'acknowledged' => 'Acknowledged',
+                        'in_progress' => 'In Progress',
+                        'escalated' => 'Escalated',
+                        'resolved' => 'Resolved',
+                        'rejected' => 'Rejected',
+                        'closed' => 'Closed',
+                    ]"
+                />
+                <div class="space-y-1">
+                    <flux:error name="status" />
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+            <div class="flex justify-end gap-3">
+                <button
+                    @click="openStatusModal = false"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                >
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                    Cancel
+                </button>
+
+                <button
+                    wire:click="updateStatus"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition"
+                >
+                    <x-heroicon-o-check class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="updateStatus">Update</span>
+                    <span wire:loading wire:target="updateStatus">Processing...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        x-show="showModal"
+        x-cloak
+        class="fixed inset-0 flex items-center justify-center z-50"
+    >
+        <div x-show="showModal" x-transition.opacity class="absolute inset-0 bg-black/50"></div>
+
+        <div
+            x-show="showModal"
+            x-transition.scale
+            class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5 z-50"
+        >
+            <div class="flex items-center justify-center w-20 h-20 rounded-full bg-green-500/15 mx-auto ring-2 ring-green-500/20">
+                <x-heroicon-o-check-circle class="w-12 h-12 text-green-500" />
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
+                Update Successful
+            </h2>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                The grievance record has been successfully updated and saved.
+            </p>
+
+            <div class="flex justify-center mt-6">
+                <button
+                    type="button"
+                    @click="showModal = false"
+                    class="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
+                >
+                    <x-heroicon-o-check class="w-5 h-5" />
+                    <span>Okay</span>
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>

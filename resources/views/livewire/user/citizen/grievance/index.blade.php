@@ -342,7 +342,7 @@
 
                                 <th wire:click="sortBy('grievance_id')" scope="col" class="px-6 py-3 cursor-pointer">
                                     <div class="flex items-center justify-between">
-                                        <span>#</span>
+                                        <span>Ticket ID</span>
 
                                         <span class="w-2.5 h-full font-bold text-black dark:text-white">
                                             @if($sortField === 'grievance_id')
@@ -453,7 +453,7 @@
                                     </td>
 
                                     <td class="px-4 py-2 whitespace-nowrap text-xs font-bold text-gray-700 dark:text-gray-300">
-                                        {!! $highlight($grievance->grievance_id, $search) !!}
+                                        {!! $highlight($grievance->grievance_ticket_id, $search) !!}
                                     </td>
 
                                     <td class="px-4 py-2 text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -498,10 +498,10 @@
                                     </td>
 
                                     <td class="px-4 py-2 text-center space-x-1">
-                                        <a href="{{ route('citizen.grievance.view', $grievance->grievance_id) }}" wire:navigate
+                                        <a href="{{ route('citizen.grievance.view', $grievance) }}" wire:navigate
                                             class="px-2 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
 
-                                        <a href="{{ route('citizen.grievance.edit', $grievance->grievance_id) }}" wire:navigate
+                                        <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
                                             class="px-2 py-1 text-xs rounded-md border border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300">Edit</a>
 
                                         <button @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"

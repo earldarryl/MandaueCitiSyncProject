@@ -10,6 +10,13 @@
                 wire:model="filter"
             />
 
+            <x-filter-select
+                name="roleFilter"
+                placeholder="Filter by role"
+                :options="['HR Liaison', 'Citizen']"
+                wire:model="roleFilter"
+            />
+
             <button
                 wire:click="applyFilter"
                 wire:loading.attr="disabled"
@@ -56,7 +63,7 @@
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex flex-col gap-1.5">
                                     <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                        {{ ucfirst($log->action_type) }}
+                                        {{ ucwords(str_replace('_', ' ',$log->action_type)) }}
                                     </span>
 
                                     <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">

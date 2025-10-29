@@ -9,18 +9,16 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
 #[Title('View Grievance')]
+
 class View extends Component
 {
     public Grievance $grievance;
-
-    public function mount($id)
+    public function mount(Grievance $grievance)
     {
         $user = auth()->user();
         $roleName = ucfirst($user->roles->first()?->name ?? 'User');
 
-        $this->grievance = Grievance::with(['attachments', 'assignments', 'departments', 'user.userInfo'])
-            ->where('user_id', $user->id)
-            ->findOrFail($id);
+        $this->grievance = $grievance->load(['attachments', 'assignments', 'departments', 'user.userInfo']);
 
         if ($this->grievance->user_id !== $user->id) {
             abort(403, 'You are not authorized to view this grievance.');
