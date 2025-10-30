@@ -21,6 +21,7 @@ class Grievance extends Model
         'grievance_status',
         'priority_level',
         'grievance_type',
+        'grievance_category',
         'processing_days',
         'grievance_title',
         'grievance_details',

@@ -99,6 +99,7 @@
 
                 $info = [
                     ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
+                    ['label' => 'Category', 'value' => $grievance->grievance_category ?? 'N/A', 'icon' => 'tag'],
                     ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
                     ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
                     ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
@@ -108,7 +109,7 @@
                         'icon'  => 'clock',
                         'class' => $class,
                     ],
-                    ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', $grievance->grievance_status)), 'icon' => 'chart-bar'],
+                    ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', subject: $grievance->grievance_status)), 'icon' => 'chart-bar'],
                 ];
             @endphp
 

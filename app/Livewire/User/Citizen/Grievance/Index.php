@@ -26,6 +26,7 @@ class Index extends Component
     public $filterPriority = '';
     public $filterStatus = '';
     public $filterType = '';
+    public $filterCategory = '';
     public $filterDate = '';
     public $selected = [];
     public $selectAll = false;
@@ -44,6 +45,7 @@ class Index extends Component
         'filterStatus' => ['except' => ''],
         'filterType' => ['except' => ''],
         'filterDate' => ['except' => ''],
+        'filterCategory' => ['except' => ''],
     ];
 
     protected $listeners = [
@@ -309,6 +311,10 @@ class Index extends Component
             $query->where('grievance_type', $this->filterType);
         }
 
+        if ($this->filterCategory) {
+            $query->where('grievance_category', $this->filterCategory);
+        }
+
         if ($this->filterDate) {
             switch ($this->filterDate) {
                 case 'Today':
@@ -361,6 +367,7 @@ class Index extends Component
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
             })
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
+            ->when($this->filterCategory, fn($q) => $q->where('grievance_category', $this->filterCategory))
             ->when($this->search, function ($query) {
                 $term = trim($this->search);
 
@@ -371,6 +378,7 @@ class Index extends Component
                         ->orWhere('grievance_details', 'like', "%{$term}%")
                         ->orWhere('priority_level', 'like', "%{$term}%")
                         ->orWhere('grievance_type', 'like', "%{$term}%")
+                        ->orWhere('grievance_category', 'like', "%{$term}%")
                         ->orWhere('is_anonymous', 'like', "%{$term}%")
                         ->orWhereRaw('CAST(grievance_ticket_id AS CHAR) like ?', ["%{$term}%"])
                         ->orWhere('grievance_status', 'like', "%{$term}%")

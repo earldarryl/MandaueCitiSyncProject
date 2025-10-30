@@ -8,6 +8,14 @@
     x-data="{
         open: false,
         selected: '',
+        search: '',
+        get filteredOptions() {
+            if (this.search.trim() === '') return this.options;
+            return this.options.filter(opt =>
+                opt.toLowerCase().includes(this.search.toLowerCase())
+            );
+        },
+        options: @js(array_values($options)),
         toggle(option) {
             this.selected = option;
             $refs.hidden.value = option;
@@ -23,7 +31,7 @@
     x-init="selected = $refs.hidden.value || ''"
     class="relative w-full"
 >
-    <input x-ref="hidden" type="hidden" wire:model="{{ $name }}" />
+    <input x-ref="hidden" type="hidden" x-model="{{ $name }}" wire:model="{{ $name }}" />
 
     <!-- Trigger -->
     <div
@@ -67,30 +75,55 @@
         </div>
     </div>
 
-    <!-- Dropdown List -->
+    <!-- Dropdown -->
     <div
         x-show="open"
         x-transition
         @click.outside="open = false"
-        class="absolute z-[60] mt-1 w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg"
+        class="absolute z-[60] mt-1 w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg overflow-hidden"
     >
-        <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" role="listbox">
-            @foreach ($options as $option)
+        <!-- Search bar (only if >5 options) -->
+        <template x-if="options.length > 5">
+            <div class="p-2 border-b border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800">
+                <input
+                    type="text"
+                    x-model="search"
+                    placeholder="Search..."
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-zinc-900 dark:text-gray-100"
+                />
+            </div>
+        </template>
+
+        <!-- Scrollable list -->
+        <ul
+            class="py-1 text-sm text-gray-700 dark:text-gray-200 max-h-56 overflow-y-auto"
+            role="listbox"
+        >
+            <template x-for="option in filteredOptions" :key="option">
                 <li>
                     <button
                         type="button"
-                        @click="toggle(@js($option))"
-                        class="w-full flex items-center justify-between px-4 py-2 rounded-md"
-                        :class="selected === @js($option) ? 'bg-zinc-100 dark:bg-zinc-800 font-medium' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
-                        {{ $option }}
-                        <svg x-show="selected === @js($option)" xmlns="http://www.w3.org/2000/svg"
+                        @click="toggle(option)"
+                        class="w-full flex items-center justify-between px-4 py-2 rounded-md text-left"
+                        :class="selected === option
+                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
+                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'"
+                    >
+                        <span x-text="option"></span>
+                        <svg x-show="selected === option" xmlns="http://www.w3.org/2000/svg"
                              fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                              class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
                     </button>
                 </li>
-            @endforeach
+            </template>
+
+            <template x-if="filteredOptions.length === 0">
+                <li class="px-4 py-2 text-gray-500 dark:text-gray-400 italic text-center">
+                    No results found.
+                </li>
+            </template>
         </ul>
     </div>
 </div>

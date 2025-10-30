@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\Grievance;
+use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
+
+class GrievanceCategoriesPieChart extends ChartWidget
+{
+    protected static ?int $sort = 4;
+
+    public ?string $startDate = null;
+    public ?string $endDate = null;
+
+    public function mount($startDate = null, $endDate = null): void
+    {
+        $this->startDate = $startDate ?? now()->startOfMonth()->format('Y-m-d');
+        $this->endDate = $endDate ?? now()->format('Y-m-d');
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return new HtmlString(<<<HTML
+            <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-3">
+                        <h2 class="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-100">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-6 text-blue-600 dark:text-blue-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+                            </svg>
+                            <span>Grievance Categories Distribution</span>
+                        </h2>
+                    </div>
+                </div>
+
+                <div x-data="{ open: false }" class="mt-1">
+                    <button @click="open = !open"
+                        class="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-200
+                            hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <span>About this chart</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'rotate-180': open }"
+                            class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open" x-collapse
+                        class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
+                            rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
+                        This chart visualizes <span class="font-semibold text-gray-800 dark:text-gray-300">
+                        all grievances</span> within the selected date range, grouped by
+                        their <span class="font-semibold text-gray-800 dark:text-gray-300">category</span> and type.
+                        <br><br>
+                        <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
+                        To help HR Liaisons quickly identify which grievance categories
+                        have higher workload and prioritize actions accordingly.
+                    </div>
+                </div>
+            </div>
+        HTML);
+    }
+
+    protected function baseQuery()
+    {
+        $user = Auth::user();
+
+        return Grievance::query()
+            ->when($user->hasRole('hr_liaison'), function ($query) use ($user) {
+                $query->whereHas('assignments', function ($q) use ($user) {
+                    $q->where('hr_liaison_id', $user->id);
+                });
+            })
+            ->when($this->startDate && $this->endDate, function ($query) {
+                $query->whereBetween('created_at', [
+                    $this->startDate . ' 00:00:00',
+                    $this->endDate . ' 23:59:59',
+                ]);
+            });
+    }
+
+
+    protected function getData(): array
+    {
+        $query = $this->baseQuery();
+
+        $categoryCounts = $query
+            ->selectRaw('grievance_category, COUNT(*) as total')
+            ->groupBy('grievance_category')
+            ->pluck('total', 'grievance_category');
+
+        $labels = $categoryCounts->keys()->map(fn($c) => ucwords(str_replace('_', ' ', $c)))->toArray();
+        $data = $categoryCounts->values()->toArray();
+
+        $colors = collect($data)->map(fn() => 'rgba('
+            . rand(100, 255) . ','
+            . rand(100, 255) . ','
+            . rand(100, 255) . ',0.6)'
+        )->toArray();
+
+        $borderColors = collect($colors)->map(fn($c) => str_replace('0.6', '1', $c))->toArray();
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'Grievances per Category',
+                    'data' => $data,
+                    'backgroundColor' => $colors,
+                    'borderColor' => $borderColors,
+                    'borderWidth' => 2,
+                ],
+            ],
+        ];
+    }
+
+    protected function getType(): string
+    {
+        return 'pie';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'right',
+                    'labels' => [
+                        'font' => ['size' => 13],
+                    ],
+                ],
+                'tooltip' => [
+                    'backgroundColor' => 'rgba(17, 24, 39, 0.95)',
+                    'bodyColor' => '#e5e7eb',
+                    'cornerRadius' => 10,
+                    'padding' => 10,
+                ],
+            ],
+        ];
+    }
+
+    public function getColumnSpan(): int|string|array
+    {
+        return 'full';
+    }
+}

@@ -2,7 +2,7 @@
 
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <x-filter-select
                 name="filter"
                 placeholder="Filter by type"
@@ -26,7 +26,7 @@
             </button>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-2 w-full mt-2 sm:mt-0">
+        <div class="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0 w-full justify-end">
             <button
                 wire:click="clearHistory"
                 wire:loading.attr="disabled"
@@ -118,14 +118,20 @@
 
                             <div class="flex justify-end items-center gap-2">
                                 @if($log->reference_table === 'grievances')
-                                    <a href="{{ route('citizen.grievance.view', ['id' => $log->reference_id]) }}" wire:navigate
-                                        class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
-                                            bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200
-                                            dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                                            dark:hover:bg-blue-800/60 transition-all duration-200">
-                                        <flux:icon.eye class="w-4 h-4" />
-                                        View
-                                    </a>
+                                    @php
+                                        $grievance = \App\Models\Grievance::find($log->reference_id);
+                                    @endphp
+
+                                    @if($grievance)
+                                        <a href="{{ route('citizen.grievance.view', $grievance) }}" wire:navigate
+                                            class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
+                                                bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200
+                                                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
+                                                dark:hover:bg-blue-800/60 transition-all duration-200">
+                                            <flux:icon.eye class="w-4 h-4" />
+                                            View
+                                        </a>
+                                    @endif
                                 @endif
                                 <button wire:click="removeFromHistory({{ $log->id }})"
                                     class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md

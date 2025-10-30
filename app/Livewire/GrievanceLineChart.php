@@ -132,6 +132,8 @@ class GrievanceLineChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
             'plugins' => [
                 'tooltip' => [
                     'enabled' => true,

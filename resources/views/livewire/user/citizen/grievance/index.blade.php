@@ -184,33 +184,85 @@
                 </div>
             </div> --}}
 
-            <div
-                class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2"
-                >
-                    <x-filter-select
-                        name="filterPriority"
-                        placeholder="Priority"
-                        :options="['High', 'Normal', 'Low']"
-                    />
+        <div
+            x-data="{
+                filterType: '',
+            }"
+            :class="filterType ? 'grid grid-cols-2 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2' : 'grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2'"
+        >
+            <x-filter-select
+                name="filterPriority"
+                placeholder="Priority"
+                :options="['High', 'Normal', 'Low']"
+            />
 
-                    <x-filter-select
-                        name="filterStatus"
-                        placeholder="Status"
-                        :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Rejected', 'Closed']"
-                    />
+            <x-filter-select
+                name="filterStatus"
+                placeholder="Status"
+                :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Rejected', 'Closed']"
+            />
 
-                    <x-filter-select
-                        name="filterType"
-                        placeholder="Type"
-                        :options="['Complaint', 'Request', 'Inquiry']"
-                    />
+            <x-filter-select
+                name="filterDate"
+                placeholder="Date"
+                :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
+            />
 
-                    <x-filter-select
-                        name="filterDate"
-                        placeholder="Date"
-                        :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-                    />
+            <div>
+                <x-filter-select
+                    name="filterType"
+                    placeholder="Type"
+                    :options="['Complaint', 'Request', 'Inquiry']"
+                    x-model="filterType"
+                />
             </div>
+
+            <template x-if="filterType">
+                <div class="relative">
+                    <div x-show="filterType === 'Complaint'" x-cloak>
+                        <x-filter-select
+                            name="filterCategory"
+                            placeholder="Category"
+                            :options="[
+                                'Unfair Treatment',
+                                'Workplace Harassment',
+                                'Salary or Benefits Issue',
+                                'Violation of Rights',
+                                'Other Complaint'
+                            ]"
+                        />
+                    </div>
+
+                    <div x-show="filterType === 'Inquiry'" x-cloak>
+                        <x-filter-select
+                            name="filterCategory"
+                            placeholder="Category"
+                            :options="[
+                                'Clarification on Policy',
+                                'Work Schedule Inquiry',
+                                'Performance Evaluation Question',
+                                'Other Inquiry'
+                            ]"
+                        />
+                    </div>
+
+                    <div x-show="filterType === 'Request'" x-cloak>
+                        <x-filter-select
+                            name="filterCategory"
+                            placeholder="Category"
+                            :options="[
+                                'Leave Request',
+                                'Schedule Adjustment',
+                                'Equipment or Resource Request',
+                                'Training or Seminar Request',
+                                'Other Request'
+                            ]"
+                        />
+                    </div>
+                </div>
+            </template>
+        </div>
+
             <div class="flex justify-center w-full px-3">
                 <button
                     wire:click="applyFilters"
@@ -331,7 +383,7 @@
    <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, deleteSelected, markSelectedHighPriority, clearSearch">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, deleteSelected, markSelectedHighPriority, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -365,6 +417,42 @@
 
                                         <span class="w-2.5 h-full font-bold text-black dark:text-white">
                                             @if($sortField === 'grievance_title')
+                                                @if($sortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortBy('grievance_type')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Type</span>
+                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                            @if($sortField === 'grievance_type')
+                                                @if($sortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortBy('grievance_category')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Category</span>
+                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                            @if($sortField === 'grievance_category')
                                                 @if($sortDirection === 'asc')
                                                     <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
                                                 @else
@@ -448,20 +536,44 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                             @forelse($grievances as $grievance)
                                 <tr wire:key="grievance-{{ $grievance->grievance_id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
-                                    <td class="px-4 py-2 whitespace-nowrap">
+
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
                                         <flux:checkbox wire:model.live="selected" value="{{ $grievance->grievance_id }}" />
                                     </td>
 
-                                    <td class="px-4 py-2 whitespace-nowrap text-xs font-bold text-gray-700 dark:text-gray-300">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         {!! $highlight($grievance->grievance_ticket_id, $search) !!}
                                     </td>
 
-                                    <td class="px-4 py-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                         {!! $highlight(Str::limit($grievance->grievance_title, 60), $search) !!}
                                     </td>
 
-                                    <td class="px-4 py-2 text-xs text-center font-semibold">
-                                        <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
+                                            {{ match($grievance->grievance_type) {
+                                                'Complaint' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                                'Inquiry' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                                                'Request' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                                default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                            } }}">
+                                            {{ $grievance->grievance_type ?? '—' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
+                                            {{ match($grievance->grievance_category) {
+                                                'Category A' => 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-600',
+                                                'Category B' => 'bg-green-50 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-200 dark:border-green-600',
+                                                default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                            } }}">
+                                            {{ $grievance->grievance_category ?? '—' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
                                             {{ $grievance->is_anonymous
                                                 ? 'bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-500'
                                                 : 'bg-emerald-100 text-emerald-800 border-emerald-400 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-500' }}">
@@ -469,8 +581,8 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-4 py-2 text-xs text-center font-semibold">
-                                        <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
                                             {{ match($grievance->grievance_status) {
                                                 'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
                                                 'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
@@ -482,8 +594,8 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-4 py-2 text-xs text-center font-semibold">
-                                        <span class="px-2 py-1 rounded-md border shadow-sm backdrop-blur-sm
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
                                             {{ $grievance->priority_level === 'High'
                                                 ? 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500'
                                                 : ($grievance->priority_level === 'Normal'
@@ -493,36 +605,37 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-4 py-2 text-[12px] font-bold text-gray-800 dark:text-gray-100">
+                                    <td class="px-6 py-4 text-center text-sm font-medium text-gray-800 dark:text-gray-100">
                                         {{ $grievance->created_at->format('M d, Y h:i A') }}
                                     </td>
 
-                                    <td class="px-4 py-2 text-center space-x-1">
+                                    <td class="px-6 py-4 text-center flex flex-col gap-2 space-x-1">
                                         <a href="{{ route('citizen.grievance.view', $grievance) }}" wire:navigate
-                                            class="px-2 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
+                                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
 
                                         <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
-                                            class="px-2 py-1 text-xs rounded-md border border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300">Edit</a>
+                                            class="px-3 py-1 text-xs rounded-md border border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300">Edit</a>
 
                                         <button @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"
-                                            class="px-2 py-1 text-xs rounded-md border border-red-300 text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300">Delete</button>
+                                            class="px-3 py-1 text-xs rounded-md border border-red-300 text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300">Delete</button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="11" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
                                         No grievances found
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
+
                     </table>
                 </div>
             </div>
 
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, deleteSelected, markSelectedHighPriority, clearSearch"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, deleteSelected, markSelectedHighPriority, clearSearch"
                  class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\Support\Htmlable;
+
 class DashboardGrievanceTable extends TableWidget
 {
     public ?string $startDate = null;
@@ -52,17 +53,15 @@ class DashboardGrievanceTable extends TableWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return new HtmlString(<<<'HTML'
-            <div class="flex flex-col gap-2 w-full p-4 bg-blue-50/60 dark:bg-blue-950/30
-                        border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
-                <!-- Header -->
+        return new HtmlString(<<<HTML
+            <div class="flex flex-col gap-2 w-full p-3">
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-3">
-                        <h2 class="flex items-center gap-2 text-lg font-bold text-blue-700 dark:text-blue-300">
+                        <h2 class="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
                                 class="size-6 text-blue-600 dark:text-blue-400">
-                                <path stroke-linecap="round" stroke-linejoin="round"
+                            <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12h6m-3-3v6m9 3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3Z" />
                             </svg>
                             <span>Grievance Records Overview</span>
@@ -70,10 +69,9 @@ class DashboardGrievanceTable extends TableWidget
                     </div>
                 </div>
 
-                <!-- Accordion -->
                 <div x-data="{ open: false }" class="mt-1">
                     <button @click="open = !open"
-                        class="flex items-center justify-between w-full text-sm font-medium text-blue-700 dark:text-blue-300
+                        class="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-200
                             hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         <span>About this table</span>
                         <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'rotate-180': open }"
@@ -84,16 +82,17 @@ class DashboardGrievanceTable extends TableWidget
                     </button>
 
                     <div x-show="open" x-collapse
-                        class="mt-2 text-sm text-blue-800 dark:text-blue-200 bg-blue-100/50 dark:bg-blue-900/40
-                            rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                        This table lists all <span class="font-semibold text-blue-900 dark:text-blue-100">grievances</span>
+                        class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
+                            rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
+                        This table lists all <span class="font-semibold text-gray-800 dark:text-gray-300">grievances</span>
                         assigned to HR liaisons, including both
-                        <span class="font-semibold text-blue-900 dark:text-blue-100">identified</span> and
-                        <span class="font-semibold text-blue-900 dark:text-blue-100">anonymous</span> submissions.
+                        <span class="font-semibold text-gray-800 dark:text-gray-300">identified</span> and
+                        <span class="font-semibold text-gray-800 dark:text-gray-300">anonymous</span> submissions.
                         <br><br>
-                        <span class="text-blue-900 dark:text-blue-100 font-medium">Purpose:</span>
+                        <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
                         To provide an overview of grievance records, their types, priorities, and identities —
-                        enabling HR to track progress and analyze communication transparency.
+                        enabling HR Liaisons to track case progress, monitor communication transparency,
+                        and support decision-making in case management.
                     </div>
                 </div>
             </div>
@@ -107,9 +106,18 @@ class DashboardGrievanceTable extends TableWidget
 
         return $table
             ->query($query)
-            // Pass the HTML directly so the accordion heading shows up
             ->header($this->getHeading())
             ->columns([
+
+                TextColumn::make('grievance_ticket_id')
+                    ->label('Ticket ID')
+                    ->sortable()
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Ticket ID copied!')
+                    ->weight('bold')
+                    ->color('primary'),
+
                 TextColumn::make('grievance_title')
                     ->label('Title')
                     ->sortable()
@@ -146,6 +154,13 @@ class DashboardGrievanceTable extends TableWidget
                     ->weight('bold')
                     ->sortable(),
 
+                    TextColumn::make('grievance_category')
+                        ->label('Category')
+                        ->badge()
+                        ->colors(['info' ])
+                        ->weight('bold')
+                        ->sortable(),
+
                 TextColumn::make('priority_level')
                     ->label('Priority')
                     ->badge()
@@ -163,15 +178,15 @@ class DashboardGrievanceTable extends TableWidget
                     ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'Anonymous' : 'Identified')
                     ->colors(fn ($record) => $record->is_anonymous ? ['gray'] : ['success'])
                     ->tooltip(fn ($record) => $record->is_anonymous
-                        ? 'Submitted anonymously'
+                        ? 'Submitted Anonymously'
                         : $record->user?->email)
                     ->weight('bold'),
 
                 TextColumn::make('user.name')
                     ->label('Submitted By')
-                    ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? '—' : $state)
+                    ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'N/A' : $state)
                     ->tooltip(fn ($record) => $record->is_anonymous
-                        ? 'Anonymous grievance'
+                        ? 'Anonymous Grievance'
                         : $record->user?->email)
                     ->weight('bold')
                     ->sortable(),
@@ -183,7 +198,7 @@ class DashboardGrievanceTable extends TableWidget
                     ->sortable(),
             ])
             ->actions([
-              Action::make('view')
+                Action::make('view')
                     ->label('View')
                     ->url(fn (Grievance $record) => route('hr-liaison.grievance.view', $record))
                     ->extraAttributes([

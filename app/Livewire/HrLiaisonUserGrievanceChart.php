@@ -114,6 +114,8 @@ class HrLiaisonUserGrievanceChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
             'plugins' => [
                 'tooltip' => [
                     'enabled' => true,

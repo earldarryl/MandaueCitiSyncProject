@@ -37,7 +37,7 @@ class Sidebar extends Component
                 [
                     'label' => 'Reports & Analytics',
                     'icon' => 'bi bi-file-bar-graph',
-                    'route' => 'admin.activity-logs.index',
+                    'route' => 'admin.reports-and-analytics.index',
                 ],
             ];
         }
@@ -64,7 +64,7 @@ class Sidebar extends Component
                 [
                     'label' => 'Reports & Analytics',
                     'icon' => 'bi bi-file-bar-graph',
-                    'route' => 'admin.activity-logs.index',
+                    'route' => 'hr-liaison.reports-and-analytics.index',
                 ],
             ];
         }

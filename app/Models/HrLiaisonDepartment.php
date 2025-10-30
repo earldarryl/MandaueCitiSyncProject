@@ -9,7 +9,7 @@ class HrLiaisonDepartment extends Model
 {
     use HasFactory;
 
-    protected $table = 'hr_liaison_departmentss';
+    protected $table = 'hr_liaison_departments';
 
     protected $primaryKey = 'id';
 

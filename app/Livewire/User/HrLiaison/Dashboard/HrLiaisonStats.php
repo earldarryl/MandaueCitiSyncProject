@@ -4,6 +4,8 @@ namespace App\Livewire\User\HrLiaison\Dashboard;
 
 use Filament\Widgets\Widget;
 use App\Models\Grievance;
+use App\Models\HrLiaisonDepartment;
+use App\Models\User;
 use Carbon\Carbon;
 
 class HrLiaisonStats extends Widget
@@ -14,14 +16,19 @@ class HrLiaisonStats extends Widget
     public $endDate;
 
     public $pending = 0;
+    public $acknowledged = 0;
     public $inProgress = 0;
+    public $escalated = 0;
     public $resolved = 0;
     public $rejected = 0;
+    public $closed = 0;
     public $overdue = 0;
 
     public $totalReceived = 0;
-    public $latestGrievanceId = null;
+    public $latestGrievanceTicketId = null;
     public $citizenCount = 0;
+
+    public $activeFellowHrLiaisons = 0;
 
     protected $listeners = [
         'dateRangeUpdated' => 'updateDateRange',
@@ -55,22 +62,39 @@ class HrLiaisonStats extends Widget
             });
 
         $this->pending = (clone $baseQuery)->where('grievance_status', 'pending')->count();
+        $this->acknowledged = (clone $baseQuery)->where('grievance_status', 'acknowledged')->count();
         $this->inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
+        $this->escalated = (clone $baseQuery)->where('grievance_status', 'escalated')->count();
         $this->resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
         $this->rejected = (clone $baseQuery)->where('grievance_status', 'rejected')->count();
+        $this->closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
+
         $this->overdue = (clone $baseQuery)
-            ->where('grievance_status', '!=', 'resolved')
+            ->whereNotIn('grievance_status', ['resolved', 'closed', 'rejected'])
             ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])
             ->count();
 
         $this->totalReceived = (clone $baseQuery)->count();
 
-        $this->latestGrievanceId = (clone $baseQuery)
+        $this->latestGrievanceTicketId = (clone $baseQuery)
             ->orderBy('created_at', 'desc')
-            ->value('grievance_id');
+            ->value('grievance_ticket_id');
 
         $this->citizenCount = (clone $baseQuery)
             ->distinct('user_id')
             ->count('user_id');
+
+        $departmentIds = HrLiaisonDepartment::where('hr_liaison_id', $userId)
+            ->pluck('department_id');
+
+        $fiveMinutesAgo = now()->subMinutes(5);
+
+        $this->activeFellowHrLiaisons = User::whereHas('departments', function ($q) use ($departmentIds) {
+                $q->whereIn('departments.department_id', $departmentIds);
+            })
+            ->where('id', '!=', $userId)
+            ->whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>', $fiveMinutesAgo)
+            ->count();
     }
 }

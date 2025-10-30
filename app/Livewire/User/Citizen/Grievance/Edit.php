@@ -31,6 +31,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
     public $is_anonymous;
     public $grievance_type;
+    public $grievance_category;
     public $priority_level;
     public $department;
     public $grievance_title;
@@ -49,6 +50,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
         $this->is_anonymous = (bool) $this->grievance->is_anonymous;
         $this->grievance_type = $this->grievance->grievance_type;
+        $this->grievance_category = $this->grievance->grievance_category;
         $this->priority_level = $this->grievance->priority_level;
         $this->grievance_title = $this->grievance->grievance_title;
         $this->grievance_details = $this->grievance->grievance_details;
@@ -113,6 +115,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
         return [
             'is_anonymous'      => ['required', 'boolean'],
             'grievance_type'    => ['required', 'string', 'max:255'],
+            'grievance_category'=> ['nullable', 'string', 'max:255'],
             'priority_level'    => ['required', 'string', 'max:50'],
             'department' => ['required', 'exists:departments,department_name'],
             'grievance_title'   => ['required', 'string', 'max:255'],
@@ -166,6 +169,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
             $this->grievance->update([
                 'user_id'          => auth()->id(),
                 'grievance_type'   => $this->grievance_type,
+                'grievance_category'=> $this->grievance_category,
                 'priority_level'   => $this->priority_level,
                 'grievance_title'  => $this->grievance_title,
                 'grievance_details'=> $data['grievance_details'],

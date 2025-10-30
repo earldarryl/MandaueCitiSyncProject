@@ -39,13 +39,15 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('hr-liaison/grievance/view/{grievance}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
         Volt::route('hr-liaison/grievance/edit/{grievance}', 'user.hr-liaison.grievance.edit')->name('hr-liaison.grievance.edit');
         Volt::route('hr-liaison/activity-logs', 'user.hr-liaison.activity-logs.index')->name('hr-liaison.activity-logs.index');
+        Volt::route('hr-liaison/reports-and-analytics/index', 'user.hr-liaison.reports-and-analytics.index')->name('hr-liaison.reports-and-analytics.index');
     });
 
     Route::middleware('role:admin')->group(function () {
         Volt::route('admin/dashboard', 'user.admin.dashboard.index')->name('admin.dashboard');
-        Volt::route('admin/activity-logs', 'user.admin.activtiy-logs.index')->name('admin.activity-logs.index');
         Volt::route('admin/users/citizens', 'user.admin.users.citizens.index')->name('admin.users.citizens');
         Volt::route('admin/users/hr-liaisons', 'user.admin.users.hr-liaisons.index')->name('admin.users.hr-liaisons');
+        Volt::route('admin/activity-logs', 'user.admin.activtiy-logs.index')->name('admin.activity-logs.index');
+        Volt::route('admin/reports-and-analytics/index', 'user.admin.reports-and-analytics.index')->name('admin.reports-and-analytics.index');
     });
 
     Volt::route('/settings', 'layout.settings')->name('settings');

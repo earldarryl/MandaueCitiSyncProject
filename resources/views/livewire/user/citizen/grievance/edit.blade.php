@@ -101,32 +101,130 @@
                     <flux:error name="is_anonymous" />
                 </flux:field>
 
-                <flux:field class="flex-1">
-                    <div class="flex flex-col gap-2">
-                        <flux:label class="flex gap-2 items-center">
-                            <flux:icon.squares-2x2 />
-                            <span>Grievance Type</span>
-                        </flux:label>
+                <div
+                    x-data="{
+                        grievanceType: @entangle('grievance_type'),
+                        grievanceCategory: @entangle('grievance_category'),
+                        categoriesMap: {
+                            'Complaint': [
+                                'Unfair Treatment',
+                                'Workplace Harassment',
+                                'Salary or Benefits Issue',
+                                'Violation of Rights',
+                                'Other Complaint'
+                            ],
+                            'Inquiry': [
+                                'Clarification on Policy',
+                                'Work Schedule Inquiry',
+                                'Performance Evaluation Question',
+                                'Other Inquiry'
+                            ],
+                            'Request': [
+                                'Leave Request',
+                                'Schedule Adjustment',
+                                'Equipment or Resource Request',
+                                'Training or Seminar Request',
+                                'Other Request'
+                            ]
+                        },
+                        get categoryOptions() {
+                            return this.categoriesMap[this.grievanceType] || [];
+                        }
+                    }"
+                    class="flex flex-col gap-6"
+                >
+                    <flux:field class="flex-1">
+                        <div class="flex flex-col gap-2">
+                            <flux:label class="flex gap-2 items-center">
+                                <flux:icon.squares-2x2 />
+                                <span>Grievance Type</span>
+                            </flux:label>
 
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            What kind of grievance would you like to file?
-                        </h3>
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                What kind of grievance would you like to file?
+                            </h3>
 
-                        <x-searchable-select
-                            name="grievance_type"
-                            wire:model="grievance_type"
-                            placeholder="Select grievance type"
-                            :options="[
-                                'Complaint' => 'Complaint',
-                                'Inquiry' => 'Inquiry',
-                                'Request' => 'Request',
-                            ]"
-                            :selected="$grievance_type"
-                        />
-                    </div>
-                    <flux:error name="grievance_type" />
-                </flux:field>
+                            <x-searchable-select
+                                name="grievance_type"
+                                wire:model="grievance_type"
+                                placeholder="Select grievance type"
+                                :options="[
+                                    'Complaint' => 'Complaint',
+                                    'Inquiry' => 'Inquiry',
+                                    'Request' => 'Request'
+                                ]"
+                                x-on:change="grievanceCategory = ''"
+                            />
+                        </div>
+                        <flux:error name="grievance_type" />
+                    </flux:field>
 
+                    <flux:field class="flex-1" x-show="grievanceType" x-cloak>
+                        <div class="flex flex-col gap-2">
+                            <flux:label class="flex gap-2 items-center">
+                                <flux:icon.list-bullet />
+                                <span>Grievance Category</span>
+                            </flux:label>
+
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                Choose a category based on your grievance type.
+                            </h3>
+
+                            <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                                <flux:input
+                                    readonly
+                                    x-model="grievanceCategory"
+                                    placeholder="Select grievance category"
+                                    @click="open = !open"
+                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                />
+
+                                <div
+                                    x-show="open"
+                                    @click.outside="open = false"
+                                    x-transition
+                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
+                                >
+                                    <div class="p-1 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-2">
+                                        <flux:icon.magnifying-glass class="text-gray-500 dark:text-zinc-400" />
+                                        <input
+                                            type="text"
+                                            x-model="search"
+                                            placeholder="Search..."
+                                            class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm"
+                                        />
+                                    </div>
+
+                                    <ul class="max-h-48 overflow-y-auto py-1">
+                                        <template x-for="opt in categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                                    @click="
+                                                        grievanceCategory = opt;
+                                                        $wire.set('grievance_category', opt, true);
+                                                        open = false;
+                                                        search = '';
+                                                    "
+                                                    x-text="opt"
+                                                ></button>
+                                            </li>
+                                        </template>
+
+                                        <li
+                                            x-show="categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+                                        >
+                                            No results found
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <flux:error name="grievance_category" />
+                    </flux:field>
+                </div>
 
                 <flux:field class="flex-1">
                     <div class="flex flex-col gap-2">

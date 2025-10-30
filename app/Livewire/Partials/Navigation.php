@@ -41,6 +41,7 @@ class Navigation extends Component
         'hr-liaison.grievance.index' => 'Grievance List',
         'hr-liaison.grievance.edit'     => 'Edit Grievance',
         'hr-liaison.grievance.view' => 'View Grievance',
+        'hr-liaison.reports-and-analytics.index' => 'Reports & Analytics',
 
         'citizen.grievance.index'    => 'My Grievances',
         'citizen.grievance.create'   => 'File a Grievance',
@@ -89,6 +90,7 @@ class Navigation extends Component
             'Feedback Form' => 'bi bi-chat-right-dots-fill',
             'Submission History' => 'bi bi-clock-history',
             'Grievance List' => 'bi bi-file-earmark-text',
+            'Reports & Analytics' => 'bi bi-file-bar-graph',
 
             'Settings' => 'bi bi-gear',
             'Profile Settings' => 'bi bi-person-circle',

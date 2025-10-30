@@ -67,7 +67,7 @@
                                     </span>
 
                                     <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
-                                        {{ $log->action }}
+                                        {{ ucwords(str_replace('_', ' ',$log->action)) }}
                                     </h3>
 
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
