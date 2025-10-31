@@ -64,7 +64,7 @@
 
                 $status = strtolower($grievance->grievance_status);
 
-                $isCompleted = in_array($status, ['resolved', 'rejected', 'closed']);
+                $isCompleted = in_array($status, ['resolved', 'unresolved', 'closed']);
                 $isEscalated = $status === 'escalated';
 
                 $endDate = $isCompleted ? $grievance->updated_at : now();

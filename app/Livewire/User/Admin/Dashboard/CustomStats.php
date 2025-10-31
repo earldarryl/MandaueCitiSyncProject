@@ -20,7 +20,7 @@ class CustomStats extends Widget
     public $totalAssignments = 0;
     public $onlineUsers = 0;
     public $pendingGrievances = 0;
-    public $rejectedGrievances = 0;
+    public $unresolvedGrievances = 0;
     public $inProgressGrievances = 0;
     public $resolvedGrievances = 0;
 
@@ -60,8 +60,8 @@ class CustomStats extends Widget
             ->where('grievance_status', 'pending')
             ->count();
 
-        $this->rejectedGrievances = Grievance::whereBetween('created_at', [$start, $end])
-            ->where('grievance_status', 'rejected')
+        $this->unresolvedGrievances = Grievance::whereBetween('created_at', [$start, $end])
+            ->where('grievance_status', 'unresolved')
             ->count();
 
         $this->inProgressGrievances = Grievance::whereBetween('created_at', [$start, $end])

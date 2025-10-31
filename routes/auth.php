@@ -60,4 +60,5 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     Volt::route('/print/print-grievance/{id}', 'print-files.print-grievance')->name('print-grievance');
     Volt::route('/print/print-all-grievances', 'print-files.print-all-grievances')->name('print-all-grievances');
     Volt::route('/print/print-selected-grievances/{selected}', 'print-files.print-selected-grievances')->name('print-selected-grievances');
+    Volt::route('/pdf/grievance-report', 'pdf.grievance-report')->name('pdf.grievance-report');
 });

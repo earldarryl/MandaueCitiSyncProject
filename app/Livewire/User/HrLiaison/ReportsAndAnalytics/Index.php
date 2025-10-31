@@ -16,9 +16,13 @@ class Index extends Component
 {
     public $startDate;
     public $endDate;
+    public $filterType = null;
+    public $filterCategory = null;
     public $category = 'all';
-    public $data = [];
     public $categories = [];
+
+    // Data
+    public $data = [];
 
     // Sorting
     public $sortField = 'created_at';
@@ -41,6 +45,7 @@ class Index extends Component
     public function applyFilters()
     {
         $this->loadData();
+
     }
 
     public function sortBy($field)
@@ -63,33 +68,51 @@ class Index extends Component
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate));
 
+        if (!empty($this->filterType)) {
+            $query->where('grievance_type', $this->filterType);
+        }
+
+        if (!empty($this->filterCategory)) {
+            $query->where('grievance_category', $this->filterCategory);
+        }
+
         if ($this->category !== 'all') {
             $query->where('grievance_category', $this->category);
         }
 
-        // Apply sorting
         $this->data = $query->orderBy($this->sortField, $this->sortDirection)->get();
     }
 
     public function exportPDF()
     {
-        $pdf = Pdf::loadView('exports.grievance-report', ['data' => $this->data]);
+          $pdf = Pdf::loadView('pdf.grievance-report', [
+            'data' => $this->data,
+            'user' => Auth::user(),
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'filterType' => $this->filterType,
+            'filterCategory' => $this->filterCategory,
+            'hrName' => Auth::user()->name,
+        ]);
+
         return response()->streamDownload(fn() => print($pdf->output()), 'grievance-report.pdf');
     }
 
     public function exportCSV()
     {
-        $filename = 'grievance-report.csv';
+        $filename = 'grievance-report-' . now()->format('Y-m-d_His') . '.csv';
         $handle = fopen('php://temp', 'r+');
 
-        fputcsv($handle, ['Ticket ID', 'Title', 'Category', 'Status', 'Date']);
+        fputcsv($handle, ['Ticket ID', 'Title', 'Type', 'Category', 'Status', 'Processing Days', 'Date']);
 
         foreach ($this->data as $item) {
             fputcsv($handle, [
                 $item->grievance_ticket_id,
                 $item->grievance_title,
+                $item->grievance_type ?? '-',
                 $item->grievance_category,
                 $item->grievance_status,
+                $item->processing_days ?? '—',
                 $item->created_at->format('Y-m-d')
             ]);
         }

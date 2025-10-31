@@ -32,7 +32,7 @@ class GrievanceSeeder extends Seeder
                 'grievance_title'  => fake()->sentence(6),
                 'grievance_details'=> fake()->paragraph(4),
                 'is_anonymous'     => fake()->boolean(20),
-                'grievance_status' => fake()->randomElement(['pending', 'in_progress', 'resolved', 'rejected']),
+                'grievance_status' => fake()->randomElement(['pending', 'in_progress', 'resolved', 'unresolved']),
                 'processing_days'  => fake()->numberBetween(0, 10),
                 'created_at'       => now()->subDays(rand(0, 30)),
                 'updated_at'       => now(),

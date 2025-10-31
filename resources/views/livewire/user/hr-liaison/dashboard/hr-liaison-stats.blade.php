@@ -152,7 +152,7 @@
             <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $resolved }}</p>
         </div>
 
-        <!-- Rejected -->
+        <!-- Unresolved -->
         <div class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
             border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
             transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
@@ -162,8 +162,8 @@
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.x-circle class="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
-            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Rejected</p>
-            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $rejected }}</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Unresolved</p>
+            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">{{ $unresolved }}</p>
         </div>
 
         <!-- Closed -->

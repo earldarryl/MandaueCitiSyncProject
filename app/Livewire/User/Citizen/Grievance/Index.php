@@ -37,7 +37,7 @@ class Index extends Component
     public $pendingCount = 0;
     public $inProgressCount = 0;
     public $resolvedCount = 0;
-    public $rejectedCount = 0;
+    public $unresolvedCount = 0;
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -134,6 +134,7 @@ class Index extends Component
                     'Grievance Ticket ID',
                     'Grievance Title',
                     'Grievance Type',
+                    'Grievance Category',
                     'Priority Level',
                     'Status',
                     'Submitted By',
@@ -155,8 +156,9 @@ class Index extends Component
                 $grievance->grievance_ticket_id,
                 $grievance->grievance_title,
                 $grievance->grievance_type,
+                $grievance->grievance_category,
                 $grievance->priority_level,
-                $grievance->grievance_status,
+                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
                 $submittedBy,
                 $departments,
                 strip_tags($grievance->grievance_details),
@@ -301,7 +303,7 @@ class Index extends Component
                 'In Progress' => 'in_progress',
                 'Escalated' => 'escalated',
                 'Resolved' => 'resolved',
-                'Rejected' => 'rejected',
+                'Unresolved' => 'unresolved',
                 'Closed' => 'closed',
             ];
             $query->when(isset($map[$this->filterStatus]), fn($q) => $q->where('grievance_status', $map[$this->filterStatus]));
@@ -345,7 +347,7 @@ class Index extends Component
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
         $this->escalatedCount    = (clone $query)->where('grievance_status', 'escalated')->count();
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
-        $this->rejectedCount     = (clone $query)->where('grievance_status', 'rejected')->count();
+        $this->unresolvedCount     = (clone $query)->where('grievance_status', 'unresolved')->count();
         $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
     }
 
@@ -361,7 +363,7 @@ class Index extends Component
                     'In Progress' => 'in_progress',
                     'Escalated' => 'escalated',
                     'Resolved' => 'resolved',
-                    'Rejected' => 'rejected',
+                    'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
                 ];
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);

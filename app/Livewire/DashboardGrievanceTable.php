@@ -129,16 +129,22 @@ class DashboardGrievanceTable extends TableWidget
                     ->badge()
                     ->formatStateUsing(fn ($state) => match (strtolower($state)) {
                         'pending' => 'Pending',
+                        'acknowledged' => 'Acknowledged',
                         'in_progress' => 'In Progress',
+                        'escalated' => 'Escalated',
                         'resolved' => 'Resolved',
-                        'rejected' => 'Rejected',
+                        'unresolved' => 'Unresolved',
+                        'closed' => 'Closed',
                         default => ucfirst($state),
                     })
                     ->colors([
                         'gray' => 'pending',
+                        'info' => 'acknowledged',
                         'warning' => 'in_progress',
+                        'purple' => 'escalated',
                         'success' => 'resolved',
-                        'danger' => 'rejected',
+                        'danger' => 'unresolved',
+                        'secondary' => 'closed',
                     ])
                     ->weight('bold')
                     ->sortable(),

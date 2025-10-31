@@ -20,7 +20,7 @@ class HrLiaisonStats extends Widget
     public $inProgress = 0;
     public $escalated = 0;
     public $resolved = 0;
-    public $rejected = 0;
+    public $unresolved = 0;
     public $closed = 0;
     public $overdue = 0;
 
@@ -66,11 +66,11 @@ class HrLiaisonStats extends Widget
         $this->inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
         $this->escalated = (clone $baseQuery)->where('grievance_status', 'escalated')->count();
         $this->resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
-        $this->rejected = (clone $baseQuery)->where('grievance_status', 'rejected')->count();
+        $this->unresolved = (clone $baseQuery)->where('grievance_status', 'unresolved')->count();
         $this->closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
 
         $this->overdue = (clone $baseQuery)
-            ->whereNotIn('grievance_status', ['resolved', 'closed', 'rejected'])
+            ->whereNotIn('grievance_status', ['resolved', 'closed', 'unresolved'])
             ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])
             ->count();
 

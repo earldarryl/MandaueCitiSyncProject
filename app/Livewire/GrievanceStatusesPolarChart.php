@@ -94,7 +94,7 @@ class GrievanceStatusesPolarChart extends ChartWidget
             ->groupBy('grievance_status')
             ->pluck('total', 'grievance_status');
 
-        $labels = ['pending', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'rejected', 'closed'];
+        $labels = ['pending', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed'];
         $formattedLabels = collect($labels)->map(fn($s) => ucwords(str_replace('_', ' ', $s)))->toArray();
         $data = collect($labels)->map(fn($status) => $statusCounts[$status] ?? 0);
 

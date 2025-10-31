@@ -46,8 +46,8 @@
                     <div class="text-xl font-bold">{{ $pendingGrievances }}</div>
                 </div>
                 <div class="p-3 bg-red-500/80 text-white text-sm font-semibold text-center shadow">
-                    Rejected
-                    <div class="text-xl font-bold">{{ $rejectedGrievances }}</div>
+                    Unresolved
+                    <div class="text-xl font-bold">{{ $unresolvedGrievances }}</div>
                 </div>
                 <div class="p-3 bg-blue-500/80 text-white text-sm font-semibold text-center shadow">
                     In Progress

@@ -23,12 +23,13 @@ class Index extends Component
     protected $paginationTheme = 'tailwind';
     public ?string $sortField = null;
     public string $sortDirection = 'asc';
-    public $perPage = 4;
+    public $perPage = 10;
     public $search = '';
     public $searchInput = '';
     public $filterPriority = '';
     public $filterStatus = 'Pending';
     public $filterType = '';
+    public $filterCategory = '';
     public $filterDate = '';
     public $filterIdentity = '';
     public $selectAll = false;
@@ -46,7 +47,7 @@ class Index extends Component
     public $inProgressCount;
     public $escalatedCount;
     public $resolvedCount;
-    public $rejectedCount;
+    public $unresolvedCount;
     public $closedCount;
 
 
@@ -56,6 +57,7 @@ class Index extends Component
         'filterStatus' => ['except' => ''],
         'filterType' => ['except' => ''],
         'filterDate' => ['except' => ''],
+        'filterCategory' => ['except' => ''],
     ];
 
     protected $listeners = [
@@ -111,7 +113,7 @@ class Index extends Component
                     'In Progress' => 'in_progress',
                     'Escalated' => 'escalated',
                     'Resolved' => 'resolved',
-                    'Rejected' => 'rejected',
+                    'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
                 ];
                 if (isset($map[$this->filterStatus])) {
@@ -232,6 +234,7 @@ class Index extends Component
                 'Grievance ID',
                 'Grievance Title',
                 'Grievance Type',
+                'Grievance Category',
                 'Priority Level',
                 'Status',
                 'Submitted By',
@@ -254,6 +257,7 @@ class Index extends Component
                     $grievance->grievance_id,
                     $grievance->grievance_title,
                     $grievance->grievance_type,
+                    $grievance->grievance_category,
                     $grievance->priority_level,
                     ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
                     $submittedBy,
@@ -333,7 +337,7 @@ class Index extends Component
     {
         $this->validate([
             'selected' => 'required|array|min:1',
-            'status' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,rejected,closed',
+            'status' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,unresolved,closed',
         ], [
             'selected.required' => 'Please select at least one grievance to update.',
             'status.required' => 'Please choose a grievance status.',
@@ -611,7 +615,7 @@ class Index extends Component
                 'In Progress' => 'in_progress',
                 'Escalated' => 'escalated',
                 'Resolved' => 'resolved',
-                'Rejected' => 'rejected',
+                'Unresolved' => 'unresolved',
                 'Closed' => 'closed',
             ];
             if (isset($map[$this->filterStatus])) {
@@ -621,6 +625,10 @@ class Index extends Component
 
         if ($this->filterType) {
             $query->where('grievance_type', $this->filterType);
+        }
+
+        if ($this->filterCategory) {
+            $query->where('grievance_category', $this->filterCategory);
         }
 
         if ($this->filterDate) {
@@ -662,7 +670,7 @@ class Index extends Component
         $this->inProgressCount   = (clone $query)->where('grievance_status', 'in_progress')->count();
         $this->escalatedCount    = (clone $query)->where('grievance_status', 'escalated')->count();
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
-        $this->rejectedCount     = (clone $query)->where('grievance_status', 'rejected')->count();
+        $this->unresolvedCount     = (clone $query)->where('grievance_status', 'unresolved')->count();
         $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
 
     }
@@ -681,7 +689,7 @@ class Index extends Component
                     'In Progress' => 'in_progress',
                     'Escalated' => 'escalated',
                     'Resolved' => 'resolved',
-                    'Rejected' => 'rejected',
+                    'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
                 ];
 
@@ -690,6 +698,7 @@ class Index extends Component
                 }
             })
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
+            ->when($this->filterCategory, fn($q) => $q->where('grievance_category', $this->filterCategory))
             ->when($this->search, function ($query) {
                 $term = trim($this->search);
 

@@ -102,7 +102,7 @@ class View extends Component
     public function updateStatus()
     {
         $this->validate([
-            'statusUpdate' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,rejected,closed',
+            'statusUpdate' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,unresolved,closed',
         ]);
 
         $user = auth()->user();

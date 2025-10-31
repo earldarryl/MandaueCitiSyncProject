@@ -177,8 +177,8 @@
                                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                                 <flux:icon.x-circle class="h-8 w-8 text-gray-500 dark:text-gray-400" />
                             </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Rejected</p>
-                            <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $rejectedCount }}</p>
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Unresolved</p>
+                            <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $unresolvedCount }}</p>
                         </div>
                     </div>
                 </div>
@@ -199,7 +199,7 @@
             <x-filter-select
                 name="filterStatus"
                 placeholder="Status"
-                :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Rejected', 'Closed']"
+                :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed']"
             />
 
             <x-filter-select
@@ -585,12 +585,16 @@
                                         <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
                                             {{ match($grievance->grievance_status) {
                                                 'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                                'acknowledged' => 'bg-indigo-100 text-indigo-800 border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-500',
                                                 'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                                                'escalated' => 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500',
                                                 'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
-                                                'rejected' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                                'unresolved' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                                'closed' => 'bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500',
                                                 default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
-                                            } }}">
-                                            {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
+                                            } }}"
+                                            >
+                                                {!! $highlight(ucwords(str_replace('_', ' ', $grievance->grievance_status)), $search) !!}
                                         </span>
                                     </td>
 

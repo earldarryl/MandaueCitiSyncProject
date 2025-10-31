@@ -280,7 +280,7 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Provide a short and descriptive title for your grievance.
+                            Provide a short title for your grievance.
                         </h3>
 
                         <flux:input.group>
