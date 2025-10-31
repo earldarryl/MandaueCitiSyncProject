@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Grievance;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -21,10 +22,8 @@ class Index extends Component
     public $category = 'all';
     public $categories = [];
 
-    // Data
     public $data = [];
-
-    // Sorting
+    public $statuses;
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
@@ -81,21 +80,74 @@ class Index extends Component
         }
 
         $this->data = $query->orderBy($this->sortField, $this->sortDirection)->get();
+$grievances = Grievance::query()
+    ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', Auth::id()))
+    ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
+    ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
+    ->when(!empty($this->filterType), fn($q) => $q->where('grievance_type', $this->filterType))
+    ->when(!empty($this->filterCategory), fn($q) => $q->where('grievance_category', $this->filterCategory))
+    ->get();
+
+$statuses = [
+    'Pending' => 0,
+    'Delayed' => 0,
+    'Resolved' => 0,
+];
+
+$now = now();
+
+foreach ($grievances as $grievance) {
+    $status = strtolower($grievance->grievance_status ?? '');
+
+    // Calculate days passed since creation
+    $daysPassed = $grievance->created_at ? $grievance->created_at->diffInDays($now) : 0;
+    $processingDays = $grievance->processing_days ?? 0;
+
+    if ($status === 'resolved') {
+        $statuses['Resolved']++;
+    } elseif ($status === 'pending' || $status === '') {
+        // Check if it should be delayed
+        if ($processingDays > 0 && $daysPassed > $processingDays) {
+            $statuses['Delayed']++;
+        } else {
+            $statuses['Pending']++;
+        }
+    } else {
+        // Treat any unknown status as Pending
+        $statuses['Pending']++;
     }
+}
+
+$this->statuses = $statuses;
+
+
+    }
+
 
     public function exportPDF()
     {
-          $pdf = Pdf::loadView('pdf.grievance-report', [
+        $html = view('pdf.grievance-report', [
             'data' => $this->data,
             'user' => Auth::user(),
+            'statuses' => $this->statuses,
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
             'filterType' => $this->filterType,
             'filterCategory' => $this->filterCategory,
             'hrName' => Auth::user()->name,
-        ]);
+        ])->render();
 
-        return response()->streamDownload(fn() => print($pdf->output()), 'grievance-report.pdf');
+        $pdfPath = storage_path('app/public/grievance-report.pdf');
+
+        Browsershot::html($html)
+            ->setNodeBinary('C:\Program Files\nodejs\node.exe')
+            ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
+            ->waitUntilNetworkIdle()
+            ->setDelay(1500)
+            ->format('A4')
+            ->save($pdfPath);
+
+        return response()->download($pdfPath, 'grievance-report.pdf');
     }
 
     public function exportCSV()

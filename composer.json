@@ -19,6 +19,7 @@
         "livewire/livewire": "^3.6",
         "livewire/volt": "*",
         "maatwebsite/excel": "^1.1",
+        "spatie/browsershot": "^5.0",
         "spatie/laravel-permission": "^6.20",
         "twilio/sdk": "^8.8"
     },

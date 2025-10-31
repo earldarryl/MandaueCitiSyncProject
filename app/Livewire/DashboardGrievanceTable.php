@@ -39,18 +39,6 @@ class DashboardGrievanceTable extends TableWidget
         return $query;
     }
 
-    protected function getSummaryData(): array
-    {
-        $query = $this->baseQuery();
-
-        return [
-            'total' => (clone $query)->count(),
-            'open' => (clone $query)->where('grievance_status', 'Open')->count(),
-            'resolved' => (clone $query)->where('grievance_status', 'Resolved')->count(),
-            'highPriority' => (clone $query)->where('priority_level', 'High')->count(),
-        ];
-    }
-
     public function getHeading(): string | Htmlable | null
     {
         return new HtmlString(<<<HTML
