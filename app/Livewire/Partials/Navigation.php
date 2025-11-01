@@ -29,10 +29,10 @@ class Navigation extends Component
     ];
     private $routeHeaders = [
 
-        'dashboard'          => 'Dashboard',
-        'activity-logs.index' => 'Activity Logs',
-        'users.citizens'     => 'Citizen Users',
-        'users.hr-liaisons'  => 'HR Liaisons Users',
+        'admin.dashboard'          => 'Dashboard',
+        'admin.activity-logs.index' => 'Activity Logs',
+        'admin.users.citizens'     => 'Citizen Users',
+        'admin.users.hr-liaisons'  => 'HR Liaisons Users',
 
         'hr-liaison.dashboard'           => 'Dashboard',
         'hr-liaison.activity-logs.index' => 'Activity Logs',

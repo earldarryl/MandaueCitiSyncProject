@@ -144,7 +144,8 @@
                 </template>
             </div>
 
-            <div class="px-4">
+           <div class="px-4 mb-4">
+                <!-- Apply Button -->
                 <button
                     type="button"
                     class="flex gap-2 items-center justify-center font-bold w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 transition duration-300 ease-in-out text-white p-3 rounded-lg"
@@ -161,20 +162,58 @@
                     </svg>
                 </button>
             </div>
-            <div class="flex justify-end gap-3 mb-4">
-                <button wire:click="printReport"
-                    class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-md transition">
-                    Print
+
+            <!-- Print / Export Buttons -->
+            <div class="flex flex-wrap justify-end gap-3 px-4 mb-4">
+                <button
+                    wire:click="printReport"
+                    wire:loading.attr="disabled"
+                    wire:target="printReport"
+                    class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                        bg-gray-100 text-gray-800 border-gray-300
+                        hover:bg-gray-200 hover:border-gray-400
+                        dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
+                        dark:hover:bg-zinc-700
+                        whitespace-nowrap
+                        transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    <flux:icon.printer class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="printReport">Print</span>
+                    <span wire:loading wire:target="printReport">Processing...</span>
                 </button>
 
-                <button wire:click="exportPDF"
-                    class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md transition">
-                    Export PDF
+                <button
+                    wire:click="exportPDF"
+                    wire:loading.attr="disabled"
+                    wire:target="exportPDF"
+                    class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                        bg-red-100 text-red-800 border-red-300
+                        hover:bg-red-200 hover:border-red-400
+                        dark:bg-red-800 dark:text-red-200 dark:border-red-700
+                        dark:hover:bg-red-700
+                        whitespace-nowrap
+                        transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    <flux:icon.document-text class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="exportPDF">Export PDF</span>
+                    <span wire:loading wire:target="exportPDF">Processing...</span>
                 </button>
 
-                <button wire:click="exportCSV"
-                    class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md transition">
-                    Export CSV
+                <button
+                    wire:click="exportCSV"
+                    wire:loading.attr="disabled"
+                    wire:target="exportCSV"
+                    class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                        bg-green-100 text-green-800 border-green-300
+                        hover:bg-green-200 hover:border-green-400
+                        dark:bg-green-800 dark:text-green-200 dark:border-green-700
+                        dark:hover:bg-green-700
+                        whitespace-nowrap
+                        transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    <flux:icon.arrow-down-tray class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="exportCSV">Export CSV</span>
+                    <span wire:loading wire:target="exportCSV">Processing...</span>
                 </button>
             </div>
         </div>
@@ -296,7 +335,7 @@
                                 {{ $item->processing_days ?? '—' }}
                             </td>
                             <td class="px-6 py-4 text-center font-medium text-gray-700 dark:text-gray-300">
-                                {{ $item->created_at->format('Y-m-d') }}
+                                {{ $item->created_at->format('Y-m-d h:i A') }}
                             </td>
                         </tr>
                     @empty

@@ -44,7 +44,15 @@ class Index extends Component implements Forms\Contracts\HasForms
         }
     }
 
-   protected function getFormSchema(): array
+    public function applyDates($start, $end): void
+    {
+        $this->startDate = $start;
+        $this->endDate = $end;
+
+        $this->dispatch('dateRangeUpdated', $start, $end);
+    }
+
+    protected function getFormSchema(): array
     {
         return [
             Select::make('activeTab')
@@ -64,13 +72,12 @@ class Index extends Component implements Forms\Contracts\HasForms
         ];
     }
 
-
-    public function updatedStartDate($value)
+    public function updatedStartDate($value): void
     {
         $this->dispatch('dateRangeUpdated', $value, $this->endDate);
     }
 
-    public function updatedEndDate($value)
+    public function updatedEndDate($value): void
     {
         $this->dispatch('dateRangeUpdated', $this->startDate, $value);
     }

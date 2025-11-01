@@ -5,7 +5,6 @@ namespace App\Livewire\User\HrLiaison\ReportsAndAnalytics;
 use Livewire\Component;
 use App\Models\Grievance;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Layout;
@@ -80,49 +79,64 @@ class Index extends Component
         }
 
         $this->data = $query->orderBy($this->sortField, $this->sortDirection)->get();
-$grievances = Grievance::query()
-    ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', Auth::id()))
-    ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
-    ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
-    ->when(!empty($this->filterType), fn($q) => $q->where('grievance_type', $this->filterType))
-    ->when(!empty($this->filterCategory), fn($q) => $q->where('grievance_category', $this->filterCategory))
-    ->get();
 
-$statuses = [
-    'Pending' => 0,
-    'Delayed' => 0,
-    'Resolved' => 0,
-];
+        $grievances = Grievance::query()
+            ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', Auth::id()))
+            ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
+            ->when(!empty($this->filterType), fn($q) => $q->where('grievance_type', $this->filterType))
+            ->when(!empty($this->filterCategory), fn($q) => $q->where('grievance_category', $this->filterCategory))
+            ->get();
 
-$now = now();
+        $statuses = [
+            'Pending' => 0,
+            'Delayed' => 0,
+            'Resolved' => 0,
+        ];
 
-foreach ($grievances as $grievance) {
-    $status = strtolower($grievance->grievance_status ?? '');
+        $now = now();
 
-    // Calculate days passed since creation
-    $daysPassed = $grievance->created_at ? $grievance->created_at->diffInDays($now) : 0;
-    $processingDays = $grievance->processing_days ?? 0;
+        foreach ($grievances as $grievance) {
+            $status = strtolower($grievance->grievance_status ?? '');
 
-    if ($status === 'resolved') {
-        $statuses['Resolved']++;
-    } elseif ($status === 'pending' || $status === '') {
-        // Check if it should be delayed
-        if ($processingDays > 0 && $daysPassed > $processingDays) {
-            $statuses['Delayed']++;
-        } else {
-            $statuses['Pending']++;
+            $daysPassed = $grievance->created_at ? $grievance->created_at->diffInDays($now) : 0;
+            $processingDays = $grievance->processing_days ?? 0;
+
+            if ($status === 'resolved') {
+                $statuses['Resolved']++;
+            } elseif ($status === 'pending' || $status === '') {
+                if ($processingDays > 0 && $daysPassed > $processingDays) {
+                    $statuses['Delayed']++;
+                } else {
+                    $statuses['Pending']++;
+                }
+            } else {
+                $statuses['Pending']++;
+            }
         }
-    } else {
-        // Treat any unknown status as Pending
-        $statuses['Pending']++;
-    }
-}
 
-$this->statuses = $statuses;
-
+        $this->statuses = $statuses;
 
     }
 
+    public function getDynamicTitle(): string
+    {
+        $type = $this->filterType ?: 'All Types';
+        $category = $this->filterCategory ?: 'All Categories';
+
+        $type = ucwords($type);
+        $category = ucwords($category);
+
+        if ($type === 'All Types' && $category === 'All Categories') {
+            return 'Grievances based on All Types in relation to All Categories';
+        } elseif ($type !== 'All Types' && $category === 'All Categories') {
+            return "Grievances about {$type} in relation to All Categories";
+        } elseif ($type !== 'All Types' && $category !== 'All Categories') {
+            return "Grievances about {$type} in relation to {$category}";
+        } else {
+            return "Grievances based on All Types in relation to {$category}";
+        }
+    }
 
     public function exportPDF()
     {
@@ -135,15 +149,19 @@ $this->statuses = $statuses;
             'filterType' => $this->filterType,
             'filterCategory' => $this->filterCategory,
             'hrName' => Auth::user()->name,
+            'dynamicTitle' => $this->getDynamicTitle(),
         ])->render();
 
         $pdfPath = storage_path('app/public/grievance-report.pdf');
 
+
         Browsershot::html($html)
             ->setNodeBinary('C:\Program Files\nodejs\node.exe')
             ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
+            ->showBackground()             // important for background images
             ->waitUntilNetworkIdle()
-            ->setDelay(1500)
+            ->delay(2000)                  // wait for any dynamic content
+            ->timeout(120)                 // increase timeout to avoid Navigation Timeout
             ->format('A4')
             ->save($pdfPath);
 
@@ -155,7 +173,37 @@ $this->statuses = $statuses;
         $filename = 'grievance-report-' . now()->format('Y-m-d_His') . '.csv';
         $handle = fopen('php://temp', 'r+');
 
-        fputcsv($handle, ['Ticket ID', 'Title', 'Type', 'Category', 'Status', 'Processing Days', 'Date']);
+        $user = Auth::user();
+
+        $formattedStart = \Carbon\Carbon::parse($this->startDate)->format('F d, Y');
+        $formattedEnd = \Carbon\Carbon::parse($this->endDate)->format('F d, Y');
+
+        $type = $this->filterType ?? 'All Types';
+        $category = $this->filterCategory ?? 'All Categories';
+        $capitalize = fn($str) => ucwords(strtolower($str));
+        $type = $capitalize($type);
+        $category = $capitalize($category);
+
+        if($type === 'All Types' && $category === 'All Categories'){
+            $dynamicTitle = 'Grievances based on All Types in relation to All Categories';
+        } elseif($type !== 'All Types' && $category === 'All Categories'){
+            $dynamicTitle = "Grievances about $type in relation to All Categories";
+        } elseif($type !== 'All Types' && $category !== 'All Categories'){
+            $dynamicTitle = "Grievances about $type in relation to $category";
+        } else {
+            $dynamicTitle = "Grievances based on All Types in relation to $category";
+        }
+
+        fputcsv($handle, ["Grievance Report"]);
+        fputcsv($handle, ["Report Generated By:", $user->name]);
+        fputcsv($handle, ["Department:", $user->departments->pluck('department_name')->join(', ')]);
+        fputcsv($handle, ["Role:", str_replace('Hr','HR',ucwords(str_replace('_',' ', $user->getRoleNames()->first() ?? 'N/A')))]);
+        fputcsv($handle, ["Date Range:", "$formattedStart – $formattedEnd"]);
+        fputcsv($handle, ["Exported At:", now()->format('F d, Y — h:i A')]);
+        fputcsv($handle, ["Report Title:", $dynamicTitle]);
+        fputcsv($handle, []);
+
+        fputcsv($handle, ['Ticket ID', 'Title', 'Type', 'Category', 'Status', 'Processing Days', 'Date & Time']);
 
         foreach ($this->data as $item) {
             fputcsv($handle, [
@@ -165,7 +213,7 @@ $this->statuses = $statuses;
                 $item->grievance_category,
                 $item->grievance_status,
                 $item->processing_days ?? '—',
-                $item->created_at->format('Y-m-d')
+                $item->created_at->format('F d, Y — h:i A')
             ]);
         }
 

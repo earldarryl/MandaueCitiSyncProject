@@ -1,123 +1,248 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Grievance Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400&display=swap" rel="stylesheet">
+
+    @php
+        // 1. Re-calculate the Base64 image data
+        $bgImagePath = public_path('images/grievance-report-template-bg.jpg');
+        $bgImageBase64 = '';
+        if(file_exists($bgImagePath)) {
+            $ext = pathinfo($bgImagePath, PATHINFO_EXTENSION);
+            $bgImageBase64 = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($bgImagePath));
+        }
+    @endphp
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            color: #1f2937;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            color: #1F2937;
         }
-        h1, h2 {
+
+        .page {
+            position: relative;
+            width: 794px;
+            height: 1122px; /* A4 size in pixels */
+            margin: 0 auto;
+            overflow: hidden;
+
+            /* ✅ Apply background using the Base64 data directly in CSS */
+            @if($bgImageBase64)
+                background-image: url("{{ $bgImageBase64 }}");
+            @endif
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+
+            /* Ensure the background repeats across pages */
+            page-break-after: always;
+        }
+
+        /* Ensure the last page doesn't break unnecessarily */
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* The .bg-image class is no longer needed */
+        .bg-image {
+            display: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ... (rest of your existing styles below) ... */
+
+        /* Header fix */
+        .header {
+            position: relative;
+            top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 3px solid #2a67bc;
+            padding-bottom: 10px;
+            width: 500px;
+            box-sizing: border-box;
+            margin: 0 auto 16px auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 30%;
+            justify-content: center;
+            border-right: 2px solid #1F2937;
+            padding-right: 12px;
+        }
+
+        .header-left img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #fff;
+        }
+
+        .header-right {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            margin-bottom: 10px;
+            line-height: 1.4;
         }
-        h2 {
-            font-size: 16px;
+
+        .header-right .span-1 {
+            color: #000000;
+            font-size: 12px;
+            text-align: center;
         }
-        .chart-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
+
+        .header-right .span-2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 21px;
+            font-weight: 300;
+            color: #000000;
+            text-align: center;
         }
-        .statuses {
+
+        .summary-cards {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-top: 16px;
         }
-        .status-box {
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            min-width: 100px;
-        }
-        .pending { background-color: #f59e0b; } /* amber-500 */
-        .delayed { background-color: #dc2626; } /* red-600 */
-        .resolved { background-color: #22c55e; } /* green-500 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #d1d5db; /* Tailwind gray-300 */
-        }
-        th, td {
-            padding: 8px 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f3f4f6; /* Tailwind gray-100 */
+
+        .summary-card {
+            padding: 6px 12px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 </head>
 <body>
 
-    <h1>Grievance Report</h1>
-    <h2>{{ $startDate }} to {{ $endDate }}</h2>
+    <div class="page">
+        <div class="content">
+            <div class="header">
+                <div class="header-left">
+                    @php
+                        $department = $user->departments->first();
+                        $departmentName = $department->department_name ?? 'N/A';
+                        $departmentProfile = $department->department_profile ?? null;
 
-    <div class="chart-container">
-        <canvas id="grievanceChart" width="600" height="400"></canvas>
-    </div>
+                        $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                        $index = crc32($departmentName) % count($palette);
+                        $bgColor = $palette[$index];
 
-    <div class="statuses">
-        <div class="status-box pending">
-            Pending: {{ $statuses['Pending'] ?? 0 }}
-        </div>
-        <div class="status-box delayed">
-            Delayed: {{ $statuses['Delayed'] ?? 0 }}
-        </div>
-        <div class="status-box resolved">
-            Resolved: {{ $statuses['Resolved'] ?? 0 }}
-        </div>
-    </div>
+                        if ($departmentProfile) {
+                            $departmentLogo = Storage::url($departmentProfile);
+                        } else {
+                            $departmentLogo = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+                        }
+                    @endphp
 
-    <table>
-        <thead>
-            <tr>
-                <th>Ticket ID</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Processing Days</th>
-                <th>Date Created</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($data as $item)
-                <tr>
-                    <td>{{ $item->grievance_ticket_id }}</td>
-                    <td>{{ $item->grievance_title }}</td>
-                    <td>{{ $item->grievance_type ?? '-' }}</td>
-                    <td>{{ $item->grievance_category }}</td>
-                    <td>
-                        @if($item->grievance_status === 'Resolved')
-                            Resolved
-                        @elseif($item->grievance_status === 'Pending' && $item->processing_days !== null && now()->diffInDays($item->created_at) > $item->processing_days)
-                            Delayed
-                        @else
-                            Pending
-                        @endif
-                    </td>
-                    <td>{{ $item->processing_days ?? '—' }}</td>
-                    <td>{{ $item->created_at->format('Y-m-d') }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                    <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
+                    <img src="{{ $departmentLogo }}" alt="Department Logo">
+                </div>
 
+                <div class="header-right">
+                    <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
+                    <span class="span-2">{{ strtoupper($departmentName) }}</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; margin-top: 40px;">
+                <div style="flex:1; border: 1px solid #D1D5DB; padding: 16px; background-color: rgba(255,255,255,0.85);">
+                    @php
+                        $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                        $index = crc32($user->name) % count($palette);
+                        $bgColor = $palette[$index];
+                        $profilePic = $user->profile_pic
+                            ? Storage::url($user->profile_pic)
+                            : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=' . $bgColor . '&color=fff&size=128';
+                        $liaisonInfo = [
+                            ['label' => 'Name', 'value' => $hrName ?? 'N/A'],
+                            ['label' => 'Department', 'value' => $user->departments->pluck('department_name')->join(', ') ?? 'N/A'],
+                            ['label' => 'Role', 'value' => str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $user->getRoleNames()->first() ?? 'N/A')))],
+                            ['label' => 'Date & Time', 'value' => now()->format('F d, Y — h:i A')],
+                        ];
+                    @endphp
+                    <div style="text-align:center; margin-bottom: 16px;">
+                        <img src="{{ $profilePic }}" alt="profile" style="width:96px; height:96px; border-radius:50%; object-fit:cover; border:2px solid #D1D5DB;">
+                    </div>
+                    <div>
+                        @foreach($liaisonInfo as $item)
+                            <div style="display:flex; justify-content:space-between; padding:4px 0;">
+                                <span style="font-weight:600;">{{ $item['label'] }}</span>
+                                <span>{{ $item['value'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div style="
+                    flex: 1;
+                    border: 1px solid #D1D5DB;
+                    padding: 16px;
+                    background-color: rgba(255,255,255,0.85);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <canvas id="grievanceChart" width="250" height="200"></canvas>
+                </div>
+
+            </div>
+
+            <div style="margin:20px; border:1px solid #D1D5DB; background-color: rgba(255,255,255,0.85); overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                    <thead style="background-color:#F3F4F6; color:#374151; text-transform:uppercase;">
+                        <tr>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">TICKET ID</th>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">TITLE</th>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">CATEGORY</th>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">STATUS</th>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">PROCESSING DAYS</th>
+                            <th style="border:1px solid #D1D5DB; padding:6px;">DATE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($data as $item)
+                            <tr>
+                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_ticket_id }}</td>
+                                <td style="border:1px solid #D1D5DB; padding:4px;">{{ $item->grievance_title }}</td>
+                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_category }}</td>
+                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_status }}</td>
+                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->processing_days ?? '—' }}</td>
+                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding:8px; font-style:italic;">No data available for the selected dates.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script>
         Chart.register(ChartDataLabels);
 
-        const statusCounts = @json($statuses ?? ['Pending' => 0, 'Delayed' => 0, 'Resolved' => 0]);
+        const statusCounts = @json($statuses ?? ['Pending'=>0,'Delayed'=>0,'Resolved'=>0]);
         const labels = Object.keys(statusCounts);
         const chartData = Object.values(statusCounts);
 
@@ -128,45 +253,32 @@
         ];
 
         const borderColors = [
-            'rgba(255, 193, 7, 1)',
-            'rgba(220, 38, 38, 1)',
-            'rgba(34, 197, 94, 1)'
+            'rgba(0, 0, 0, 1)',
+            'rgba(0, 0, 0, 1)',
+            'rgba(0, 0, 0, 1)'
         ];
 
-        const data = {
-            labels: labels,
-            datasets: [{
-                label: 'Grievances by Status',
-                data: chartData,
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
-                borderWidth: 2
-            }]
-        };
-
-        const config = {
+        new Chart(document.getElementById('grievanceChart').getContext('2d'), {
             type: 'pie',
-            data: data,
+            data: { labels, datasets:[{ data: chartData, backgroundColor: backgroundColors, borderColor: borderColors, borderWidth: 1 }] },
             options: {
                 responsive: false,
                 plugins: {
                     legend: { position: 'bottom', labels: { font: { size: 12 } } },
-                    title: { display: true, text: 'Grievances by Status', font: { size: 16 } },
                     datalabels: {
                         color: '#000',
-                        font: { weight: 'bold', size: 12 },
+                        font: { weight:'bold', size:12 },
                         formatter: (value, context) => {
-                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
+                            if(value===0) return '';
+                            const total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                            const percentage = ((value/total)*100).toFixed(1);
                             return `${context.chart.data.labels[context.dataIndex]}: ${value} (${percentage}%)`;
                         }
                     }
-                },
+                }
             },
             plugins: [ChartDataLabels]
-        };
-
-        new Chart(document.getElementById('grievanceChart').getContext('2d'), config);
+        });
     </script>
 
 </body>
