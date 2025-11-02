@@ -18,6 +18,7 @@ class Index extends Component
     public $endDate;
     public $filterType = null;
     public $filterCategory = null;
+    public $categoryOptions;
     public $category = 'all';
     public $categories = [];
 
@@ -37,7 +38,80 @@ class Index extends Component
             ->pluck('grievance_category')
             ->toArray();
 
+        $user = Auth::user();
+
+        $departmentName = $user->departments->first()->department_name ?? null;
+
+        $allCategoryOptions = [
+            'Business Permit and Licensing Office' => [
+                'Complaint' => [
+                    'Delayed Business Permit Processing',
+                    'Unclear Requirements or Procedures',
+                    'Unfair Treatment by Personnel',
+                ],
+                'Inquiry' => [
+                    'Business Permit Requirements Inquiry',
+                    'Renewal Process Clarification',
+                    'Schedule or Fee Inquiry',
+                ],
+                'Request' => [
+                    'Document Correction or Update Request',
+                    'Business Record Verification Request',
+                    'Appointment or Processing Schedule Request',
+                ],
+            ],
+            'Traffic Enforcement Agency of Mandaue' => [
+                'Complaint' => [
+                    'Traffic Enforcer Misconduct',
+                    'Unjust Ticketing or Penalty',
+                    'Inefficient Traffic Management',
+                ],
+                'Inquiry' => [
+                    'Traffic Rules Clarification',
+                    'Citation or Violation Inquiry',
+                    'Inquiry About Traffic Assistance',
+                ],
+                'Request' => [
+                    'Request for Traffic Assistance',
+                    'Request for Event Traffic Coordination',
+                    'Request for Violation Review',
+                ],
+            ],
+            'City Social Welfare Services' => [
+                'Complaint' => [
+                    'Discrimination or Neglect in Assistance',
+                    'Delayed Social Service Response',
+                    'Unprofessional Staff Behavior',
+                ],
+                'Inquiry' => [
+                    'Assistance Program Inquiry',
+                    'Eligibility or Requirements Clarification',
+                    'Social Service Schedule Inquiry',
+                ],
+                'Request' => [
+                    'Request for Social Assistance',
+                    'Financial Aid or Program Enrollment Request',
+                    'Home Visit or Consultation Request',
+                ],
+            ],
+        ];
+
+        $departmentCategories = $allCategoryOptions[$departmentName] ?? [];
+
+        $flattened = [];
+        foreach ($departmentCategories as $type => $categories) {
+            foreach ($categories as $category) {
+                $flattened[$category] = $category;
+            }
+        }
+
+        $this->categoryOptions = $flattened;
+
+        $this->filterType = null;
+        $this->filterCategory = null;
+
         $this->loadData();
+
     }
 
     public function applyFilters()

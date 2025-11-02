@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use App\Models\Department;
 use App\Models\Grievance;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -9,7 +10,6 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-
 #[Layout('layouts.app')]
 #[Title('Grievance Reports')]
 class Index extends Component
@@ -26,6 +26,7 @@ class Index extends Component
     public $filterPriority = '';
     public $filterStatus = '';
     public $filterType = '';
+    public $filterDepartment = '';
     public $filterCategory = '';
     public $filterDate = '';
     public $selected = [];
@@ -38,6 +39,8 @@ class Index extends Component
     public $inProgressCount = 0;
     public $resolvedCount = 0;
     public $unresolvedCount = 0;
+    public $departmentOptions;
+    public $categoryOptions;
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -46,13 +49,14 @@ class Index extends Component
         'filterType' => ['except' => ''],
         'filterDate' => ['except' => ''],
         'filterCategory' => ['except' => ''],
+        'filterDepartment' => ['except' => ''],
     ];
 
     protected $listeners = [
         'poll' => '$refresh',
     ];
 
-    public function mount()
+   public function mount()
     {
         $this->user = auth()->user();
 
@@ -74,6 +78,75 @@ class Index extends Component
         }
 
         $this->updateStats();
+
+        $this->departmentOptions = Department::whereHas('hrLiaisons')
+            ->pluck('department_name', 'department_name')
+            ->toArray();
+
+        $this->categoryOptions = [
+            'Business Permit and Licensing Office' => [
+                'Complaint' => [
+                    'Delayed Business Permit Processing',
+                    'Unclear Requirements or Procedures',
+                    'Unfair Treatment by Personnel',
+                ],
+                'Inquiry' => [
+                    'Business Permit Requirements Inquiry',
+                    'Renewal Process Clarification',
+                    'Schedule or Fee Inquiry',
+                ],
+                'Request' => [
+                    'Document Correction or Update Request',
+                    'Business Record Verification Request',
+                    'Appointment or Processing Schedule Request',
+                ],
+            ],
+            'Traffic Enforcement Agency of Mandaue' => [
+                'Complaint' => [
+                    'Traffic Enforcer Misconduct',
+                    'Unjust Ticketing or Penalty',
+                    'Inefficient Traffic Management',
+                ],
+                'Inquiry' => [
+                    'Traffic Rules Clarification',
+                    'Citation or Violation Inquiry',
+                    'Inquiry About Traffic Assistance',
+                ],
+                'Request' => [
+                    'Request for Traffic Assistance',
+                    'Request for Event Traffic Coordination',
+                    'Request for Violation Review',
+                ],
+            ],
+            'City Social Welfare Services' => [
+                'Complaint' => [
+                    'Discrimination or Neglect in Assistance',
+                    'Delayed Social Service Response',
+                    'Unprofessional Staff Behavior',
+                ],
+                'Inquiry' => [
+                    'Assistance Program Inquiry',
+                    'Eligibility or Requirements Clarification',
+                    'Social Service Schedule Inquiry',
+                ],
+                'Request' => [
+                    'Request for Social Assistance',
+                    'Financial Aid or Program Enrollment Request',
+                    'Home Visit or Consultation Request',
+                ],
+            ],
+        ];
+
+        $flattened = [];
+        foreach ($this->categoryOptions as $department => $types) {
+            foreach ($types as $type => $categories) {
+                foreach ($categories as $category) {
+                    $flattened[$category] = $category;
+                }
+            }
+        }
+
+        $this->categoryOptions = $flattened;
     }
 
     public function sortBy(string $field): void
@@ -317,6 +390,12 @@ class Index extends Component
             $query->where('grievance_category', $this->filterCategory);
         }
 
+        if ($this->filterDepartment) {
+            $query->whereHas('departments', function ($q) {
+                $q->where('department_name', $this->filterDepartment);
+            });
+        }
+
         if ($this->filterDate) {
             switch ($this->filterDate) {
                 case 'Today':
@@ -370,6 +449,11 @@ class Index extends Component
             })
             ->when($this->filterType, fn($q) => $q->where('grievance_type', $this->filterType))
             ->when($this->filterCategory, fn($q) => $q->where('grievance_category', $this->filterCategory))
+            ->when($this->filterDepartment, function ($q) {
+                $q->whereHas('departments', function ($sub) {
+                    $sub->where('department_name', $this->filterDepartment);
+                });
+            })
             ->when($this->search, function ($query) {
                 $term = trim($this->search);
 
@@ -384,7 +468,10 @@ class Index extends Component
                         ->orWhere('is_anonymous', 'like', "%{$term}%")
                         ->orWhereRaw('CAST(grievance_ticket_id AS CHAR) like ?', ["%{$term}%"])
                         ->orWhere('grievance_status', 'like', "%{$term}%")
-                        ->orWhere('grievance_status', 'like', "%{$normalized}%");
+                        ->orWhere('grievance_status', 'like', "%{$normalized}%")
+                        ->orWhereHas('departments', function ($dept) use ($term) {
+                            $dept->where('department_name', 'like', "%{$term}%");
+                        });
                 });
             })
             ->when($this->filterDate, function($q){
@@ -405,6 +492,15 @@ class Index extends Component
                         $q->whereYear('created_at', now()->year);
                         break;
                 }
+            })
+            ->when($this->sortField === 'departments.department_name', function ($q) {
+                $q->select('grievances.*')
+                ->leftJoin('department_grievance', 'grievances.grievance_id', '=', 'department_grievance.grievance_id')
+                ->leftJoin('departments', 'department_grievance.department_id', '=', 'departments.department_id')
+                ->orderBy('departments.department_name', $this->sortDirection)
+                ->distinct();
+            }, function($q) {
+                $q->orderBy($this->sortField ?? 'created_at', $this->sortDirection ?? 'desc');
             })
             ->when($this->sortField, function($query) {
                 $query->orderBy($this->sortField, $this->sortDirection);

@@ -14,6 +14,7 @@ class GrievanceCategoriesPieChart extends ChartWidget
 
     public ?string $startDate = null;
     public ?string $endDate = null;
+    public ?string $selectedType = null;
 
     public function mount($startDate = null, $endDate = null): void
     {
@@ -39,6 +40,30 @@ class GrievanceCategoriesPieChart extends ChartWidget
                             </svg>
                             <span>Grievance Categories Distribution</span>
                         </h2>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="relative inline-block w-56">
+                            <select
+                                wire:model.live="selectedType"
+                                id="grievanceType"
+                                class="peer w-full appearance-none rounded-xl border border-gray-300 dark:border-gray-700
+                                    bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-200
+                                    focus:border-blue-500 focus:ring-2 focus:ring-blue-400/60 outline-none shadow-sm
+                                    transition-all duration-200 ease-in-out hover:shadow-md hover:border-blue-400"
+                            >
+                                <option value="">All Types</option>
+                                <option value="Complaint">Complaint</option>
+                                <option value="Request">Request</option>
+                                <option value="Inquiry">Inquiry</option>
+                            </select>
+
+                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500 peer-focus:text-blue-500 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -85,9 +110,11 @@ class GrievanceCategoriesPieChart extends ChartWidget
                     $this->startDate . ' 00:00:00',
                     $this->endDate . ' 23:59:59',
                 ]);
+            })
+            ->when($this->selectedType, function ($query) {
+                $query->where('grievance_type', $this->selectedType);
             });
     }
-
 
     protected function getData(): array
     {
@@ -98,19 +125,31 @@ class GrievanceCategoriesPieChart extends ChartWidget
             ->groupBy('grievance_category')
             ->pluck('total', 'grievance_category');
 
-        $labels = $categoryCounts->keys()->map(fn($c) => ucwords(str_replace('_', ' ', $c)))->toArray();
+        $labels = $categoryCounts->keys()
+            ->map(fn($c) => ucwords(str_replace('_', ' ', $c)))
+            ->toArray();
+
         $data = $categoryCounts->values()->toArray();
+        $total = array_sum($data);
 
-        $colors = collect($data)->map(fn() => 'rgba('
-            . rand(100, 255) . ','
-            . rand(100, 255) . ','
-            . rand(100, 255) . ',0.6)'
-        )->toArray();
+        $labelsWithPercent = collect($labels)->map(function ($label, $i) use ($data, $total) {
+            $count = $data[$i] ?? 0;
+            $percentage = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            return "{$label} ({$count} - {$percentage}%)";
+        })->toArray();
 
-        $borderColors = collect($colors)->map(fn($c) => str_replace('0.6', '1', $c))->toArray();
+        $colors = collect($labels)->map(function ($label) {
+            $hash = crc32($label);
+            $r = ($hash & 0xFF0000) >> 16;
+            $g = ($hash & 0x00FF00) >> 8;
+            $b = $hash & 0x0000FF;
+            return "rgba($r, $g, $b, 0.85)";
+        })->toArray();
+
+        $borderColors = collect($colors)->map(fn($c) => str_replace('0.85', '1', $c))->toArray();
 
         return [
-            'labels' => $labels,
+            'labels' => $labelsWithPercent,
             'datasets' => [
                 [
                     'label' => 'Grievances per Category',
@@ -123,32 +162,47 @@ class GrievanceCategoriesPieChart extends ChartWidget
         ];
     }
 
+    protected function getOptions(): array
+{
+    return [
+        'responsive' => true,
+        'maintainAspectRatio' => false,
+        'plugins' => [
+            'legend' => [
+                'display' => true,
+                'position' => 'right',
+                'align' => 'center',
+                'labels' => [
+                    'font' => [
+                        'size' => 11,
+                        'weight' => '500',
+                    ],
+                    'boxWidth' => 12,
+                    'boxHeight' => 12,
+                    'padding' => 10,
+                    'usePointStyle' => true,
+                    'pointStyle' => 'circle',
+                ],
+            ],
+            'tooltip' => [
+                'backgroundColor' => 'rgba(0, 0, 0, 0.95)',
+                'bodyColor' => '#e5e7eb',
+                'cornerRadius' => 10,
+                'padding' => 12,
+                'titleFont' => ['size' => 14, 'weight' => 'bold'],
+                'bodyFont' => ['size' => 14],
+            ],
+        ],
+        'layout' => [
+            'padding' => ['top' => 10, 'bottom' => 10, 'right' => 10, 'left' => 10],
+        ],
+    ];
+}
+
+
     protected function getType(): string
     {
         return 'pie';
-    }
-
-    protected function getOptions(): array
-    {
-        return [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => [
-                    'display' => true,
-                    'position' => 'right',
-                    'labels' => [
-                        'font' => ['size' => 13],
-                    ],
-                ],
-                'tooltip' => [
-                    'backgroundColor' => 'rgba(17, 24, 39, 0.95)',
-                    'bodyColor' => '#e5e7eb',
-                    'cornerRadius' => 10,
-                    'padding' => 10,
-                ],
-            ],
-        ];
     }
 
     public function getColumnSpan(): int|string|array

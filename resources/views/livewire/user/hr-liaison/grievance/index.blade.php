@@ -278,7 +278,7 @@
                 x-data="{
                     filterType: '',
                 }"
-                :class="filterType ? 'grid grid-cols-2 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2' : 'grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2'"
+                class="grid grid-cols-2 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2"
             >
                 <x-filter-select
                     name="filterPriority"
@@ -298,59 +298,18 @@
                     :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
                 />
 
-                <div>
-                    <x-filter-select
-                        name="filterType"
-                        placeholder="Type"
-                        :options="['Complaint', 'Request', 'Inquiry']"
-                        x-model="filterType"
-                    />
-                </div>
+                <x-filter-select
+                    name="filterType"
+                    placeholder="Type"
+                    :options="['Complaint', 'Inquiry', 'Request']"
+                    x-model="filterType"
+                />
 
-                <template x-if="filterType">
-                    <div class="relative">
-                        <div x-show="filterType === 'Complaint'" x-cloak>
-                            <x-filter-select
-                                name="filterCategory"
-                                placeholder="Category"
-                                :options="[
-                                    'Unfair Treatment',
-                                    'Workplace Harassment',
-                                    'Salary or Benefits Issue',
-                                    'Violation of Rights',
-                                    'Other Complaint'
-                                ]"
-                            />
-                        </div>
-
-                        <div x-show="filterType === 'Inquiry'" x-cloak>
-                            <x-filter-select
-                                name="filterCategory"
-                                placeholder="Category"
-                                :options="[
-                                    'Clarification on Policy',
-                                    'Work Schedule Inquiry',
-                                    'Performance Evaluation Question',
-                                    'Other Inquiry'
-                                ]"
-                            />
-                        </div>
-
-                        <div x-show="filterType === 'Request'" x-cloak>
-                            <x-filter-select
-                                name="filterCategory"
-                                placeholder="Category"
-                                :options="[
-                                    'Leave Request',
-                                    'Schedule Adjustment',
-                                    'Equipment or Resource Request',
-                                    'Training or Seminar Request',
-                                    'Other Request'
-                                ]"
-                            />
-                        </div>
-                    </div>
-                </template>
+                <x-filter-select
+                    name="filterCategory"
+                    placeholder="Category"
+                    :options="$categoryOptions"
+                />
             </div>
 
             <div class="flex justify-center w-full px-3 mb-3">
@@ -646,7 +605,7 @@
     <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, deleteSelected, markSelectedHighPriority, clearSearch">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -882,7 +841,7 @@
                 </div>
             </div>
 
-            <div wire:loading wire:target="applySearch, applyFilters, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, bulkDelete, bulkMarkHigh, clearSearch"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch"
                 class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

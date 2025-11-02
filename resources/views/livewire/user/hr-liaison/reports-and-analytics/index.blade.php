@@ -75,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- Type -->
                 <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
                     <div class="flex items-center gap-2 font-bold mb-1">
                         <x-heroicon-o-adjustments-horizontal class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
@@ -84,68 +83,27 @@
                     <x-filter-select
                         name="filterType"
                         placeholder="Type"
-                        :options="['Complaint', 'Request', 'Inquiry']"
+                        :options="['Complaint', 'Inquiry', 'Request']"
                         x-model="filterType"
                     />
                 </div>
 
-                <template x-if="filterType">
-                    <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
-                        <div class="flex items-center gap-2 font-bold mb-1">
-                            <x-heroicon-o-clipboard-document-list class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
-                            <span>Category</span>
-                        </div>
-                        <div>
-                            <div x-show="filterType === 'Complaint'" x-cloak>
-                                <x-filter-select
-                                    name="filterCategory"
-                                    placeholder="Category"
-                                    :options="[
-                                        'Unfair Treatment',
-                                        'Workplace Harassment',
-                                        'Salary or Benefits Issue',
-                                        'Violation of Rights',
-                                        'Other Complaint'
-                                    ]"
-                                    x-model="filterCategory"
-                                />
-                            </div>
-
-                            <div x-show="filterType === 'Inquiry'" x-cloak>
-                                <x-filter-select
-                                    name="filterCategory"
-                                    placeholder="Category"
-                                    :options="[
-                                        'Clarification on Policy',
-                                        'Work Schedule Inquiry',
-                                        'Performance Evaluation Question',
-                                        'Other Inquiry'
-                                    ]"
-                                    x-model="filterCategory"
-                                />
-                            </div>
-
-                            <div x-show="filterType === 'Request'" x-cloak>
-                                <x-filter-select
-                                    name="filterCategory"
-                                    placeholder="Category"
-                                    :options="[
-                                        'Leave Request',
-                                        'Schedule Adjustment',
-                                        'Equipment or Resource Request',
-                                        'Training or Seminar Request',
-                                        'Other Request'
-                                    ]"
-                                    x-model="filterCategory"
-                                />
-                            </div>
-                        </div>
+                <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
+                    <div class="flex items-center gap-2 font-bold mb-1">
+                        <x-heroicon-o-clipboard-document-list class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                        <span>Category</span>
                     </div>
-                </template>
+                    <div class="relative">
+                        <x-filter-select
+                            name="filterCategory"
+                            placeholder="Category"
+                            :options="$categoryOptions"
+                        />
+                    </div>
+                </div>
             </div>
 
            <div class="px-4 mb-4">
-                <!-- Apply Button -->
                 <button
                     type="button"
                     class="flex gap-2 items-center justify-center font-bold w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 transition duration-300 ease-in-out text-white p-3 rounded-lg"
@@ -163,7 +121,6 @@
                 </button>
             </div>
 
-            <!-- Print / Export Buttons -->
             <div class="flex flex-wrap justify-end gap-3 px-4 mb-4">
                 <button
                     wire:click="printReport"
@@ -297,29 +254,33 @@
             </table>
         </div>
 
-        <div class="relative overflow-x-auto shadow-lg sm:rounded-lg border border-gray-200 dark:border-gray-700" wire:poll.10s>
-            <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200">
-                <thead class="text-xs uppercase bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-200 dark:border-gray-700" wire:poll.10s>
+            <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200 font-sans">
+                <thead class="text-xs uppercase tracking-wide bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                     <tr>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider text-center">TICKET ID</th>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider">TITLE</th>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider text-center">CATEGORY</th>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider text-center">STATUS</th>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider text-center">PROCESSING DAYS</th>
-                        <th scope="col" class="px-6 py-3 font-extrabold tracking-wider text-center">DATE</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">TICKET ID</th>
+                        <th scope="col" class="px-6 py-3 font-semibold">TITLE</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">TYPE</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">CATEGORY</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">STATUS</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">PROCESSING DAYS</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">DATE</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-white dark:bg-gray-900">
                     @forelse($data as $item)
-                        <tr class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors duration-200">
-                            <th scope="row" class="px-6 py-4 font-semibold text-gray-900 dark:text-white whitespace-nowrap text-center">
+                        <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors duration-200">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white text-center">
                                 {{ $item->grievance_ticket_id }}
                             </th>
                             <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">
                                 {{ $item->grievance_title }}
                             </td>
-                            <td class="px-6 py-4 capitalize font-medium text-gray-700 dark:text-gray-300 text-center">
-                                {{ $item->grievance_category }}
+                            <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
+                                {{ $item->grievance_type ?? '—' }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
+                                {{ $item->grievance_category ?? '—' }}
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span
@@ -331,7 +292,7 @@
                                     {{ strtoupper($item->grievance_status) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-center font-semibold text-gray-800 dark:text-gray-200">
+                            <td class="px-6 py-4 text-center font-medium text-gray-800 dark:text-gray-200">
                                 {{ $item->processing_days ?? '—' }}
                             </td>
                             <td class="px-6 py-4 text-center font-medium text-gray-700 dark:text-gray-300">
@@ -340,7 +301,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
+                            <td colspan="7" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
                                 No data available for the selected filters.
                             </td>
                         </tr>

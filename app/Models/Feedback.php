@@ -26,4 +26,10 @@ class Feedback extends Model
         'answers' => 'array',
         'date' => 'date',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }

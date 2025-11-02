@@ -1,3 +1,3 @@
 <div class="p-6 space-y-6 relative w-full">
-    <livewire:user-citizen-table/>
+    <livewire:admin-stakeholders-citizens-table/>
 </div>

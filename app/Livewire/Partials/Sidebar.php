@@ -22,11 +22,19 @@ class Sidebar extends Component
                     'route' => 'admin.dashboard',
                 ],
                 [
-                    'label' => 'Users',
+                    'label' => 'Stakeholders',
                     'icon' => 'bi bi-person-fill',
                     'children' => [
-                        ['label' => 'Citizens', 'route' => 'admin.users.citizens', 'icon' => 'bi bi-people-fill'],
-                        ['label' => 'HR Liaisons', 'route' => 'admin.users.hr-liaisons', 'icon' => 'bi bi-person-badge'],
+                        ['label' => 'Citizens', 'route' => 'admin.stakeholders.citizens.index', 'icon' => 'bi bi-people-fill'],
+                        ['label' => 'Departments & HR Liaisons', 'route' => 'admin.stakeholders.departments-and-hr-liaisons.index', 'icon' => 'bi bi-person-badge'],
+                    ],
+                ],
+                [
+                    'label' => 'Forms',
+                    'icon' => 'bi bi-file-earmark-fill',
+                    'children' => [
+                        ['label' => 'Grievances', 'route' => 'admin.forms.grievances.index', 'icon' => 'bi bi-file-earmark-text'],
+                        ['label' => 'Feedbacks', 'route' => 'admin.forms.feedbacks.index', 'icon' => 'bi bi-chat-right-dots-fill'],
                     ],
                 ],
                 [

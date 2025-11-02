@@ -65,7 +65,6 @@ class DashboardUserTable extends TableWidget
             return User::query()->with('roles');
         }
 
-        // Recent users (last 7 days) for non-admins
         return User::query()
             ->where('created_at', '>=', now()->subDays(7))
             ->with('roles');

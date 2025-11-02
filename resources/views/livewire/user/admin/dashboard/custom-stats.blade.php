@@ -1,34 +1,27 @@
 <div class="flex flex-col w-full space-y-6">
 
-    <!-- Top Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <!-- Users Card -->
         <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
             border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
             transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
 
-            <!-- Glow hover effect -->
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
                         group-hover:opacity-100 blur-xl transition-all duration-500"></div>
 
-            <!-- Main icon -->
             <div
                 class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <x-heroicon-o-user class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
             </div>
 
-            <!-- Title -->
             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300">Users</p>
             <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
                 {{ $totalUsers }}
             </p>
             <p class="text-sm text-gray-500 dark:text-gray-400 -mt-2">Total registered users</p>
 
-            <!-- Sub-box structure -->
             <div class="grid grid-cols-2 gap-3 mt-3 w-full">
-                <!-- Citizens -->
                 <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
                             border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
                             transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
@@ -41,7 +34,6 @@
                     </span>
                 </div>
 
-                <!-- HR Liaisons -->
                 <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
                             border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
                             transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
@@ -55,7 +47,6 @@
                 </div>
             </div>
         </div>
-        <!-- Assignments Card -->
         <div
             class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
                 border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -79,7 +70,6 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">Total processed</p>
         </div>
 
-        <!-- Grievances Card -->
         <div
             class="group relative bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900
                 border border-zinc-300/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg

@@ -18,8 +18,6 @@ class Index extends Component implements Forms\Contracts\HasForms
 
     public $startDate;
     public $endDate;
-    public $activeTab = 'users';
-
     public $user;
     public $userModel;
 
@@ -31,9 +29,6 @@ class Index extends Component implements Forms\Contracts\HasForms
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
 
-        $this->form->fill([
-            'activeTab' => $this->activeTab,
-        ]);
 
         if (session()->pull('just_logged_in', false)) {
             Notification::make()
@@ -52,26 +47,6 @@ class Index extends Component implements Forms\Contracts\HasForms
         $this->dispatch('dateRangeUpdated', $start, $end);
     }
 
-    protected function getFormSchema(): array
-    {
-        return [
-            Select::make('activeTab')
-                ->hiddenLabel(true)
-                ->options([
-                    'users' => 'Users',
-                    'grievances' => 'Grievances',
-                ])
-                ->reactive()
-                ->native(false)
-                ->placeholder(null)
-                ->afterStateUpdated(fn ($state) => $this->activeTab = $state)
-                ->required()
-                ->extraAttributes([
-                    'class' => 'w-40',
-                ]),
-        ];
-    }
-
     public function updatedStartDate($value): void
     {
         $this->dispatch('dateRangeUpdated', $value, $this->endDate);
@@ -85,7 +60,6 @@ class Index extends Component implements Forms\Contracts\HasForms
     public function render()
     {
         return view('livewire.user.admin.dashboard.index', [
-            'activeTab' => $this->activeTab,
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
         ]);

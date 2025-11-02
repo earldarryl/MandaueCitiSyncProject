@@ -2,12 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
-use Livewire\Component;
+use App\Models\UserInfo;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
-class AdminLineChart extends ChartWidget
+class AdminBarChart extends ChartWidget
 {
     public ?string $startDate = null;
     public ?string $endDate = null;
@@ -21,11 +20,11 @@ class AdminLineChart extends ChartWidget
                         <h2 class="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
-                                class="size-6 text-blue-600 dark:text-blue-400">
+                                class="size-6 text-green-600 dark:text-green-400">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3 3v18h18M9 9c0-1.657 1.343-3 3-3s3 1.343 3 3m0 0c0 1.657-1.343 3-3 3m0-3H3m6 3v6m6-6v6" />
+                                    d="M4.5 3.75h15a.75.75 0 0 1 .75.75v15a.75.75 0 0 1-.75.75h-15A.75.75 0 0 1 3.75 19.5V4.5a.75.75 0 0 1 .75-.75zm3 12h9m-9-4.5h9m-9-4.5h9" />
                             </svg>
-                            <span>Average Age of Registered Users</span>
+                            <span>Registered Users per Barangay</span>
                         </h2>
                     </div>
                 </div>
@@ -33,7 +32,7 @@ class AdminLineChart extends ChartWidget
                 <div x-data="{ open: false }" class="mt-1">
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-200
-                            hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            hover:text-green-600 dark:hover:text-green-400 transition-colors">
                         <span>About this chart</span>
                         <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'rotate-180': open }"
                             class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24"
@@ -45,11 +44,11 @@ class AdminLineChart extends ChartWidget
                     <div x-show="open" x-collapse
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
-                        This line chart visualizes the <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        average age</span> of all registered users each month.
+                        This bar chart displays the number of <span class="font-semibold text-gray-800 dark:text-gray-300">
+                        registered users</span> across different barangays.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To analyze demographic trends over time and identify growth in specific age groups among new users.
+                        To visualize the population distribution and identify which barangays have higher registration activity.
                     </div>
                 </div>
             </div>
@@ -57,38 +56,41 @@ class AdminLineChart extends ChartWidget
     }
     protected function getData(): array
     {
-        $averageAges = User::query()
-            ->whereHas('userInfo')
-            ->join('user_infos', 'users.id', '=', 'user_infos.user_id')
+        $barangayData = UserInfo::query()
+            ->join('users', 'user_infos.user_id', '=', 'users.id')
             ->when($this->startDate, fn($q) =>
                 $q->whereDate('users.created_at', '>=', $this->startDate))
             ->when($this->endDate, fn($q) =>
                 $q->whereDate('users.created_at', '<=', $this->endDate))
-            ->selectRaw('DATE_FORMAT(users.created_at, "%Y-%m") as month, AVG(user_infos.age) as avg_age')
-            ->groupBy('month')
-            ->orderBy('month', 'asc')
+            ->select('user_infos.barangay', DB::raw('COUNT(user_infos.id) as total'))
+            ->groupBy('user_infos.barangay')
+            ->orderBy('user_infos.barangay', 'asc')
             ->get();
 
-        $labels = $averageAges->pluck('month')->map(fn ($m) => date('F Y', strtotime($m)))->toArray();
-        $data = $averageAges->pluck('avg_age')->map(fn ($age) => round($age, 1))->toArray();
+        $labels = $barangayData->pluck('barangay')->toArray();
+        $values = $barangayData->pluck('total')->toArray();
 
         return [
-            'datasets' => [[
-                'label' => 'Average Age',
-                'data' => $data,
-                'borderColor' => '#3B82F6',
-                'backgroundColor' => 'rgba(59,130,246,0.15)',
-                'tension' => 0.3,
-                'pointRadius' => 4,
-                'pointBackgroundColor' => '#2563EB',
-            ]],
+            'datasets' => [
+                [
+                    'label' => 'Population',
+                    'data' => $values,
+                    'backgroundColor' => [
+                        '#4F46E5', '#22C55E', '#F59E0B', '#EF4444',
+                        '#06B6D4', '#8B5CF6', '#84CC16', '#EC4899',
+                        '#14B8A6', '#F97316',
+                    ],
+                    'borderColor' => '#1E3A8A',
+                    'borderWidth' => 1,
+                ],
+            ],
             'labels' => $labels,
         ];
     }
 
     protected function getType(): string
     {
-        return 'line';
+        return 'bar';
     }
 
     protected function getOptions(): array
@@ -103,7 +105,7 @@ class AdminLineChart extends ChartWidget
                 ],
                 'title' => [
                     'display' => true,
-                    'text' => 'Average Age of Registered Users by Month',
+                    'text' => 'Registered Users per Barangay',
                     'font' => ['size' => 16, 'weight' => '600'],
                 ],
             ],
@@ -112,7 +114,7 @@ class AdminLineChart extends ChartWidget
                     'beginAtZero' => true,
                     'title' => [
                         'display' => true,
-                        'text' => 'Average Age',
+                        'text' => 'Total Users',
                     ],
                 ],
             ],

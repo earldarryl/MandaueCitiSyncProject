@@ -122,10 +122,10 @@
                             style="height: 0;"
                         >
                             <div class="relative flex flex-col items-start pl-6 mt-1 pb-1">
-
                                 @foreach ($item['children'] as $child)
                                     @php
                                         $isChildActive = request()->routeIs($child['route']);
+                                        $isLongLabel = strlen($child['label']) > 18;
                                     @endphp
 
                                     <x-responsive-nav-link
@@ -137,7 +137,12 @@
                                         wire:navigate
                                     >
                                         <i class="{{ $child['icon'] }}"></i>
-                                        <span x-show="$store.sidebar.open" x-transition class="ml-2">
+                                        <span
+                                            x-show="$store.sidebar.open"
+                                            x-transition
+                                            class="ml-2 {{ $isLongLabel ? 'text-[13px]' : 'text-[15px]' }} truncate"
+                                            title="{{ $child['label'] }}"
+                                        >
                                             {{ $child['label'] }}
                                         </span>
                                     </x-responsive-nav-link>

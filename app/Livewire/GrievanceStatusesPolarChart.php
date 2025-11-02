@@ -96,41 +96,42 @@ class GrievanceStatusesPolarChart extends ChartWidget
 
         $labels = ['pending', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed'];
         $formattedLabels = collect($labels)->map(fn($s) => ucwords(str_replace('_', ' ', $s)))->toArray();
-        $data = collect($labels)->map(fn($status) => $statusCounts[$status] ?? 0);
+
+        $data = collect($labels)->map(fn($status) => $statusCounts[$status] ?? 0)->toArray();
+        $total = array_sum($data);
+
+        $labelsWithPercent = collect($formattedLabels)->map(function ($label, $i) use ($data, $total) {
+            $count = $data[$i] ?? 0;
+            $percentage = $total > 0 ? round(($count / $total) * 100, 1) : 0;
+            return "{$label} ({$count} - {$percentage}%)";
+        })->toArray();
+
+        $colors = [
+            'rgba(251, 191, 36, 0.85)',
+            'rgba(56, 189, 248, 0.85)',
+            'rgba(59, 130, 246, 0.85)',
+            'rgba(168, 85, 247, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(239, 68, 68, 0.85)',
+            'rgba(107, 114, 128, 0.85)',
+        ];
+
+        $borders = [
+            '#fbbf24', '#38bdf8', '#3b82f6', '#a855f7', '#10b981', '#ef4444', '#6b7280'
+        ];
 
         return [
             'datasets' => [
                 [
                     'label' => 'Grievance Status Distribution',
                     'data' => $data,
-                    'backgroundColor' => [
-                        'rgba(251, 191, 36, 0.45)',
-                        'rgba(56, 189, 248, 0.45)',
-                        'rgba(59, 130, 246, 0.45)',
-                        'rgba(168, 85, 247, 0.45)',
-                        'rgba(16, 185, 129, 0.45)',
-                        'rgba(239, 68, 68, 0.45)',
-                        'rgba(107, 114, 128, 0.45)',
-                    ],
-                    'borderColor' => [
-                        '#fbbf24',
-                        '#38bdf8',
-                        '#3b82f6',
-                        '#a855f7',
-                        '#10b981',
-                        '#ef4444',
-                        '#6b7280',
-                    ],
+                    'backgroundColor' => $colors,
+                    'borderColor' => $borders,
                     'borderWidth' => 3,
                 ],
             ],
-            'labels' => $formattedLabels,
+            'labels' => $labelsWithPercent,
         ];
-    }
-
-    protected function getType(): string
-    {
-        return 'polarArea';
     }
 
     protected function getOptions(): array
@@ -142,15 +143,26 @@ class GrievanceStatusesPolarChart extends ChartWidget
                 'legend' => [
                     'display' => true,
                     'position' => 'right',
+                    'align' => 'center',
                     'labels' => [
-                        'font' => ['size' => 13],
+                        'font' => [
+                            'size' => 11,
+                            'weight' => '500',
+                        ],
+                        'boxWidth' => 12,
+                        'boxHeight' => 12,
+                        'padding' => 8,
+                        'usePointStyle' => true,
+                        'pointStyle' => 'circle',
                     ],
                 ],
                 'tooltip' => [
-                    'backgroundColor' => 'rgba(17, 24, 39, 0.95)',
+                    'backgroundColor' => 'rgba(0, 0, 0, 0.95)',
                     'bodyColor' => '#e5e7eb',
                     'cornerRadius' => 10,
                     'padding' => 10,
+                    'titleFont' => ['size' => 12, 'weight' => 'bold'],
+                    'bodyFont' => ['size' => 12],
                 ],
             ],
             'scales' => [
@@ -159,10 +171,19 @@ class GrievanceStatusesPolarChart extends ChartWidget
                     'ticks' => [
                         'color' => '#9ca3af',
                         'backdropColor' => 'transparent',
+                        'font' => ['size' => 10],
                     ],
                 ],
             ],
+            'layout' => [
+                'padding' => ['top' => 5, 'bottom' => 5, 'right' => 5, 'left' => 5],
+            ],
         ];
+    }
+
+    protected function getType(): string
+    {
+        return 'polarArea';
     }
 
     public function getColumnSpan(): int|string|array

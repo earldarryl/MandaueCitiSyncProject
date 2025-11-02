@@ -103,63 +103,121 @@
 
                 <div
                     x-data="{
+                        department: @entangle('department'),
                         grievanceType: @entangle('grievance_type'),
                         grievanceCategory: @entangle('grievance_category'),
+
                         categoriesMap: {
-                            'Complaint': [
-                                'Unfair Treatment',
-                                'Workplace Harassment',
-                                'Salary or Benefits Issue',
-                                'Violation of Rights',
-                                'Other Complaint'
-                            ],
-                            'Inquiry': [
-                                'Clarification on Policy',
-                                'Work Schedule Inquiry',
-                                'Performance Evaluation Question',
-                                'Other Inquiry'
-                            ],
-                            'Request': [
-                                'Leave Request',
-                                'Schedule Adjustment',
-                                'Equipment or Resource Request',
-                                'Training or Seminar Request',
-                                'Other Request'
-                            ]
+                            'Business Permit and Licensing Office': {
+                                'Complaint': [
+                                    'Delayed Business Permit Processing',
+                                    'Unclear Requirements or Procedures',
+                                    'Unfair Treatment by Personnel'
+                                ],
+                                'Inquiry': [
+                                    'Business Permit Requirements Inquiry',
+                                    'Renewal Process Clarification',
+                                    'Schedule or Fee Inquiry'
+                                ],
+                                'Request': [
+                                    'Document Correction or Update Request',
+                                    'Business Record Verification Request',
+                                    'Appointment or Processing Schedule Request'
+                                ],
+                            },
+                            'Traffic Enforcement Agency of Mandaue': {
+                                'Complaint': [
+                                    'Traffic Enforcer Misconduct',
+                                    'Unjust Ticketing or Penalty',
+                                    'Inefficient Traffic Management'
+                                ],
+                                'Inquiry': [
+                                    'Traffic Rules Clarification',
+                                    'Citation or Violation Inquiry',
+                                    'Inquiry About Traffic Assistance'
+                                ],
+                                'Request': [
+                                    'Request for Traffic Assistance',
+                                    'Request for Event Traffic Coordination',
+                                    'Request for Violation Review'
+                                ],
+                            },
+                            'City Social Welfare Services': {
+                                'Complaint': [
+                                    'Discrimination or Neglect in Assistance',
+                                    'Delayed Social Service Response',
+                                    'Unprofessional Staff Behavior'
+                                ],
+                                'Inquiry': [
+                                    'Assistance Program Inquiry',
+                                    'Eligibility or Requirements Clarification',
+                                    'Social Service Schedule Inquiry'
+                                ],
+                                'Request': [
+                                    'Request for Social Assistance',
+                                    'Financial Aid or Program Enrollment Request',
+                                    'Home Visit or Consultation Request'
+                                ],
+                            }
                         },
+
+                        get typeOptions() {
+                            return this.department ? ['Complaint', 'Inquiry', 'Request'] : [];
+                        },
+
                         get categoryOptions() {
-                            return this.categoriesMap[this.grievanceType] || [];
+                            if (this.department && this.grievanceType) {
+                                return this.categoriesMap[this.department]?.[this.grievanceType] || [];
+                            }
+                            return [];
                         }
                     }"
                     class="flex flex-col gap-6"
                 >
-                    <flux:field class="flex-1">
+
+                    <!-- Department -->
+                    <flux:field>
+                        <div class="flex flex-col gap-2">
+                            <flux:label class="flex gap-2 items-center">
+                                <flux:icon.building-office />
+                                <span>Department</span>
+                            </flux:label>
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                Which department is involved or related to your grievance?
+                            </h3>
+
+                            <x-searchable-select
+                                name="department"
+                                placeholder="Select department"
+                                :options="$departmentOptions"
+                                x-on:change="grievanceType = ''; grievanceCategory = ''"
+                            />
+                        </div>
+                        <flux:error name="department" />
+                    </flux:field>
+
+                    <!-- Grievance Type -->
+                    <flux:field x-show="department" x-cloak>
                         <div class="flex flex-col gap-2">
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.squares-2x2 />
                                 <span>Grievance Type</span>
                             </flux:label>
-
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
                                 What kind of grievance would you like to file?
                             </h3>
 
                             <x-searchable-select
                                 name="grievance_type"
-                                wire:model="grievance_type"
                                 placeholder="Select grievance type"
-                                :options="[
-                                    'Complaint' => 'Complaint',
-                                    'Inquiry' => 'Inquiry',
-                                    'Request' => 'Request'
-                                ]"
+                                :options="[ 'Complaint' => 'Complaint', 'Inquiry' => 'Inquiry', 'Request' => 'Request' ]"
                                 x-on:change="grievanceCategory = ''"
                             />
                         </div>
                         <flux:error name="grievance_type" />
                     </flux:field>
 
-                    <flux:field class="flex-1" x-show="grievanceType" x-cloak>
+                    <flux:field x-show="grievanceType" x-cloak>
                         <div class="flex flex-col gap-2">
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.list-bullet />
@@ -167,7 +225,7 @@
                             </flux:label>
 
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Choose a category based on your grievance type.
+                                Choose a category based on the selected department and grievance type.
                             </h3>
 
                             <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
@@ -249,27 +307,6 @@
                         />
                     </div>
                     <flux:error name="priority_level" />
-                </flux:field>
-
-                <flux:field>
-                    <div class="flex flex-col gap-2">
-                        <flux:label class="flex gap-2">
-                            <flux:icon.building-office />
-                            <span>Department</span>
-                        </flux:label>
-
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Which department is involved or related to your grievance?
-                        </h3>
-
-                        <x-searchable-select
-                            name="department"
-                            placeholder="Select department(s)"
-                            :options="$departmentOptions"
-                        />
-
-                    </div>
-                    <flux:error name="department" />
                 </flux:field>
 
                 <flux:field>

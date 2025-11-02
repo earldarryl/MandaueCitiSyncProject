@@ -186,9 +186,18 @@
 
         <div
             x-data="{
+                filterDepartment: '',
                 filterType: '',
+                categoriesMap: @js($categoryOptions),
+
+                get categoryOptions() {
+                    if (this.filterDepartment && this.filterType) {
+                        return this.categoriesMap[this.filterDepartment]?.[this.filterType] || [];
+                    }
+                    return [];
+                },
             }"
-            :class="filterType ? 'grid grid-cols-2 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2' : 'grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2'"
+            class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
         >
             <x-filter-select
                 name="filterPriority"
@@ -208,59 +217,26 @@
                 :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
             />
 
-            <div>
-                <x-filter-select
-                    name="filterType"
-                    placeholder="Type"
-                    :options="['Complaint', 'Request', 'Inquiry']"
-                    x-model="filterType"
-                />
-            </div>
+            <x-filter-select
+                name="filterDepartment"
+                placeholder="Department"
+                :options="$departmentOptions"
+                x-model="filterDepartment"
+                x-on:change="filterType = ''"
+            />
 
-            <template x-if="filterType">
-                <div class="relative">
-                    <div x-show="filterType === 'Complaint'" x-cloak>
-                        <x-filter-select
-                            name="filterCategory"
-                            placeholder="Category"
-                            :options="[
-                                'Unfair Treatment',
-                                'Workplace Harassment',
-                                'Salary or Benefits Issue',
-                                'Violation of Rights',
-                                'Other Complaint'
-                            ]"
-                        />
-                    </div>
+            <x-filter-select
+                name="filterType"
+                placeholder="Type"
+                :options="['Complaint', 'Inquiry', 'Request']"
+                x-model="filterType"
+            />
 
-                    <div x-show="filterType === 'Inquiry'" x-cloak>
-                        <x-filter-select
-                            name="filterCategory"
-                            placeholder="Category"
-                            :options="[
-                                'Clarification on Policy',
-                                'Work Schedule Inquiry',
-                                'Performance Evaluation Question',
-                                'Other Inquiry'
-                            ]"
-                        />
-                    </div>
-
-                    <div x-show="filterType === 'Request'" x-cloak>
-                        <x-filter-select
-                            name="filterCategory"
-                            placeholder="Category"
-                            :options="[
-                                'Leave Request',
-                                'Schedule Adjustment',
-                                'Equipment or Resource Request',
-                                'Training or Seminar Request',
-                                'Other Request'
-                            ]"
-                        />
-                    </div>
-                </div>
-            </template>
+            <x-filter-select
+                name="filterCategory"
+                placeholder="Category"
+                :options="$categoryOptions"
+            />
         </div>
 
             <div class="flex justify-center w-full px-3">
@@ -383,7 +359,7 @@
    <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, deleteSelected, markSelectedHighPriority, clearSearch">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -453,6 +429,24 @@
                                         <span>Category</span>
                                         <span class="w-2.5 h-full font-bold text-black dark:text-white">
                                             @if($sortField === 'grievance_category')
+                                                @if($sortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortBy('departments.department_name')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Department</span>
+                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                            @if($sortField === 'departments.department_name')
                                                 @if($sortDirection === 'asc')
                                                     <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
                                                 @else
@@ -573,6 +567,22 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
+                                        @forelse ($grievance->departments->unique('department_id') as $department)
+                                            <span
+                                                class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
+                                                    border border-blue-400 dark:border-blue-600
+                                                    text-blue-700 dark:text-blue-300 font-medium text-xs
+                                                    px-3 py-1.5 rounded-full shadow-sm
+                                                    hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
+                                            >
+                                                {{ $department->department_name }}
+                                            </span>
+                                        @empty
+                                            <span class="text-gray-500 dark:text-gray-400 text-sm">—</span>
+                                        @endforelse
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center">
                                         <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
                                             {{ $grievance->is_anonymous
                                                 ? 'bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-500'
@@ -639,7 +649,7 @@
             </div>
 
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, deleteSelected, markSelectedHighPriority, clearSearch"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch"
                  class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

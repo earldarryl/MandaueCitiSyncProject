@@ -1,17 +1,14 @@
 <div class="flex flex-col w-full space-y-6">
 
-    <!-- Section Header -->
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
             Grievance Statistics
         </h2>
     </div>
 
-    <!-- Top Summary Cards -->
     <div wire:loading.class="opacity-50"
         class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
 
-        <!-- Citizens Served -->
         <div
             class="group relative bg-gradient-to-br from-teal-50 to-teal-100 dark:from-zinc-800 dark:to-zinc-900
                 border border-teal-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -44,7 +41,6 @@
             </p>
         </div>
 
-        <!-- Total Received -->
         <div
             class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
                 border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -55,25 +51,38 @@
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.inbox class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Received</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Assignments Received</p>
             <p class="relative text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $totalReceived }}</p>
         </div>
 
-        <!-- Latest Grievance ID -->
         <div
             class="group relative bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-zinc-800 dark:to-zinc-900
                 border border-cyan-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                 transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-200/20 to-transparent opacity-0
-                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
             <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-cyan-200/50
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.identification class="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
             </div>
+
             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Latest Grievance Ticket ID</p>
             <p class="relative text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">
                 {{ $latestGrievanceTicketId ?? '—' }}
             </p>
+
+            @if($latestGrievanceTicketId)
+                <a href="{{ route('hr-liaison.grievance.view', $latestGrievanceTicketId) }}" wire:navigate
+                    class="mt-2 px-4 py-1 text-xs rounded-full font-medium
+                        bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-zinc-700 dark:to-zinc-800
+                        text-cyan-700 dark:text-cyan-400 hover:from-cyan-200 hover:to-cyan-300 dark:hover:from-zinc-600 dark:hover:to-zinc-700
+                        transition-all duration-300 shadow-sm">
+                    View
+                </a>
+            @endif
+
         </div>
 
     </div>

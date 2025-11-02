@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Grievance Report</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500&display=swap" rel="stylesheet">
 
     @php
         // 1. Re-calculate the Base64 image data
@@ -163,35 +164,12 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 20px; margin-top: 40px;">
-                <div style="flex:1; border: 1px solid #D1D5DB; padding: 16px; background-color: rgba(255,255,255,0.85);">
-                    @php
-                        $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
-                        $index = crc32($user->name) % count($palette);
-                        $bgColor = $palette[$index];
-                        $profilePic = $user->profile_pic
-                            ? Storage::url($user->profile_pic)
-                            : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=' . $bgColor . '&color=fff&size=128';
-                        $liaisonInfo = [
-                            ['label' => 'Name', 'value' => $hrName ?? 'N/A'],
-                            ['label' => 'Department', 'value' => $user->departments->pluck('department_name')->join(', ') ?? 'N/A'],
-                            ['label' => 'Role', 'value' => str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $user->getRoleNames()->first() ?? 'N/A')))],
-                            ['label' => 'Date & Time', 'value' => now()->format('F d, Y — h:i A')],
-                        ];
-                    @endphp
-                    <div style="text-align:center; margin-bottom: 16px;">
-                        <img src="{{ $profilePic }}" alt="profile" style="width:96px; height:96px; border-radius:50%; object-fit:cover; border:2px solid #D1D5DB;">
-                    </div>
-                    <div>
-                        @foreach($liaisonInfo as $item)
-                            <div style="display:flex; justify-content:space-between; padding:4px 0;">
-                                <span style="font-weight:600;">{{ $item['label'] }}</span>
-                                <span>{{ $item['value'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+            <div style="position: relative; text-align:center; font-weight:600; margin-top:45px; margin-bottom:12px; font-family:sans-serif; font-size:13px;">
+                {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }}
+                @if($startDate !== $endDate) – {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }} @endif
+            </div>
 
+            <div style="display: flex; gap: 20px; margin-top: 30px;">
                 <div style="
                     flex: 1;
                     border: 1px solid #D1D5DB;
@@ -203,41 +181,86 @@
                 ">
                     <canvas id="grievanceChart" width="250" height="200"></canvas>
                 </div>
-
             </div>
 
-            <div style="margin:20px; border:1px solid #D1D5DB; background-color: rgba(255,255,255,0.85); overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:12px;">
-                    <thead style="background-color:#F3F4F6; color:#374151; text-transform:uppercase;">
-                        <tr>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">TICKET ID</th>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">TITLE</th>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">CATEGORY</th>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">STATUS</th>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">PROCESSING DAYS</th>
-                            <th style="border:1px solid #D1D5DB; padding:6px;">DATE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($data as $item)
+                <div style="margin:20px; border:1px solid #D1D5DB; background-color: rgba(255,255,255,0.85); overflow-x:auto; border-radius:0.5rem; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+                    <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:13px;">
+                        <thead style="background-color:#F3F4F6; color:#374151; text-transform:uppercase; font-weight:600;">
                             <tr>
-                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_ticket_id }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:4px;">{{ $item->grievance_title }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_category }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->grievance_status }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->processing_days ?? '—' }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:4px; text-align:center;">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">TICKET ID</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px;">TITLE</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">TYPE</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">CATEGORY</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">STATUS</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">PROCESSING DAYS</th>
+                                <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">DATE</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="text-align:center; padding:8px; font-style:italic;">No data available for the selected dates.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse($data as $item)
+                                <tr style="transition: background-color 0.2s; cursor:default;">
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->grievance_ticket_id }}</td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px;">{{ $item->grievance_title }}</td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center; text-transform:capitalize;">{{ $item->grievance_type ?? '—' }}</td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center; text-transform:capitalize;">{{ $item->grievance_category ?? '—' }}</td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">
+                                        <span style="display:inline-block; padding:2px 6px; border-radius:9999px; font-size:11px; font-weight:600;
+                                            background-color:{{ $item->grievance_status === 'Resolved' ? '#DCFCE7' : ($item->grievance_status === 'Pending' ? '#FEF3C7' : ($item->grievance_status === 'Delayed' ? '#FEE2E2' : '#E5E7EB')) }};
+                                            color:{{ $item->grievance_status === 'Resolved' ? '#166534' : ($item->grievance_status === 'Pending' ? '#78350F' : ($item->grievance_status === 'Delayed' ? '#991B1B' : '#374151')) }};
+                                        ">
+                                            {{ strtoupper($item->grievance_status) }}
+                                        </span>
+                                    </td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->processing_days ?? '—' }}</td>
+                                    <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" style="text-align:center; padding:10px; font-style:italic; color:#6B7280;">No data available for the selected dates.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    margin-top: 50px;
+                    margin-left:20px;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 13px;
+                    width: fit-content;
+                    color: #1f2937;
+                ">
+                    <div style="display: flex; align-items: flex-end; gap: 6px;">
+                        <div style="font-weight: 600; color: #374151;">Noted by:</div>
+                        <div style="
+                            font-weight: 600;
+                            font-size: 15px;
+                            border-bottom: 1.8px solid #374151;
+                            padding-bottom: 2px;
+                            letter-spacing: 0.3px;
+                            color: #111827;
+                        ">
+                            {{ $hrName ?? 'N/A' }}
+                        </div>
+                    </div>
+                    <div style="
+                        text-align: center;
+                        font-size: 12px;
+                        color: #6B7280;
+                        font-weight: 500;
+                        margin-top: 2px;
+                        letter-spacing: 0.2px;
+                    ">
+                        HR Liaison
+                    </div>
+                </div>
             </div>
+        </div>
 
-        </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script>
         Chart.register(ChartDataLabels);

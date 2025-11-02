@@ -15,14 +15,12 @@ class CustomStats extends Widget
     public $startDate;
     public $endDate;
 
-    // main stats
     public $totalUsers = 0;
     public $citizenUsers = 0;
     public $hrLiaisonUsers = 0;
     public $totalGrievances = 0;
     public $totalAssignments = 0;
 
-    // other optional stats
     public $onlineUsers = 0;
     public $pendingGrievances = 0;
     public $unresolvedGrievances = 0;
@@ -33,7 +31,6 @@ class CustomStats extends Widget
 
     public function mount()
     {
-        // default range: this month
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
 
@@ -53,7 +50,6 @@ class CustomStats extends Widget
         $start = Carbon::parse($this->startDate)->startOfDay();
         $end = Carbon::parse($this->endDate)->endOfDay();
 
-        // --- USER STATS ---
         $this->totalUsers = User::whereBetween('created_at', [$start, $end])->count();
 
         $this->citizenUsers = User::whereBetween('created_at', [$start, $end])
@@ -64,7 +60,6 @@ class CustomStats extends Widget
             ->whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
             ->count();
 
-        // --- GRIEVANCE STATS ---
         $this->totalGrievances = Grievance::whereBetween('created_at', [$start, $end])->count();
 
         $this->pendingGrievances = Grievance::whereBetween('created_at', [$start, $end])
@@ -83,10 +78,8 @@ class CustomStats extends Widget
             ->where('grievance_status', 'resolved')
             ->count();
 
-        // --- ASSIGNMENTS ---
         $this->totalAssignments = Assignment::whereBetween('created_at', [$start, $end])->count();
 
-        // --- ONLINE USERS ---
         $this->onlineUsers = User::whereNotNull('last_seen_at')
             ->where('last_seen_at', '>=', now()->subMinutes(5))
             ->count();

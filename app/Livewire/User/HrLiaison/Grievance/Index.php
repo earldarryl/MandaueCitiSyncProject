@@ -37,7 +37,7 @@ class Index extends Component
     public $department;
     public $status;
     public $departmentOptions;
-
+    public $categoryOptions;
     public $totalGrievances = 0;
     public $highPriorityCount = 0;
     public $normalPriorityCount = 0;
@@ -85,6 +85,71 @@ class Index extends Component
             ->whereNotIn('department_id', $excludedDepartmentIds)
             ->pluck('department_name', 'department_name')
             ->toArray();
+
+        $this->categoryOptions = [
+            'Business Permit and Licensing Office' => [
+                'Complaint' => [
+                    'Delayed Business Permit Processing',
+                    'Unclear Requirements or Procedures',
+                    'Unfair Treatment by Personnel',
+                ],
+                'Inquiry' => [
+                    'Business Permit Requirements Inquiry',
+                    'Renewal Process Clarification',
+                    'Schedule or Fee Inquiry',
+                ],
+                'Request' => [
+                    'Document Correction or Update Request',
+                    'Business Record Verification Request',
+                    'Appointment or Processing Schedule Request',
+                ],
+            ],
+            'Traffic Enforcement Agency of Mandaue' => [
+                'Complaint' => [
+                    'Traffic Enforcer Misconduct',
+                    'Unjust Ticketing or Penalty',
+                    'Inefficient Traffic Management',
+                ],
+                'Inquiry' => [
+                    'Traffic Rules Clarification',
+                    'Citation or Violation Inquiry',
+                    'Inquiry About Traffic Assistance',
+                ],
+                'Request' => [
+                    'Request for Traffic Assistance',
+                    'Request for Event Traffic Coordination',
+                    'Request for Violation Review',
+                ],
+            ],
+            'City Social Welfare Services' => [
+                'Complaint' => [
+                    'Discrimination or Neglect in Assistance',
+                    'Delayed Social Service Response',
+                    'Unprofessional Staff Behavior',
+                ],
+                'Inquiry' => [
+                    'Assistance Program Inquiry',
+                    'Eligibility or Requirements Clarification',
+                    'Social Service Schedule Inquiry',
+                ],
+                'Request' => [
+                    'Request for Social Assistance',
+                    'Financial Aid or Program Enrollment Request',
+                    'Home Visit or Consultation Request',
+                ],
+            ],
+        ];
+
+        $flattened = [];
+        foreach ($this->categoryOptions as $department => $types) {
+            foreach ($types as $type => $categories) {
+                foreach ($categories as $category) {
+                    $flattened[$category] = $category;
+                }
+            }
+        }
+
+        $this->categoryOptions = $flattened;
 
     }
 
@@ -709,6 +774,7 @@ class Index extends Component
                         ->orWhere('grievance_details', 'like', "%{$term}%")
                         ->orWhere('priority_level', 'like', "%{$term}%")
                         ->orWhere('grievance_type', 'like', "%{$term}%")
+                        ->orWhere('grievance_category', 'like', "%{$term}%")
                         ->orWhere('is_anonymous', 'like', "%{$term}%")
                         ->orWhereRaw('CAST(grievance_ticket_id AS CHAR) like ?', ["%{$term}%"])
                         ->orWhere('grievance_status', 'like', "%{$term}%")
