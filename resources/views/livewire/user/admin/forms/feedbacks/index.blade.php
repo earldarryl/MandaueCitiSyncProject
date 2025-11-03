@@ -1,3 +1,3 @@
-<div>
-    {{-- Nothing in the world is as soft and yielding as water. --}}
+<div class="p-6 space-y-6 relative w-full">
+    <livewire:admin-feedbacks-table-index />
 </div>

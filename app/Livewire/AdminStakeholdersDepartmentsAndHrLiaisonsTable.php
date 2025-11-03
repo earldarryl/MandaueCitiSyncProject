@@ -77,108 +77,125 @@ class AdminStakeholdersDepartmentsAndHrLiaisonsTable extends TableWidget
                     ->counts('hrLiaisons')
                     ->sortable(),
             ])
-            ->actions([
+          ->actions([
 
-                ViewAction::make()
-                    ->label('View Liaisons')
-                    ->color('info')
-                    ->icon('heroicon-o-eye')
-                    ->closeModalByClickingAway(false)
-                    ->modalHeading(fn ($record) => "HR Liaisons of {$record->department_name}")
-                    ->infolist(fn ($record) => [
-                        Section::make('Assigned HR Liaisons')
-                            ->schema(
-                                $record->hrLiaisons->count()
-                                    ? $record->hrLiaisons->map(fn ($liaison) => Section::make()
-                                        ->schema([
-                                            Grid::make(2)->schema([
-                                                ImageEntry::make('profile_pic')
-                                                    ->label('Profile Picture')
-                                                    ->getStateUsing(fn () =>
-                                                        $liaison->profile_pic
-                                                            ? asset('storage/' . $liaison->profile_pic)
-                                                            : 'https://ui-avatars.com/api/?name=' . urlencode($liaison->name)
-                                                    )
-                                                    ->circular(),
-                                                TextEntry::make('name')->label('Name')->weight('bold'),
-                                                TextEntry::make('email')->label('Email'),
-                                            ]),
-                                        ])
-                                        ->columns(2)
-                                        ->collapsible()
-                                        ->collapsed(false)
-                                        ->heading($liaison->name)
-                                    )->toArray()
-                                    : [
-                                        TextEntry::make('none')
-                                            ->label('')
-                                            ->state('No HR Liaisons assigned to this department.')
-                                            ->color('gray'),
-                                    ]
-                            ),
-                    ])
-                    ->after(fn () => $this->resetTable()),
+    // View Liaisons
+    Action::make('viewLiaisons')
+        ->label('View Liaisons')
+        ->url(fn ($record) => route(
+            'admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view',
+            ['department' => $record->department_id]
+        ))
+        ->extraAttributes([
+            'wire:navigate' => true,
+            'class' => '
+                !inline-flex !items-center !gap-1.5
+                !px-2.5 !py-1.5 !text-xs !font-semibold
+                !rounded-md !border !border-gray-300
+                !bg-gray-50 !text-gray-700
+                hover:!bg-gray-100 hover:!border-gray-400
+                dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
+                dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
+                !transition-all !duration-200 !shadow-sm !cursor-pointer
+            ',
+        ])
+        ->icon('heroicon-o-eye')
+        ->color('primary')
+        ->tooltip('View the list of HR Liaisons for this department')
+        ->button(),
+
+    // Add HR Liaisons
+    Action::make('addLiaison')
+        ->label('Add HR Liaisons')
+        ->icon('heroicon-o-user-plus')
+        ->color('success')
+        ->button()
+        ->outlined()
+        ->tooltip('Add HR Liaisons to this department')
+        ->extraAttributes([
+            'class' => '
+                !inline-flex !items-center !gap-1.5
+                !px-2.5 !py-1.5 !text-xs !font-semibold
+                !rounded-md !border !border-gray-300
+                !bg-gray-50 !text-gray-700
+                hover:!bg-gray-100 hover:!border-gray-400
+                dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
+                dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
+                !transition-all !duration-200 !shadow-sm !cursor-pointer
+            ',
+        ])
+        ->closeModalByClickingAway(false)
+        ->form([
+            Forms\Components\Select::make('hr_liaison')
+                ->label('Select HR Liaisons')
+                ->multiple()
+                ->options(fn ($get, $record) =>
+                    User::role('hr_liaison')
+                        ->whereDoesntHave('departments', function ($query) use ($record) {
+                            $query->where('departments.department_id', $record->department_id);
+                        })
+                        ->pluck('name', 'id')
+                )
+                ->searchable(),
+        ])
+        ->action(function (array $data, Department $record) {
+            $record->hrLiaisons()->attach($data['hr_liaison']);
+        })
+        ->after(function () {
+            $this->resetTable();
+            $this->dispatch('refresh');
+        }),
+
+    // Edit HR Liaisons
+    Action::make('editLiaison')
+        ->label('Edit HR Liaisons')
+        ->icon('heroicon-o-pencil-square')
+        ->color('warning')
+        ->button()
+        ->outlined()
+        ->tooltip('Edit assigned HR Liaisons')
+        ->extraAttributes([
+            'class' => '
+                !inline-flex !items-center !gap-1.5
+                !px-2.5 !py-1.5 !text-xs !font-semibold
+                !rounded-md !border !border-gray-300
+                !bg-gray-50 !text-gray-700
+                hover:!bg-gray-100 hover:!border-gray-400
+                dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
+                dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
+                !transition-all !duration-200 !shadow-sm !cursor-pointer
+            ',
+        ])
+        ->closeModalByClickingAway(false)
+        ->form(fn ($record) => [
+            Forms\Components\Select::make('hr_liaison')
+                ->label('Update HR Liaisons')
+                ->multiple()
+                ->options(fn ($get, $record) =>
+                    User::role('hr_liaison')
+                        ->where(function ($query) use ($record) {
+                            $query->whereDoesntHave('departments', function ($q) use ($record) {
+                                $q->where('hr_liaison_departments.department_id', $record->department_id);
+                            })
+                            ->orWhereHas('departments', function ($q) use ($record) {
+                                $q->where('hr_liaison_departments.department_id', $record->department_id);
+                            });
+                        })
+                        ->pluck('name', 'id')
+                )
+                ->default(fn ($record) => $record->hrLiaisons->pluck('id')->toArray())
+                ->searchable(),
+        ])
+        ->action(function (array $data, Department $record) {
+            $record->hrLiaisons()->sync($data['hr_liaison']);
+        })
+        ->after(function () {
+            $this->resetTable();
+            $this->dispatch('refresh');
+        }),
+])
 
 
-               Action::make('addLiaison')
-                ->label('Add HR Liaisons')
-                ->icon('heroicon-o-user-plus')
-                ->color('success')
-                ->closeModalByClickingAway(false)
-                ->form([
-                    Forms\Components\Select::make('hr_liaison')
-                        ->label('Select HR Liaisons')
-                        ->multiple()
-                        ->options(fn ($get, $record) =>
-                            User::role('hr_liaison')
-                                ->whereDoesntHave('departments', function ($query) use ($record) {
-                                    $query->where('departments.department_id', $record->department_id);
-                                })
-                                ->pluck('name', 'id')
-                        )
-                        ->searchable(),
-                ])
-                ->action(function (array $data, Department $record) {
-                    $record->hrLiaisons()->attach($data['hr_liaison']);
-                })
-                ->after(function () {
-                    $this->resetTable();
-                    $this->dispatch('refresh');
-                }),
-
-
-                Action::make('editLiaison')
-                    ->label('Edit HR Liaisons')
-                    ->icon('heroicon-o-pencil-square')
-                    ->color('warning')
-                    ->closeModalByClickingAway(false)
-                    ->form(fn ($record) => [
-                        Forms\Components\Select::make('hr_liaison')
-                            ->label('Update HR Liaisons')
-                            ->multiple()
-                            ->options(fn ($get, $record) =>
-                                User::role('hr_liaison')
-                                    ->where(function ($query) use ($record) {
-                                        $query->whereDoesntHave('departments', function ($q) use ($record) {
-                                            $q->where('hr_liaison_departments.department_id', $record->department_id);
-                                        })
-                                        ->orWhereHas('departments', function ($q) use ($record) {
-                                            $q->where('hr_liaison_departments.department_id', $record->department_id);
-                                        });
-                                    })
-                                    ->pluck('name', 'id')
-                            )
-                            ->default(fn ($record) => $record->hrLiaisons->pluck('id')->toArray())
-                            ->searchable(),
-                    ])
-                    ->action(function (array $data, Department $record) {
-                        $record->hrLiaisons()->sync($data['hr_liaison']);
-                    })
-                    ->after(function () {
-                        $this->resetTable();
-                        $this->dispatch('refresh');
-                    })
-            ])
             ->paginated([5, 10, 25, 50, 'all'])
             ->defaultSort('department_name', 'asc')
             ->poll('15s')

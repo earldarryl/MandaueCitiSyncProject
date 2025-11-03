@@ -40,7 +40,7 @@ class Sidebar extends Component
                 [
                     'label' => 'Activity Logs',
                     'icon' => 'bi bi-clock-history',
-                    'route' => 'admin.activity-logs.index',
+                    'route' => 'admin.activtiy-logs.index',
                 ],
                 [
                     'label' => 'Reports & Analytics',

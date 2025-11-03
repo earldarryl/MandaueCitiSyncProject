@@ -30,7 +30,7 @@ class Navigation extends Component
     private $routeHeaders = [
 
         'admin.dashboard'          => 'Dashboard',
-        'admin.activity-logs.index' => 'Activity Logs',
+        'admin.activtiy-logs.index' => 'Activity Logs',
         'admin.stakeholders.citizens.index' => 'Citizens',
         'admin.stakeholders.departments-and-hr-liaisons.index' => 'Departments & HR Liaisons',
         'admin.reports-and-analytics.index' => 'Reports & Analytics',

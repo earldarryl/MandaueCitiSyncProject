@@ -46,9 +46,10 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('admin/dashboard', 'user.admin.dashboard.index')->name('admin.dashboard');
         Volt::route('admin/stakeholders/citizens', 'user.admin.stakeholders.citizens.index')->name('admin.stakeholders.citizens.index');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons', 'user.admin.stakeholders.departments-and-hr-liaisons.index')->name('admin.stakeholders.departments-and-hr-liaisons.index');
+        Volt::route('admin/stakeholders/departments-and-hr-liaisons/hr-liaisons-list-view/{department}', 'user.admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view')->name('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view');
         Volt::route('admin/forms/grievances', 'user.admin.forms.grievances.index')->name('admin.forms.grievances.index');
         Volt::route('admin/forms/feedbacks', 'user.admin.forms.feedbacks.index')->name('admin.forms.feedbacks.index');
-        Volt::route('admin/activity-logs', 'user.admin.activtiy-logs.index')->name('admin.activity-logs.index');
+        Volt::route('admin/activity-logs', 'user.admin.admin-activity-logs.index')->name('admin.activtiy-logs.index');
         Volt::route('admin/reports-and-analytics/index', 'user.admin.reports-and-analytics.index')->name('admin.reports-and-analytics.index');
     });
 
