@@ -2,6 +2,105 @@
     <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
+
+                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Citizens</p>
+                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalCitizens }}</h2>
+                    </div>
+                    <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl">
+                        <x-heroicon-o-user-group class="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Male Citizens</p>
+                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalMale }}</h2>
+                    </div>
+                    <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl">
+                        <x-heroicon-o-user class="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Female Citizens</p>
+                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalFemale }}</h2>
+                    </div>
+                    <div class="bg-pink-100 dark:bg-pink-900/40 p-3 rounded-xl">
+                        <x-heroicon-o-user class="w-7 h-7 text-pink-600 dark:text-pink-400" />
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active (Online)</p>
+                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalOnline }}</h2>
+                    </div>
+                    <div class="bg-green-100 dark:bg-green-900/40 p-3 rounded-xl">
+                        <x-heroicon-o-signal class="w-7 h-7 text-green-600 dark:text-green-400" />
+                    </div>
+                </div>
+
+            </div>
+
+            <div
+                x-data="{ selectedColumn: @entangle('filterColumnInput') }"
+                class="flex flex-col md:flex-row md:items-center md:justify-center gap-3 mb-4 w-full px-4"
+            >
+                <div class="w-full md:w-1/2">
+                    <x-filter-select
+                        name="filterColumnInput"
+                        placeholder="Select Column to Filter"
+                        :options="[
+                            'First Name',
+                            'Middle Name',
+                            'Last Name',
+                            'Email',
+                            'Barangay'
+                        ]"
+                    />
+                </div>
+
+                <div
+                    x-show="selectedColumn"
+                    x-transition
+                    class="w-full md:w-1/2"
+                >
+                    <x-filter-select
+                        name="nameStartsWithInput"
+                        placeholder="Filter by Letter"
+                        :options="[
+                            'A','B','C','D','E','F','G','H','I','J','K','L','M',
+                            'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
+                        ]"
+                    />
+                </div>
+
+                <div class="w-full md:w-1/3">
+                    <x-filter-select
+                        name="genderFilterInput"
+                        placeholder="Filter by Gender"
+                        :options="[
+                            'Male',
+                            'Female'
+                        ]"
+                    />
+                </div>
+            </div>
+
+            <div class="flex w-full flex-1 px-3 mb-3">
+                <button
+                    wire:click="applyFilters"
+                    class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
+                >
+                    <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                    <span>Apply Filters</span>
+                </button>
+            </div>
+
             <div class="flex w-full flex-1 px-3 mb-3">
                 <div class="relative w-full font-bold">
                     <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
@@ -53,7 +152,7 @@
                 </div>
             </div>
 
-            <div wire:poll.15s wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch">
+            <div wire:poll.15s wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -173,7 +272,7 @@
 
                                     <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                                         @php
-                                            $gender = strtolower($citizen->userInfo?->gender ?? 'unknown');
+                                            $gender = strtolower($citizen->userInfo?->gender ?? 'Unknown');
                                         @endphp
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
                                             {{ $gender === 'male'
@@ -203,16 +302,16 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                    <td class="px-6 py-4 text-sm text-center text-gray-600 dark:text-gray-300 font-medium">
                                         {{ $citizen->created_at->format('M d, Y h:i A') }}
                                     </td>
                                     <td class="px-6 py-4 text-center space-x-1">
-                                        <a href="#" class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
+                                        <a href="{{ route('admin.stakeholders.citizens.view', $citizen->userInfo?->id) }}" wire:navigate class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="10" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
                                         No citizen users found
                                     </td>
@@ -223,7 +322,7 @@
                 </div>
             </div>
 
-            <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch"
+            <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters"
                 class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

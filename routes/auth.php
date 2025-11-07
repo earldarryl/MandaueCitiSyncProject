@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
     Route::middleware('role:admin')->group(function () {
         Volt::route('admin/dashboard', 'user.admin.dashboard.index')->name('admin.dashboard');
         Volt::route('admin/stakeholders/citizens', 'user.admin.stakeholders.citizens.index')->name('admin.stakeholders.citizens.index');
+        Volt::route('admin/stakeholders/citizens/{id}', 'user.admin.stakeholders.citizens.view')->name('admin.stakeholders.citizens.view');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons', 'user.admin.stakeholders.departments-and-hr-liaisons.index')->name('admin.stakeholders.departments-and-hr-liaisons.index');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons/hr-liaisons-list-view/{department}', 'user.admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view')->name('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view');
         Volt::route('admin/forms/grievances', 'user.admin.forms.grievances.index')->name('admin.forms.grievances.index');

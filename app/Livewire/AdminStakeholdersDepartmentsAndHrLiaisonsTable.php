@@ -104,7 +104,6 @@ class AdminStakeholdersDepartmentsAndHrLiaisonsTable extends TableWidget
         ->tooltip('View the list of HR Liaisons for this department')
         ->button(),
 
-    // Add HR Liaisons
     Action::make('addLiaison')
         ->label('Add HR Liaisons')
         ->icon('heroicon-o-user-plus')
@@ -146,7 +145,6 @@ class AdminStakeholdersDepartmentsAndHrLiaisonsTable extends TableWidget
             $this->dispatch('refresh');
         }),
 
-    // Edit HR Liaisons
     Action::make('editLiaison')
         ->label('Edit HR Liaisons')
         ->icon('heroicon-o-pencil-square')

@@ -77,28 +77,33 @@
         class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white border-gray-200/50 dark:border-zinc-600 rounded-md shadow-md"
     >
         <ul class="max-h-60 overflow-y-auto" role="listbox">
-            @foreach ($options as $id => $label)
-                <li>
-                    <button
-                        type="button"
-                        @click="
-                            if (selected.includes({{ $id }})) {
-                                selected = selected.filter(v => v !== {{ $id }});
-                            } else {
-                                selected.push({{ $id }});
-                            }
-                            $wire.set('{{ $name }}', selected, true);
-                        "
-                        class="w-full flex items-center justify-between text-left px-4 py-2 text-sm"
-                        :class="selected.includes({{ $id }})
-                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
-                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
-                        {{ $label }}
-                        <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4" />
-                    </button>
+            @if(count($options) > 0)
+                @foreach ($options as $id => $label)
+                    <li>
+                        <button
+                            type="button"
+                            @click="
+                                if (selected.includes({{ $id }})) {
+                                    selected = selected.filter(v => v !== {{ $id }});
+                                } else {
+                                    selected.push({{ $id }});
+                                }
+                                $wire.set('{{ $name }}', selected, true);
+                            "
+                            class="w-full flex items-center justify-between text-left px-4 py-2 text-sm"
+                            :class="selected.includes({{ $id }})
+                                ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
+                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
+                            {{ $label }}
+                            <flux:icon.check x-show="selected.includes({{ $id }})" class="w-4 h-4" />
+                        </button>
+                    </li>
+                @endforeach
+            @else
+                <li class="px-4 py-2 text-sm text-gray-400 dark:text-gray-500">
+                    No options available
                 </li>
-            @endforeach
+            @endif
         </ul>
-
     </div>
 </div>

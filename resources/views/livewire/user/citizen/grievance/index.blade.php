@@ -719,7 +719,6 @@
                 </div>
             @endforeach
 
-            <!-- Pagination -->
             <div class="p-4">
                 {{ $grievances->links() }}
             </div>

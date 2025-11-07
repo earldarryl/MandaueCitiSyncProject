@@ -121,7 +121,7 @@
 
             <template x-if="filteredOptions.length === 0">
                 <li class="px-4 py-2 text-gray-500 dark:text-gray-400 italic text-center">
-                    No results found.
+                    No options available.
                 </li>
             </template>
         </ul>
