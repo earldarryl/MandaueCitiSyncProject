@@ -37,7 +37,9 @@ class Navigation extends Component
         'admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view' =>'HR LIaison List View',
         'admin.reports-and-analytics.index' => 'Reports & Analytics',
         'admin.forms.grievances.index' => 'Grievances',
+        'admin.forms.grievances.view'=> 'View Grievance',
         'admin.forms.feedbacks.index' => 'Feedbacks',
+        'admin.forms.feedbacks.view' => 'View Feedback',
 
         'hr-liaison.dashboard'           => 'Dashboard',
         'hr-liaison.activity-logs.index' => 'Activity Logs',
@@ -85,6 +87,7 @@ class Navigation extends Component
             'Activity Logs' => 'bi bi-journal-text',
             'Citizens' => 'bi bi-people',
             'View Citizen' => 'bi bi-person-bounding-box',
+            'View Feedback' => 'bi bi-info-circle-fill',
             'HR LIaison List View' => 'bi bi-person-lines-fill',
             'Departments & HR Liaisons' => 'bi bi-person-badge',
             'Grievances' => 'bi bi-file-earmark-text',

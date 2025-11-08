@@ -2,9 +2,17 @@
 
     <div class="text-center border-b pb-6">
         <h1 class="text-3xl font-bold">All Grievance Reports</h1>
-        <p class="text-gray-600 mt-2">
-            HR Liaison: <strong>{{ $hr_liaison->name }}</strong>
-        </p>
+
+        @if(isset($hr_liaison))
+            <p class="text-gray-600 mt-2">
+                HR Liaison: <strong>{{ $hr_liaison->name }}</strong>
+            </p>
+        @elseif(isset($admin))
+            <p class="text-gray-600 mt-2">
+                Admin: <strong>{{ $admin->name }}</strong>
+            </p>
+        @endif
+
         <p class="text-gray-500 text-sm">{{ now()->format('F j, Y, g:i A') }}</p>
         <button onclick="window.print()" class="no-print mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
             Print
@@ -13,7 +21,7 @@
 
     @forelse ($grievances as $grievance)
         <div class="border rounded-lg p-6 shadow-sm page-break">
-            <h2 class="text-xl font-semibold mb-4 text-center text-blue-800">Grievance Report #{{ $grievance->id }}</h2>
+            <h2 class="text-xl font-semibold mb-4 text-center text-blue-800">Grievance Report #{{ $grievance->grievance_ticket_id }}</h2>
 
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
@@ -25,8 +33,9 @@
                             {{ $grievance->user->name }}
                         @endif
                     </p>
-                    <p><strong>Department:</strong>
-                        {{ $grievance->assignments->first()?->department->name ?? 'N/A' }}
+
+                    <p><strong>Departments:</strong>
+                        {{ $grievance->departments->pluck('department_name')->join(', ') ?? 'N/A' }}
                     </p>
                 </div>
                 <div>
@@ -40,7 +49,6 @@
                 <p class="text-gray-700 whitespace-pre-line">{!! $grievance->grievance_details !!}</p>
             </div>
 
-            {{-- Attachments --}}
             @if ($grievance->attachments && $grievance->attachments->count() > 0)
                 <div class="mt-6">
                     <h3 class="font-medium mb-2">Attachments:</h3>

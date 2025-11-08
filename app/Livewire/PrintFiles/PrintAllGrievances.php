@@ -14,17 +14,28 @@ class PrintAllGrievances extends Component
 {
     public $grievances;
     public $hr_liaison;
+    public $admin;
 
     public function mount()
     {
-        $this->hr_liaison = Auth::user();
+        $user = Auth::user();
 
-        $this->grievances = Grievance::with(['user', 'attachments', 'assignments.department'])
-            ->whereHas('assignments', function ($q) {
-                $q->where('hr_liaison_id', $this->hr_liaison->id);
-            })
-            ->latest()
-            ->get();
+        if ($user->hasRole('admin')) {
+            $this->admin = $user;
+
+            $this->grievances = Grievance::with(['user', 'attachments', 'departments'])
+                ->latest()
+                ->get();
+        } else {
+            $this->hr_liaison = $user;
+
+            $this->grievances = Grievance::with(['user', 'attachments', 'assignments.department'])
+                ->whereHas('assignments', function ($q) use ($user) {
+                    $q->where('hr_liaison_id', $user->id);
+                })
+                ->latest()
+                ->get();
+        }
     }
 
     public function render()

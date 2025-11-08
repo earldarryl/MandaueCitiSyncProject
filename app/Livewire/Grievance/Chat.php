@@ -31,7 +31,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
     public function mount(Grievance $grievance)
     {
         $this->currentUserId = Auth::id();
-        $this->userRole = Auth::user()->role ?? 'guest';
+        $this->userRole = Auth::user()->roles->first()?->name ?? 'guest';
         $this->grievance = $grievance->load('assignments');
         $this->isAuthorized = $this->checkAuthorization();
 
@@ -64,6 +64,10 @@ class Chat extends Component implements Forms\Contracts\HasForms
 
     private function checkAuthorization(): bool
     {
+        if (auth()->user()->hasRole('admin')) {
+            return true;
+        }
+
         return $this->currentUserId === $this->grievance->user_id ||
             $this->grievance->assignments->contains('hr_liaison_id', $this->currentUserId);
     }
@@ -99,11 +103,12 @@ class Chat extends Component implements Forms\Contracts\HasForms
         $query = Message::where('grievance_id', $this->grievance->grievance_id)
             ->with('sender')
             ->orderBy('created_at', 'desc')
-            ->take($this->messageLimit)
-            ->get();
+            ->take($this->messageLimit);
 
-        $this->messages = $query->reverse()->values()->toArray();
-        $this->hasMore = Message::where('grievance_id', $this->grievance->grievance_id)->count() > count($this->messages);
+        $this->messages = $query->get()->reverse()->values()->toArray();
+
+        $this->hasMore = Message::where('grievance_id', $this->grievance->grievance_id)
+            ->count() > count($this->messages);
     }
 
     public function loadMore()
@@ -138,25 +143,32 @@ class Chat extends Component implements Forms\Contracts\HasForms
             }
         }
 
-        $message = Message::create([
+        $messageData = [
             'grievance_id' => $this->grievance->grievance_id,
             'sender_id'    => $this->currentUserId,
-            'receiver_id'  => $this->getReceiverId(),
             'message'      => $this->newMessage,
             'file_path'    => $filePaths ? json_encode($filePaths) : null,
             'file_name'    => $fileNames ? json_encode($fileNames) : null,
-        ])->load('sender');
+        ];
+
+        if (!auth()->user()->hasRole('admin')) {
+            $messageData['receiver_id'] = $this->getReceiverId();
+        }
+
+        $message = Message::create($messageData)->load('sender');
 
         broadcast(new MessageSent($message));
 
-        $receiver = \App\Models\User::find($message->receiver_id);
-        if ($receiver) {
-            Notification::make()
-                ->title('New Message Received')
-                ->body("{$message->sender->name} sent you a message in Grievance #{$this->grievance->grievance_id}.")
-                ->icon('heroicon-o-chat-bubble-left-right')
-                ->broadcast($receiver)
-                ->sendToDatabase($receiver, isEventDispatched: true);
+        if (!auth()->user()->hasRole('admin')) {
+            $receiver = \App\Models\User::find($messageData['receiver_id']);
+            if ($receiver) {
+                Notification::make()
+                    ->title('New Message Received')
+                    ->body("{$message->sender->name} sent you a message in Grievance #{$this->grievance->grievance_id}.")
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->broadcast($receiver)
+                    ->sendToDatabase($receiver, isEventDispatched: true);
+            }
         }
 
         $this->reset(['newMessage']);
@@ -168,7 +180,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
-
 
     private function getReceiverId()
     {

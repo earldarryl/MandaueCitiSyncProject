@@ -60,7 +60,6 @@
                     class="relative w-full flex flex-col h-auto"
                     wire:poll.10s="updateStats"
                 >
-                    <!-- Total Grievances -->
                     <div class="w-full grid grid-cols-1 gap-4 mx-auto px-3 mb-6">
                         <div
                             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
@@ -86,15 +85,12 @@
                         </div>
                     </div>
 
-                    <!-- Priorities -->
                     <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
-                        <!-- High Priority -->
                         <div
                             class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
                             border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                             transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
                         >
-                            <!-- Glow -->
                             <div
                                 class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-200/20 to-transparent opacity-0
                                 group-hover:opacity-100 blur-xl transition-all duration-500"
@@ -113,13 +109,11 @@
                             </p>
                         </div>
 
-                        <!-- Normal Priority -->
                         <div
                             class="group relative bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
                             border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                             transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
                         >
-                            <!-- Glow -->
                             <div
                                 class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-200/20 to-transparent opacity-0
                                 group-hover:opacity-100 blur-xl transition-all duration-500"
@@ -138,13 +132,11 @@
                             </p>
                         </div>
 
-                        <!-- Low Priority -->
                         <div
                             class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
                             border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                             transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
                         >
-                            <!-- Glow -->
                             <div
                                 class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
                                 group-hover:opacity-100 blur-xl transition-all duration-500"
@@ -165,7 +157,6 @@
                     </div>
 
                     <div class="w-full grid grid-cols-4 md:grid-cols-7 gap-4 mx-auto px-3 mb-6">
-                        <!-- Pending -->
                         <div
                             class="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-yellow-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -180,7 +171,6 @@
                             <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">{{ $pendingCount }}</p>
                         </div>
 
-                        <!-- Acknowledged -->
                         <div
                             class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -195,7 +185,6 @@
                             <p class="relative text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $acknowledgedCount }}</p>
                         </div>
 
-                        <!-- In Progress -->
                         <div
                             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -210,7 +199,6 @@
                             <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $inProgressCount }}</p>
                         </div>
 
-                        <!-- Escalated -->
                         <div
                             class="group relative bg-gradient-to-br from-amber-50 to-orange-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -225,7 +213,6 @@
                             <p class="relative text-3xl font-bold text-amber-600 dark:text-amber-400 tracking-tight">{{ $escalatedCount }}</p>
                         </div>
 
-                        <!-- Resolved -->
                         <div
                             class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -240,7 +227,6 @@
                             <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $resolvedCount }}</p>
                         </div>
 
-                        <!-- Unresolved -->
                         <div
                             class="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -255,7 +241,6 @@
                             <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $unresolvedCount }}</p>
                         </div>
 
-                        <!-- Closed -->
                         <div
                             class="group relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-zinc-800 dark:to-zinc-900
                                 border border-purple-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -488,20 +473,131 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Please select a department to reroute all selected grievances.
+                    Please select a department and category to reroute all selected grievances.
                 </p>
 
-                <div class="flex flex-col gap-2 mb-2">
+                <div
+                    x-data="{
+                        department: @entangle('department'),
+                        grievanceCategory: @entangle('grievance_category'),
 
-                    <x-searchable-select
-                        name="department"
-                        placeholder="Select department(s)"
-                        :options="$departmentOptions"
-                    />
+                        categoriesMap: {
+                            'Business Permit and Licensing Office': [
+                                'Delayed Business Permit Processing',
+                                'Unclear Requirements or Procedures',
+                                'Unfair Treatment by Personnel',
+                                'Business Permit Requirements Inquiry',
+                                'Renewal Process Clarification',
+                                'Schedule or Fee Inquiry',
+                                'Document Correction or Update Request',
+                                'Business Record Verification Request',
+                                'Appointment or Processing Schedule Request'
+                            ],
+                            'Traffic Enforcement Agency of Mandaue': [
+                                'Traffic Enforcer Misconduct',
+                                'Unjust Ticketing or Penalty',
+                                'Inefficient Traffic Management',
+                                'Traffic Rules Clarification',
+                                'Citation or Violation Inquiry',
+                                'Inquiry About Traffic Assistance',
+                                'Request for Traffic Assistance',
+                                'Request for Event Traffic Coordination',
+                                'Request for Violation Review'
+                            ],
+                            'City Social Welfare Services': [
+                                'Discrimination or Neglect in Assistance',
+                                'Delayed Social Service Response',
+                                'Unprofessional Staff Behavior',
+                                'Assistance Program Inquiry',
+                                'Eligibility or Requirements Clarification',
+                                'Social Service Schedule Inquiry',
+                                'Request for Social Assistance',
+                                'Financial Aid or Program Enrollment Request',
+                                'Home Visit or Consultation Request'
+                            ]
+                        },
 
-                    <div class="space-y-1">
+                        get categoryOptions() {
+                            return this.department ? this.categoriesMap[this.department] || [] : [];
+                        }
+                    }"
+                    class="flex flex-col gap-6"
+                >
+                    <div class="flex flex-col gap-2">
+                        <label class="font-medium text-gray-900 dark:text-gray-100">Department</label>
+                        <x-searchable-select
+                            name="department"
+                            placeholder="Select department"
+                            :options="$departmentOptions"
+                            x-on:change="grievanceCategory = ''; $wire.set('category', '', true)"
+                        />
                         <flux:error name="department" />
-                        <flux:error name="selected" />
+                    </div>
+
+                    <div x-show="department" x-cloak>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
+                                <flux:icon.list-bullet />
+                                <span>Grievance Category</span>
+                            </label>
+
+                            <h3 class="text-sm text-gray-700 dark:text-gray-300">
+                                Choose a category based on the selected department.
+                            </h3>
+
+                            <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                                <flux:input
+                                    readonly
+                                    x-model="grievanceCategory"
+                                    placeholder="Select grievance category"
+                                    @click="open = !open"
+                                    class:input="border rounded-lg w-full cursor-pointer select-none"
+                                />
+
+                                <div
+                                    x-show="open"
+                                    @click.outside="open = false"
+                                    x-transition
+                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
+                                >
+                                    <div class="p-1 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-2">
+                                        <flux:icon.magnifying-glass class="text-gray-500 dark:text-zinc-400" />
+                                        <input
+                                            type="text"
+                                            x-model="search"
+                                            placeholder="Search..."
+                                            class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm"
+                                        />
+                                    </div>
+
+                                    <ul class="max-h-48 overflow-y-auto py-1">
+                                        <template x-for="opt in categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                                    @click="
+                                                        grievanceCategory = opt;
+                                                        $wire.set('category', opt, true);
+                                                        open = false;
+                                                        search = '';
+                                                    "
+                                                    x-text="opt"
+                                                ></button>
+                                            </li>
+                                        </template>
+
+                                        <li
+                                            x-show="categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+                                        >
+                                            No results found
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <flux:error name="category" />
+                        </div>
                     </div>
                 </div>
 

@@ -95,7 +95,7 @@
                             {{ $department->department_name }}
                         </td>
 
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-600 dark:text-gray-300">
                             {{ $department->department_code ?? '—' }}
                         </td>
 
@@ -108,7 +108,7 @@
                             </span>
                         </td>
 
-                        <td class="px-6 py-4 text-sm text-center text-gray-700 dark:text-gray-300">
+                        <td class="px-6 py-4 text-sm font-medium text-center text-gray-700 dark:text-gray-300">
                             {{ $department->hr_liaisons_count ?? 0 }}
                         </td>
 

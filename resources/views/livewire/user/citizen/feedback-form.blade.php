@@ -1,6 +1,5 @@
 <form wire:submit.prevent="submit" class="max-w-5xl mx-auto p-6 lg:p-10 space-y-8">
 
-  <!-- Header -->
   <div class="prose max-w-full">
     <h1 class="text-2xl font-bold">Client Satisfaction Measurement (CSM)</h1>
     <p class="text-sm text-gray-600 dark:text-gray-300">
@@ -9,9 +8,7 @@
     </p>
   </div>
 
-  <!-- Basic Info Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Date -->
     <div>
       <flux:field>
         <flux:label class="flex gap-2 items-center">
@@ -32,7 +29,6 @@
       </flux:field>
     </div>
 
-    <!-- Gender -->
     <div>
       <flux:field>
         <flux:label class="flex gap-2 items-center">
@@ -56,7 +52,6 @@
       </flux:field>
     </div>
 
-    <!-- Region -->
     <div>
       <flux:field>
         <flux:label class="flex gap-2 items-center">
@@ -75,7 +70,6 @@
       </flux:field>
     </div>
 
-    <!-- Service -->
     <div>
       <flux:field>
         <flux:label class="flex gap-2 items-center">

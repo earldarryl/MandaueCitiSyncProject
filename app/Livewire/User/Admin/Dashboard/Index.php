@@ -32,7 +32,7 @@ class Index extends Component implements Forms\Contracts\HasForms
 
         if (session()->pull('just_logged_in', false)) {
             Notification::make()
-                ->title('Welcome back, ' . $this->user->name . ' 👋')
+                ->title('Welcome back, ' . $this->user->name)
                 ->body('Good to see you again! Here’s your dashboard.')
                 ->success()
                 ->send();

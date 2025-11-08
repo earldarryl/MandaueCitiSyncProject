@@ -175,7 +175,6 @@
                     class="flex flex-col gap-6"
                 >
 
-                    <!-- Department -->
                     <flux:field>
                         <div class="flex flex-col gap-2">
                             <flux:label class="flex gap-2 items-center">
@@ -196,7 +195,6 @@
                         <flux:error name="department" />
                     </flux:field>
 
-                    <!-- Grievance Type -->
                     <flux:field x-show="department" x-cloak>
                         <div class="flex flex-col gap-2">
                             <flux:label class="flex gap-2 items-center">

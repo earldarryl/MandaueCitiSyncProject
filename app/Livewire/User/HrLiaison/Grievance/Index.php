@@ -35,6 +35,7 @@ class Index extends Component
     public $selectAll = false;
     public $selected = [];
     public $department;
+    public $category;
     public $status;
     public $departmentOptions;
     public $categoryOptions;
@@ -342,60 +343,43 @@ class Index extends Component
     public function rerouteSelectedGrievances(): void
     {
         $this->validate([
-            'selected' => 'required|array|min:1',
+            'selected'   => 'required|array|min:1',
             'department' => 'required|exists:departments,department_name',
-        ], [
-            'selected.required' => 'Please select at least one grievance to reroute.',
-            'department.required' => 'Please choose a department for rerouting.',
+            'category'   => 'required|string',
         ]);
 
-        DB::beginTransaction();
-
-        try {
+        DB::transaction(function () {
             $department = Department::where('department_name', $this->department)->firstOrFail();
 
-            $hrLiaisons = User::whereHas('roles', fn($q) =>
-                    $q->where('name', 'hr_liaison')
-                )
-                ->whereHas('departments', fn($q) =>
-                    $q->where('hr_liaison_departments.department_id', $department->id)
-                )
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
                 ->get();
 
             foreach ($this->selected as $grievanceId) {
                 Assignment::where('grievance_id', $grievanceId)->delete();
 
+                Grievance::where('grievance_id', $grievanceId)->update([
+                    'grievance_category' => $this->category,
+                ]);
+
                 foreach ($hrLiaisons as $hr) {
                     Assignment::create([
                         'grievance_id'  => $grievanceId,
-                        'department_id' => $department->id,
+                        'department_id' => $department->department_id,
                         'assigned_at'   => now(),
                         'hr_liaison_id' => $hr->id,
                     ]);
                 }
             }
+        });
 
-            DB::commit();
+        Notification::make()
+            ->title('Grievances Rerouted')
+            ->body('Selected grievances have been rerouted and category updated successfully.')
+            ->success()
+            ->send();
 
-            $this->dispatch('reroute-success');
-
-            Notification::make()
-                ->title('Grievances Rerouted Successfully')
-                ->body('All selected grievances have been reassigned to ' . $this->department . ' department and its HR liaisons.')
-                ->success()
-                ->send();
-
-            $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            Notification::make()
-                ->title('Rerouting Failed')
-                ->body('An unexpected error occurred while rerouting grievances: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        }
+        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
     }
 
     public function updateSelectedGrievanceStatus(): void
@@ -491,11 +475,6 @@ class Index extends Component
             fn () => print($pdf->output()),
             $filename
         );
-    }
-
-    public function print($id)
-    {
-        return redirect()->route('print-grievance', ['id' => $id]);
     }
 
     public function printAllGrievances()

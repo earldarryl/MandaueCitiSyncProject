@@ -184,60 +184,60 @@
                 </div>
             </div> --}}
 
-        <div
-            x-data="{
-                filterDepartment: '',
-                filterType: '',
-                categoriesMap: @js($categoryOptions),
+            <div
+                x-data="{
+                    filterDepartment: '',
+                    filterType: '',
+                    categoriesMap: @js($categoryOptions),
 
-                get categoryOptions() {
-                    if (this.filterDepartment && this.filterType) {
-                        return this.categoriesMap[this.filterDepartment]?.[this.filterType] || [];
-                    }
-                    return [];
-                },
-            }"
-            class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
-        >
-            <x-filter-select
-                name="filterPriority"
-                placeholder="Priority"
-                :options="['High', 'Normal', 'Low']"
-            />
+                    get categoryOptions() {
+                        if (this.filterDepartment && this.filterType) {
+                            return this.categoriesMap[this.filterDepartment]?.[this.filterType] || [];
+                        }
+                        return [];
+                    },
+                }"
+                class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
+            >
+                <x-filter-select
+                    name="filterPriority"
+                    placeholder="Priority"
+                    :options="['High', 'Normal', 'Low']"
+                />
 
-            <x-filter-select
-                name="filterStatus"
-                placeholder="Status"
-                :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed']"
-            />
+                <x-filter-select
+                    name="filterStatus"
+                    placeholder="Status"
+                    :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed']"
+                />
 
-            <x-filter-select
-                name="filterDate"
-                placeholder="Date"
-                :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-            />
+                <x-filter-select
+                    name="filterDate"
+                    placeholder="Date"
+                    :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
+                />
 
-            <x-filter-select
-                name="filterDepartment"
-                placeholder="Department"
-                :options="$departmentOptions"
-                x-model="filterDepartment"
-                x-on:change="filterType = ''"
-            />
+                <x-filter-select
+                    name="filterDepartment"
+                    placeholder="Department"
+                    :options="$departmentOptions"
+                    x-model="filterDepartment"
+                    x-on:change="filterType = ''"
+                />
 
-            <x-filter-select
-                name="filterType"
-                placeholder="Type"
-                :options="['Complaint', 'Inquiry', 'Request']"
-                x-model="filterType"
-            />
+                <x-filter-select
+                    name="filterType"
+                    placeholder="Type"
+                    :options="['Complaint', 'Inquiry', 'Request']"
+                    x-model="filterType"
+                />
 
-            <x-filter-select
-                name="filterCategory"
-                placeholder="Category"
-                :options="$categoryOptions"
-            />
-        </div>
+                <x-filter-select
+                    name="filterCategory"
+                    placeholder="Category"
+                    :options="$categoryOptions"
+                />
+            </div>
 
             <div class="flex justify-center w-full px-3">
                 <button
