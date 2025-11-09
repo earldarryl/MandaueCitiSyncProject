@@ -20,7 +20,7 @@ class AdminBarChart extends ChartWidget
                         <h2 class="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
-                                class="size-6 text-green-600 dark:text-green-400">
+                                class="size-6 text-blue-600 dark:text-blue-400">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M4.5 3.75h15a.75.75 0 0 1 .75.75v15a.75.75 0 0 1-.75.75h-15A.75.75 0 0 1 3.75 19.5V4.5a.75.75 0 0 1 .75-.75zm3 12h9m-9-4.5h9m-9-4.5h9" />
                             </svg>
@@ -32,7 +32,7 @@ class AdminBarChart extends ChartWidget
                 <div x-data="{ open: false }" class="mt-1">
                     <button @click="open = !open"
                         class="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-200
-                            hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                            hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         <span>About this chart</span>
                         <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'rotate-180': open }"
                             class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24"

@@ -978,7 +978,7 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">
                         <tr>
-                            @for ($i = 0; $i < 8; $i++)
+                            @for ($i = 0; $i < 11; $i++)
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
                                 </th>

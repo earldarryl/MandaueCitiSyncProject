@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Grievance;
 use Filament\Actions\Action;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Columns\TextColumn;
@@ -99,42 +100,62 @@ class AdminGrievanceTableDashboard extends TableWidget
                     ->sortable()
                     ->searchable()
                     ->weight('semibold')
-                    ->extraHeaderAttributes([
-                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
-                    ]),
-
-                TextColumn::make('grievance_status')
-                    ->label('STATUS')
-                    ->badge()
-                    ->colors([
-                        'gray' => 'pending',
-                        'info' => 'acknowledged',
-                        'warning' => 'in_progress',
-                        'purple' => 'escalated',
-                        'success' => 'resolved',
-                        'danger' => 'unresolved',
-                        'secondary' => 'closed',
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
                     ])
-                    ->searchable()
-                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)))
-                    ->weight('semibold')
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
 
-                TextColumn::make('grievance_type')
-                    ->label('TYPE')
+                 TextColumn::make('grievance_type')
+                    ->label('Type')
                     ->badge()
                     ->colors([
                         'danger' => 'Complaint',
                         'info' => 'Request',
                         'success' => 'Inquiry',
                     ])
-                    ->weight('semibold')
-                    ->searchable()
+                    ->weight('bold')
+                    ->sortable(),
+
+                TextColumn::make('grievance_status')
+                    ->label('Status')
+                    ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state)))
+                    ->extraAttributes(fn (string $state): array => [
+                        'class' => 'inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm ' . match ($state) {
+                            'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                            'acknowledged' => 'bg-indigo-100 text-indigo-800 border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-500',
+                            'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                            'escalated' => 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500',
+                            'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                            'unresolved' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                            'closed' => 'bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500',
+                            default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                        },
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
-                    ]),
+                    ])
+                    ->sortable(),
+
+                BadgeColumn::make('grievance_status')
+                    ->label('Status')
+                    ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state)))
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'gray',
+                        'acknowledged' => 'info',
+                        'in_progress' => 'warning',
+                        'escalated' => 'danger',
+                        'resolved' => 'success',
+                        'unresolved' => 'danger',
+                        'closed' => 'secondary',
+                        default => 'gray',
+                    })
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ])
+                    ->sortable(),
+
 
                 TextColumn::make('priority_level')
                     ->label('PRIORITY')
@@ -164,11 +185,37 @@ class AdminGrievanceTableDashboard extends TableWidget
 
                 TextColumn::make('user.name')
                     ->label('SUBMITTED BY')
-                    ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'Anonymous' : $state)
-                    ->tooltip(fn ($record) => $record->is_anonymous
-                        ? 'Anonymous Grievance'
-                        : $record->user?->email)
-                    ->weight('semibold')
+                    ->formatStateUsing(fn ($state, $record) =>
+                        $record->is_anonymous
+                            ? 'Anonymous'
+                            : ($record->user?->info
+                                ? trim(
+                                    $record->user->info->first_name
+                                    . ' '
+                                    . ($record->user->info->middle_name ? $record->user->info->middle_name[0] . '. ' : '')
+                                    . $record->user->info->last_name
+                                    . ($record->user->info->suffix ? ' ' . $record->user->info->suffix : '')
+                                )
+                                : $record->user?->name
+                            )
+                    )
+                    ->tooltip(fn ($record) =>
+                        $record->is_anonymous
+                            ? 'Anonymous Grievance'
+                            : ($record->user?->info
+                                ? trim(
+                                    $record->user->info->first_name
+                                    . ' '
+                                    . ($record->user->info->middle_name ? $record->user->info->middle_name[0] . '. ' : '')
+                                    . $record->user->info->last_name
+                                    . ($record->user->info->suffix ? ' ' . $record->user->info->suffix : '')
+                                )
+                                : $record->user?->name
+                            )
+                    )
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -177,7 +224,9 @@ class AdminGrievanceTableDashboard extends TableWidget
                     ->label('CREATED ON')
                     ->dateTime('F d, Y • h:i A')
                     ->sortable()
-                    ->weight('semibold')
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),

@@ -8,15 +8,88 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
+
 class AdminFeedbackTableDashboard extends TableWidget
 {
     public ?string $startDate = null;
     public ?string $endDate = null;
     protected static ?string $pollingInterval = '10s';
+
+    public function summarizeCC(Feedback $feedback): string
+    {
+        $ccFields = ['cc1', 'cc2', 'cc3'];
+        $responses = [];
+
+        foreach ($ccFields as $field) {
+            if (isset($feedback->$field)) {
+                $responses[] = (int)$feedback->$field;
+            }
+        }
+
+        if (empty($responses)) {
+            return 'No CC responses';
+        }
+
+        $counts = array_count_values($responses);
+
+        $categories = [
+            'High Awareness' => Arr::get($counts, 1, 0),
+            'Medium Awareness' => Arr::get($counts, 2, 0),
+            'Low Awareness' => Arr::get($counts, 3, 0),
+            'No Awareness' => Arr::get($counts, 4, 0),
+            'N/A' => Arr::get($counts, 5, 0),
+        ];
+
+        $maxCount = max($categories);
+        $dominant = array_keys($categories, $maxCount);
+
+        if (in_array('High Awareness', $dominant)) return 'High Awareness';
+        if (in_array('Medium Awareness', $dominant)) return 'Medium Awareness';
+        if (in_array('Low Awareness', $dominant)) return 'Low Awareness';
+        if (in_array('No Awareness', $dominant)) return 'No Awareness';
+        return 'N/A';
+    }
+
+    public function summarizeSQD(Feedback $feedback): string
+    {
+        if (is_string($feedback->answers)) {
+            $answers = json_decode($feedback->answers, true) ?: [];
+        } elseif (is_array($feedback->answers)) {
+            $answers = $feedback->answers;
+        } else {
+            $answers = [];
+        }
+
+        if (empty($answers)) return 'No answers';
+
+        $counts = array_count_values($answers);
+
+        $categories = [
+            'Strongly Disagree' => Arr::get($counts, 1, 0),
+            'Disagree' => Arr::get($counts, 2, 0),
+            'Neither' => Arr::get($counts, 3, 0),
+            'Agree' => Arr::get($counts, 4, 0),
+            'Strongly Agree' => Arr::get($counts, 5, 0),
+            'N/A' => Arr::get($counts, 6, 0),
+        ];
+
+        $maxCount = max($categories);
+        $dominant = array_keys($categories, $maxCount);
+
+        if (in_array('Strongly Agree', $dominant) || in_array('Agree', $dominant)) return 'Most Agree';
+        if (in_array('Strongly Disagree', $dominant) || in_array('Disagree', $dominant)) return 'Most Disagree';
+        if (in_array('Neither', $dominant)) return 'Neutral';
+        return 'N/A';
+    }
+
     public function getHeading(): string | Htmlable | null
     {
         return new HtmlString(<<<HTML
@@ -52,8 +125,8 @@ class AdminFeedbackTableDashboard extends TableWidget
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
                         This table displays all <span class="font-semibold text-gray-800 dark:text-gray-300">feedback submissions</span>
                         from users, including their <span class="font-semibold text-gray-800 dark:text-gray-300">gender</span>,
-                        <span class="font-semibold text-gray-800 dark:text-gray-300">region</span>, and
-                        <span class="font-semibold text-gray-800 dark:text-gray-300">service category</span>.
+                        <span class="font-semibold text-gray-800 dark:text-gray-300">email</span>, and
+                        <span class="font-semibold text-gray-800 dark:text-gray-300">awareness of and satisfaction with services</span>.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
                         To help administrators evaluate service satisfaction, analyze demographic insights,
@@ -81,58 +154,46 @@ class AdminFeedbackTableDashboard extends TableWidget
             })
             ->header($this->getHeading())
             ->columns([
-                TextColumn::make('id')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">ID</span>'))
-                    ->sortable()
-                    ->weight('semibold'),
-
-                TextColumn::make('user_id')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">User ID</span>'))
-                    ->default('Anonymous')
-                    ->sortable(),
-
-                TextColumn::make('service')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">Service</span>'))
-                    ->badge()
-                    ->color('info')
-                    ->sortable(),
-
-                TextColumn::make('region')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">Region</span>'))
-                    ->sortable(),
-
-                TextColumn::make('gender')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">Gender</span>'))
-                    ->badge()
-                    ->colors([
-                        'pink' => 'Female',
-                        'blue' => 'Male',
-                        'gray' => 'Other',
-                    ])
-                    ->sortable(),
+                Tables\Columns\CheckboxColumn::make('selected')->label('')->alignCenter(),
 
                 TextColumn::make('created_at')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">Date Submitted</span>'))
-                    ->dateTime('F d, Y • h:i A')
+                    ->label('Date Submitted')
+                    ->dateTime('M d, Y h:i A')
                     ->sortable()
-                    ->weight('bold'),
+                    ->alignCenter()
+                    ->extraAttributes(['class' => 'text-sm font-medium']),
 
-                TextColumn::make('suggestions')
-                    ->label(new HtmlString('<span class="text-[13px] font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">Suggestion / Comment</span>'))
-                    ->limit(60)
-                    ->tooltip(fn ($record) => $record->suggestions ?? 'No comment')
-                    ->wrap(),
+                BadgeColumn::make('gender')
+                    ->label('Gender')
+                    ->colors([
+                        'info' => 'Male',
+                        'danger' => 'Female',
+                        'gray' => 'Other',
+                    ])
+                    ->alignCenter()
+                    ->extraAttributes(['class' => 'text-sm font-medium']),
+
+                TextColumn::make('email')
+                    ->label('Email')
+                    ->alignCenter()
+                    ->formatStateUsing(fn($state) => $state ?? '—')
+                    ->extraAttributes(['class' => 'text-sm font-medium']),
+
+                TextColumn::make('cc_summary')
+                    ->label('CC Summary')
+                    ->sortable()
+                    ->alignCenter()
+                    ->getStateUsing(fn(Feedback $record) => $this->summarizeCC($record))
+                    ->extraAttributes(['class' => 'text-sm font-medium']),
+
+                TextColumn::make('sqd_summary')
+                    ->label('SQD Summary')
+                    ->sortable()
+                    ->alignCenter()
+                    ->getStateUsing(fn(Feedback $record) => $this->summarizeSQD($record))
+                    ->extraAttributes(['class' => 'text-sm font-medium']),
             ])
-
             ->filters([
-                SelectFilter::make('region')
-                    ->label('Region')
-                    ->options(
-                        Feedback::select('region')
-                            ->distinct()
-                            ->pluck('region', 'region')
-                            ->toArray()
-                    ),
 
                 SelectFilter::make('gender')
                     ->label('Gender')
@@ -141,24 +202,54 @@ class AdminFeedbackTableDashboard extends TableWidget
                         'Female' => 'Female',
                         'Other' => 'Other',
                     ]),
-                ])
 
+                SelectFilter::make('cc_summary')
+                    ->label('CC Summary')
+                    ->options([
+                        'High Awareness' => 'High Awareness',
+                        'Medium Awareness' => 'Medium Awareness',
+                        'Low Awareness' => 'Low Awareness',
+                        'No Awareness' => 'No Awareness',
+                        'N/A' => 'N/A',
+                    ])
+                    ->query(fn (Builder $query, $value) => $query->get()->filter(fn($record) => $this->summarizeCC($record) === $value)),
+
+                SelectFilter::make('sqd_summary')
+                    ->label('SQD Summary')
+                    ->options([
+                        'Most Agree' => 'Most Agree',
+                        'Most Disagree' => 'Most Disagree',
+                        'Neutral' => 'Neutral',
+                        'N/A' => 'N/A',
+                    ])
+                    ->query(fn (Builder $query, $value) => $query->get()->filter(fn($record) => $this->summarizeSQD($record) === $value)),
+            ])
             ->filtersTriggerAction(fn (Action $action) => $action->button()->color('info'))
-
+            ->actions([
+                Action::make('view')
+                    ->label('View')
+                    ->url(fn (Feedback $record) => route('admin.forms.feedbacks.view', $record))
+                    ->extraAttributes([
+                        'wire:navigate' => true,
+                        'class' => '
+                            !inline-flex !items-center !gap-1.5
+                            !px-2.5 !py-1.5 !text-xs !font-semibold
+                            !rounded-md !border !border-gray-300
+                            !bg-gray-50 !text-gray-700
+                            hover:!bg-gray-100 hover:!border-gray-400
+                            dark:!bg-zinc-700 dark:!text-gray-200 dark:!border-zinc-600
+                            dark:hover:!bg-zinc-600 dark:hover:!border-zinc-500
+                            !transition-all !duration-200 !shadow-sm !cursor-pointer
+                        ',
+                    ])
+                    ->tooltip('View grievance details')
+                    ->button(),
+            ])
             ->defaultSort('created_at', 'desc')
             ->paginated([5, 10, 25, 50, 'all'])
             ->searchable()
-
             ->emptyStateHeading('No Feedback Records Found')
             ->emptyStateDescription('There are currently no feedback submissions within the selected date range or filters.')
-            ->emptyStateIcon('heroicon-o-face-frown')
-            ->emptyStateActions([
-                Action::make('refresh')
-                    ->label('Refresh')
-                    ->button()
-                    ->color('info')
-                    ->icon('heroicon-o-arrow-path')
-                    ->action(fn() => $this->dispatch('$refresh')),
-            ]);
+            ->emptyStateIcon('heroicon-o-face-frown');
     }
 }

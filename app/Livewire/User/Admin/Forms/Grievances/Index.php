@@ -364,7 +364,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-     public function applyFilters()
+    public function applyFilters()
     {
         $this->resetPage();
         $this->updateStats();
