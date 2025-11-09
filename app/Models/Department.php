@@ -30,6 +30,14 @@ class Department extends Model
         );
     }
 
+    public function getHrLiaisonsStatusAttribute(): string
+    {
+        $total = $this->hrLiaisons()->count();
+        $active = $this->hrLiaisons()->get()->filter(fn($user) => $user->isOnline())->count();
+
+        return "$active / $total";
+    }
+
     public function getDepartmentBgUrlAttribute()
     {
         return $this->department_bg

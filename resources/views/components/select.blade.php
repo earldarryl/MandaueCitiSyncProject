@@ -81,7 +81,7 @@
         x-show="open"
         @click.outside="open = false"
         x-transition
-        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-black ring-opacity-5 rounded-md shadow-md"
+        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-gray-300 ring-opacity-5 rounded-md shadow-md"
     >
         <ul class="py-1" role="listbox">
             @foreach ($options as $option)

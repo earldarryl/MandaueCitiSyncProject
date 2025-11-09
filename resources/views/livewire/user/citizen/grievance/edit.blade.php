@@ -101,7 +101,7 @@
                     <flux:error name="is_anonymous" />
                 </flux:field>
 
- <div
+                <div
                     x-data="{
                         department: @entangle('department'),
                         grievanceType: @entangle('grievance_type'),

@@ -1,50 +1,102 @@
 <div class="p-6 space-y-6 relative w-full">
     <div class="relative">
-        <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
+            <div
+                class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+            >
+                <div
+                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                    group-hover:opacity-100 blur-xl transition-all duration-500"
+                ></div>
 
-                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Citizens</p>
-                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalCitizens }}</h2>
-                    </div>
-                    <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl">
-                        <x-heroicon-o-user-group class="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                    </div>
+                <div
+                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                >
+                    <x-heroicon-o-user-group class="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
 
-                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Male Citizens</p>
-                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalMale }}</h2>
-                    </div>
-                    <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl">
-                        <x-heroicon-o-user class="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Female Citizens</p>
-                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalFemale }}</h2>
-                    </div>
-                    <div class="bg-pink-100 dark:bg-pink-900/40 p-3 rounded-xl">
-                        <x-heroicon-o-user class="w-7 h-7 text-pink-600 dark:text-pink-400" />
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-5">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active (Online)</p>
-                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100">{{ $totalOnline }}</h2>
-                    </div>
-                    <div class="bg-green-100 dark:bg-green-900/40 p-3 rounded-xl">
-                        <x-heroicon-o-signal class="w-7 h-7 text-green-600 dark:text-green-400" />
-                    </div>
-                </div>
-
+                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Citizens</p>
+                <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                    {{ $totalCitizens }}
+                </p>
             </div>
+
+            <div
+                class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+            >
+                <div
+                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                    group-hover:opacity-100 blur-xl transition-all duration-500"
+                ></div>
+
+                <div
+                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                >
+                    <x-heroicon-o-user class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+
+                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Male Citizens</p>
+                <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                    {{ $totalMale }}
+                </p>
+            </div>
+
+            <div
+                class="group relative bg-gradient-to-br from-pink-50 to-pink-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-pink-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+            >
+                <div
+                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-200/20 to-transparent opacity-0
+                    group-hover:opacity-100 blur-xl transition-all duration-500"
+                ></div>
+
+                <div
+                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-pink-200/50
+                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                >
+                    <x-heroicon-o-user class="h-8 w-8 text-pink-600 dark:text-pink-400" />
+                </div>
+
+                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Female Citizens</p>
+                <p class="relative text-3xl font-bold text-pink-600 dark:text-pink-400 tracking-tight">
+                    {{ $totalFemale }}
+                </p>
+            </div>
+
+            <div
+                class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+            >
+                <div
+                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                    group-hover:opacity-100 blur-xl transition-all duration-500"
+                ></div>
+
+                <div
+                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                >
+                    <x-heroicon-o-signal class="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+
+                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Active (Online)</p>
+                <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
+                    {{ $totalOnline }}
+                </p>
+            </div>
+
+        </div>
+
+        <div class="w-full h-full p-6">
 
             <div
                 x-data="{ selectedColumn: @entangle('filterColumnInput') }"

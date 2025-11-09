@@ -1,4 +1,126 @@
 <div class="p-6 space-y-6 relative w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+        <div
+            class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+        >
+            <div
+                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"
+            ></div>
+
+            <div
+                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+            >
+                <flux:icon.clock class="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Activity Hours</p>
+            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
+                {{ $totalLiaisonHours }}
+            </p>
+        </div>
+
+        <div
+            class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+        >
+            <div
+                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"
+            ></div>
+
+            <div
+                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+            >
+                <flux:icon.building-office class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Departments</p>
+            <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                {{ $totalDepartments }}
+            </p>
+        </div>
+
+        <div
+            class="group relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-purple-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+        >
+            <div
+                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"
+            ></div>
+
+            <div
+                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-purple-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+            >
+                <flux:icon.user-plus class="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            </div>
+
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Recently Added</p>
+            <p class="relative text-3xl font-bold text-center justify-center text-purple-600 dark:text-purple-400 tracking-tight">
+                {{ $recentDepartment ? $recentDepartment->department_name : 'N/A' }}
+            </p>
+        </div>
+
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-4 mb-6">
+        <div class="flex gap-3 w-full">
+            <x-filter-select
+                name="filterDate"
+                wire:model="filterDate"
+                placeholder="Date"
+                :options="['Show All', 'Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
+            />
+
+            <x-filter-select
+                name="filterActive"
+                wire:model="filterActive"
+                placeholder="Department Status"
+                :options="['All', 'Active', 'Inactive']"
+            />
+
+            <x-filter-select
+                name="filterAvailability"
+                wire:model="filterAvailability"
+                placeholder="Availability"
+                :options="['All', 'Yes', 'No']"
+            />
+
+            <x-filter-select
+                name="filterHRStatus"
+                wire:model="filterHRStatus"
+                placeholder="HR Liaisons Status"
+                :options="['All', 'Active', 'Inactive']"
+            />
+
+            <x-filter-select
+                name="nameStartsWith"
+                wire:model="nameStartsWith"
+                placeholder="Filter by Letter"
+                :options="['All','A','B','C','D','E','F','G','H','I','J','K','L','M',
+                            'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']"
+            />
+        </div>
+
+        <div class="flex justify-center w-full px-3 mb-3">
+            <button
+                wire:click="applyFilters"
+                class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                <span>Apply Filters</span>
+            </button>
+        </div>
+    </div>
+
     <div class="flex w-full">
         <div class="relative w-full font-bold">
             <label for="search" class="sr-only">Search</label>
@@ -83,9 +205,27 @@
 
                         <th wire:click="sortBy('is_active')" class="px-6 py-3 cursor-pointer">
                             <div class="flex items-center justify-between">
-                                <span>Status</span>
+                                <span>Active Status</span>
                                 <span class="w-2.5 h-full font-bold text-black dark:text-white">
                                     @if($sortField === 'is_active')
+                                        @if($sortDirection === 'asc')
+                                            <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                        @else
+                                            <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                        @endif
+                                    @else
+                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                    @endif
+                                </span>
+                            </div>
+                        </th>
+
+                        <th wire:click="sortBy('is_available')" class="px-6 py-3 cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <span>Availability Status</span>
+                                <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                    @if($sortField === 'is_available')
                                         @if($sortDirection === 'asc')
                                             <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
                                         @else
@@ -146,8 +286,23 @@
                             </span>
                         </td>
 
-                        <td class="px-6 py-4 text-sm font-medium text-center text-gray-700 dark:text-gray-300">
-                            {{ $department->hr_liaisons_count ?? 0 }}
+                        <td class="px-6 py-4 text-sm text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
+                                {{ $department->is_available
+                                    ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
+                                    : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
+                                {{ $department->is_available ? 'Yes' : 'No' }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-4 text-sm font-medium text-center">
+                            @php
+                                [$active, $total] = explode(' / ', $department->hrLiaisonsStatus);
+                            @endphp
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
+                                {{ $active > 0 ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500' : 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500' }}">
+                                {{ $active }} online / {{ $total }} total
+                            </span>
                         </td>
 
                         <td class="px-6 py-4 text-center space-x-1" x-data="{ openAdd: false, openRemove: false, openEdit: false }">
@@ -297,11 +452,17 @@
 
                                         <x-select
                                             name="editingDepartment.is_active"
-                                            placeholder="Select status"
+                                            placeholder="Select active status"
                                             :options="['Inactive','Active']"
                                             />
-                                        <flux:error name="is_active" />
+                                        <flux:error name="editingDepartment.is_active" />
 
+                                        <x-select
+                                            name="editingDepartment.is_available"
+                                            placeholder="Select availability status"
+                                            :options="['Yes','No']"
+                                            />
+                                        <flux:error name="editingDepartment.is_available" />
                                     </div>
 
                                     <div class="mt-5 flex justify-end gap-2">

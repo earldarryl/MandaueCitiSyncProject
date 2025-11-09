@@ -39,7 +39,9 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $departmentOptions;
     public function mount(): void
     {
-        $this->departmentOptions = Department::whereHas('hrLiaisons')
+       $this->departmentOptions = Department::whereHas('hrLiaisons')
+            ->where('is_active', 1)
+            ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
 
@@ -103,115 +105,125 @@ class Create extends Component implements Forms\Contracts\HasForms
 
 
     public function submit(): void
-    {
-        $this->showConfirmSubmitModal = false;
+{
+    $this->showConfirmSubmitModal = false;
 
-        try {
-            $this->validate();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            $this->showConfirmModal = true;
+    try {
+        $this->validate();
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        $this->showConfirmModal = true;
+        $this->setErrorBag($e->validator->getMessageBag());
+        return;
+    }
 
-            $this->setErrorBag($e->validator->getMessageBag());
-            return;
-        }
+    // Check the department first
+    $departmentName = $this->department;
+    $department = Department::where('department_name', $departmentName)->first();
 
-        $data = $this->form->getState();
+    if (!$department) {
+        Notification::make()
+            ->title('Invalid Department')
+            ->body('The selected department does not exist.')
+            ->warning()
+            ->send();
+        return;
+    }
 
-        try {
+    if (!$department->is_active || !$department->is_available) {
+        Notification::make()
+            ->title('Department Not Available')
+            ->body('The selected department is either inactive or unavailable. Please select another department.')
+            ->warning()
+            ->send();
+        return;
+    }
 
-            $processingDays = match ($this->priority_level) {
-                'High'   => 3,
-                'Normal' => 7,
-                'Low'    => 15,
-                default  => 7,
-            };
+    $data = $this->form->getState();
 
-            $grievance = Grievance::create([
-                'user_id'          => auth()->id(),
-                'grievance_type'   => $this->grievance_type,
-                'grievance_category'=> $this->grievance_category,
-                'priority_level'   => $this->priority_level,
-                'grievance_title'  => $this->grievance_title,
-                'grievance_details'=> $data['grievance_details'],
-                'is_anonymous'     => (int) $this->is_anonymous,
-                'grievance_status' => 'pending',
-                'processing_days'  => $processingDays,
-            ]);
+    try {
+        $processingDays = match ($this->priority_level) {
+            'High'   => 3,
+            'Normal' => 7,
+            'Low'    => 15,
+            default  => 7,
+        };
 
-            if (!empty($this->grievance_files)) {
-                foreach ($this->grievance_files as $file) {
-                    $storedPath = is_string($file)
-                        ? $file
-                        : $file->store('grievance_files', 'public');
+        // Only now create the grievance because department is valid
+        $grievance = Grievance::create([
+            'user_id'          => auth()->id(),
+            'grievance_type'   => $this->grievance_type,
+            'grievance_category'=> $this->grievance_category,
+            'priority_level'   => $this->priority_level,
+            'grievance_title'  => $this->grievance_title,
+            'grievance_details'=> $data['grievance_details'],
+            'is_anonymous'     => (int) $this->is_anonymous,
+            'grievance_status' => 'pending',
+            'processing_days'  => $processingDays,
+        ]);
 
-                    GrievanceAttachment::create([
-                        'grievance_id' => $grievance->grievance_id,
-                        'file_path'    => $storedPath,
-                        'file_name'    => basename($storedPath),
-                    ]);
-                }
-            }
+        if (!empty($this->grievance_files)) {
+            foreach ($this->grievance_files as $file) {
+                $storedPath = is_string($file)
+                    ? $file
+                    : $file->store('grievance_files', 'public');
 
-            $departmentName = $this->department;
-
-            $department = Department::where('department_name', $departmentName)->first();
-
-            if (!$department) {
-                throw new \Exception("Invalid department selected.");
-            }
-
-            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
-                ->get();
-
-            foreach ($hrLiaisons as $hr) {
-                Assignment::create([
-                    'grievance_id'  => $grievance->grievance_id,
-                    'department_id' => $department->department_id,
-                    'assigned_at'   => now(),
-                    'hr_liaison_id' => $hr->id,
+                GrievanceAttachment::create([
+                    'grievance_id' => $grievance->grievance_id,
+                    'file_path'    => $storedPath,
+                    'file_name'    => basename($storedPath),
                 ]);
             }
-
-            HistoryLog::create([
-                'user_id'         => auth()->id(),
-                'action_type'     => 'grievance_submission',
-                'description'     => "Submitted a new grievance titled '{$this->grievance_title}'.",
-                'reference_id'    => $grievance->grievance_id,
-                'reference_table' => 'grievances',
-                'ip_address' => request()->ip(),
-            ]);
-
-            Notification::make()
-                ->title('Grievance Submitted')
-                ->body('Your grievance was submitted successfully and assigned to the relevant HR liaisons.')
-                ->success()
-                ->send();
-
-
-            $this->showConfirmSubmitModal = false;
-
-            $this->redirectRoute('citizen.grievance.index', navigate: true);
-
-        } catch (\Exception $e) {
-            if (!empty($this->grievance_files)) {
-                foreach ($this->grievance_files as $file) {
-                    if (is_string($file)) {
-                        Storage::disk('public')->delete($file);
-                    }
-                }
-            }
-
-            Notification::make()
-                ->title('Submission Failed')
-                ->body('Something went wrong while submitting your grievance. Please try again.')
-                ->danger()
-                ->send();
-
-            $this->showConfirmSubmitModal = false;
         }
 
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+            ->get();
+
+        foreach ($hrLiaisons as $hr) {
+            Assignment::create([
+                'grievance_id'  => $grievance->grievance_id,
+                'department_id' => $department->department_id,
+                'assigned_at'   => now(),
+                'hr_liaison_id' => $hr->id,
+            ]);
+        }
+
+        HistoryLog::create([
+            'user_id'         => auth()->id(),
+            'action_type'     => 'grievance_submission',
+            'description'     => "Submitted a new grievance titled '{$this->grievance_title}'.",
+            'reference_id'    => $grievance->grievance_id,
+            'reference_table' => 'grievances',
+            'ip_address'      => request()->ip(),
+        ]);
+
+        Notification::make()
+            ->title('Grievance Submitted')
+            ->body('Your grievance was submitted successfully and assigned to the relevant HR liaisons.')
+            ->success()
+            ->send();
+
+        $this->redirectRoute('citizen.grievance.index', navigate: true);
+
+    } catch (\Exception $e) {
+        if (!empty($this->grievance_files)) {
+            foreach ($this->grievance_files as $file) {
+                if (is_string($file)) {
+                    Storage::disk('public')->delete($file);
+                }
+            }
+        }
+
+        Notification::make()
+            ->title('Submission Failed')
+            ->body('Something went wrong while submitting your grievance. Please try again.')
+            ->danger()
+            ->send();
+
+        $this->showConfirmSubmitModal = false;
     }
+}
+
 
     public function render()
     {

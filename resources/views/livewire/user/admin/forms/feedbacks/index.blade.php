@@ -1,4 +1,53 @@
 <div class="p-6 space-y-6 relative w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 px-6">
+
+        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-document-text class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Feedbacks</p>
+            <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                {{ $totalFeedbacks }}
+            </p>
+        </div>
+
+        <div class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-clipboard-document-check class="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">CC Summary</p>
+            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
+                {{ $mostCommonCC ?? 'N/A' }}
+            </p>
+        </div>
+
+        <div class="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-yellow-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-200/20 to-transparent opacity-0
+                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-yellow-200/50
+                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-signal class="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">SQD Summary</p>
+            <p class="relative text-3xl font-bold text-yellow-600 dark:text-yellow-400 tracking-tight">
+                {{ $mostCommonSQD ?? 'N/A' }}
+            </p>
+        </div>
+
+    </div>
+
 
     <div class="flex flex-col items-center justify-center gap-4 mb-6">
         <div class="flex gap-3 w-full">
@@ -71,6 +120,63 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <div class="flex flex-col w-full">
+        <div class="flex items-center justify-end gap-2 mb-2 px-3">
+            <button
+                wire:click="downloadAllFeedbacksCsv"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    hover:bg-green-200 dark:hover:bg-green-800/50
+                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span>Export All in CSV</span>
+            </button>
+
+            <button
+                wire:click="printAllFeedbacks"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300
+                    border border-gray-500 dark:border-gray-400
+                    hover:bg-gray-200 dark:hover:bg-gray-800/50
+                    focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
+                    transition-all duration-200">
+                <x-heroicon-o-printer class="w-4 h-4" />
+                Print All
+            </button>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-2 mb-4 px-3">
+
+        @if(count($selected) > 0)
+            <div class="flex flex-wrap gap-2">
+                <button wire:click="downloadAllFeedbacksCsv"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                        border border-green-500 dark:border-green-400
+                        hover:bg-green-200 dark:hover:bg-green-800/50
+                        focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                        transition-all duration-200">
+                    <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                    <span>Export Selected</span>
+                </button>
+
+                <button wire:click="printSelectedFeedbacks"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300
+                        border border-gray-500 dark:border-gray-400
+                        hover:bg-gray-200 dark:hover:bg-gray-800/50
+                        focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
+                        transition-all duration-200">
+                    <x-heroicon-o-printer class="w-5 h-5" />
+                    <span>Print Selected</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     <div class="relative">

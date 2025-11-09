@@ -37,7 +37,6 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('hr-liaison/department/{department}', 'user.hr-liaison.department.view')->name('hr-liaison.department.view');
         Volt::route('hr-liaison/grievance/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
         Volt::route('hr-liaison/grievance/view/{grievance}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
-        Volt::route('hr-liaison/grievance/edit/{grievance}', 'user.hr-liaison.grievance.edit')->name('hr-liaison.grievance.edit');
         Volt::route('hr-liaison/activity-logs', 'user.hr-liaison.activity-logs.index')->name('hr-liaison.activity-logs.index');
         Volt::route('hr-liaison/reports-and-analytics/index', 'user.hr-liaison.reports-and-analytics.index')->name('hr-liaison.reports-and-analytics.index');
     });
@@ -65,4 +64,6 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
 
     Volt::route('/print/print-all-grievances', 'print-files.print-all-grievances')->name('print-all-grievances');
     Volt::route('/print/print-selected-grievances/{selected}', 'print-files.print-selected-grievances')->name('print-selected-grievances');
+    Volt::route('/print/print-all-feedbacks', 'print-files.print-all-feedbacks')->name('print-all-feedbacks');
+    Volt::route('/print/print-selected-feedbacks/{selected}', 'print-files.print-selected-feedbacks')->name('print-selected-feedbacks');
 });
