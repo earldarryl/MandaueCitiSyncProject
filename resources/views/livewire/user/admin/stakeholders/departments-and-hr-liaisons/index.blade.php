@@ -1,28 +1,75 @@
-<div class="p-6 space-y-6 relative w-full">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<div class="p-6 space-y-6 relative w-full" x-data="{ openCreate: false, openCreateLiaison: false }">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
+
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-user-group class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
+            </div>
+
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Total HR Liaisons</p>
+            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                {{ $totalHrLiaisons }}
+            </p>
+            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Registered in the system</p>
+
+            <div class="grid grid-cols-2 gap-3 mt-3 w-full">
+                <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                            border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                            transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-user-circle class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned</span>
+                    </div>
+                    <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                        {{ $assignedHrLiaisons }}
+                    </span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                            border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                            transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-user-minus class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Unassigned</span>
+                    </div>
+                    <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                        {{ $unassignedHrLiaisons }}
+                    </span>
+                </div>
+            </div>
+        </div>
 
         <div
-            class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
-            border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            class="group relative bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-zinc-800 dark:to-zinc-900
+            border border-cyan-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
             transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
         >
             <div
-                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-200/20 to-transparent opacity-0
                 group-hover:opacity-100 blur-xl transition-all duration-500"
             ></div>
 
             <div
-                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-cyan-200/50
                 dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
             >
-                <flux:icon.clock class="h-8 w-8 text-green-600 dark:text-green-400" />
+                <flux:icon.clock class="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
             </div>
 
             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Activity Hours</p>
-            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
+            <p class="relative text-3xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">
                 {{ $totalLiaisonHours }}
             </p>
         </div>
+
+
 
         <div
             class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
@@ -160,6 +207,42 @@
         </div>
     </div>
 
+    <div class="flex justify-end mb-3 gap-2">
+        <button
+            wire:loading.attr="disabled"
+            wire:target="createDepartment"
+            @click="openCreate = true"
+            class="px-4 py-2 rounded-md border border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/60"
+        >
+            <span wire:loading.remove wire:target="createDepartment">
+                <span class="flex gap-2 justify-center items-center">
+                    <x-heroicon-o-plus class="w-4 h-4" />
+                    <span>Create Department</span>
+                </span>
+            </span>
+            <span wire:loading wire:target="createDepartment">
+                Processing...
+            </span>
+        </button>
+
+        <button
+            @click="openCreateLiaison = true"
+            wire:loading.attr="disabled"
+            wire:target="createHrLiaison"
+            class="px-4 py-2 rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
+        >
+            <span wire:loading.remove wire:target="createHrLiaison">
+                <span class="flex gap-2 justify-center items-center">
+                    <x-heroicon-o-plus class="w-4 h-4" />
+                    <span>Add HR Liaison</span>
+                </span>
+            </span>
+            <span wire:loading wire:target="createHrLiaison">
+                Processing...
+            </span>
+        </button>
+    </div>
+
     <div wire:poll.15s wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
         <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
@@ -273,11 +356,11 @@
                             {{ $department->department_name }}
                         </td>
 
-                        <td class="px-6 py-4 text-sm font-medium text-gray-600 dark:text-gray-300">
+                        <td class="px-6 py-4 text-sm font-medium uppercase text-gray-600 dark:text-gray-300">
                             {{ $department->department_code ?? '—' }}
                         </td>
 
-                        <td class="px-6 py-4 text-sm">
+                        <td class="px-6 py-4 text-sm text-center">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
                                 {{ $department->is_active
                                     ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
@@ -349,6 +432,21 @@
                                     <x-heroicon-o-user-minus class="w-4 h-4 inline-block mr-1" /> Remove
                                 </span>
                                 <span wire:loading wire:target="removeLiaison({{ $department->department_id }})">
+                                    Processing...
+                                </span>
+                            </button>
+
+                            <button
+                                class="px-3 py-1 text-xs rounded-md border border-gray-400 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                    dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-900/60"
+                                wire:click="deleteDepartment({{ $department->department_id }})"
+                                wire:loading.attr="disabled"
+                                wire:target="deleteDepartment({{ $department->department_id }})"
+                            >
+                                <span wire:loading.remove wire:target="deleteDepartment({{ $department->department_id }})">
+                                    <x-heroicon-o-trash class="w-4 h-4 inline-block mr-1" /> Delete
+                                </span>
+                                <span wire:loading wire:target="deleteDepartment({{ $department->department_id }})">
                                     Processing...
                                 </span>
                             </button>
@@ -437,48 +535,73 @@
                             </div>
 
                             <div x-show="openEdit" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm" @click.self="openEdit = false">
-                                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
-                                    <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Edit Department</h3>
 
-                                    <div class="space-y-3">
-                                        <flux:input type="text" wire:model.defer="editingDepartment.department_name" placeholder="Department Name"/>
-                                        <flux:error name="editingDepartment.department_name" />
+                                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md
+                                            max-h-[90vh] flex flex-col overflow-y-auto">
 
-                                        <flux:input type="text" wire:model.defer="editingDepartment.department_code" placeholder="Department Code"/>
-                                        <flux:error name="editingDepartment.department_code" />
+                                    <header class="flex gap-2 items-center justify-start border-b border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                                        <x-heroicon-o-pencil-square class="w-6 h-6" />
+                                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                                            Edit Department
+                                        </h3>
+                                    </header>
 
-                                        <flux:textarea wire:model.defer="editingDepartment.department_description" placeholder="Department Description"/>
-                                        <flux:error name="editingDepartment.department_description" />
-
-                                        <x-select
-                                            name="editingDepartment.is_active"
-                                            placeholder="Select active status"
-                                            :options="['Inactive','Active']"
-                                            />
-                                        <flux:error name="editingDepartment.is_active" />
-
-                                        <x-select
-                                            name="editingDepartment.is_available"
-                                            placeholder="Select availability status"
-                                            :options="['Yes','No']"
-                                            />
-                                        <flux:error name="editingDepartment.is_available" />
+                                    <div wire:target="editDepartment({{ $department->department_id }})" wire:loading>
+                                        <div class="w-full flex items-center justify-center gap-2 py-6">
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                        </div>
                                     </div>
 
-                                    <div class="mt-5 flex justify-end gap-2">
+                                    <div wire:target="editDepartment({{ $department->department_id }})" wire:loading.remove>
+                                        <div class="flex-1 overflow-y-auto p-6 space-y-3">
+                                            <flux:input type="text" wire:model.defer="editingDepartment.department_name" placeholder="Department Name" clearable/>
+                                            <flux:error name="editingDepartment.department_name" />
+
+                                            <flux:input type="text" wire:model.defer="editingDepartment.department_code" placeholder="Department Code" clearable/>
+                                            <flux:error name="editingDepartment.department_code" />
+
+                                            <flux:textarea wire:model.defer="editingDepartment.department_description" placeholder="Department Description" clearable/>
+                                            <flux:error name="editingDepartment.department_description" />
+
+                                            <x-select
+                                                name="editingDepartment.is_active"
+                                                placeholder="Select active status"
+                                                :options="['Inactive','Active']"
+                                            />
+                                            <flux:error name="editingDepartment.is_active" />
+
+                                            <x-select
+                                                name="editingDepartment.is_available"
+                                                placeholder="Select availability status"
+                                                :options="['Yes','No']"
+                                            />
+                                            <flux:error name="editingDepartment.is_available" />
+
+                                            {{ $this->form->getComponent('department_profile') }}
+                                            <flux:error name="editingDepartment.department_profile" />
+
+                                            {{ $this->form->getComponent('department_background') }}
+                                            <flux:error name="editingDepartment.department_background" />
+                                        </div>
+                                    </div>
+
+                                    <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
                                         <button @click="openEdit = false"
-                                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                                                class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                    dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
                                             Cancel
                                         </button>
                                         <button wire:click="updateDepartment({{ $department->department_id }})" @click="openEdit = false"
-                                            class="px-3 py-1 text-xs rounded-md border border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100
-                                                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/60">
+                                                class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                                    dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800">
                                             Save
                                         </button>
-                                    </div>
+                                    </footer>
                                 </div>
                             </div>
+
                         </td>
                     </tr>
                     @empty
@@ -526,4 +649,101 @@
             </tbody>
         </table>
     </div>
+
+    <div x-show="openCreate" x-transition
+        class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        @click.self="openCreate = false">
+
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700
+                    w-full max-w-md p-6 mx-4 my-6 flex flex-col max-h-[90vh]">
+            <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                <x-heroicon-o-squares-plus class="w-6 h-6" />
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                    Create New Department
+                </h3>
+            </header>
+
+            <div class="space-y-3 overflow-y-auto pr-2 flex-1">
+                <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
+                <flux:error name="newDepartment.department_name" />
+
+                <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
+                <flux:error name="newDepartment.department_code" />
+
+                <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
+                <flux:error name="newDepartment.department_description" />
+
+                <x-select
+                    name="newDepartment.is_active"
+                    wire:model.defer="newDepartment.is_active"
+                    placeholder="Select active status"
+                    :options="['Inactive','Active']"
+                />
+                <flux:error name="newDepartment.is_active" />
+
+                <x-select
+                    name="newDepartment.is_available"
+                    wire:model.defer="newDepartment.is_available"
+                    placeholder="Select availability status"
+                    :options="['Yes','No']"
+                />
+                <flux:error name="newDepartment.is_available" />
+
+                {{ $this->form->getComponent('department_profile') }}
+                {{ $this->form->getComponent('department_background') }}
+            </div>
+
+            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                <button @click="openCreate = false"
+                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                    Cancel
+                </button>
+                <button wire:click="createDepartment" wire:loading.attr="disabled" @click="openCreate = false"
+                        class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
+                            dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="createDepartment">Save</span>
+                    <span wire:loading wire:target="createDepartment">Processing...</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <div x-show="openCreateLiaison" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm" @click.self="openCreateLiaison = false">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
+
+            <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                <x-heroicon-o-user-plus class="w-6 h-6" />
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                    Add HR Liaison
+                </h3>
+            </header>
+
+            <div class="space-y-3 w-full p-6">
+                <flux:input type="text" wire:model.defer="newLiaison.name" placeholder="Full Name" clearable/>
+                <flux:error name="newLiaison.name" />
+
+                <flux:input type="email" wire:model.defer="newLiaison.email" placeholder="Email Address" clearable/>
+                <flux:error name="newLiaison.email" />
+
+                <flux:input type="password" wire:model.defer="newLiaison.password" placeholder="Password" class:input="hide-password-toggle" viewable clearable/>
+                <flux:error name="newLiaison.password" />
+            </div>
+
+            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                <button @click="openCreateLiaison = false"
+                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                    Cancel
+                </button>
+                <button wire:click="createHrLiaison" wire:loading.attr="disabled" @click="openCreateLiaison = false"
+                        class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
+                            dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="createHrLiaison">Save</span>
+                    <span wire:loading wire:target="createHrLiaison">Processing...</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+
 </div>

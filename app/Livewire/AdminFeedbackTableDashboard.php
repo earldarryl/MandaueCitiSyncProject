@@ -161,7 +161,10 @@ class AdminFeedbackTableDashboard extends TableWidget
                     ->dateTime('M d, Y h:i A')
                     ->sortable()
                     ->alignCenter()
-                    ->extraAttributes(['class' => 'text-sm font-medium']),
+                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 BadgeColumn::make('gender')
                     ->label('Gender')
@@ -171,27 +174,39 @@ class AdminFeedbackTableDashboard extends TableWidget
                         'gray' => 'Other',
                     ])
                     ->alignCenter()
-                    ->extraAttributes(['class' => 'text-sm font-medium']),
+                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('email')
                     ->label('Email')
                     ->alignCenter()
                     ->formatStateUsing(fn($state) => $state ?? '—')
-                    ->extraAttributes(['class' => 'text-sm font-medium']),
+                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('cc_summary')
                     ->label('CC Summary')
                     ->sortable()
                     ->alignCenter()
                     ->getStateUsing(fn(Feedback $record) => $this->summarizeCC($record))
-                    ->extraAttributes(['class' => 'text-sm font-medium']),
+                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('sqd_summary')
                     ->label('SQD Summary')
                     ->sortable()
                     ->alignCenter()
                     ->getStateUsing(fn(Feedback $record) => $this->summarizeSQD($record))
-                    ->extraAttributes(['class' => 'text-sm font-medium']),
+                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
             ])
             ->filters([
 

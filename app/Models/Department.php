@@ -15,6 +15,8 @@ class Department extends Model
         'department_name',
         'department_code',
         'department_description',
+        'department_bg',
+        'department_profile',
         'is_active',
         'is_available',
     ];

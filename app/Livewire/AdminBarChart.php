@@ -10,7 +10,6 @@ class AdminBarChart extends ChartWidget
 {
     public ?string $startDate = null;
     public ?string $endDate = null;
-
     public function getHeading(): string | HtmlString | null
     {
         return new HtmlString(<<<HTML
@@ -120,4 +119,6 @@ class AdminBarChart extends ChartWidget
             ],
         ];
     }
+
+
 }

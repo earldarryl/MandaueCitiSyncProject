@@ -241,3 +241,11 @@ body {
 .fi-ta-filters-apply-action-ctn > .fi-btn.fi-ac-btn-action .fi-loading-indicator {
     @apply text-white;
 }
+
+.filepond--label-action {
+    @apply text-blue-500 font-medium hover:text-blue-600 focus:text-blue-600;
+}
+
+.fi-select-input:focus {
+    @apply !ring-2 !ring-blue-500 !outline-none rounded-md;
+}

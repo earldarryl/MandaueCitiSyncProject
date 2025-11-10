@@ -90,7 +90,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                     ->copyable()
                     ->copyMessage('Ticket ID copied!')
                     ->weight('semibold')
-                    ->color('primary')
+                    ->color('info')
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -116,7 +116,10 @@ class AdminGrievanceTableDashboard extends TableWidget
                         'success' => 'Inquiry',
                     ])
                     ->weight('bold')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('grievance_status')
                     ->label('Status')
@@ -174,7 +177,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                 TextColumn::make('departments.department_name')
                     ->label('DEPARTMENT')
                     ->badge()
-                    ->colors(['primary'])
+                    ->colors(['info'])
                     ->listWithLineBreaks()
                     ->limitList(2)
                     ->weight('semibold')
@@ -263,14 +266,6 @@ class AdminGrievanceTableDashboard extends TableWidget
 
             ->emptyStateHeading('No Grievance Records Found')
             ->emptyStateDescription('There are currently no grievance submissions within the selected date range or applied filters.')
-            ->emptyStateIcon('heroicon-o-folder-open')
-            ->emptyStateActions([
-                Action::make('refresh')
-                    ->label('Refresh')
-                    ->button()
-                    ->color('primary')
-                    ->icon('heroicon-o-arrow-path')
-                    ->action(fn () => $this->dispatch('$refresh')),
-            ]);
+            ->emptyStateIcon('heroicon-o-folder-open');
     }
 }

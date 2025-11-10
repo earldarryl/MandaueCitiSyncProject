@@ -2,19 +2,24 @@
 
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
+use Filament\Actions\Concerns\InteractsWithActions;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\Department;
 use App\Models\User;
 use Filament\Notifications\Notification;
+use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Concerns\InteractsWithForms;
 
 #[Layout('layouts.app')]
 #[Title('Departments & HR Liaisons')]
-class Index extends Component
+class Index extends Component implements Forms\Contracts\HasForms
 {
-    use WithPagination;
+    use WithFileUploads, InteractsWithForms, InteractsWithActions, WithPagination;
 
     public $sortField = 'department_name';
     public $sortDirection = 'asc';
@@ -26,15 +31,38 @@ class Index extends Component
     public $filterHRStatus = 'All';
     public $filterDate = 'Show All';
     public $nameStartsWith = 'All';
+    public $totalHrLiaisons = 0;
     public $totalLiaisonHours = 0;
     public $totalDepartments = 0;
+    public $assignedHrLiaisons = 0;
+    public $unassignedHrLiaisons = 0;
     public $recentDepartment = null;
+    public $department_profile;
+    public $department_background;
+    public $newDepartment = [
+        'department_name' => '',
+        'department_code' => '',
+        'department_description' => '',
+        'is_active' => '',
+        'is_available' => '',
+        'department_profile' => null,
+        'department_background' => null,
+    ];
+
+    public $newLiaison = [
+        'name' => '',
+        'email' => '',
+        'password' => '',
+    ];
+
     public $editingDepartment = [
         'department_name' => '',
         'department_code' => '',
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
+        'department_profile' => null,
+        'department_background' => null,
     ];
 
     protected $listeners = ['refresh' => '$refresh'];
@@ -44,11 +72,89 @@ class Index extends Component
         $this->calculateSummary();
     }
 
+    public function createHrLiaison()
+    {
+        $this->validate([
+            'newLiaison.name' => 'required|string|max:255',
+            'newLiaison.email' => 'required|email|unique:users,email',
+            'newLiaison.password' => 'required|string|min:6',
+        ]);
+
+        $user = new User([
+            'name' => $this->newLiaison['name'],
+            'email' => $this->newLiaison['email'],
+            'password' => $this->newLiaison['password'],
+        ]);
+
+        $user->forceFill([
+            'email_verified_at' => $user->freshTimestamp(),
+        ])->save();
+
+        $user->assignRole('hr_liaison');
+
+        $this->newLiaison = [
+            'name' => '',
+            'email' => '',
+            'password' => '',
+        ];
+
+        $this->calculateSummary();
+        $this->dispatch('refresh');
+
+        Notification::make()
+            ->title('HR Liaison Added')
+            ->body("{$user->name} has been successfully added as HR Liaison.")
+            ->success()
+            ->send();
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+            FileUpload::make('department_profile')
+                ->label('Department Profile Image')
+                ->image()
+                ->directory('departments/profile')
+                ->disk('public')
+                ->openable()
+                ->downloadable()
+                ->preserveFilenames()
+                ->avatar()
+                ->alignCenter(true)
+                ->previewable(true)
+                ->maxSize(5120)
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
+
+            FileUpload::make('department_background')
+                ->label('Department Background Image')
+                ->image()
+                ->directory('departments/backgrounds')
+                ->disk('public')
+                ->openable()
+                ->downloadable()
+                ->preserveFilenames()
+                ->previewable(true)
+                ->maxSize(5120)
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->helperText('Upload a background image (JPG, PNG, or WEBP, max 5MB).'),
+        ];
+    }
+
     public function calculateSummary()
     {
         $this->totalDepartments = Department::count();
-
         $this->recentDepartment = Department::latest('created_at')->first();
+
+        $this->totalHrLiaisons = User::role('hr_liaison')->count();
+
+        $this->assignedHrLiaisons = User::role('hr_liaison')
+            ->whereHas('departments')
+            ->count();
+
+        $this->unassignedHrLiaisons = User::role('hr_liaison')
+            ->doesntHave('departments')
+            ->count();
 
         $this->totalLiaisonHours = User::role('hr_liaison')
             ->get()
@@ -58,6 +164,7 @@ class Index extends Component
                 return $diffInHours > 0 ? $diffInHours : 0;
             });
     }
+
 
     public function getDepartmentsProperty()
     {
@@ -127,6 +234,60 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function createDepartment()
+    {
+        $this->validate([
+            'newDepartment.department_name' => 'required|string|max:255|unique:departments,department_name',
+            'newDepartment.department_code' => 'required|string|max:50|unique:departments,department_code',
+            'newDepartment.department_description' => 'nullable|string|max:1000',
+            'newDepartment.is_active' => 'required',
+            'newDepartment.is_available' => 'required',
+        ]);
+
+        $state = $this->form->getState();
+        $department_profile = $state['department_profile'] ?? null;
+        $department_background = $state['department_background'] ?? null;
+
+        $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
+        $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
+
+        $department = Department::create([
+            'department_name' => $this->newDepartment['department_name'],
+            'department_code' => $this->newDepartment['department_code'],
+            'department_description' => $this->newDepartment['department_description'],
+            'is_active' => $isActiveValue,
+            'is_available' => $isAvailableValue,
+            'department_profile' => $department_profile,
+            'department_bg' => $department_background,
+        ]);
+
+        $this->newDepartment = [
+            'department_name' => '',
+            'department_code' => '',
+            'department_description' => '',
+            'is_active' => '',
+            'is_available' => '',
+            'department_profile' => null,
+            'department_background' => null,
+        ];
+
+        $this->form->fill([
+            'department_profile' => null,
+            'department_background' => null,
+        ]);
+
+        $this->calculateSummary();
+        $this->dispatch('refresh');
+
+        Notification::make()
+            ->title('Department Created')
+            ->body("The department <b>{$department->department_name}</b> has been successfully created.")
+            ->success()
+            ->duration(4000)
+            ->send();
+    }
+
+
     public function editDepartment($departmentId)
     {
         $department = Department::findOrFail($departmentId);
@@ -139,7 +300,14 @@ class Index extends Component
             'is_active' => $department->is_active ? 'Active' : 'Inactive',
             'is_available' => $department->is_available ? 'Yes' : 'No',
         ];
+
+        $this->form->fill([
+            'department_profile' => $department->department_profile,
+            'department_background' => $department->department_bg,
+        ]);
+
     }
+
 
     public function updateDepartment()
     {
@@ -150,6 +318,13 @@ class Index extends Component
             'editingDepartment.is_active' => 'required',
             'editingDepartment.is_available' => 'required',
         ]);
+
+        $state = $this->form->getState();
+        $department_profile = $state['department_profile'] ?? null;
+        $department_background = $state['department_background'] ?? null;
+
+        $isActiveValue = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
+        $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
 
         $department = Department::find($this->editingDepartment['department_id']);
 
@@ -163,30 +338,14 @@ class Index extends Component
             return;
         }
 
-        $isActiveValue = $this->editingDepartment['is_active'];
-        if (is_string($isActiveValue)) {
-            $isActiveValue = match (strtolower($isActiveValue)) {
-                'active' => 1,
-                'inactive' => 0,
-                default => 0,
-            };
-        }
-
-        $isAvailableValue = $this->editingDepartment['is_available'];
-        if (is_string($isAvailableValue)) {
-            $isAvailableValue = match (strtolower($isAvailableValue)) {
-                'yes' => 1,
-                'no' => 0,
-                default => 0,
-            };
-        }
-
         $department->update([
             'department_name' => $this->editingDepartment['department_name'],
             'department_code' => $this->editingDepartment['department_code'],
             'department_description' => $this->editingDepartment['department_description'],
-            'is_active' => (int) $isActiveValue,
-            'is_available' => (int) $isAvailableValue,
+            'is_active' => $isActiveValue,
+            'is_available' => $isAvailableValue,
+            'department_profile' => $department_profile,
+            'department_background' => $department_background,
         ]);
 
         $this->editingDepartment = [
@@ -196,7 +355,17 @@ class Index extends Component
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
+            'department_profile' => null,
+            'department_background' => null,
         ];
+
+        $this->form->fill([
+            'department_profile' => null,
+            'department_background' => null,
+        ]);
+
+        $this->calculateSummary();
+        $this->dispatch('refresh');
 
         Notification::make()
             ->title('Department Updated')
@@ -293,6 +462,34 @@ class Index extends Component
         Notification::make()
             ->title('HR Liaisons Removed Successfully')
             ->body("Selected HR Liaisons have been removed from the {$department->department_name} department.")
+            ->success()
+            ->duration(4000)
+            ->send();
+    }
+
+    public function deleteDepartment($departmentId)
+    {
+        $department = Department::find($departmentId);
+
+        if (!$department) {
+            Notification::make()
+                ->title('Department Not Found')
+                ->body('The selected department could not be found.')
+                ->danger()
+                ->duration(4000)
+                ->send();
+            return;
+        }
+
+        $departmentName = $department->department_name;
+        $department->delete();
+
+        $this->calculateSummary();
+        $this->dispatch('refresh');
+
+        Notification::make()
+            ->title('Department Deleted')
+            ->body("The department <b>{$departmentName}</b> has been successfully deleted.")
             ->success()
             ->duration(4000)
             ->send();

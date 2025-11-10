@@ -76,19 +76,14 @@ class Profile extends Component implements HasSchemas
         $this->email = $user->email ?? '';
         $this->current_profile_pic = $user->profile_pic;
 
-        // original values for dirty checks
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
-        // Initialize the Filament form
         $this->form->fill([
             'profile_pic' => $user->profile_pic,
         ]);
     }
 
-    /**
-     * NOTE: For Filament v4+ use Schema here.
-     */
     public function form(Schema $schema): Schema
     {
         return $schema

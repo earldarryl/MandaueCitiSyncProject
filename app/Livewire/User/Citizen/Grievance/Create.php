@@ -116,7 +116,6 @@ class Create extends Component implements Forms\Contracts\HasForms
         return;
     }
 
-    // Check the department first
     $departmentName = $this->department;
     $department = Department::where('department_name', $departmentName)->first();
 
@@ -148,7 +147,6 @@ class Create extends Component implements Forms\Contracts\HasForms
             default  => 7,
         };
 
-        // Only now create the grievance because department is valid
         $grievance = Grievance::create([
             'user_id'          => auth()->id(),
             'grievance_type'   => $this->grievance_type,
