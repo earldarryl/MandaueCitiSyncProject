@@ -37,16 +37,16 @@ class Index extends Component implements Forms\Contracts\HasForms
     public $assignedHrLiaisons = 0;
     public $unassignedHrLiaisons = 0;
     public $recentDepartment = null;
-    public $department_profile;
-    public $department_background;
+    public $create_department_profile;
+    public $create_department_background;
+    public $edit_department_profile;
+    public $edit_department_background;
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
-        'department_profile' => null,
-        'department_background' => null,
     ];
 
     public $newLiaison = [
@@ -61,8 +61,6 @@ class Index extends Component implements Forms\Contracts\HasForms
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
-        'department_profile' => null,
-        'department_background' => null,
     ];
 
     protected $listeners = ['refresh' => '$refresh'];
@@ -70,6 +68,11 @@ class Index extends Component implements Forms\Contracts\HasForms
     public function mount()
     {
         $this->calculateSummary();
+
+        $this->form->fill([
+            'create_department_profile' => $this->create_department_profile,
+            'create_department_background' => $this->create_department_background,
+        ]);
     }
 
     public function createHrLiaison()
@@ -111,7 +114,7 @@ class Index extends Component implements Forms\Contracts\HasForms
     protected function getFormSchema(): array
     {
         return [
-            FileUpload::make('department_profile')
+            FileUpload::make('create_department_profile')
                 ->label('Department Profile Image')
                 ->image()
                 ->directory('departments/profile')
@@ -126,7 +129,36 @@ class Index extends Component implements Forms\Contracts\HasForms
                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                 ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
 
-            FileUpload::make('department_background')
+            FileUpload::make('create_department_background')
+                ->label('Department Background Image')
+                ->image()
+                ->directory('departments/backgrounds')
+                ->disk('public')
+                ->openable()
+                ->downloadable()
+                ->preserveFilenames()
+                ->previewable(true)
+                ->maxSize(5120)
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->helperText('Upload a background image (JPG, PNG, or WEBP, max 5MB).'),
+
+
+            FileUpload::make('edit_department_profile')
+                ->label('Department Profile Image')
+                ->image()
+                ->directory('departments/profile')
+                ->disk('public')
+                ->openable()
+                ->downloadable()
+                ->preserveFilenames()
+                ->avatar()
+                ->alignCenter(true)
+                ->previewable(true)
+                ->maxSize(5120)
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
+
+            FileUpload::make('edit_department_background')
                 ->label('Department Background Image')
                 ->image()
                 ->directory('departments/backgrounds')
@@ -245,8 +277,8 @@ class Index extends Component implements Forms\Contracts\HasForms
         ]);
 
         $state = $this->form->getState();
-        $department_profile = $state['department_profile'] ?? null;
-        $department_background = $state['department_background'] ?? null;
+        $create_department_profile = $state['create_department_profile'] ?? null;
+        $create_department_background = $state['create_department_background'] ?? null;
 
         $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
@@ -257,8 +289,8 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => $this->newDepartment['department_description'],
             'is_active' => $isActiveValue,
             'is_available' => $isAvailableValue,
-            'department_profile' => $department_profile,
-            'department_bg' => $department_background,
+            'department_profile' => $create_department_profile,
+            'department_bg' => $create_department_background,
         ]);
 
         $this->newDepartment = [
@@ -267,13 +299,11 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
-            'department_profile' => null,
-            'department_background' => null,
         ];
 
         $this->form->fill([
-            'department_profile' => null,
-            'department_background' => null,
+            'create_department_profile' => null,
+            'create_department_background' => null,
         ]);
 
         $this->calculateSummary();
@@ -302,8 +332,8 @@ class Index extends Component implements Forms\Contracts\HasForms
         ];
 
         $this->form->fill([
-            'department_profile' => $department->department_profile,
-            'department_background' => $department->department_bg,
+            'edit_department_profile' => $department->department_profile,
+            'edit_department_background' => $department->department_bg,
         ]);
 
     }
@@ -320,8 +350,8 @@ class Index extends Component implements Forms\Contracts\HasForms
         ]);
 
         $state = $this->form->getState();
-        $department_profile = $state['department_profile'] ?? null;
-        $department_background = $state['department_background'] ?? null;
+        $edit_department_profile = $state['edit_department_profile'] ?? null;
+        $edit_department_background = $state['edit_department_background'] ?? null;
 
         $isActiveValue = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
@@ -344,8 +374,8 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => $this->editingDepartment['department_description'],
             'is_active' => $isActiveValue,
             'is_available' => $isAvailableValue,
-            'department_profile' => $department_profile,
-            'department_background' => $department_background,
+            'department_profile' => $edit_department_profile,
+            'department_bg' => $edit_department_background,
         ]);
 
         $this->editingDepartment = [
@@ -355,13 +385,11 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
-            'department_profile' => null,
-            'department_background' => null,
         ];
 
         $this->form->fill([
-            'department_profile' => null,
-            'department_background' => null,
+            'edit_department_profile' => null,
+            'edit_department_background' => null,
         ]);
 
         $this->calculateSummary();

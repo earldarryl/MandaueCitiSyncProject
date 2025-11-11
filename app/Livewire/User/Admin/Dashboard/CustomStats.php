@@ -27,6 +27,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
     public $citizenUsers = 0;
     public $hrLiaisonUsers = 0;
     public $onlineUsers = 0;
+    public $citizenOnline = 0;
+    public $hrLiaisonOnline = 0;
 
     public $totalAssignments = 0;
     public $assignmentsByDepartment = [];
@@ -42,15 +44,15 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
     protected $listeners = ['dateRangeUpdated' => 'updateDateRange'];
     public $department_profile;
     public $department_background;
+
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
-        'department_profile' => null,
-        'department_background' => null,
     ];
+
 
     public $newLiaison = [
         'name' => '',
@@ -64,6 +66,11 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->endDate = now()->format('Y-m-d');
 
         $this->calculateStats();
+
+        $this->form->fill([
+            'department_profile' => $this->department_profile,
+            'department_background' => $this->department_background,
+        ]);
     }
 
     public function updateDateRange($start, $end)
@@ -201,10 +208,25 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $end = Carbon::parse($this->endDate)->endOfDay();
 
         $this->totalUsers = User::whereBetween('created_at', [$start, $end])->count();
+
         $this->citizenUsers = User::whereBetween('created_at', [$start, $end])
-            ->whereHas('roles', fn($q) => $q->where('name', 'citizen'))->count();
+            ->whereHas('roles', fn($q) => $q->where('name', 'citizen'))
+            ->count();
+
+        $this->citizenOnline = User::whereHas('roles', fn($q) => $q->where('name', 'citizen'))
+            ->whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->count();
+
         $this->hrLiaisonUsers = User::whereBetween('created_at', [$start, $end])
-            ->whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))->count();
+            ->whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->count();
+
+        $this->hrLiaisonOnline = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->count();
+
         $this->onlineUsers = User::whereNotNull('last_seen_at')
             ->where('last_seen_at', '>=', now()->subMinutes(5))->count();
 
@@ -231,4 +253,5 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->hrLiaisonFeedbacks = Feedback::whereBetween('date', [$start, $end])
             ->whereHas('user.roles', fn($q) => $q->where('name', 'hr_liaison'))->count();
     }
+
 }

@@ -1,12 +1,46 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
+        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                    border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-users class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
+            </div>
+
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Total Users</p>
+            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $totalUsers }}</p>
+        </div>
+
+        <div class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                    border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-signal class="h-8 w-8 text-green-600 dark:text-green-400"/>
+            </div>
+
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Active Users</p>
+            <p class="text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $activeUsers }}</p>
+            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Online now (last 5 min)</p>
+        </div>
+    </div>
+
+
     <div class="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-3 mb-5">
 
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
             <x-filter-select
                 name="filter"
                 placeholder="Filter by module"
-                :options="['Grievance Management', 'Feedbacks', 'User Management']"
+                :options="$modules"
                 wire:model="filter"
             />
 
@@ -61,23 +95,38 @@
                             class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
                                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex flex-col gap-1.5">
-                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                        {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
-                                    </span>
+                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
+                                            <x-heroicon-o-clipboard-document-check class="h-6 w-6"/>
+                                        </div>
+                                    </div>
 
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
-                                        {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}
-                                    </h3>
-
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        <span class="font-medium text-gray-700 dark:text-gray-300">
-                                            {{ $log->module }}
+                                    <div class="flex-1 flex flex-col gap-1">
+                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                            {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
                                         </span>
-                                        •
-                                        <span>{{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y - g:i A') }}</span>
-                                    </p>
+
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
+                                            {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}
+                                        </h3>
+
+                                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                                            <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                {{ $log->module }}
+                                            </span>
+                                            <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                {{ $log->platform }}
+                                            </span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y - g:i A') }}
+                                            </span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ $log->location }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

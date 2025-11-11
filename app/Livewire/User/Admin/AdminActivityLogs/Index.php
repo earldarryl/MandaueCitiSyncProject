@@ -4,6 +4,7 @@ namespace App\Livewire\User\Admin\AdminActivityLogs;
 
 use Livewire\Component;
 use App\Models\ActivityLog;
+use App\Models\User;
 use Livewire\WithPagination;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -18,9 +19,8 @@ class Index extends Component
     public int $limit = 10;
     public ?string $filter = null;
     public ?string $roleFilter = null;
-
-    protected $queryString = ['filter', 'roleFilter'];
-
+    public $totalUsers = 0;
+    public $activeUsers = 0;
     public function applyFilter(): void
     {
         $this->resetPage();
@@ -31,8 +31,22 @@ class Index extends Component
         $this->limit += 10;
     }
 
+    public array $modules = [];
+
     public function render()
     {
+        $this->totalUsers = User::count();
+        $this->activeUsers = User::whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->count();
+
+        $this->modules = ActivityLog::query()
+            ->whereNotNull('module')
+            ->select('module')
+            ->distinct()
+            ->pluck('module')
+            ->toArray();
+
         $query = ActivityLog::query()
             ->with('user', 'role')
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))

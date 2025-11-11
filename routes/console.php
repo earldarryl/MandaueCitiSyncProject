@@ -13,7 +13,7 @@ Artisan::command('inspire', function () {
 Artisan::command('activitylogs:clear-old', function () {
     ActivityLog::query()->delete();
 
-    $this->info('✅ All activity logs have been cleared.');
+    $this->info('All activity logs have been cleared.');
 
     Log::info('Activity logs table cleared automatically on schedule.');
 })->describe('Clear all activity logs monthly');

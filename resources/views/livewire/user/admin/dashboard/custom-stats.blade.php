@@ -5,8 +5,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
+                        border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                        transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
 
                 <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
                             group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
@@ -31,7 +31,7 @@
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Citizens</span>
                         </div>
                         <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
-                            {{ $citizenUsers }}
+                            {{ $citizenOnline }} online / {{ $citizenUsers }} total
                         </span>
                     </div>
 
@@ -43,7 +43,7 @@
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">HR Liaisons</span>
                         </div>
                         <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
-                            {{ $hrLiaisonUsers }}
+                            {{ $hrLiaisonOnline }} online / {{ $hrLiaisonUsers }} total
                         </span>
                     </div>
                 </div>
@@ -209,7 +209,7 @@
     </div>
 
     <div x-show="openCreate" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm" @click.self="openCreate = false">
-        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
 
             <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
                 <x-heroicon-o-squares-plus class="w-6 h-6" />

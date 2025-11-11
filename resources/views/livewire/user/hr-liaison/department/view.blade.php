@@ -16,7 +16,7 @@
             >
 
             <a href="{{ route('hr-liaison.department.index') }}" wire:navigate
-            class="absolute top-4 left-4 flex items-center gap-2 px-3 py-2 bg-gray-600/40 text-white text-sm font-semibold rounded-lg shadow hover:bg-gray-700/30 transition-all duration-200">
+            class="absolute top-4 left-4 flex items-center gap-2 px-3 py-2 bg-gray-600/20 text-white text-sm font-semibold rounded-lg shadow hover:bg-gray-700/50 transition-all duration-200">
                 <flux:icon.arrow-long-left class="w-4 h-4" />
             </a>
 

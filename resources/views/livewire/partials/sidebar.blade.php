@@ -1,7 +1,12 @@
 <aside
     x-cloak
     x-data="{
-        isDesktop: window.matchMedia('(min-width: 1024px)').matches
+        isDesktop: window.matchMedia('(min-width: 1024px)').matches,
+        closeOnMobile() {
+            if (!this.isDesktop) {
+                $store.sidebar.open = false;
+            }
+        }
     }"
     @resize.window="isDesktop = window.matchMedia('(min-width: 1024px)').matches"
     :class="{
@@ -12,6 +17,7 @@
     }"
     class="flex flex-col justify-between bg-white dark:bg-black text-mc_primary_color dark:text-white font-bold text-lg shadow-md min-h-full overflow-hidden"
 >
+
     <div class="relative flex flex-col">
 
     <div class="relative flex flex-col h-[500px] sm:h-[550px] md:h-[550px] lg:h-[550px] overflow-x-hidden overflow-y-auto">
@@ -20,7 +26,7 @@
             x-data="{
                 screen: window.innerWidth,
                 visible: true,
-                dropdowns: Array({{ count($menuItems) }}).fill(false) // initialize dropdowns array
+                dropdowns: Array({{ count($menuItems) }}).fill(false)
             }"
             x-init="
                 visible = !(screen < 1024 && !$store.sidebar.open);
@@ -134,6 +140,7 @@
                                             {{ $isChildActive
                                                 ? 'bg-gray-200 dark:bg-zinc-800'
                                                 : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                                        @click="closeOnMobile()"
                                         wire:navigate
                                     >
                                         <i class="{{ $child['icon'] }}"></i>
@@ -158,6 +165,7 @@
                         x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
                         x-data="{ showTooltip: false }"
                         wire:navigate
+                        @click="closeOnMobile()"
                         @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                         @mouseleave="showTooltip = false">
                         <span class="inline-block text-center">

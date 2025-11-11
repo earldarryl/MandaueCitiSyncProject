@@ -1,99 +1,95 @@
 <div class="p-6 space-y-6 relative w-full">
     <div class="relative">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
-
-            <div
-                class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
-            >
-                <div
-                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
-                    group-hover:opacity-100 blur-xl transition-all duration-500"
-                ></div>
-
-                <div
-                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
-                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+        <div
+            x-data="{
+                openStats: $store.sidebar.screen >= 768,
+                updateStatsVisibility() {
+                    this.openStats = $store.sidebar.screen >= 768;
+                }
+            }"
+            x-init="updateStatsVisibility(); window.addEventListener('resize', () => updateStatsVisibility())"
+            class="relative w-full flex flex-col"
+        >
+            <div class="flex justify-center items-center mb-4">
+                <button
+                    @click="openStats = !openStats"
+                    class="flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-zinc-600
+                        bg-white dark:bg-zinc-800 shadow-sm hover:shadow-md transition-all duration-300"
                 >
-                    <x-heroicon-o-user-group class="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                </div>
-
-                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Citizens</p>
-                <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
-                    {{ $totalCitizens }}
-                </p>
+                    <flux:icon.chevron-down
+                        :class="openStats ? 'rotate-180 text-blue-500' : 'text-gray-600'"
+                        class="h-5 w-5 transition-transform duration-300"
+                    />
+                    <span class="text-sm font-bold text-gray-700 dark:text-gray-300">
+                        <template x-if="!openStats"><span>Show Statistics</span></template>
+                        <template x-if="openStats"><span>Hide Statistics</span></template>
+                    </span>
+                </button>
             </div>
 
             <div
-                class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                x-show="openStats"
+                x-collapse
+                x-transition:enter="transition ease-out duration-500"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-400"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+                class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6"
             >
-                <div
-                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
-                    group-hover:opacity-100 blur-xl transition-all duration-500"
-                ></div>
-
-                <div
-                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
-                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
-                >
-                    <x-heroicon-o-user class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-heroicon-o-user-group class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Citizens</p>
+                    <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $totalCitizens }}</p>
                 </div>
 
-                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Male Citizens</p>
-                <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
-                    {{ $totalMale }}
-                </p>
-            </div>
-
-            <div
-                class="group relative bg-gradient-to-br from-pink-50 to-pink-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-pink-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
-            >
-                <div
-                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-200/20 to-transparent opacity-0
-                    group-hover:opacity-100 blur-xl transition-all duration-500"
-                ></div>
-
-                <div
-                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-pink-200/50
-                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
-                >
-                    <x-heroicon-o-user class="h-8 w-8 text-pink-600 dark:text-pink-400" />
+                <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-heroicon-o-user class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Male Citizens</p>
+                    <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $totalMale }}</p>
                 </div>
 
-                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Female Citizens</p>
-                <p class="relative text-3xl font-bold text-pink-600 dark:text-pink-400 tracking-tight">
-                    {{ $totalFemale }}
-                </p>
-            </div>
-
-            <div
-                class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
-                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
-            >
-                <div
-                    class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
-                    group-hover:opacity-100 blur-xl transition-all duration-500"
-                ></div>
-
-                <div
-                    class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
-                    dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
-                >
-                    <x-heroicon-o-signal class="h-8 w-8 text-green-600 dark:text-green-400" />
+                <div class="group relative bg-gradient-to-br from-pink-50 to-pink-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-pink-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-pink-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-heroicon-o-user class="h-8 w-8 text-pink-600 dark:text-pink-400" />
+                    </div>
+                    <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Female Citizens</p>
+                    <p class="relative text-3xl font-bold text-pink-600 dark:text-pink-400 tracking-tight">{{ $totalFemale }}</p>
                 </div>
 
-                <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Active (Online)</p>
-                <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">
-                    {{ $totalOnline }}
-                </p>
+                <div class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-heroicon-o-signal class="h-8 w-8 text-green-600 dark:text-green-400" />
+                    </div>
+                    <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Active (Online)</p>
+                    <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $totalOnline }}</p>
+                </div>
             </div>
-
         </div>
 
         <div class="w-full h-full p-6">

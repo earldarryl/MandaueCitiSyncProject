@@ -63,24 +63,24 @@
             </section>
 
             <section class="w-full h-full p-4 flex justify-center items-center gap-6">
-    <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
-        <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-2/4 max-w-full">
-            <livewire:admin-line-chart
-                :start-date="$startDate"
-                :end-date="$endDate"
-                wire:key="admin-line-chart-{{ $startDate }}-{{ $endDate }}"
-            />
-        </div>
+                <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
+                        <livewire:admin-line-chart
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-line-chart-{{ $startDate }}-{{ $endDate }}"
+                        />
+                    </div>
 
-        <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-2/4 max-w-full">
-            <livewire:admin-bar-chart
-                :start-date="$startDate"
-                :end-date="$endDate"
-                wire:key="admin-bar-chart-{{ $startDate }}-{{ $endDate }}"
-            />
-        </div>
-    </div>
-</section>
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
+                        <livewire:admin-bar-chart
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-bar-chart-{{ $startDate }}-{{ $endDate }}"
+                        />
+                    </div>
+                </div>
+            </section>
 
 
             <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">

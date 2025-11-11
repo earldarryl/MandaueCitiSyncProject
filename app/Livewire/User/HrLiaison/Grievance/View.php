@@ -52,13 +52,16 @@ class View extends Component
                 'model_type'   => 'App\\Models\\Grievance',
                 'model_id'     => $this->grievance->grievance_id,
                 'description'  => "{$roleName} ({$user->email}) acknowledged grievance #{$this->grievance->grievance_id}.",
+                'changes'      => [],
                 'status'       => 'success',
                 'ip_address'   => request()->ip(),
                 'device_info'  => request()->header('User-Agent'),
                 'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
                 'platform'     => php_uname('s'),
+                'location'     => geoip(request()->ip())?->city,
                 'timestamp'    => now(),
             ]);
+
         }
     }
 

@@ -51,7 +51,7 @@
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
                 @click.self="zoomSrc = null"
             >
-                <div class="relative max-w-2xl w-[90%] flex items-center justify-center">
+                <div class="relative max-w-2xl flex items-center justify-center">
                     <img :src="zoomSrc" class="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-gray-600" />
 
                     <div class="absolute top-4 right-4 flex items-center gap-2">
