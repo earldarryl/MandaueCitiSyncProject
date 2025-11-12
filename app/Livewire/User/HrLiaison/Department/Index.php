@@ -18,7 +18,6 @@ class Index extends Component
     public $bgImage = [];
     public $profileImage = [];
 
-    // Stats
     public $accountCreated;
     public $totalDepartments = 0;
     public $recentDepartment = null;
@@ -28,11 +27,9 @@ class Index extends Component
         $user = auth()->user();
         $this->departments = $user->departments()->get();
 
-        // Stats
         $this->accountCreated = $user->created_at->format('M d, Y');
         $this->totalDepartments = $this->departments->count();
         $this->recentDepartment = $this->departments->sortByDesc('pivot_created_at')->first();
-        // assumes your pivot table has timestamps. If not, you can sort by department_id
     }
 
     public function updatePhoto($departmentId)
@@ -54,7 +51,7 @@ class Index extends Component
         session()->flash('success', 'Department images updated successfully!');
         $this->departments = auth()->user()->departments()->get();
 
-        // update stats again
+
         $this->totalDepartments = $this->departments->count();
         $this->recentDepartment = $this->departments->sortByDesc('pivot_created_at')->first();
     }

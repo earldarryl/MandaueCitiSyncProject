@@ -15,6 +15,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Cache;
+
 class CustomStats extends Widget implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms, InteractsWithActions;
@@ -204,54 +206,77 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
     }
     protected function calculateStats(): void
     {
-        $start = Carbon::parse($this->startDate)->startOfDay();
-        $end = Carbon::parse($this->endDate)->endOfDay();
+        $cacheKey = 'custom_stats_' . $this->startDate . '_' . $this->endDate;
 
-        $this->totalUsers = User::whereBetween('created_at', [$start, $end])->count();
+        $cachedStats = Cache::remember($cacheKey, now()->addMinutes(5), function () {
+            $start = Carbon::parse($this->startDate)->startOfDay();
+            $end = Carbon::parse($this->endDate)->endOfDay();
+            $now = now();
 
-        $this->citizenUsers = User::whereBetween('created_at', [$start, $end])
-            ->whereHas('roles', fn($q) => $q->where('name', 'citizen'))
-            ->count();
+            $users = User::with('roles')
+                ->whereBetween('created_at', [$start, $end])
+                ->get();
 
-        $this->citizenOnline = User::whereHas('roles', fn($q) => $q->where('name', 'citizen'))
-            ->whereNotNull('last_seen_at')
-            ->where('last_seen_at', '>=', now()->subMinutes(5))
-            ->count();
+            $totalUsers = $users->count();
+            $citizenUsers = $users->filter(fn($u) => $u->hasRole('citizen'))->count();
+            $hrLiaisonUsers = $users->filter(fn($u) => $u->hasRole('hr_liaison'))->count();
 
-        $this->hrLiaisonUsers = User::whereBetween('created_at', [$start, $end])
-            ->whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-            ->count();
+            $onlineThreshold = $now->subMinutes(5);
+            $onlineUsers = User::with('roles')
+                ->whereNotNull('last_seen_at')
+                ->where('last_seen_at', '>=', $onlineThreshold)
+                ->get();
 
-        $this->hrLiaisonOnline = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-            ->whereNotNull('last_seen_at')
-            ->where('last_seen_at', '>=', now()->subMinutes(5))
-            ->count();
+            $onlineCount = $onlineUsers->count();
+            $citizenOnline = $onlineUsers->filter(fn($u) => $u->hasRole('citizen'))->count();
+            $hrLiaisonOnline = $onlineUsers->filter(fn($u) => $u->hasRole('hr_liaison'))->count();
 
-        $this->onlineUsers = User::whereNotNull('last_seen_at')
-            ->where('last_seen_at', '>=', now()->subMinutes(5))->count();
+            $assignments = Assignment::whereBetween('assigned_at', [$start, $end])->get();
+            $totalAssignments = $assignments->count();
 
-        $this->totalAssignments = Assignment::whereBetween('assigned_at', [$start, $end])->count();
-
-        $departments = Department::all();
-
-        $this->assignmentsByDepartment = $departments->map(function ($dept) use ($start, $end) {
-            $count = Assignment::where('department_id', $dept->department_id)
-                ->whereBetween('assigned_at', [$start, $end])
-                ->count();
-
-            return [
+            $departments = Department::all();
+            $assignmentsByDepartment = $departments->map(fn($dept) => [
                 'department_name' => $dept->department_name,
-                'total' => $count,
-            ];
+                'total' => $assignments->where('department_id', $dept->department_id)->count(),
+            ]);
+
+            $grievances = Grievance::whereBetween('created_at', [$start, $end])->get();
+            $totalGrievances = $grievances->count();
+            $pendingGrievances = $grievances->where('grievance_status', 'pending')->count();
+            $inProgressGrievances = $grievances->where('grievance_status', 'in_progress')->count();
+            $resolvedGrievances = $grievances->where('grievance_status', 'resolved')->count();
+            $unresolvedGrievances = $grievances->where('grievance_status', 'unresolved')->count();
+
+            $feedbacks = Feedback::with('user.roles')->whereBetween('date', [$start, $end])->get();
+            $totalFeedbacks = $feedbacks->count();
+            $citizenFeedbacks = $feedbacks->filter(fn($f) => $f->user->hasRole('citizen'))->count();
+            $hrLiaisonFeedbacks = $feedbacks->filter(fn($f) => $f->user->hasRole('hr_liaison'))->count();
+
+            return compact(
+                'totalUsers', 'citizenUsers', 'hrLiaisonUsers', 'onlineCount',
+                'citizenOnline', 'hrLiaisonOnline', 'totalAssignments',
+                'assignmentsByDepartment', 'totalGrievances', 'pendingGrievances',
+                'inProgressGrievances', 'resolvedGrievances', 'unresolvedGrievances',
+                'totalFeedbacks', 'citizenFeedbacks', 'hrLiaisonFeedbacks'
+            );
         });
 
-        $this->totalGrievances = Grievance::whereBetween('created_at', [$start, $end])->count();
-
-        $this->totalFeedbacks = Feedback::whereBetween('date', [$start, $end])->count();
-        $this->citizenFeedbacks = Feedback::whereBetween('date', [$start, $end])
-            ->whereHas('user.roles', fn($q) => $q->where('name', 'citizen'))->count();
-        $this->hrLiaisonFeedbacks = Feedback::whereBetween('date', [$start, $end])
-            ->whereHas('user.roles', fn($q) => $q->where('name', 'hr_liaison'))->count();
+        $this->totalUsers = $cachedStats['totalUsers'];
+        $this->citizenUsers = $cachedStats['citizenUsers'];
+        $this->hrLiaisonUsers = $cachedStats['hrLiaisonUsers'];
+        $this->onlineUsers = $cachedStats['onlineCount'];
+        $this->citizenOnline = $cachedStats['citizenOnline'];
+        $this->hrLiaisonOnline = $cachedStats['hrLiaisonOnline'];
+        $this->totalAssignments = $cachedStats['totalAssignments'];
+        $this->assignmentsByDepartment = $cachedStats['assignmentsByDepartment'];
+        $this->totalGrievances = $cachedStats['totalGrievances'];
+        $this->pendingGrievances = $cachedStats['pendingGrievances'];
+        $this->inProgressGrievances = $cachedStats['inProgressGrievances'];
+        $this->resolvedGrievances = $cachedStats['resolvedGrievances'];
+        $this->unresolvedGrievances = $cachedStats['unresolvedGrievances'];
+        $this->totalFeedbacks = $cachedStats['totalFeedbacks'];
+        $this->citizenFeedbacks = $cachedStats['citizenFeedbacks'];
+        $this->hrLiaisonFeedbacks = $cachedStats['hrLiaisonFeedbacks'];
     }
 
 }

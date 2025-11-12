@@ -112,8 +112,8 @@ class AdminGrievanceTableDashboard extends TableWidget
                     ->badge()
                     ->colors([
                         'danger' => 'Complaint',
-                        'info' => 'Request',
-                        'success' => 'Inquiry',
+                        'success' => 'Request',
+                        'info' => 'Inquiry',
                     ])
                     ->weight('bold')
                     ->sortable()
@@ -236,30 +236,46 @@ class AdminGrievanceTableDashboard extends TableWidget
             ])
 
             ->filters([
-                    SelectFilter::make('priority_level')
-                        ->label('Priority')
-                        ->options([
-                            'High' => 'High',
-                            'Medium' => 'Normal',
-                            'Low' => 'Low',
-                        ]),
+                SelectFilter::make('priority_level')
+                    ->label('Priority')
+                    ->options([
+                        'High' => 'High',
+                        'Medium' => 'Normal',
+                        'Low' => 'Low',
+                    ]),
 
-                    SelectFilter::make('grievance_status')
-                        ->label('Status')
-                        ->options([
-                            'pending' => 'Pending',
-                            'acknowledged' => 'Acknowledged',
-                            'in_progress' => 'In Progress',
-                            'escalated' => 'Escalated',
-                            'resolved' => 'Resolved',
-                            'unresolved' => 'Unresolved',
-                            'closed' => 'Closed',
-                        ]),
-                ])
+                SelectFilter::make('grievance_status')
+                    ->label('Status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'acknowledged' => 'Acknowledged',
+                        'in_progress' => 'In Progress',
+                        'escalated' => 'Escalated',
+                        'resolved' => 'Resolved',
+                        'unresolved' => 'Unresolved',
+                        'closed' => 'Closed',
+                    ]),
 
+                SelectFilter::make('grievance_type')
+                    ->label('Type')
+                    ->options([
+                        'Complaint' => 'Complaint',
+                        'Request' => 'Request',
+                        'Inquiry' => 'Inquiry',
+                    ]),
+
+                SelectFilter::make('is_anonymous')
+                    ->label('Anonymous')
+                    ->options([
+                        '1' => 'Yes',
+                        '0' => 'No',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!isset($data['value'])) return $query;
+                        return $query->where('is_anonymous', $data['value']);
+                    }),
+            ])
             ->filtersTriggerAction(fn (Action $action) => $action->button()->color('info'))
-
-
             ->defaultSort('created_at', 'desc')
             ->paginated([5, 10, 25, 50, 'all'])
             ->searchable()

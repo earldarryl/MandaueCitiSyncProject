@@ -218,14 +218,18 @@ class Profile extends Component implements HasSchemas
             'delete_password' => ['required', 'string', 'current_password'],
         ]);
 
-        if (Auth::user()->profile_pic && Storage::disk('public')->exists(Auth::user()->profile_pic)) {
-            Storage::disk('public')->delete(Auth::user()->profile_pic);
+        $user = Auth::user();
+
+        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
+            Storage::disk('public')->delete($user->profile_pic);
         }
 
-        tap(Auth::user(), $logout(...))->delete();
+        $user->profile_pic = null;
+
+        tap($user, $logout(...))->delete();
 
         Notification::make()
-            ->title('Account deactivated 🚫')
+            ->title('Account deactivated')
             ->danger()
             ->send();
 

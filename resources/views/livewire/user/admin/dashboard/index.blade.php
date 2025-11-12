@@ -59,7 +59,36 @@
             </div>
 
             <section class="w-full p-4 bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm">
-                <livewire:user.admin.dashboard.custom-stats :start-date="$startDate" :end-date="$endDate"/>
+                <div x-data="{ autoRefresh: true, start: '{{ $startDate }}', end: '{{ $endDate }}' }"
+                        x-init="
+                            setInterval(() => {
+                                if(autoRefresh) $wire.call('applyDates', start, end)
+                            }, 300000);
+                        ">
+                    <livewire:user.admin.dashboard.custom-stats :start-date="$startDate" :end-date="$endDate"/>
+                </div>
+            </section>
+
+           <section class="w-full h-full p-4 flex flex-col justify-center items-center gap-6">
+                <div class="flex h-full flex-col lg:flex-row gap-6 w-full justify-center items-stretch">
+                    <div class="flex-1 h-full w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                        <livewire:admin-grievance-chart-dashboard
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-grievance-pie-{{ $startDate }}-{{ $endDate }}"
+                        />
+                    </div>
+
+                    <div class="flex-1 w-full h-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                        <livewire:admin-feedback-chart-dashboard
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-feedback-pie-{{ $startDate }}-{{ $endDate }}"
+                        />
+
+                    </div>
+
+                </div>
             </section>
 
             <section class="w-full h-full p-4 flex justify-center items-center gap-6">

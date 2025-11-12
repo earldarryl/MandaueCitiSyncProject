@@ -23,6 +23,8 @@ class AdminFeedbackTableDashboard extends TableWidget
     public ?string $endDate = null;
     protected static ?string $pollingInterval = '10s';
 
+    // ... (summarizeCC and summarizeSQD methods remain the same)
+
     public function summarizeCC(Feedback $feedback): string
     {
         $ccFields = ['cc1', 'cc2', 'cc3'];
@@ -139,6 +141,8 @@ class AdminFeedbackTableDashboard extends TableWidget
 
     public function table(Table $table): Table
     {
+        $widget = $this;
+
         return $table
             ->query(function () {
                 $query = Feedback::query();
@@ -158,10 +162,12 @@ class AdminFeedbackTableDashboard extends TableWidget
 
                 TextColumn::make('created_at')
                     ->label('Date Submitted')
-                    ->dateTime('M d, Y h:i A')
+                    ->dateTime('F d, Y • h:i A')
                     ->sortable()
                     ->alignCenter()
-                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -182,8 +188,10 @@ class AdminFeedbackTableDashboard extends TableWidget
                 TextColumn::make('email')
                     ->label('Email')
                     ->alignCenter()
-                    ->formatStateUsing(fn($state) => $state ?? '—')
-                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->placeholder('N/A')
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -193,7 +201,9 @@ class AdminFeedbackTableDashboard extends TableWidget
                     ->sortable()
                     ->alignCenter()
                     ->getStateUsing(fn(Feedback $record) => $this->summarizeCC($record))
-                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -203,7 +213,9 @@ class AdminFeedbackTableDashboard extends TableWidget
                     ->sortable()
                     ->alignCenter()
                     ->getStateUsing(fn(Feedback $record) => $this->summarizeSQD($record))
-                    ->extraAttributes(['class' => 'text-sm font-medium'])
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold',
+                    ])
                     ->extraHeaderAttributes([
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
@@ -226,8 +238,7 @@ class AdminFeedbackTableDashboard extends TableWidget
                         'Low Awareness' => 'Low Awareness',
                         'No Awareness' => 'No Awareness',
                         'N/A' => 'N/A',
-                    ])
-                    ->query(fn (Builder $query, $value) => $query->get()->filter(fn($record) => $this->summarizeCC($record) === $value)),
+                    ]),
 
                 SelectFilter::make('sqd_summary')
                     ->label('SQD Summary')
@@ -236,8 +247,8 @@ class AdminFeedbackTableDashboard extends TableWidget
                         'Most Disagree' => 'Most Disagree',
                         'Neutral' => 'Neutral',
                         'N/A' => 'N/A',
-                    ])
-                    ->query(fn (Builder $query, $value) => $query->get()->filter(fn($record) => $this->summarizeSQD($record) === $value)),
+                    ]),
+
             ])
             ->filtersTriggerAction(fn (Action $action) => $action->button()->color('info'))
             ->actions([

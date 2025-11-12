@@ -1,4 +1,5 @@
-<div class="p-4 m-6 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50">
+<div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50"
+      x-data="{ showModal: @entangle('showConfirmSubmitModal') }">
 
     <x-responsive-nav-link
         href="{{ route('citizen.grievance.index') }}"
@@ -365,66 +366,80 @@
             </div>
 
             <div class="mt-4 flex justify-end w-full">
-                <flux:modal.trigger name="confirm-submit">
-                    <flux:button
-                        variant="primary"
-                        icon="check"
-                        color="blue"
-                        type="button"
-                        class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
-                    >
-                        Submit
-                    </flux:button>
-                </flux:modal.trigger>
+                <flux:button
+                    variant="primary"
+                    @click="showModal = true"
+                    icon="check"
+                    color="blue"
+                    type="button"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                >
+                    Submit
+                </flux:button>
             </div>
         </div>
     </div>
 
-    <!-- Confirm Submit Modal -->
-    <flux:modal name="confirm-submit" wire:model.self="showConfirmSubmitModal" class="md:w-96">
-        <div class="flex flex-col items-center text-center p-6 space-y-4">
-            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-mc_primary_color/10">
-                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-mc_primary_color" />
-            </div>
+    <div
+        x-show="showModal"
+        x-cloak
+        class="fixed inset-0 z-[60] flex items-center justify-center"
+    >
+        <div
+            class="absolute inset-0 bg-black/50"
+            @click="showModal = false"
+            x-transition.opacity
+        ></div>
 
-            <flux:heading size="lg" class="font-semibold text-gray-800 dark:text-gray-100">
-                Confirm Submission
-            </flux:heading>
-
-            <flux:text class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                Are you sure you want to submit this grievance? <br>
-                Once submitted, it will be assigned to the HR Liaison(s).
-            </flux:text>
-        </div>
-
-        <div class="flex items-center justify-center w-full">
-            <div
-                wire:loading.remove
-                wire:target="submit"
-                class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
-                <flux:modal.close>
-                    <flux:button variant="subtle" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
-                </flux:modal.close>
-                <flux:button
-                    variant="primary"
-                    color="blue"
-                    icon="pencil-square"
-                    class="bg-mc_primary_color px-4 py-2 rounded-md"
-                    wire:click="submit"
+        <div
+            class="bg-white dark:bg-zinc-900 rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden z-50"
+            x-transition.scale
+        >
+            <div class="relative">
+                <img
+                    src="{{ asset('/images/confirmation-submit-bg.png') }}"
+                    class="w-full h-48 sm:h-56 object-cover"
+                    alt="Feedback Background"
                 >
-                    Yes, Submit
-                </flux:button>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
-            <div wire:loading wire:target="submit">
-                <div class="flex items-center justify-center gap-2 w-full">
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+
+            <div class="flex flex-col gap-2 justify-center items-center p-4">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                    Confirm Submission
+                </h2>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-300 text-center">
+                    Are you sure you want to submit this grievance? <br>
+                Once submitted, it will be assigned to the HR Liaison(s).
+                </p>
+            </div>
+
+            <div class="flex items-center justify-center w-full">
+                <div wire:loading.remove wire:target="submit">
+                    <div class="flex justify-center gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
+                        <flux:button variant="subtle" @click="showModal = false" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
+                        <flux:button
+                            variant="primary"
+                            color="blue"
+                            icon="check"
+                            class="bg-mc_primary_color px-4 py-2 rounded-md"
+                            wire:click="submit"
+                        >
+                            Yes, Submit
+                        </flux:button>
+                    </div>
+                </div>
+
+                <div wire:loading wire:target="submit">
+                    <div class="flex items-center justify-center gap-2 w-full py-4">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
                 </div>
             </div>
         </div>
-
-    </flux:modal>
+    </div>
 
     <flux:modal wire:model.self="showConfirmModal" :closable="false">
         <div class="p-6 flex flex-col items-center text-center space-y-4">

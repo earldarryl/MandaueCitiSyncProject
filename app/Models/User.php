@@ -10,11 +10,11 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Notifications\CustomResetPasswordNotification;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
     use TwoFactorAuthenticatable;
     /**
      * The attributes that are mass assignable.
@@ -59,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'agreed_terms' => 'boolean',
             'agreed_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 

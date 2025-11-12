@@ -41,6 +41,8 @@ class Index extends Component
     public $unresolvedCount = 0;
     public $departmentOptions;
     public $categoryOptions;
+    public bool $showFeedbackModal = false;
+    public bool $dontShowAgain = false;
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -75,6 +77,14 @@ class Index extends Component
                 ->body($notif['body'])
                 ->{$notif['type']}()
                 ->send();
+        }
+
+        if (session()->get('hide_feedback_modal', false)) {
+            return;
+        }
+
+        if (session()->pull('grievance_submitted_once', false)) {
+            $this->showFeedbackModal = true;
         }
 
         $this->updateStats();
@@ -149,6 +159,14 @@ class Index extends Component
         $this->categoryOptions = $flattened;
     }
 
+    public function closeFeedbackModal()
+    {
+        if ($this->dontShowAgain) {
+            session()->put('hide_feedback_modal', true);
+        }
+
+        $this->showFeedbackModal = false;
+    }
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {

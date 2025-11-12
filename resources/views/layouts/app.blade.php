@@ -16,7 +16,6 @@
         }
     </style>
 
-    {{-- Styles --}}
     @livewireStyles
     @filamentStyles
     @fluxAppearance

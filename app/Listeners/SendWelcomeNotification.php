@@ -21,7 +21,7 @@ class SendWelcomeNotification
         }
 
         Notification::make()
-            ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User') . ' 🎉')
+            ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User'))
             ->body('Thanks for registering! Explore your dashboard!')
             ->success()
             ->send()

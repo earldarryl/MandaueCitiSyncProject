@@ -1,4 +1,5 @@
-<div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50">
+<div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50"
+      x-data="{ showModal: @entangle('showConfirmSubmitModal') }">
 
     <x-responsive-nav-link
         href="{{ route('citizen.grievance.index') }}"
@@ -370,17 +371,16 @@
             </div>
 
             <div class="mt-4 flex justify-end w-full">
-                <flux:modal.trigger name="confirm-update">
-                    <flux:button
-                        variant="primary"
-                        icon="check"
-                        color="blue"
-                        type="button"
-                        class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
-                    >
-                        Update
-                    </flux:button>
-                </flux:modal.trigger>
+                <flux:button
+                    variant="primary"
+                    @click="showModal = true"
+                    icon="check"
+                    color="blue"
+                    type="button"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                >
+                    Update
+                </flux:button>
             </div>
         </div>
     </div>
@@ -401,7 +401,6 @@
                 $extraAttachments = collect($existing_attachments)->slice(3);
             @endphp
 
-            <!-- Attachment Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 @foreach($visibleAttachments as $index => $attachment)
                     @php
@@ -410,7 +409,6 @@
                         $url = Storage::url($attachment['file_path']);
                     @endphp
 
-                    <!-- Normal attachment cards -->
                     @if ($loop->iteration < 4 || $extraAttachments->isEmpty())
                         <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
                             @if($isImage)
@@ -430,7 +428,6 @@
                                 </a>
                             @endif
 
-                            <!-- Dropdown Actions -->
                             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <flux:dropdown>
                                     <flux:button icon="ellipsis-horizontal" class="!p-2 !rounded-full bg-white/80 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition" />
@@ -453,7 +450,6 @@
                             </div>
                         </div>
                     @elseif ($loop->iteration === 4 && !$extraAttachments->isEmpty())
-                        <!-- See More Card -->
                         <div class="relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden cursor-pointer group"
                             @click="showMore = true">
                             @if($isImage)
@@ -471,7 +467,6 @@
                 @endforeach
             </div>
 
-            <!-- "See More" Modal -->
             <div
                 x-show="showMore"
                 x-transition.opacity
@@ -481,7 +476,6 @@
                 <div
                     x-transition.scale
                     class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-[90%] max-h-[85vh] overflow-hidden">
-                    <!-- Header -->
                     <header class="sticky top-0 bg-white dark:bg-gray-900 z-10 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
                         <h2 class="flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                             <x-heroicon-o-folder-plus class="w-6 h-6 sm:w-7 sm:h-7 text-gray-500 dark:text-gray-400" />
@@ -495,7 +489,6 @@
                         </button>
                     </header>
 
-                    <!-- Extra attachments grid -->
                     <div class="p-6 overflow-y-auto max-h-[70vh]">
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
                             @foreach ($extraAttachments as $attachment)
@@ -539,7 +532,6 @@
                 </div>
             </div>
 
-            <!-- Image Zoom Modal -->
             <div
                 x-show="zoomSrc"
                 x-cloak
@@ -566,43 +558,64 @@
         @endif
     </div>
 
-    <flux:modal name="confirm-update" wire:model.self="showConfirmUpdateModal" class="md:w-96">
-        <div class="flex flex-col items-center text-center p-6 space-y-4">
-            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-mc_primary_color/10">
-                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-mc_primary_color" />
-            </div>
-            <flux:heading size="lg" class="font-semibold text-gray-800 dark:text-gray-100">Confirm Update</flux:heading>
-            <flux:text class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                Are you sure you want to update this grievance?
-                This action will overwrite the existing details.
-            </flux:text>
-        </div>
+    <div
+        x-show="showModal"
+        x-cloak
+        class="fixed inset-0 z-[60] flex items-center justify-center"
+    >
+        <div
+            class="absolute inset-0 bg-black/50"
+            @click="showModal = false"
+            x-transition.opacity
+        ></div>
 
-        <div class="flex items-center justify-center w-full">
-            <div
-                wire:loading.remove
-                wire:target="submit"
-                class="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
-                <flux:modal.close>
-                    <flux:button variant="subtle" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
-                </flux:modal.close>
-                <flux:button
-                    variant="primary"
-                    color="blue"
-                    icon="pencil-square"
-                    class="bg-mc_primary_color px-4 py-2 rounded-md"
-                    wire:click="submit"
+        <div
+            class="bg-white dark:bg-zinc-900 rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden z-50"
+            x-transition.scale
+        >
+            <div class="relative">
+                <img
+                    src="{{ asset('/images/confirmation-submit-bg.png') }}"
+                    class="w-full h-48 sm:h-56 object-cover"
+                    alt="Feedback Background"
                 >
-                    Yes, Update
-                </flux:button>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
-            <div wire:loading wire:target="submit">
-                <div class="flex items-center justify-center gap-2 w-full">
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+
+            <div class="flex flex-col gap-2 justify-center items-center p-4">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                    Confirm Update
+                </h2>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-300 text-center">
+                    Are you sure you want to update this grievance?
+                    This action will overwrite the existing details.
+                </p>
+            </div>
+
+            <div class="flex items-center justify-center w-full">
+                <div wire:loading.remove wire:target="submit">
+                    <div class="flex justify-center gap-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 rounded-b-2xl">
+                        <flux:button variant="subtle" @click="showModal = false" class="border border-gray-200 dark:border-zinc-800">Cancel</flux:button>
+                        <flux:button
+                            variant="primary"
+                            color="blue"
+                            icon="pencil-square"
+                            class="bg-mc_primary_color px-4 py-2 rounded-md"
+                            wire:click="submit"
+                        >
+                            Yes, Update
+                        </flux:button>
+                    </div>
+                </div>
+
+                <div wire:loading wire:target="submit">
+                    <div class="flex items-center justify-center gap-2 w-full py-4">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </flux:modal>
+    </div>
 </div>

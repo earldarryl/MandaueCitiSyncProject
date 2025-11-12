@@ -1,6 +1,6 @@
 <div x-data="{ openCreate: false, openCreateLiaison: false }">
 
-    <div class="flex flex-col w-full space-y-6" >
+    <div class="flex flex-col w-full space-y-6">
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -208,7 +208,7 @@
 
     </div>
 
-    <div x-show="openCreate" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm" @click.self="openCreate = false">
+    <div x-show="openCreate" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreate = false">
         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
 
             <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
@@ -264,7 +264,7 @@
         </div>
     </div>
 
-    <div x-show="openCreateLiaison" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm" @click.self="openCreateLiaison = false">
+    <div x-show="openCreateLiaison" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreateLiaison = false">
         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
 
             <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">

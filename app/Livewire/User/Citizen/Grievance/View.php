@@ -24,27 +24,25 @@ class View extends Component
             abort(403, 'You are not authorized to view this grievance.');
         }
 
-        if ($user->hasRole('hr_liaison') && $this->grievance->grievance_status === 'pending') {
-            $this->grievance->forceFill(['grievance_status' => 'acknowledged'])->save();
+        ActivityLog::create([
+            'user_id'      => $user->id,
+            'role_id'      => $user->roles->first()?->id,
+            'module'       => 'Grievance Management',
+            'action'       => "Viewed grievance #{$this->grievance->grievance_ticket_id}",
+            'action_type'  => 'view',
+            'model_type'   => Grievance::class,
+            'model_id'     => $this->grievance->grievance_id,
+            'description'  => "{$roleName} ({$user->email}) viewed grievance #{$this->grievance->grievance_ticket_id} ({$this->grievance->grievance_title}).",
+            'changes'      => [],
+            'status'       => 'success',
+            'ip_address'   => request()->ip(),
+            'device_info'  => request()->header('User-Agent'),
+            'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+            'platform'     => php_uname('s'),
+            'location'     => geoip(request()->ip())?->city,
+            'timestamp'    => now(),
+        ]);
 
-            ActivityLog::create([
-                'user_id'      => $user->id,
-                'role_id'      => $user->roles->first()?->id,
-                'module'       => 'Grievance Management',
-                'action'       => "Acknowledged grievance #{$this->grievance->grievance_id}",
-                'action_type'  => 'acknowledge',
-                'model_type'   => 'App\\Models\\Grievance',
-                'model_id'     => $this->grievance->grievance_id,
-                'description'  => "{$roleName} performed an acknowledgment action.",
-                'status'       => 'success',
-                'ip_address'   => request()->ip(),
-                'device_info'  => request()->header('User-Agent'),
-                'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
-                'platform'     => php_uname('s'),
-                'location'     => null,
-                'timestamp'    => now(),
-            ]);
-        }
     }
 
     public function render()

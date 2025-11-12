@@ -6,20 +6,23 @@
     x-cloak
 >
     <div
-        class="fixed inset-0 bg-black/50 z-40"
+        class="fixed inset-0 bg-black/50 z-[60]"
         x-show="showModal"
         x-transition.opacity
         @click="showModal = false"
     ></div>
 
     <div
-        class="fixed inset-0 flex items-center justify-center z-[55]"
+        class="fixed inset-0 flex items-center justify-center z-[100]"
         x-show="showModal"
         x-transition.scale
     >
-        <div class="bg-white dark:bg-zinc-900 flex flex-col gap-2 rounded-xl shadow-lg max-w-md w-full mx-4 p-6">
-                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 mx-auto">
-                    <x-heroicon-o-arrow-left-end-on-rectangle class="w-10 h-10 text-blue-500" />
+        <div class="bg-white dark:bg-zinc-900 flex flex-col gap-2 rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden">
+                <div class="relative">
+                    <img src="{{ asset('/images/logout_bg.png') }}"
+                        class="w-full h-48 sm:h-56 object-cover"
+                        alt="Log Out Background">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
 
                 <div class="flex flex-col gap-2 justify-center items-center">
@@ -27,13 +30,13 @@
                         Confirm Logout
                     </h2>
 
-                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
                         Are you sure you want to log out of your account?
                     </p>
                 </div>
 
                 <div wire:loading.remove wire:target="logout">
-                    <div class="flex items-center justify-center w-full gap-3 mt-4">
+                    <div class="flex items-center justify-center w-full gap-3 mt-4 p-6">
                         <button
                             type="button"
                             @click="showModal = false"

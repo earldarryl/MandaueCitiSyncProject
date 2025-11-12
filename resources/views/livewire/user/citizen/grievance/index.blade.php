@@ -719,6 +719,56 @@
                 </div>
             @endforeach
 
+            <div x-data="{ showFeedbackModal: @entangle('showFeedbackModal') }">
+                <div
+                    x-show="showFeedbackModal"
+                    x-transition.opacity
+                    class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+                >
+                    <div
+                        class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl w-[90%] sm:w-[32rem] overflow-hidden border border-gray-100 dark:border-zinc-700"
+                    >
+                        <div class="relative">
+                            <img
+                                src="{{ asset('/images/feedback-img.jpg') }}"
+                                class="w-full h-48 sm:h-56 object-cover"
+                                alt="Feedback Background"
+                            >
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        </div>
+
+                        <div class="p-6 space-y-6 text-center">
+                            <p class="text-base text-gray-800 dark:text-gray-200 font-medium">
+                                Would you like to share your experience about the grievance process?
+                            </p>
+
+                            <div class="flex items-center justify-center gap-2">
+                                <flux:checkbox wire:model="dontShowAgain" />
+                                <flux:label class="text-sm text-gray-700 dark:text-gray-300">
+                                    Don’t show this message again
+                                </flux:label>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                                <a
+                                    href="{{ route('citizen.feedback-form') }}"
+                                    wire:navigate
+                                    class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                                >
+                                    Give Feedback
+                                </a>
+                                <button
+                                    wire:click="closeFeedbackModal"
+                                    class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-all duration-200"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="p-4">
                 {{ $grievances->links() }}
             </div>
