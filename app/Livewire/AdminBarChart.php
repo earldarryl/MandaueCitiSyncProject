@@ -6,10 +6,12 @@ use App\Models\UserInfo;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
+
 class AdminBarChart extends ChartWidget
 {
     public ?string $startDate = null;
     public ?string $endDate = null;
+
     public function getHeading(): string | HtmlString | null
     {
         return new HtmlString(<<<HTML
@@ -43,18 +45,27 @@ class AdminBarChart extends ChartWidget
                     <div x-show="open" x-collapse
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
-                        This bar chart displays the number of <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        registered users</span> across different barangays.
+                        This bar chart displays the number of
+                        <span class="font-semibold text-gray-800 dark:text-gray-300">registered users</span>
+                        across different barangays in Mandaue City.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To visualize the population distribution and identify which barangays have higher registration activity.
+                        To visualize population distribution and identify barangays with higher registration activity.
                     </div>
                 </div>
             </div>
         HTML);
     }
+
     protected function getData(): array
     {
+        $fullBarangays = [
+            'Alang-Alang','Bakilid','Banilad','Basak','Cabancalan','Cambaro','Canduman',
+            'Casili','Casuntingan','Centro','Cubacub','Guizo','Ibabao-Estancia','Jagobiao',
+            'Labogon','Looc','Maguikay','Mantuyong','Opao','Pagsabungan','Pakna-an',
+            'Subangdaku','Tabok','Tawason','Tingub','Tipolo','Umapad',
+        ];
+
         $barangayData = UserInfo::query()
             ->join('users', 'user_infos.user_id', '=', 'users.id')
             ->when($this->startDate, fn($q) =>
@@ -66,19 +77,30 @@ class AdminBarChart extends ChartWidget
             ->orderBy('user_infos.barangay', 'asc')
             ->get();
 
-        $labels = $barangayData->pluck('barangay')->toArray();
-        $values = $barangayData->pluck('total')->toArray();
+        $dataMap = $barangayData->pluck('total', 'barangay')->toArray();
+
+        $labels = [];
+        $values = [];
+        foreach ($fullBarangays as $barangay) {
+            $labels[] = $barangay;
+            $values[] = $dataMap[$barangay] ?? 0;
+        }
+
+        $colors = [
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+            '#06B6D4', '#84CC16', '#EC4899', '#14B8A6', '#F97316',
+            '#6366F1', '#22C55E', '#EAB308', '#DC2626', '#A855F7',
+            '#0EA5E9', '#65A30D', '#BE185D', '#0D9488', '#EA580C',
+            '#2563EB', '#16A34A', '#CA8A04', '#B91C1C', '#7C3AED',
+            '#0284C7', '#15803D'
+        ];
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Population',
+                    'label' => 'Registered Users',
                     'data' => $values,
-                    'backgroundColor' => [
-                        '#4F46E5', '#22C55E', '#F59E0B', '#EF4444',
-                        '#06B6D4', '#8B5CF6', '#84CC16', '#EC4899',
-                        '#14B8A6', '#F97316',
-                    ],
+                    'backgroundColor' => $colors,
                     'borderColor' => '#1E3A8A',
                     'borderWidth' => 1,
                 ],
@@ -95,6 +117,7 @@ class AdminBarChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'responsive' => true,
             'plugins' => [
                 'legend' => [
                     'display' => true,
@@ -104,8 +127,15 @@ class AdminBarChart extends ChartWidget
                 ],
                 'title' => [
                     'display' => true,
-                    'text' => 'Registered Users per Barangay',
+                    'text' => 'Registered Users per Barangay - Mandaue City',
                     'font' => ['size' => 16, 'weight' => '600'],
+                ],
+                'tooltip' => [
+                    'enabled' => true,
+                    'cornerRadius' => 8,
+                    'padding' => 8,
+                    'titleFont' => ['size' => 14, 'weight' => 'bold'],
+                    'bodyFont' => ['size' => 12],
                 ],
             ],
             'scales' => [
@@ -115,10 +145,19 @@ class AdminBarChart extends ChartWidget
                         'display' => true,
                         'text' => 'Total Users',
                     ],
+                    'ticks' => [
+                        'precision' => 0,
+                    ],
+                ],
+                'x' => [
+                    'ticks' => [
+                        'autoSkip' => false,
+                        'maxRotation' => 45,
+                        'minRotation' => 0,
+                        'font' => ['size' => 11],
+                    ],
                 ],
             ],
         ];
     }
-
-
 }

@@ -4,8 +4,6 @@
     'options' => [],
 ])
 
-
-
 <div
     x-data="{
         open: false,

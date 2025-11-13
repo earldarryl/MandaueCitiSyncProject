@@ -86,15 +86,12 @@
                             </div>
 
                             <div class="w-full flex flex-col items-center justify-center select-none py-6">
-                                <!-- Step Circles & Connecting Lines -->
                                 <div class="relative w-full max-w-3xl px-8">
                                     <div class="relative flex items-center justify-between">
-                                        <!-- Base Gray Line (behind circles) -->
                                         <div
                                             class="absolute top-6 left-[0%] right-[0%] h-[3px] w-full bg-gray-200 dark:bg-zinc-700 rounded-full transform -translate-y-1/2"
                                         ></div>
 
-                                        <!-- Active Blue Progress Line -->
                                         <div
                                             class="absolute top-6 left-[0%] right-[0%] h-[3px] w-full bg-blue-500 rounded-full transform -translate-y-1/2 transition-all duration-700 ease-in-out"
                                             :style="{
@@ -109,7 +106,6 @@
                                             }"
                                         ></div>
 
-                                        <!-- Steps (Circles + Labels) -->
                                         <div class="relative flex w-full justify-between">
                                             <template x-for="(label, index) in ['Personal Info', 'Account Info', 'Summary']" :key="index">
                                                 <div
@@ -120,7 +116,6 @@
                                                         'items-end': index === 2
                                                     }"
                                                 >
-                                                    <!-- Step Circle -->
                                                     <div
                                                         class="flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-500 ease-in-out"
                                                         :class="{
@@ -128,12 +123,10 @@
                                                             'bg-gray-300 text-gray-500 dark:bg-zinc-700 dark:text-gray-400': currentPage < index + 1
                                                         }"
                                                     >
-                                                        <!-- Show check icon if completed -->
                                                         <template x-if="currentPage > index + 1">
                                                             <flux:icon.check />
                                                         </template>
 
-                                                        <!-- Show icon depending on step if not completed -->
                                                         <template x-if="currentPage <= index + 1">
                                                             <span>
                                                                 <template x-if="index === 0">
@@ -149,7 +142,6 @@
                                                         </template>
                                                     </div>
 
-                                                    <!-- Label -->
                                                     <span
                                                         class="mt-2 text-sm font-bold transition-colors text-center"
                                                         :class="currentPage >= index + 1 ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
@@ -266,7 +258,7 @@
                                                                 <x-searchable-select
                                                                     name="suffix"
                                                                     placeholder="Select a suffix"
-                                                                    :options="['N/A', 'Jr.', 'Sr.']"
+                                                                    :options="['N/A', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']"
                                                                 />
 
                                                     </flux:input.group>
@@ -311,8 +303,17 @@
                                                         <x-searchable-select
                                                             name="civil_status"
                                                             placeholder="Select a civil status"
-                                                            :options="['Single', 'Married', 'Divorced']"
-                                                            />
+                                                            :options="[
+                                                                'Single',
+                                                                'Married',
+                                                                'Widowed',
+                                                                'Separated',
+                                                                'Annulled',
+                                                                'Divorced',
+                                                                'Live-in',
+                                                                'Prefer not to say'
+                                                            ]"
+                                                        />
 
                                             </flux:input.group>
                                             </div>
@@ -351,8 +352,36 @@
                                                     <x-searchable-select
                                                         name="barangay"
                                                         placeholder="Select a barangay"
-                                                        :options="['Labogon', 'Paknaan', 'Tabok', 'Pajara', 'Jagobiao', 'Latasan']"
-                                                        />
+                                                        :options="[
+                                                            'Alang-alang',
+                                                            'Bakilid',
+                                                            'Banilad',
+                                                            'Basak',
+                                                            'Cabancalan',
+                                                            'Cambaro',
+                                                            'Canduman',
+                                                            'Casili',
+                                                            'Centro',
+                                                            'Cubacub',
+                                                            'Guizo',
+                                                            'Ibabao-Estancia',
+                                                            'Jagobiao',
+                                                            'Labogon',
+                                                            'Looc',
+                                                            'Maguikay',
+                                                            'Mantuyong',
+                                                            'Opao',
+                                                            'Paknaan',
+                                                            'Pagsabungan',
+                                                            'Subangdaku',
+                                                            'Tabok',
+                                                            'Tawason',
+                                                            'Tingub',
+                                                            'Tipolo',
+                                                            'Umapad',
+                                                            'Casuntingan'
+                                                        ]"
+                                                    />
 
                                             </flux:input.group>
                                             </div>
@@ -478,7 +507,6 @@
                                                     }"
                                                 >
                                                     <flux:input.group.prefix class="flex gap-2 justify-center items-center">
-                                                        <!-- flag / prefix -->
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 72 72">
                                                             <path fill="#1e50a0" d="M5 17h62v38H5z" />
                                                             <path fill="#d22f27" d="M5 36h62v19H5z" />
@@ -492,7 +520,7 @@
                                                         x-model="contact"
                                                         id="contact_number"
                                                         type="text"
-                                                        name="contact_number"
+                                                        name="contact"
                                                         maxlength="12"
                                                         inputmode="numeric"
                                                         placeholder="912-345-6789"
@@ -718,7 +746,7 @@
 
                                             <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                                                 <div class="flex gap-2 justify-start bg-blue-500 px-5 py-4 flex items-center justify-between">
-                                                    <x-heroicon-o-user class="w-6 h-6"/>
+                                                    <x-heroicon-o-user class="w-6 h-6 text-white"/>
                                                     <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Personal Information</h2>
                                                 </div>
 
@@ -745,7 +773,7 @@
 
                                             <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                                                 <div class="flex gap-2 justify-start bg-blue-500 px-5 py-4">
-                                                    <x-heroicon-o-user-circle class="w-6 h-6"/>
+                                                    <x-heroicon-o-user-circle class="w-6 h-6 text-white"/>
                                                     <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Account Information</h2>
                                                 </div>
 
@@ -765,7 +793,7 @@
 
                                             <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                                                 <div class="flex gap-2 justify-start bg-blue-500 px-5 py-4">
-                                                    <x-heroicon-o-users class="w-6 h-6"/>
+                                                    <x-heroicon-o-users class="w-6 h-6 text-white"/>
                                                     <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Emergency Contact Information</h2>
                                                 </div>
 

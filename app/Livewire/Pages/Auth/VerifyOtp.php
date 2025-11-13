@@ -23,10 +23,15 @@ class VerifyOtp extends Component
 
    public function mount()
     {
-        if (request()->query('trigger') == 1) {
+        $trigger = request()->query('trigger');
+
+        if ($trigger && session('email_verify_trigger') === $trigger) {
+            session()->forget('email_verify_trigger');
+
             $this->sendOtpInternal();
         }
     }
+
 
     private function getLimiterKey(): string
     {

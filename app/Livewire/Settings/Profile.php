@@ -13,13 +13,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-// Filament schema-based APIs (v4+)
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Schema;
 
-// Filament form field(s)
 use Filament\Forms\Components\FileUpload;
 
 #[Layout('layouts.app')]
@@ -35,13 +34,14 @@ class Profile extends Component implements HasSchemas
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
     public bool $showMyModal = false;
+    public bool $showProfileEditModal = false;
 
-    // Filament form state (statePath('data') below)
     public array $data = [];
 
-    // Track original values
     public string $originalName = '';
     public string $originalEmail = '';
+
+    public $authUser;
     protected $listeners = ['reset-form' => 'resetForm'];
     public function resetForm(): void
     {
@@ -72,6 +72,7 @@ class Profile extends Component implements HasSchemas
     {
         $user = Auth::user();
 
+        $this->authUser = $user;
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
         $this->current_profile_pic = $user->profile_pic;
@@ -79,9 +80,6 @@ class Profile extends Component implements HasSchemas
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
-        $this->form->fill([
-            'profile_pic' => $user->profile_pic,
-        ]);
     }
 
     public function form(Schema $schema): Schema
@@ -94,7 +92,6 @@ class Profile extends Component implements HasSchemas
                     ->directory('profile_pics')
                     ->image()
                     ->imageEditor()
-                    ->circleCropper()
                     ->maxSize(2048)
                     ->hiddenLabel(true)
             ])
@@ -134,6 +131,8 @@ class Profile extends Component implements HasSchemas
             ->title('Profile picture updated!')
             ->success()
             ->send();
+
+        $this->showProfileEditModal = false;
     }
 
     public function isDirty(string $field): bool
@@ -184,7 +183,10 @@ class Profile extends Component implements HasSchemas
 
     public function redirectEmailVerify()
     {
-        return $this->redirect(route('verification.notice', ['trigger' => 1]), navigate: true);
+        $trigger = Str::uuid()->toString();
+        session(['email_verify_trigger' => $trigger]);
+
+        return $this->redirect(route('verification.notice', ['trigger' => $trigger]), navigate: true);
     }
 
     public function updatePassword(): void
@@ -207,7 +209,7 @@ class Profile extends Component implements HasSchemas
         $this->reset('current_password', 'password', 'password_confirmation');
 
         Notification::make()
-            ->title('Password updated ✅')
+            ->title('Password updated')
             ->success()
             ->send();
     }

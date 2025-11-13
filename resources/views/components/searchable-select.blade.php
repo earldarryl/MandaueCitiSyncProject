@@ -20,6 +20,7 @@
         selected: @entangle($name),
         search: '',
         optionsMap: @js($normalized),
+        highlightedIndex: -1, // Track highlighted option
 
         get optionsList() {
             return Object.entries(this.optionsMap);
@@ -36,6 +37,7 @@
             $wire.set('{{ $name }}', key, true);
             this.open = false;
             this.search = '';
+            this.highlightedIndex = -1;
         },
 
         get displayValue() {
@@ -49,16 +51,27 @@
             $wire.set('{{ $name }}', selected, true);
         }
 
+        $watch('displayValue', (val) => {
+            {{ $name }} = val;
+            $wire.set('{{ $name }}', val, true);
+        });
+
         window.addEventListener('clear', () => {
             selected = '';
             search = '';
+            highlightedIndex = -1;
             $wire.set('{{ $name }}', selected, true);
         });
     "
     class="relative w-full !cursor-pointer"
 >
     <!-- Input -->
-    <div @click="open = !open" class="relative !cursor-pointer">
+    <div
+        @click="open = !open; if(open) highlightedIndex=0"
+        @keydown.enter.prevent="open = true; highlightedIndex=0"
+        tabindex="0"
+        class="relative !cursor-pointer"
+    >
         <flux:input
             readonly
             placeholder="{{ $placeholder }}"
@@ -73,11 +86,7 @@
                 variant="subtle"
                 icon="x-mark"
                 class="h-5 w-5"
-                @click.stop="
-                    selected = '';
-                    search = '';
-                    $wire.set('{{ $name }}', selected, true);
-                "
+                @click.stop="selected = ''; search = ''; highlightedIndex=-1; $wire.set('{{ $name }}', selected, true);"
             />
 
             <!-- Dropdown arrow -->
@@ -95,7 +104,7 @@
     <!-- Dropdown -->
     <div
         x-show="open"
-        @click.outside="open = false"
+        @click.outside="open = false; highlightedIndex=-1"
         x-transition
         class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
     >
@@ -107,13 +116,16 @@
                 x-model="search"
                 placeholder="Search..."
                 class="w-full border-none focus:outline-none focus:ring-0 bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+                @keydown.arrow-down.prevent="if (highlightedIndex < filteredOptions.length-1) highlightedIndex++"
+                @keydown.arrow-up.prevent="if (highlightedIndex > 0) highlightedIndex--"
+                @keydown.enter.prevent="if(filteredOptions[highlightedIndex]) selectOption(filteredOptions[highlightedIndex][0])"
             />
         </div>
 
         <!-- Options -->
         <div class="max-h-48 overflow-y-auto">
             <ul class="py-1" role="listbox">
-                <template x-for="[key, label] in filteredOptions" :key="key">
+                <template x-for="[key, label], index in filteredOptions" :key="key">
                     <li>
                         <button
                             type="button"
@@ -121,7 +133,9 @@
                             class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
                             :class="selected === key
                                 ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
-                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'"
+                                : index === highlightedIndex
+                                    ? 'bg-zinc-100 dark:bg-zinc-800'
+                                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-800' "
                         >
                             <span x-text="label"></span>
                             <flux:icon.check x-show="selected === key" class="w-4 h-4" />

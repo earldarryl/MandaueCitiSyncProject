@@ -62,9 +62,31 @@
 
             <livewire:pages.auth.register />
 
-        </div>
+            <x-registration-success-modal />
+
     @endif
     @if(Route::is('hr-liaison.login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="ghost"
+                    aria-label="Switch to dark mode"
+                    class="border-none"
+                />
+            </template>
+        </div>
         <div x-data>
             <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
@@ -84,6 +106,27 @@
         </div>
     @endif
     @if(Route::is('admin.login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="ghost"
+                    aria-label="Switch to dark mode"
+                    class="border-none"
+                />
+            </template>
+        </div>
         <div x-data>
             <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">

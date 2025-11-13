@@ -26,35 +26,102 @@
                             </flux:label>
                         </div>
 
-                        <div class="flex gap-2 justify-center items-center">
-                            {{ $this->form }}
+                        <div class="flex flex-col items-center mb-8" x-data="{ zoomSrc: null }">
+                            @php
+                                $palette = [
+                                    '0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899',
+                                    '14B8A6','6366F1','F97316','84CC16',
+                                ];
+
+                                $index = crc32($name) % count($palette);
+                                $bgColor = $palette[$index];
+
+                                $profilePic = $authUser->profile_pic
+                                    ? Storage::url($authUser->profile_pic)
+                                    : 'https://ui-avatars.com/api/?name=' . urlencode($name) .
+                                        '&background=' . $bgColor .
+                                        '&color=fff&size=128';
+                            @endphp
+
+                            <div class="relative w-48 h-48 mb-1 group cursor-pointer" @click="$wire.set('showProfileEditModal', true)">
+                                <img
+                                    src="{{ $profilePic }}"
+                                    alt="Profile Picture"
+                                    class="rounded-full w-48 h-48 object-cover border-4 border-blue-500 shadow-md transition-transform duration-300 group-hover:scale-105"
+                                />
+
+                                <div
+                                    class="absolute inset-0 bg-black/50 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="2"
+                                        stroke="white"
+                                        class="w-8 h-8 mb-1">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 8l1.89-1.89A2 2 0 017.34 6h9.32a2 2 0 011.45.61L20 8m-5 4a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span class="text-white text-sm font-semibold">Change Photo</span>
+                                </div>
+                            </div>
+
                         </div>
 
-                    </div>
-                    <div class="flex items-center justify-center w-full gap-4">
-                        <flux:button
-                            type="submit"
-                            variant="primary"
-                            color="blue"
-                            class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                            wire:target="saveProfilePic"
-                            wire:loading.attr="disabled"
-                            wire:loading.remove
+                        <flux:modal
+                            wire:model="showProfileEditModal"
+                            class="w-96"
+                            :closable="false"
+                            :dismissible="false"
                         >
-                            <span>
-                                <span class="flex items-center justify-center gap-2">
-                                    <span><flux:icon.check variant="micro"/></span>
-                                    <span>{{ __('Save') }}</span>
-                                </span>
-                            </span>
-                        </flux:button>
-                        <div wire:loading wire:target="saveProfilePic">
-                            <div class="w-full flex items-center justify-center gap-2">
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                            <div class="flex flex-col items-center justify-center w-full space-y-5">
+                                <div class="text-center space-y-1">
+                                    <span class="text-3xl font-bold text-blue-600">Edit Profile Picture</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400 block">
+                                        Choose or upload a new photo for your account.
+                                    </span>
+                                </div>
+
+                                <div class="w-full flex flex-col items-center justify-center">
+                                    {{ $this->form }}
+                                </div>
+
+                                <div class="flex items-center justify-center w-full gap-4">
+                                    <flux:button
+                                        variant="subtle"
+                                        wire:click="$set('showProfileEditModal', false)"
+                                        class="border"
+                                        wire:loading.attr="disabled"
+                                        wire:loading.remove
+                                    >
+                                        Cancel
+                                    </flux:button>
+                                    <flux:button
+                                        type="submit"
+                                        variant="primary"
+                                        color="blue"
+                                        class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                                        wire:target="saveProfilePic"
+                                        wire:loading.attr="disabled"
+                                        wire:loading.remove
+                                    >
+                                        <span>
+                                            <span class="flex items-center justify-center gap-2">
+                                                <span><flux:icon.check variant="micro"/></span>
+                                                <span>{{ __('Save') }}</span>
+                                            </span>
+                                        </span>
+                                    </flux:button>
+                                    <div wire:loading wire:target="saveProfilePic">
+                                        <div class="w-full flex items-center justify-center gap-2">
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </flux:modal>
                     </div>
                 </form>
 
@@ -94,41 +161,55 @@
                             <flux:error name="email" />
 
                                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                                        <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-96">
-                                            <div class="space-y-6">
-                                                <div>
-                                                    <flux:heading size="lg" class="flex gap-3 items-center">
-                                                        <span class="inline-flex shrink-0 rounded-full border border-pink-300 bg-pink-100 p-2 dark:border-pink-300/10 dark:bg-pink-400/10">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-pink-700 dark:text-pink-500">
-                                                                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
-                                                            </svg>
-                                                        </span>
-                                                        <span class="font-bold text-lg">Heads up!</span>
-                                                    </flux:heading>
-                                                    <flux:text class="mt-2">
-                                                        Your email is updated, please verify your email.
-                                                    </flux:text>
+                                        <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-96" :closable="false" :dismissible="false">
+                                            <div class="flex flex-col items-center justify-center w-full">
+                                                <div class="relative">
+                                                    <img
+                                                        src="{{ asset('/images/exclamation-mark.png') }}"
+                                                        class="w-full h-48 sm:h-56 object-cover rounded-t-xl"
+                                                        alt="Heads up! Background"
+                                                    >
                                                 </div>
-                                                <div class="flex">
-                                                    <flux:spacer />
-                                                    <flux:button type="button" variant="primary" wire:click="redirectEmailVerify">
-                                                        Proceed
-                                                    </flux:button>
+
+                                                <div class="flex flex-col items-center space-y-4 w-full px-4 py-6">
+                                                    <span class="text-5xl font-extrabold text-red-600 text-center">
+                                                        Heads Up!
+                                                    </span>
+
+                                                    <span class="text-lg font-bold text-center text-gray-800 dark:text-gray-200">
+                                                        Your email has been updated.
+                                                    </span>
+
+                                                    <span class="text-sm text-center font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
+                                                        Please verify your email to continue using your account. Click the button below to proceed to verification.
+                                                    </span>
+
+                                                    <div wire:loading.remove wire:target="redirectEmailVerify" class="mt-4">
+                                                        <flux:button type="button" variant="primary" wire:click="redirectEmailVerify" class="w-full">
+                                                            Proceed to Verify
+                                                        </flux:button>
+                                                    </div>
+
+                                                    <div wire:loading wire:target="redirectEmailVerify" class="flex items-center justify-center gap-2 mt-4">
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </flux:modal>
                                     @endif
                         </flux:field>
 
-                        <div class="flex items-center justify-center gap-4">
+                        <div class="flex items-center justify-center w-full gap-4">
                             <flux:button
                                 type="submit"
                                 variant="primary"
                                 color="blue"
-                                class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                                class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
                                 wire:target="updateProfileInformation"
                                 wire:loading.attr="disabled"
-                                wire.loading.remove
+                                wire:loading.remove
                             >
                                 <span>
                                     <span class="flex items-center justify-center gap-2">
@@ -229,20 +310,20 @@
                 <flux:error name="password_confirmation" />
             </flux:field>
 
-            <div class="flex items-center justify-center gap-4">
+            <div class="flex items-center justify-center w-full gap-4">
                 <flux:button
+                    type="submit"
                     variant="primary"
                     color="blue"
                     class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                    wire:click="updatePassword"
+                    wire:target="updatePassword"
                     wire:loading.attr="disabled"
-                    wire:loading.class="cursor-not-allowed"
                     wire:loading.remove
-                    >
+                >
                     <span>
                         <span class="flex items-center justify-center gap-2">
-                            <span><flux:icon.arrow-right-circle variant="micro"/></span>
-                            <span>{{ __('Save') }} </span>
+                            <span><flux:icon.check variant="micro"/></span>
+                            <span>{{ __('Save') }}</span>
                         </span>
                     </span>
                 </flux:button>

@@ -58,7 +58,7 @@
                 </div>
 
                 <div wire:loading wire:target="logout">
-                    <div class="flex items-center justify-center gap-2 w-full py-2">
+                    <div class="flex items-center justify-center gap-2 w-full py-4">
                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>

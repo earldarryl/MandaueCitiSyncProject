@@ -3,6 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+Route::get('emails/verify-otp', function () {
+    return view('emails.verify-otp');
+});
+Route::get('emails/reset-password', function () {
+    return view('emails.reset-password');
+});
+
 Route::middleware('guest')->group(function () {
     Volt::route('/', 'pages.auth.login')->name('login');
     Volt::route('/admin', 'pages.auth.admin.login')->name('admin.login');

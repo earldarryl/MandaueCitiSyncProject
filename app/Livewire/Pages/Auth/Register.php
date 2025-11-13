@@ -195,8 +195,12 @@ class Register extends Component
                 'middle_name' => ucwords(strtolower(trim($validated['middle_name']))),
                 'last_name' => ucwords(strtolower(trim($validated['last_name']))),
                 'suffix' => trim($validated['suffix']) === 'N/A' ? null : ucwords(strtolower(trim($validated['suffix']))),
-                'gender' => ucwords(strtolower(trim($validated['gender']))),
-                'civil_status' => ucwords(strtolower(trim($validated['civil_status']))),
+                'gender' => strtolower(trim($validated['gender'])) === 'prefer not to say'
+                    ? 'N/A'
+                    : ucwords(strtolower(trim($validated['gender']))),
+                'civil_status' => strtolower(trim($validated['civil_status'])) === 'prefer not to say'
+                    ? 'N/A'
+                    : ucwords(strtolower(trim($validated['civil_status']))),
                 'barangay' => ucwords(strtolower(trim($validated['barangay']))),
                 'sitio' => ucwords(strtolower(trim($validated['sitio']))),
                 'birthdate' => $validated['birthdate'],

@@ -5,7 +5,6 @@
         </h1>
     </div>
 
-
     <form wire:submit="login" class="flex flex-col gap-5">
         <flux:error name="status" />
             <flux:field>
@@ -132,21 +131,18 @@
                     }
                 })
             "
-            class="flex flex-col items-center justify-center space-y-4 w-full"
+            class="flex flex-col items-center justify-center w-full"
         >
-            <!-- Header -->
-            <div class="bg-green-600/30 flex flex-col items-center justify-center p-6 w-full rounded-t-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor"
-                    class="w-52 h-52 text-green-500">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
+            <div class="relative">
+                <img
+                    src="{{ asset('/images/check.png') }}"
+                    class="w-full h-48 sm:h-56 object-cover"
+                    alt="Login Success Background"
+                >
             </div>
 
-            <!-- Body -->
             <div class="flex flex-col items-center space-y-3 w-full">
-                <span class="text-4xl font-bold">Success</span>
+                <span class="text-4xl font-bold text-blue-600">Success</span>
                 <span class="text-[22px] font-bold text-center text-gray-700 dark:text-gray-200">
                     You have successfully logged in!
                 </span>
@@ -162,5 +158,50 @@
             </div>
         </div>
     </flux:modal>
+
+    <div
+        x-data="{ open: false }"
+        x-init="@if(session('message')) open = true; @endif"
+        x-cloak
+        x-show="open"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+    >
+        <div
+            x-show="open"
+            x-transition.opacity
+            class="fixed inset-0 bg-black/50"
+        ></div>
+
+        <div
+            x-show="open"
+            x-transition
+            class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg max-w-md w-full p-6 flex flex-col items-center gap-4 z-50"
+        >
+            <div class="relative">
+                <img
+                    src="{{ asset('/images/check.png') }}"
+                    class="w-full h-48 sm:h-56 object-cover"
+                    alt="Registration Success Background"
+                >
+            </div>
+
+            <div class="flex flex-col items-center space-y-2 w-full">
+                <span class="text-4xl font-bold text-blue-600">Success!</span>
+                <span class="text-md font-semibold text-center text-gray-700 dark:text-gray-200">
+                    {{ session('message') }}
+                </span>
+                <span class="text-sm font-semibold text-center">
+                    You can now proceed.
+                </span>
+            </div>
+            <flux:button
+                icon="x-mark"
+                variant="subtle"
+                @click="open = false"
+            >
+                Close
+            </flux:button>
+        </div>
+    </div>
 
 </div>

@@ -40,7 +40,7 @@ class AdminFeedbackChartDashboard extends ChartWidget
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 6v6h6M6 12v6h6"/>
                             </svg>
-                            <span>Satisfied Users Summary</span>
+                            <span>User Satisfaction Summary</span>
                         </h2>
                     </div>
                 </div>
@@ -60,14 +60,16 @@ class AdminFeedbackChartDashboard extends ChartWidget
                     <div x-show="open" x-collapse
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
-                        This pie chart shows the number of <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        satisfied users</span> based on feedback within the selected date range
+                        This pie chart shows the distribution of user feedback categorized as
+                        <span class="font-semibold text-green-600">Satisfied</span> or
+                        <span class="font-semibold text-red-600">Dissatisfied</span> users
+                        within the selected date range
                         (<strong>{$this->startDate}</strong> to <strong>{$this->endDate}</strong>).
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Total feedbacks:</span> {$totalFeedbacks}.
                         <br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To help admins evaluate service satisfaction and user contentment.
+                        To help admins assess both satisfaction and dissatisfaction levels.
                     </div>
                 </div>
             </div>
@@ -87,24 +89,32 @@ class AdminFeedbackChartDashboard extends ChartWidget
 
         $feedbacks = $query->get();
         $totalFeedbacks = $feedbacks->count();
+
         $satisfiedCount = 0;
+        $dissatisfiedCount = 0;
 
         foreach ($feedbacks as $feedback) {
-            if ($this->summarizeSQD($feedback) === 'Most Agree') {
+            $summary = $this->summarizeSQD($feedback);
+            if ($summary === 'Most Agree') {
                 $satisfiedCount++;
+            } elseif ($summary === 'Most Disagree') {
+                $dissatisfiedCount++;
             }
         }
 
-        $percent = $totalFeedbacks > 0 ? round(($satisfiedCount / $totalFeedbacks) * 100, 1) : 0;
-        $label = "Satisfied Users ({$satisfiedCount} - {$percent}%)";
+        $satisfiedPercent = $totalFeedbacks > 0 ? round(($satisfiedCount / $totalFeedbacks) * 100, 1) : 0;
+        $dissatisfiedPercent = $totalFeedbacks > 0 ? round(($dissatisfiedCount / $totalFeedbacks) * 100, 1) : 0;
 
         return [
-            'labels' => [$label],
+            'labels' => [
+                "Satisfied Users ({$satisfiedCount} - {$satisfiedPercent}%)",
+                "Dissatisfied Users ({$dissatisfiedCount} - {$dissatisfiedPercent}%)",
+            ],
             'datasets' => [
                 [
-                    'label' => 'Satisfied Users',
-                    'data' => [$satisfiedCount],
-                    'backgroundColor' => ['#10B981'],
+                    'label' => 'User Feedback Distribution',
+                    'data' => [$satisfiedCount, $dissatisfiedCount],
+                    'backgroundColor' => ['#10B981', '#EF4444'],
                     'borderColor' => '#fff',
                     'borderWidth' => 2,
                 ],
@@ -155,9 +165,6 @@ class AdminFeedbackChartDashboard extends ChartWidget
         return 'full';
     }
 
-    /**
-     * Summarize SQD answers (Most Agree / Most Disagree / Neutral)
-     */
     protected function summarizeSQD($feedback): string
     {
         $answers = is_array($feedback->answers)
