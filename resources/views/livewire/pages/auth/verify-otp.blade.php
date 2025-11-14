@@ -102,7 +102,6 @@
                         variant="danger"
                         color="rose"
                         icon="arrow-left-end-on-rectangle"
-                        wire:loading.attr="disabled"
                         class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
                     >
                         {{ __('Log Out') }}

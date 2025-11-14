@@ -1,4 +1,4 @@
-<div class="flex flex-col h-full rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-200 dark:bg-gray-800 overflow-hidden">
+<div class="flex flex-col h-[500px] rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-200 dark:bg-gray-800 overflow-hidden">
 
     <div
         id="chat-box"
@@ -203,7 +203,7 @@
         @endif
     </div>
 
-    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-black p-3">
+    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-black p-3 flex-shrink-0">
         <form wire:submit.prevent="sendMessage" class="flex items-center gap-3">
             <div class="flex flex-1 items-center border border-gray-300 dark:border-zinc-700 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
                 <input

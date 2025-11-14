@@ -29,3 +29,5 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <!-- Flowbite Js -->
         <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+        <!-- Pusher JS -->
+        <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>

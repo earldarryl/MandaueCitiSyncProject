@@ -1,43 +1,51 @@
 <div class="w-full mx-auto p-2">
 
-    <div class="w-full grid grid-cols-2 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
-        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
-                    border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm
-                    hover:shadow-lg hover:brightness-105 hover:scale-105
-                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
+
+        <div
+            class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
             <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
-                        dark:border-zinc-700 group-hover:scale-110 group-hover:shadow-lg transition-transform duration-300">
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.calendar class="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <p class="text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Account Created</p>
-            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $accountCreated }}</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Account Created</p>
+            <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{{ $accountCreated }}</p>
         </div>
 
-        <div class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
-                    border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm
-                    hover:shadow-lg hover:brightness-105 hover:scale-105
-                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+        <div
+            class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
             <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
-                        dark:border-zinc-700 group-hover:scale-110 group-hover:shadow-lg transition-transform duration-300">
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.building-office class="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <p class="text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Departments</p>
-            <p class="text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $totalDepartments }}</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Departments</p>
+            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $totalDepartments }}</p>
         </div>
 
-        <div class="group relative bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-zinc-800 dark:to-zinc-900
-                    border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm
-                    hover:shadow-lg hover:brightness-105 hover:scale-105
-                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+        <div
+            class="group relative bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-amber-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
             <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-amber-200/50
-                        dark:border-zinc-700 group-hover:scale-110 group-hover:shadow-lg transition-transform duration-300">
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
                 <flux:icon.user-group class="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
             </div>
-            <p class="text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Recent Department</p>
-            <p class="text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Recent Department</p>
+            <p class="relative text-3xl font-bold text-yellow-500 dark:text-yellow-400 tracking-tight">
                 {{ $recentDepartment ? $recentDepartment->department_name : 'N/A' }}
             </p>
         </div>
+
     </div>
 
    @php

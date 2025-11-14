@@ -24,7 +24,6 @@
 
     @livewire('notifications')
 
-
     @if(Route::is('password.confirm'))
         <div class="flex h-full w-full justify-center items-center">
             {{ $slot }}
@@ -65,7 +64,7 @@
             userId: {{ auth()->id() ?? 'null' }},
         };
     </script>
-    @vite('resources/js/echo.js')
+    @vite('resources/js/pusher-echo.js')
     @filamentScripts
     @fluxScripts
 

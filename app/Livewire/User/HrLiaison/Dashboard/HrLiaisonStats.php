@@ -7,7 +7,7 @@ use App\Models\Grievance;
 use App\Models\HrLiaisonDepartment;
 use App\Models\User;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Cache;
 class HrLiaisonStats extends Widget
 {
     protected string $view = 'livewire.user.hr-liaison.dashboard.hr-liaison-stats';
@@ -52,49 +52,74 @@ class HrLiaisonStats extends Widget
 
     protected function calculateStats(): void
     {
-        $start = Carbon::parse($this->startDate)->startOfDay();
-        $end = Carbon::parse($this->endDate)->endOfDay();
-        $userId = auth()->id();
+        $cacheKey = 'hr_liaison_stats_' . auth()->id() . '_' . $this->startDate . '_' . $this->endDate;
 
-        $baseQuery = Grievance::whereBetween('created_at', [$start, $end])
-            ->whereHas('assignments', function ($q) use ($userId) {
-                $q->where('hr_liaison_id', $userId);
-            });
+        $cachedStats = Cache::remember($cacheKey, now()->addMinutes(5), function () {
+            $start = Carbon::parse($this->startDate)->startOfDay();
+            $end = Carbon::parse($this->endDate)->endOfDay();
+            $userId = auth()->id();
 
-        $this->pending = (clone $baseQuery)->where('grievance_status', 'pending')->count();
-        $this->acknowledged = (clone $baseQuery)->where('grievance_status', 'acknowledged')->count();
-        $this->inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
-        $this->escalated = (clone $baseQuery)->where('grievance_status', 'escalated')->count();
-        $this->resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
-        $this->unresolved = (clone $baseQuery)->where('grievance_status', 'unresolved')->count();
-        $this->closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
+            $baseQuery = Grievance::whereBetween('created_at', [$start, $end])
+                ->whereHas('assignments', function ($q) use ($userId) {
+                    $q->where('hr_liaison_id', $userId);
+                });
 
-        $this->overdue = (clone $baseQuery)
-            ->whereNotIn('grievance_status', ['resolved', 'closed', 'unresolved'])
-            ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])
-            ->count();
+            $pending = (clone $baseQuery)->where('grievance_status', 'pending')->count();
+            $acknowledged = (clone $baseQuery)->where('grievance_status', 'acknowledged')->count();
+            $inProgress = (clone $baseQuery)->where('grievance_status', 'in_progress')->count();
+            $escalated = (clone $baseQuery)->where('grievance_status', 'escalated')->count();
+            $resolved = (clone $baseQuery)->where('grievance_status', 'resolved')->count();
+            $unresolved = (clone $baseQuery)->where('grievance_status', 'unresolved')->count();
+            $closed = (clone $baseQuery)->where('grievance_status', 'closed')->count();
 
-        $this->totalReceived = (clone $baseQuery)->count();
+            $overdue = (clone $baseQuery)
+                ->whereNotIn('grievance_status', ['resolved', 'closed', 'unresolved'])
+                ->whereRaw('DATE_ADD(created_at, INTERVAL processing_days DAY) < ?', [now()])
+                ->count();
 
-        $this->latestGrievanceTicketId = (clone $baseQuery)
-            ->orderBy('created_at', 'desc')
-            ->value('grievance_ticket_id');
+            $totalReceived = (clone $baseQuery)->count();
 
-        $this->citizenCount = (clone $baseQuery)
-            ->distinct('user_id')
-            ->count('user_id');
+            $latestGrievanceTicketId = (clone $baseQuery)
+                ->orderBy('created_at', 'desc')
+                ->value('grievance_ticket_id');
 
-        $departmentIds = HrLiaisonDepartment::where('hr_liaison_id', $userId)
-            ->pluck('department_id');
+            $citizenCount = (clone $baseQuery)
+                ->distinct('user_id')
+                ->count('user_id');
 
-        $fiveMinutesAgo = now()->subMinutes(5);
+            $departmentIds = HrLiaisonDepartment::where('hr_liaison_id', $userId)
+                ->pluck('department_id');
 
-        $this->activeFellowHrLiaisons = User::whereHas('departments', function ($q) use ($departmentIds) {
-                $q->whereIn('departments.department_id', $departmentIds);
-            })
-            ->where('id', '!=', $userId)
-            ->whereNotNull('last_seen_at')
-            ->where('last_seen_at', '>', $fiveMinutesAgo)
-            ->count();
+            $fiveMinutesAgo = now()->subMinutes(5);
+
+            $activeFellowHrLiaisons = User::whereHas('departments', function ($q) use ($departmentIds) {
+                    $q->whereIn('departments.department_id', $departmentIds);
+                })
+                ->where('id', '!=', $userId)
+                ->whereNotNull('last_seen_at')
+                ->where('last_seen_at', '>', $fiveMinutesAgo)
+                ->count();
+
+            return compact(
+                'pending', 'acknowledged', 'inProgress', 'escalated',
+                'resolved', 'unresolved', 'closed', 'overdue',
+                'totalReceived', 'latestGrievanceTicketId', 'citizenCount',
+                'activeFellowHrLiaisons'
+            );
+        });
+
+        $this->pending = $cachedStats['pending'];
+        $this->acknowledged = $cachedStats['acknowledged'];
+        $this->inProgress = $cachedStats['inProgress'];
+        $this->escalated = $cachedStats['escalated'];
+        $this->resolved = $cachedStats['resolved'];
+        $this->unresolved = $cachedStats['unresolved'];
+        $this->closed = $cachedStats['closed'];
+        $this->overdue = $cachedStats['overdue'];
+        $this->totalReceived = $cachedStats['totalReceived'];
+        $this->latestGrievanceTicketId = $cachedStats['latestGrievanceTicketId'];
+        $this->citizenCount = $cachedStats['citizenCount'];
+        $this->activeFellowHrLiaisons = $cachedStats['activeFellowHrLiaisons'];
     }
+
 }

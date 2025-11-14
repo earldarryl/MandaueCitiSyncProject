@@ -103,14 +103,24 @@ class DashboardGrievanceTable extends TableWidget
                     ->searchable()
                     ->copyable()
                     ->copyMessage('Ticket ID copied!')
-                    ->weight('bold')
-                    ->color('primary'),
+                    ->color('info')
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('grievance_title')
                     ->label('Title')
                     ->sortable()
                     ->searchable()
-                    ->weight('bold'),
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('grievance_status')
                     ->label('Status')
@@ -134,26 +144,41 @@ class DashboardGrievanceTable extends TableWidget
                         'danger' => 'unresolved',
                         'secondary' => 'closed',
                     ])
-                    ->weight('bold')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('grievance_type')
                     ->label('Type')
                     ->badge()
                     ->colors([
                         'danger' => 'Complaint',
-                        'info' => 'Request',
-                        'success' => 'Inquiry',
+                        'success' => 'Request',
+                        'info' => 'Inquiry',
                     ])
-                    ->weight('bold')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                     TextColumn::make('grievance_category')
                         ->label('Category')
                         ->badge()
                         ->colors(['info' ])
-                        ->weight('bold')
-                        ->sortable(),
+                        ->sortable()
+                        ->extraAttributes([
+                            'class' => 'text-[12px] font-bold text-center',
+                        ])
+                        ->extraHeaderAttributes([
+                            'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                        ]),
 
                 TextColumn::make('priority_level')
                     ->label('Priority')
@@ -163,8 +188,13 @@ class DashboardGrievanceTable extends TableWidget
                         'info' => 'Normal',
                         'danger' => 'High',
                     ])
-                    ->weight('bold')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('is_anonymous')
                     ->label('Identity')
@@ -174,7 +204,12 @@ class DashboardGrievanceTable extends TableWidget
                     ->tooltip(fn ($record) => $record->is_anonymous
                         ? 'Submitted Anonymously'
                         : $record->user?->email)
-                    ->weight('bold'),
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('user.name')
                     ->label('Submitted By')
@@ -182,14 +217,25 @@ class DashboardGrievanceTable extends TableWidget
                     ->tooltip(fn ($record) => $record->is_anonymous
                         ? 'Anonymous Grievance'
                         : $record->user?->email)
-                    ->weight('bold')
-                    ->sortable(),
+                    ->alignCenter()
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
 
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime('M d, Y • h:i A')
-                    ->weight('bold')
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'text-[12px] font-bold text-center',
+                    ])
+                    ->extraHeaderAttributes([
+                        'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
+                    ]),
             ])
             ->actions([
                 Action::make('view')

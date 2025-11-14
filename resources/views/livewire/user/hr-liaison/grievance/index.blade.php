@@ -1,4 +1,4 @@
-<div class="flex-col w-full h-full"
+<div class="p-6 space-y-6 flex-col w-full h-full"
      x-data
      x-on:close-all-modals.window="
         document.querySelectorAll('[x-data][x-show]').forEach(el => {
@@ -407,7 +407,7 @@
                             focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span>Export Selected</span>
+                        <span>Export Selected in CSV</span>
                     </button>
 
                     <button wire:click="printSelectedGrievances"

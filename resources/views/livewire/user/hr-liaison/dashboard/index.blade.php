@@ -1,4 +1,4 @@
-<div class="flex-1 flex flex-col min-h-screen bg-gray-50 dark:bg-zinc-900 relative p-4 md:p-6 lg:p-8"
+<div class="flex-1 flex flex-col w-full min-h-screen bg-gray-50 dark:bg-zinc-900 relative p-4 md:p-6 lg:p-8"
      x-data>
 
     <div wire:loading wire:target="applyDates">
@@ -59,29 +59,34 @@
             </div>
 
             <section class="w-full p-4 bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm">
-                <livewire:user.hr-liaison.dashboard.hr-liaison-stats
-                    :start-date="$startDate"
-                    :end-date="$endDate"
-                    wire:key="hr-liaison-stats-{{ $startDate }}-{{ $endDate }}"/>
+                <div x-data="{ autoRefresh: true, start: '{{ $startDate }}', end: '{{ $endDate }}' }"
+                        x-init="
+                            setInterval(() => {
+                                if(autoRefresh) $wire.call('applyDates', start, end)
+                            }, 300000);
+                        ">
+                        <livewire:user.hr-liaison.dashboard.hr-liaison-stats
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="hr-liaison-stats-{{ $startDate }}-{{ $endDate }}"/>
+                    </div>
             </section>
 
-        <section class="w-full h-full p-4 flex flex-col justify-center items-center gap-6">
-                <div class="flex flex-col lg:flex-row gap-6 w-full justify-center items-stretch">
-
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+            <section class="w-full h-full p-4 flex justify-center items-center gap-6">
+                <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
                         <livewire:grievance-statuses-polar-chart
                             :start-date="$startDate"
                             :end-date="$endDate"
                             wire:key="grievance-statuses-polar-{{ $startDate }}-{{ $endDate }}" />
                     </div>
 
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
                         <livewire:grievance-categories-pie-chart
                             :start-date="$startDate"
                             :end-date="$endDate"
                             wire:key="grievance-categories-pie-{{ $startDate }}-{{ $endDate }}" />
                     </div>
-
                 </div>
             </section>
 

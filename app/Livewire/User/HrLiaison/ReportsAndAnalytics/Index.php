@@ -232,10 +232,10 @@ class Index extends Component
         Browsershot::html($html)
             ->setNodeBinary('C:\Program Files\nodejs\node.exe')
             ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
-            ->showBackground()             // important for background images
+            ->showBackground()
             ->waitUntilNetworkIdle()
-            ->delay(2000)                  // wait for any dynamic content
-            ->timeout(120)                 // increase timeout to avoid Navigation Timeout
+            ->delay(2000)
+            ->timeout(120)
             ->format('A4')
             ->save($pdfPath);
 

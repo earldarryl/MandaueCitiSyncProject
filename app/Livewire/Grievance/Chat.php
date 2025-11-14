@@ -52,15 +52,31 @@ class Chat extends Component implements Forms\Contracts\HasForms
         return [];
     }
 
-    public function receiveMessage()
+    public function receiveMessage(array $message)
     {
         $this->loadMessages();
+
+        if ($message['sender_id'] !== $this->currentUserId) {
+
+            $recipient = auth()->user();
+
+            $sender = \App\Models\User::find($message['sender_id']);
+
+            Notification::make()
+                ->title('New Message Received')
+                ->body("{$sender->name} sent you a message in Grievance #{$message['grievance_id']}.")
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->sendToDatabase($recipient)
+                ->broadcast($recipient)
+                ->send();
+        }
 
         $this->js('$nextTick(() => {
             const chatBox = document.getElementById("chat-box");
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
+
 
     private function checkAuthorization(): bool
     {
@@ -126,10 +142,14 @@ class Chat extends Component implements Forms\Contracts\HasForms
         $state = $this->form->getState();
 
         if (!$this->newMessage && empty($state['files'])) {
+            $recipient = auth()->user();
+
             Notification::make()
                 ->title('Nothing to send')
                 ->warning()
-                ->send();
+                ->sendToDatabase($recipient)
+                ->broadcast($recipient);
+
             return;
         }
 
@@ -159,17 +179,15 @@ class Chat extends Component implements Forms\Contracts\HasForms
 
         broadcast(new MessageSent($message));
 
-        if (!auth()->user()->hasRole('admin')) {
-            $receiver = \App\Models\User::find($messageData['receiver_id']);
-            if ($receiver) {
-                Notification::make()
-                    ->title('New Message Received')
-                    ->body("{$message->sender->name} sent you a message in Grievance #{$this->grievance->grievance_id}.")
-                    ->icon('heroicon-o-chat-bubble-left-right')
-                    ->broadcast($receiver)
-                    ->sendToDatabase($receiver, isEventDispatched: true);
-            }
-        }
+        $sender = auth()->user();
+
+        Notification::make()
+            ->title('Message Sent')
+            ->body('Your message has been successfully delivered.')
+            ->success()
+            ->sendToDatabase($sender)
+            ->broadcast($sender)
+            ->send();
 
         $this->reset(['newMessage']);
         $this->form->fill();
@@ -180,6 +198,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
+
 
     private function getReceiverId()
     {

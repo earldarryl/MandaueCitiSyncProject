@@ -13,11 +13,13 @@ class AdminGrievanceChartDashboard extends ChartWidget
 
     public ?string $startDate = null;
     public ?string $endDate = null;
+    public ?string $selectedType = null;
 
     public function mount($startDate = null, $endDate = null): void
     {
         $this->startDate = $startDate ?? now()->startOfMonth()->format('Y-m-d');
         $this->endDate = $endDate ?? now()->format('Y-m-d');
+        $this->selectedType = null;
     }
 
     public function getHeading(): string|Htmlable|null
@@ -38,6 +40,25 @@ class AdminGrievanceChartDashboard extends ChartWidget
                             </svg>
                             <span>Admin Grievance Type Overview</span>
                         </h2>
+                    </div>
+
+                    <div class="relative inline-block w-48">
+                        <select wire:model.live="selectedType"
+                            class="peer w-full appearance-none rounded-xl border border-gray-300 dark:border-gray-700
+                            bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-200
+                            focus:border-blue-500 focus:ring-2 focus:ring-blue-400/60 outline-none shadow-sm">
+                            <option value="">All Types</option>
+                            <option value="Complaint">Complaint</option>
+                            <option value="Inquiry">Inquiry</option>
+                            <option value="Request">Request</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-3 flex items-center text-gray-500 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -77,6 +98,9 @@ class AdminGrievanceChartDashboard extends ChartWidget
                     $this->startDate . ' 00:00:00',
                     $this->endDate . ' 23:59:59',
                 ]);
+            })
+            ->when($this->selectedType, function ($query) {
+                $query->where('grievance_type', $this->selectedType);
             });
     }
 
@@ -98,14 +122,14 @@ class AdminGrievanceChartDashboard extends ChartWidget
             return "{$row->grievance_type} - {$row->grievance_category} ({$count} - {$percentage}%)";
         })->toArray();
 
-        $colors = [
-            'rgba(239, 68, 68, 0.85)',
-            'rgba(59, 130, 246, 0.85)',
-            'rgba(16, 185, 129, 0.85)',
-            'rgba(251, 191, 36, 0.85)',
-            'rgba(168, 85, 247, 0.85)',
-            'rgba(34,197,94,0.85)',
-        ];
+        $colors = $counts->map(function ($row) {
+            return match($row->grievance_type) {
+                'Complaint' => 'rgba(239, 68, 68, 0.85)',
+                'Inquiry'   => 'rgba(59, 130, 246, 0.85)',
+                'Request'   => 'rgba(16, 185, 129, 0.85)',
+                default     => 'rgba(107, 114, 128, 0.85)',
+            };
+        })->toArray();
 
         return [
             'datasets' => [
@@ -120,6 +144,7 @@ class AdminGrievanceChartDashboard extends ChartWidget
             'labels' => $labels,
         ];
     }
+
 
     protected function getOptions(): array
     {

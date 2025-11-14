@@ -228,6 +228,113 @@ class Index extends Component
         $this->selected = [];
     }
 
+    // public function exportSelectedGrievancesExcel()
+    // {
+    //     if (empty($this->selected)) {
+    //         Notification::make()
+    //             ->title('No Grievances Selected')
+    //             ->body('Please select at least one grievance to export.')
+    //             ->warning()
+    //             ->send();
+    //         return;
+    //     }
+
+    //     $user = auth()->user();
+
+    //     $grievances = Grievance::with(['user.info', 'departments'])
+    //         ->whereIn('grievance_id', $this->selected)
+    //         ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+    //         ->latest()
+    //         ->get();
+
+    //     if ($grievances->isEmpty()) {
+    //         Notification::make()
+    //             ->title('No Grievances Found')
+    //             ->body('The selected grievances were not found or are not assigned to you.')
+    //             ->warning()
+    //             ->send();
+    //         return;
+    //     }
+
+    //     $data = $grievances->map(function ($grievance) {
+    //         $submittedBy = $grievance->is_anonymous
+    //             ? 'Anonymous'
+    //             : ($grievance->user?->info
+    //                 ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+    //                 : $grievance->user?->name);
+
+    //         $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+    //         return [
+    //             'Grievance ID' => $grievance->grievance_id,
+    //             'Title' => $grievance->grievance_title,
+    //             'Type' => $grievance->grievance_type,
+    //             'Category' => $grievance->grievance_category,
+    //             'Priority' => $grievance->priority_level,
+    //             'Status' => ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+    //             'Submitted By' => $submittedBy,
+    //             'Departments' => $departments,
+    //             'Details' => strip_tags($grievance->grievance_details),
+    //             'Created At' => $grievance->created_at->format('Y-m-d H:i:s'),
+    //             'Updated At' => $grievance->updated_at->format('Y-m-d H:i:s'),
+    //         ];
+    //     })->toArray();
+
+    //     $filename = 'selected_grievances_' . now()->format('Y_m_d_His') . '.xlsx';
+
+    //     return Excel::download(new \Maatwebsite\Excel\Collections\SheetCollection([
+    //         'Grievances' => $data
+    //     ]), $filename);
+    // }
+
+    // public function downloadGrievancesExcel()
+    // {
+    //     $user = auth()->user();
+
+    //     $grievances = Grievance::with(['user.info', 'departments'])
+    //         ->whereHas('assignments', fn($q) => $q->where('hr_liaison_id', $user->id))
+    //         ->latest()
+    //         ->get();
+
+    //     if ($grievances->isEmpty()) {
+    //         Notification::make()
+    //             ->title('No Grievances Found')
+    //             ->body('There are no grievances assigned to you to export.')
+    //             ->warning()
+    //             ->send();
+    //         return;
+    //     }
+
+    //     $data = $grievances->map(function ($grievance) {
+    //         $submittedBy = $grievance->is_anonymous
+    //             ? 'Anonymous'
+    //             : ($grievance->user?->info
+    //                 ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+    //                 : $grievance->user?->name);
+
+    //         $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+    //         return [
+    //             'Grievance Ticket ID' => $grievance->grievance_ticket_id,
+    //             'Title' => $grievance->grievance_title,
+    //             'Type' => $grievance->grievance_type,
+    //             'Priority' => $grievance->priority_level,
+    //             'Status' => ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+    //             'Submitted By' => $submittedBy,
+    //             'Departments' => $departments,
+    //             'Details' => strip_tags($grievance->grievance_details),
+    //             'Created At' => $grievance->created_at->format('Y-m-d H:i:s'),
+    //             'Updated At' => $grievance->updated_at->format('Y-m-d H:i:s'),
+    //         ];
+    //     })->toArray();
+
+    //     $filename = 'grievances_assigned_to_' . $user->id . '_' . now()->format('Y_m_d_His') . '.xlsx';
+
+    //     return Excel::download(new \Maatwebsite\Excel\Collections\SheetCollection([
+    //         'Grievances' => $data
+    //     ]), $filename);
+    // }
+
     public function printSelectedGrievances()
     {
         if (empty($this->selected)) {

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Admin\AdminActivityLogs;
 
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Models\ActivityLog;
 use App\Models\User;
@@ -9,7 +10,7 @@ use Livewire\WithPagination;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-
+use Spatie\Browsershot\Browsershot;
 #[Layout('layouts.app')]
 #[Title('Activity Logs')]
 class Index extends Component
@@ -19,19 +20,124 @@ class Index extends Component
     public int $limit = 10;
     public ?string $filter = null;
     public ?string $roleFilter = null;
+    public ?string $selectedDate = null;
+
     public $totalUsers = 0;
     public $activeUsers = 0;
+    public $totalOnlineTimeFormatted = '0m';
+    public array $modules = [];
+
     public function applyFilter(): void
     {
         $this->resetPage();
     }
 
-    public function loadMore(): void
+    public function dynamicLogsTitle(): string
     {
-        $this->limit += 10;
+        $filter = $this->filter ?: 'All Modules';
+        $role = $this->roleFilter ?: 'All Roles';
+        $date = $this->selectedDate ?: 'All Dates';
+
+        return "Activity Logs for {$filter} | {$role} | {$date}";
     }
 
-    public array $modules = [];
+    public function exportActivityLogsPDF()
+    {
+        $query = ActivityLog::query()
+            ->with('user', 'role')
+            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->roleFilter, function ($q) {
+                if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
+                elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
+            })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
+            ->latest('timestamp');
+
+        $logs = $query->get();
+
+        $html = view('pdf.activity-logs-report', [
+            'logs' => $logs,
+            'user' => Auth::user(),
+            'filter' => $this->filter,
+            'roleFilter' => $this->roleFilter,
+            'selectedDate' => $this->selectedDate,
+            'dynamicTitle' => $this->dynamicLogsTitle(),
+        ])->render();
+
+        $pdfPath = storage_path('app/public/activity-logs-report.pdf');
+
+        Browsershot::html($html)
+            ->setNodeBinary('C:\Program Files\nodejs\node.exe')
+            ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
+            ->showBackground()
+            ->waitUntilNetworkIdle()
+            ->delay(2000)
+            ->timeout(120)
+            ->format('A4')
+            ->save($pdfPath);
+
+        return response()->download($pdfPath, 'activity-logs-report.pdf');
+    }
+
+    public function downloadCsv()
+    {
+        $query = ActivityLog::query()
+            ->with('user', 'role')
+            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->roleFilter, function ($q) {
+                if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
+                elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
+            })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
+            ->latest('timestamp');
+
+        $logs = $query->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="activity_logs_' . now()->format('Y-m-d_H-i-s') . '.csv"',
+        ];
+
+        $callback = function () use ($logs) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'ID',
+                'Action Type',
+                'Action',
+                'Module',
+                'Platform',
+                'User',
+                'Role',
+                'Timestamp',
+                'Location',
+            ]);
+
+            foreach ($logs as $log) {
+                $userName = $log->user?->name ?? 'N/A';
+                $roleName = $log->role?->name ?? 'N/A';
+                $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+                fputcsv($handle, [
+                    $log->activiy_log_id,
+                    ucwords(str_replace('_', ' ', $log->action_type)),
+                    str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
+                    $log->module ?? 'N/A',
+                    $log->platform ?? 'N/A',
+                    $userName,
+                    $roleNameFormatted,
+                    $log->timestamp,
+                    $log->location ?? 'N/A',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 
     public function render()
     {
@@ -39,6 +145,27 @@ class Index extends Component
         $this->activeUsers = User::whereNotNull('last_seen_at')
             ->where('last_seen_at', '>=', now()->subMinutes(5))
             ->count();
+
+        $onlineUsers = User::whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->get();
+
+        $totalMinutes = 0;
+
+        foreach ($onlineUsers as $user) {
+            $minutes = Carbon::parse($user->last_seen_at)->diffInMinutes(now());
+            $totalMinutes += $minutes;
+        }
+
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+
+        if ($hours > 0) {
+            $this->totalOnlineTimeFormatted = "{$hours}h {$minutes}m";
+        } else {
+            $this->totalOnlineTimeFormatted = "{$minutes}m";
+        }
+
 
         $this->modules = ActivityLog::query()
             ->whereNotNull('module')
@@ -51,19 +178,16 @@ class Index extends Component
             ->with('user', 'role')
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
             ->when($this->roleFilter, function ($q) {
-                if ($this->roleFilter === 'Admin') {
-                    $q->where('role_id', 1);
-                } elseif ($this->roleFilter === 'HR Liaison') {
-                    $q->where('role_id', 2);
-                } elseif ($this->roleFilter === 'Citizen') {
-                    $q->where('role_id', 3);
-                }
+                if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
+                elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
             })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
             ->latest('timestamp');
 
-        $logs = $query->paginate($this->limit);
+        $logsPaginator = $query->paginate($this->limit);
 
-        $groupedLogs = collect($logs->items())->groupBy(function ($log) {
+        $groupedLogs = collect($logsPaginator->items())->groupBy(function ($log) {
             $date = Carbon::parse($log->timestamp)->startOfDay();
             $today = Carbon::now()->startOfDay();
             $yesterday = Carbon::now()->subDay()->startOfDay();
@@ -75,9 +199,8 @@ class Index extends Component
         });
 
         return view('livewire.user.admin.admin-activity-logs.index', [
-            'logs' => $logs,
+            'logsPaginator' => $logsPaginator,
             'groupedLogs' => $groupedLogs,
-            'hasMore' => $logs->hasMorePages(),
         ]);
     }
 }

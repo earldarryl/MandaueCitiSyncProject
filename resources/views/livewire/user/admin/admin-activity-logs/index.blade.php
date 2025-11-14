@@ -31,44 +31,188 @@
             <p class="text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $activeUsers }}</p>
             <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Online now (last 5 min)</p>
         </div>
-    </div>
 
+        <div class="group relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-zinc-800 dark:to-zinc-900
+                    border border-purple-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                    transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
 
-    <div class="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-3 mb-5">
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-purple-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-clock class="h-8 w-8 text-purple-600 dark:text-purple-400"/>
+            </div>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
-            <x-filter-select
-                name="filter"
-                placeholder="Filter by module"
-                :options="$modules"
-                wire:model="filter"
-            />
-
-            <x-filter-select
-                name="roleFilter"
-                placeholder="Filter by role"
-                :options="['Admin', 'HR Liaison', 'Citizen']"
-                wire:model="roleFilter"
-            />
-
-            <button
-                wire:click="applyFilter"
-                wire:loading.attr="disabled"
-                wire:target="applyFilter"
-                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-gray-100 text-gray-800 border-gray-300
-                    hover:bg-gray-200 hover:border-gray-400
-                    dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
-                    dark:hover:bg-zinc-700
-                    whitespace-nowrap
-                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
-                <flux:icon.adjustments-horizontal class="w-4 h-4" />
-                <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
-                <span wire:loading wire:target="applyFilter">Processing...</span>
-            </button>
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Total Online Time</p>
+            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400 tracking-tight">
+                {{ $totalOnlineTimeFormatted }}
+            </p>
+            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">
+                Sum of all active users
+            </p>
         </div>
 
     </div>
+
+
+    <div
+        x-data="{ autoRefresh: true }"
+        x-init="
+            setInterval(() => {
+                if (autoRefresh) {
+                    $wire.call('applyFilter');
+                }
+            }, 300000);
+        "
+    >
+
+        <div class="flex flex-col justify-center items-center gap-3 mb-5">
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
+
+                <x-filter-select
+                    name="filter"
+                    placeholder="Filter by module"
+                    :options="$modules"
+                    wire:model="filter"
+                />
+
+                <x-filter-select
+                    name="roleFilter"
+                    placeholder="Filter by role"
+                    :options="['Admin', 'HR Liaison', 'Citizen']"
+                    wire:model="roleFilter"
+                />
+
+                <div class="flex flex-col gap-1 w-full"
+                    x-data="{ selected: @entangle('selectedDate') }"
+                    x-init="$nextTick(() => {
+                        flatpickr($refs.dateInput, {
+                            dateFormat: 'Y-m-d',
+                            defaultDate: selected,
+                            onChange: (selectedDates, dateStr) => {
+                                selected = dateStr
+                            }
+                        });
+                    })"
+                >
+                    <div class="relative w-full">
+                        <div
+                            class="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 cursor-pointer"
+                            @click="$refs.dateInput._flatpickr.open()"
+                        >
+                            <input
+                                type="text"
+                                x-ref="dateInput"
+                                x-model="selected"
+                                readonly
+                                placeholder="Select date"
+                                class="w-full bg-transparent text-[12px] focus:outline-none cursor-pointer"
+                            />
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    x-show="selected"
+                                    @click.stop="selected = null; $wire.set('selectedDate', null); $refs.dateInput._flatpickr.clear()"
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1 rounded"
+                                >
+                                    <x-heroicon-o-x-mark class="w-4 h-4"/>
+                                </button>
+                                <x-heroicon-o-calendar class="w-4 h-4 text-gray-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="relative flex flex-col w-full">
+                <button
+                    wire:click="applyFilter"
+                    wire:loading.attr="disabled"
+                    wire:target="applyFilter"
+                    class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                        bg-blue-100 text-blue-800 border-blue-300
+                        hover:bg-blue-200 hover:border-blue-400
+                        dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
+                        dark:hover:bg-blue-700
+                        whitespace-nowrap
+                        transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                    <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
+                    <span wire:loading wire:target="applyFilter">Processing...</span>
+                </button>
+            </div>
+
+            <div class="relative flex flex-col w-full">
+
+                <div class="relative flex flex-row justify-end gap-2">
+
+                    <button
+                        wire:click="downloadCsv"
+                        wire:loading.attr="disabled"
+                        wire:target="downloadCsv"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-green-100 text-green-800 border-green-300
+                            hover:bg-green-200 hover:border-green-400
+                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
+                            dark:hover:bg-green-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="downloadCsv">Export CSV</span>
+                        <span wire:loading wire:target="downloadCsv">Processing...</span>
+                    </button>
+
+                    <button
+                        wire:click="downloadCsv"
+                        wire:loading.attr="disabled"
+                        wire:target="downloadCsv"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-green-100 text-green-800 border-green-300
+                            hover:bg-green-200 hover:border-green-400
+                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
+                            dark:hover:bg-green-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="downloadCsv">Export CSV</span>
+                        <span wire:loading wire:target="downloadCsv">Processing...</span>
+                    </button>
+
+                    <button
+                        wire:click="exportActivityLogsPDF"
+                        wire:loading.attr="disabled"
+                        wire:target="exportActivityLogsPDF"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-red-100 text-red-800 border-red-300
+                            hover:bg-red-200 hover:border-red-400
+                            dark:bg-red-800 dark:text-red-300 dark:border-red-700
+                            dark:hover:bg-red-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-document-arrow-down class="w-4 h-4" />
+
+                        <span wire:loading.remove wire:target="exportActivityLogsPDF">
+                            Export PDF
+                        </span>
+
+                        <span wire:loading wire:target="exportActivityLogsPDF">
+                            Processing...
+                        </span>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 
     @forelse ($groupedLogs as $dateLabel => $logs)
         <div wire:key="group-{{ md5($dateLabel) }}">
@@ -112,20 +256,38 @@
                                             {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}
                                         </h3>
 
-                                        <div class="flex flex-wrap items-center gap-2 mt-1">
-                                            <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
-                                                {{ $log->module }}
-                                            </span>
-                                            <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
-                                                {{ $log->platform }}
-                                            </span>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y - g:i A') }}
-                                            </span>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $log->location }}
-                                            </span>
+                                        <div class="flex flex-col gap-2 mt-2">
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Module:</span>
+                                                <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->module ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Platform:</span>
+                                                <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->platform ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y – g:i A') ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Location:</span>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ $log->location ?? 'Unknown' }}
+                                                </span>
+                                            </div>
+
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -142,24 +304,40 @@
         </div>
     @endforelse
 
-    @if ($hasMore)
-        <div class="flex justify-center items-center mt-6">
-            <div wire:target="loadMore" wire:loading.remove>
-                <button wire:click="loadMore"
-                    class="px-6 py-2.5 text-sm font-semibold rounded-md bg-blue-100 text-blue-800 border border-blue-300
-                        hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                        dark:hover:bg-blue-800/60 transition-all duration-200">
-                    Load More
-                </button>
-            </div>
+    <div class="mt-6">
+        {{ $logsPaginator->links() }}
+    </div>
 
-            <div wire:target="loadMore" wire:loading>
-                <div class="w-full flex items-center justify-center gap-2">
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                </div>
-            </div>
-        </div>
-    @endif
 </div>
+<script>
+    (function () {
+        const PAGINATION_SELECTOR = [
+            'a[wire\\:click*="previousPage"]',
+            'a[wire\\:click*="nextPage"]',
+            'a[wire\\:click*="gotoPage"]',
+            'button[wire\\:click*="previousPage"]',
+            'button[wire\\:click*="nextPage"]',
+            'button[wire\\:click*="gotoPage"]',
+            '.pagination a',
+            'ul.pagination li a'
+        ].join(',');
+
+        const SCROLL_CONTAINER_SELECTOR =
+            'div.relative.flex.flex-col.flex-1.h-full.overflow-y-auto.overflow-x-auto';
+
+        document.addEventListener('click', function (ev) {
+            const el = ev.target.closest(PAGINATION_SELECTOR);
+            if (!el) return;
+
+            const scrollArea = document.querySelector(SCROLL_CONTAINER_SELECTOR);
+            if (!scrollArea) return;
+
+            setTimeout(() => {
+                scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+        }, { passive: true });
+    })();
+</script>
+
+
+
