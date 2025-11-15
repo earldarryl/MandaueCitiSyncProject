@@ -281,9 +281,7 @@
                 wire:loading.attr="disabled"
                 wire:target="resetForm"
                 class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-gray-100 text-gray-800 border-gray-300
-                    hover:bg-gray-200 hover:border-gray-400
-                    dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800/50
+                    bg-gray-600 text-white hover:bg-gray-700
                     transition-all duration-200
                     disabled:opacity-50 disabled:cursor-not-allowed">
                 <x-heroicon-o-x-mark class="w-4 h-4"/>
@@ -296,9 +294,7 @@
                 wire:target="submit"
                 @click="showModal = true"
                 class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-blue-100 text-blue-800 border-blue-300
-                    hover:bg-blue-200 hover:border-blue-400
-                    dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800/60
+                    bg-blue-600 text-white hover:bg-blue-700
                     transition-all duration-200
                     disabled:opacity-50 disabled:cursor-not-allowed">
                 <x-heroicon-o-check class="w-4 h-4"/>
