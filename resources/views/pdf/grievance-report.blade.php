@@ -27,11 +27,10 @@
         .page {
             position: relative;
             width: 794px;
-            height: 1122px; /* A4 size in pixels */
+            height: 1122px;
             margin: 0 auto;
             overflow: hidden;
 
-            /* ✅ Apply background using the Base64 data directly in CSS */
             @if($bgImageBase64)
                 background-image: url("{{ $bgImageBase64 }}");
             @endif
@@ -39,7 +38,6 @@
             background-position: center center;
             background-size: cover;
 
-            /* Ensure the background repeats across pages */
             page-break-after: always;
         }
 

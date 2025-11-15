@@ -22,6 +22,8 @@ class Index extends Component
     public $filterColumnInput = '';
     public $filterColumn = '';
     public $genderFilterInput = '';
+    public $statusFilterInput = '';
+    public $deactivatedFilterInput = '';
     public $perPage = 10;
     public $searchInput = '';
 
@@ -86,6 +88,27 @@ class Index extends Component
                 $gender = strtolower($this->genderFilterInput);
                 $query->whereHas('userInfo', fn($sub) => $sub->where('gender', $gender));
             })
+            ->when($this->statusFilterInput, function ($query) {
+                $status = strtolower($this->statusFilterInput);
+                $query->where(function ($q) use ($status) {
+                    if ($status === 'online') {
+                        $q->whereNotNull('last_seen_at')
+                        ->where('last_seen_at', '>', now()->subMinutes(5));
+                    } elseif ($status === 'away') {
+                        $q->whereNotNull('last_seen_at')
+                        ->where('last_seen_at', '<=', now()->subMinutes(5));
+                    } elseif ($status === 'offline') {
+                        $q->whereNull('last_seen_at');
+                    }
+                });
+            })
+            ->when($this->deactivatedFilterInput, function ($query) {
+                if ($this->deactivatedFilterInput === 'Active') {
+                    $query->whereNull('deleted_at');
+                } elseif ($this->deactivatedFilterInput === 'Deactivated') {
+                    $query->whereNotNull('deleted_at');
+                }
+            })
             ->when($this->nameStartsWith && $this->filterColumn, function ($query) {
                 $column = $this->filterColumn;
                 $letter = $this->nameStartsWith;
@@ -104,6 +127,7 @@ class Index extends Component
             }, function ($query) {
                 $query->orderBy($this->sortField, $this->sortDirection);
             });
+
 
         $citizens = $citizensQuery->paginate($this->perPage);
 

@@ -82,7 +82,7 @@
                     <x-filter-select
                         name="filterType"
                         placeholder="Type"
-                        :options="['Grievances', 'Feedbacks', 'Users', 'Activity Logs']"
+                        :options="['Grievances', 'Feedbacks', 'Users']"
                         x-model="filterType"
                     />
                 </div>
@@ -124,34 +124,122 @@
                         />
                     </div>
 
+                    <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-adjustments-horizontal class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Dynamic Filter</span>
+                        </div>
+                        <x-filter-select
+                            name="dynamicGrievanceFilter"
+                            placeholder="Select Filter"
+                            :options="$dynamicGrievanceOptions"
+                            wire:model="dynamicGrievanceFilter"
+                        />
+                    </div>
+
+                @endif
+
+                @if($filterType === 'Feedbacks')
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Gender</span>
+                        </div>
+                        <x-filter-select
+                            name="filterGender"
+                            placeholder="Select Gender"
+                            :options="['Male', 'Female', 'Other']"
+                            wire:model.live="filterGender"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-map class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Region</span>
+                        </div>
+                        <x-filter-select
+                            name="filterRegion"
+                            placeholder="Select Region"
+                            :options="['NCR','CAR','Region I','Region II','Region III','Region IV-A','Region IV-B','Region V','Region VI','Region VII','Region VIII','Region IX','Region X','Region XI','Region XII','Region XIII','BARMM']"
+                            wire:model.live="filterRegion"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-briefcase class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Service</span>
+                        </div>
+                        <x-filter-select
+                            name="filterService"
+                            placeholder="Select Service"
+                            :options="$serviceOptions"
+                            wire:model.live="filterService"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-chart-bar class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>CC Summary</span>
+                        </div>
+                        <x-filter-select
+                            name="filterCCSummary"
+                            placeholder="Select CC Summary"
+                            :options="['High Awareness', 'Medium Awareness', 'Low Awareness', 'No Awareness', 'N/A']"
+                            wire:model.live="filterCCSummary"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-chart-pie class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>SQD Summary</span>
+                        </div>
+                        <x-filter-select
+                            name="filterSQDSummary"
+                            placeholder="Select SQD Summary"
+                            :options="['Most Agree','Most Disagree','Neutral','N/A']"
+                            wire:model.live="filterSQDSummary"
+                        />
+                    </div>
+
+                @endif
+
+                @if($filterType === 'Users')
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>User Type</span>
+                        </div>
+
+                        <x-filter-select
+                            name="filterUserType"
+                            placeholder="Select User Type"
+                            :options="['Citizen', 'HR Liaison']"
+                            wire:model.live="filterUserType"
+                        />
+                    </div>
                 @endif
 
             </div>
 
            <div class="px-4 mb-4">
                 <button
-                    type="button"
-                    class="flex gap-2 items-center justify-center font-bold w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 transition duration-300 ease-in-out text-white p-3 rounded-lg"
                     wire:click="applyFilters"
                     wire:loading.attr="disabled"
                     wire:target="applyFilters"
-                >
-                    <x-heroicon-o-check class="w-5 h-5"/>
-                    <span>Apply</span>
-
-                    <svg wire:loading wire:target="applyFilters" class="animate-spin h-5 w-5 ml-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                    </svg>
+                    class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                    <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="applyFilters">Apply Filter</span>
+                    <span wire:loading wire:target="applyFilters">Processing...</span>
                 </button>
             </div>
 
-            <div class="flex flex-wrap justify-end gap-3 px-4 mb-4">
-
-            </div>
         </div>
     </div>
-
 
     <div class="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
 
@@ -164,68 +252,105 @@
                             <th class="px-6 py-3">TITLE</th>
                             <th class="px-6 py-3 text-center">TYPE</th>
                             <th class="px-6 py-3 text-center">CATEGORY</th>
+                            <th class="px-6 py-3 text-center">DEPARTMENT</th>
                             <th class="px-6 py-3 text-center">PRIORITY LEVEL</th>
                             <th class="px-6 py-3 text-center">STATUS</th>
                             <th class="px-6 py-3 text-center">PROCESSING DAYS</th>
                             <th class="px-6 py-3 text-center">DATE</th>
+
                         @elseif($filterType === 'Feedbacks')
                             <th class="px-6 py-3 text-center">USER</th>
                             <th class="px-6 py-3">SERVICE</th>
                             <th class="px-6 py-3 text-center">GENDER</th>
                             <th class="px-6 py-3 text-center">REGION</th>
+                            <th class="px-6 py-3 text-center">CC SUMMARY</th>
+                            <th class="px-6 py-3 text-center">SQD SUMMARY</th>
                             <th class="px-6 py-3">SUGGESTIONS</th>
                             <th class="px-6 py-3 text-center">DATE</th>
-                        @elseif($filterType === 'Users')
+
+                        @elseif($filterType === 'Users' && $filterUserType === 'Citizen')
+                            <th class="px-6 py-3 text-center">FIRST NAME</th>
+                            <th class="px-6 py-3 text-center">MIDDLE NAME</th>
+                            <th class="px-6 py-3 text-center">LAST NAME</th>
+                            <th class="px-6 py-3 text-center">SUFFIX</th>
+                            <th class="px-6 py-3 text-center">GENDER</th>
+                            <th class="px-6 py-3 text-center">CIVIL STATUS</th>
+                            <th class="px-6 py-3 text-center">BARANGAY</th>
+                            <th class="px-6 py-3 text-center">SITIO</th>
+                            <th class="px-6 py-3 text-center">BIRTHDATE</th>
+                            <th class="px-6 py-3 text-center">AGE</th>
+                            <th class="px-6 py-3 text-center">PHONE NUMBER</th>
+                            <th class="px-6 py-3 text-center">EMERGENCY CONTACT NAME</th>
+                            <th class="px-6 py-3 text-center">EMERGENCY CONTACT NUMBER</th>
+                            <th class="px-6 py-3 text-center">EMERGENCY RELATIONSHIP</th>
+                            <th class="px-6 py-3 text-center">EMAIL</th>
+                            <th class="px-6 py-3 text-center">CREATED AT</th>
+
+                        @elseif($filterType === 'Users' && $filterUserType === 'HR Liaison')
                             <th class="px-6 py-3 text-center">NAME</th>
                             <th class="px-6 py-3 text-center">EMAIL</th>
-                            <th class="px-6 py-3 text-center">ROLES</th>
+                            <th class="px-6 py-3 text-center">DEPARTMENT</th>
                             <th class="px-6 py-3 text-center">STATUS</th>
                             <th class="px-6 py-3 text-center">CREATED AT</th>
-                        @elseif($filterType === 'Activity Logs')
-                            <th class="px-6 py-3 text-center">USER</th>
-                            <th class="px-6 py-3">ACTION</th>
-                            <th class="px-6 py-3">MODULE</th>
-                            <th class="px-6 py-3 text-center">ROLE</th>
-                            <th class="px-6 py-3 text-center">DATE</th>
                         @endif
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-900">
                     @forelse($data as $item)
                         <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition">
+
                             @if($filterType === 'Grievances')
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_ticket_id }}</td>
                                 <td class="px-6 py-3">{{ $item->grievance_title }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_type ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_category ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">
+                                    {{ $item->departments->pluck('department_name')->join(', ') ?? '—' }}
+                                </td>
                                 <td class="px-6 py-3 text-center">{{ $item->priority_level ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_status }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->processing_days ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+
                             @elseif($filterType === 'Feedbacks')
                                 <td class="px-6 py-3 text-center">{{ $item->user->name ?? 'Anonymous' }}</td>
                                 <td class="px-6 py-3">{{ $item->service }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->gender }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->region }}</td>
+                                <td class="px-6 py-3 text-center font-bold">{{ $item->cc_summary }}</td>
+                                <td class="px-6 py-3 text-center font-bold">{{ $item->sqd_summary }}</td>
                                 <td class="px-6 py-3">{{ $item->suggestions }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->date->format('Y-m-d') }}</td>
-                            @elseif($filterType === 'Users')
-                                <td class="px-6 py-3 text-center">{{ $item->name }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->email }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->roles->pluck('name')->join(', ') }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->status }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->created_at->format('Y-m-d') }}</td>
-                            @elseif($filterType === 'Activity Logs')
-                                <td class="px-6 py-3 text-center">{{ $item->user->name ?? 'System' }}</td>
-                                <td class="px-6 py-3">{{ $item->action }}</td>
-                                <td class="px-6 py-3">{{ $item->module }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->role->name ?? '—' }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->timestamp->format('Y-m-d H:i') }}</td>
+
+                            @elseif($filterType === 'Users' && $filterUserType === 'Citizen')
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->first_name ?? '' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->middle_name ?? '' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->last_name ?? '' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->suffix ?? '' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->gender ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->civil_status ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->barangay ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->sitio ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ optional($item['userInfo']->birthdate)->format('Y-m-d') ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->age ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->phone_number ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->emergency_contact_name ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->emergency_contact_number ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['userInfo']->emergency_relationship ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['email'] }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['created_at']->format('Y-m-d') }}</td>
+
+                            @elseif($filterType === 'Users' && $filterUserType === 'HR Liaison')
+                                <td class="px-6 py-3 text-center">{{ $item['name'] }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['email'] }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['departments'] ?? '—' }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['status'] }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item['created_at']->format('Y-m-d') }}</td>
                             @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
+                            <td colspan="16" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
                                 No data available for the selected filters.
                             </td>
                         </tr>
@@ -233,7 +358,5 @@
                 </tbody>
             </table>
         </div>
-
     </div>
-
 </div>

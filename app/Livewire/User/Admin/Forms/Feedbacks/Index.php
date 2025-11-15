@@ -11,6 +11,11 @@ use Livewire\Attributes\Title;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Pagination\LengthAwarePaginator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 #[Layout('layouts.app')]
 #[Title('Feedbacks')]
@@ -26,6 +31,7 @@ class Index extends Component
     public string $filterDate = 'Show All';
     public string $filterSQD = 'All';
     public string $filterCC = 'All';
+    public $importFile;
 
     protected $paginationTheme = 'tailwind';
 
@@ -374,6 +380,169 @@ class Index extends Component
         if (in_array('Neither', $dominantCategories)) return 'This feedback expresses neutrality as it is answered mostly Neither.';
 
         return 'This feedback cannot be summarized.';
+    }
+
+    public function exportSelectedFeedbacksExcel()
+    {
+        if (empty($this->selected)) {
+            Notification::make()
+                ->title('No Feedbacks Selected')
+                ->body('Please select at least one feedback to export.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $feedbacks = Feedback::whereIn('id', $this->selected)->get();
+
+        if ($feedbacks->isEmpty()) {
+            Notification::make()
+                ->title('No Feedbacks Found')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Feedbacks');
+
+        $headers = [
+            'ID', 'Email', 'Region', 'Gender',
+            'CC Summary', 'SQD Summary', 'Date Submitted'
+        ];
+
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . '1', $header);
+        }
+
+        $row = 2;
+
+        foreach ($feedbacks as $fb) {
+            $sheet->setCellValue("A{$row}", $fb->id);
+            $sheet->setCellValue("B{$row}", $fb->email);
+            $sheet->setCellValue("C{$row}", $fb->region);
+            $sheet->setCellValue("D{$row}", $fb->gender);
+
+            $sheet->setCellValue("E{$row}", $fb->cc_summary);
+            $sheet->setCellValue("F{$row}", $fb->sqd_summary);
+
+            $sheet->setCellValue("G{$row}", $fb->date->format('Y-m-d H:i:s'));
+            $row++;
+        }
+
+        $filename = 'selected_feedbacks_' . now()->format('Y_m_d_His') . '.xlsx';
+        $path = storage_path("app/public/{$filename}");
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($path);
+
+        return response()->download($path)->deleteFileAfterSend(true);
+    }
+
+    public function exportAllFeedbacksExcel()
+    {
+        $feedbacks = $this->allFilteredFeedbacks();
+
+        if ($feedbacks->isEmpty()) {
+            Notification::make()
+                ->title('No Feedbacks Found')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('All Feedbacks');
+
+        $headers = [
+            'ID', 'Email', 'Region', 'Gender',
+            'CC Summary', 'SQD Summary', 'Date Submitted'
+        ];
+
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . '1', $header);
+        }
+
+        $row = 2;
+
+        foreach ($feedbacks as $fb) {
+            $sheet->setCellValue("A{$row}", $fb->id);
+            $sheet->setCellValue("B{$row}", $fb->email);
+            $sheet->setCellValue("C{$row}", $fb->region);
+            $sheet->setCellValue("D{$row}", $fb->gender);
+
+            // ✔ USE COMPUTED FIELDS
+            $sheet->setCellValue("E{$row}", $fb->cc_summary);
+            $sheet->setCellValue("F{$row}", $fb->sqd_summary);
+
+            $sheet->setCellValue("G{$row}", $fb->date->format('Y-m-d H:i:s'));
+            $row++;
+        }
+
+        $filename = 'all_feedbacks_' . now()->format('Y_m_d_His') . '.xlsx';
+        $path = storage_path("app/public/{$filename}");
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($path);
+
+        return response()->download($path)->deleteFileAfterSend(true);
+    }
+
+    public function importFeedbacksExcel()
+    {
+        if (!$this->importFile) {
+            Notification::make()
+                ->title('No File Selected')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            $path = $this->importFile->store('temp_import', 'public');
+            $fullPath = Storage::disk('public')->path($path);
+
+            $spreadsheet = IOFactory::load($fullPath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            unset($rows[0]);
+
+            foreach ($rows as $row) {
+                [
+                    $email, $region, $gender,
+                    $cc1, $cc2, $cc3,
+                    $sqdAnswers, $date
+                ] = array_pad($row, 8, null);
+
+                Feedback::create([
+                    'email' => $email,
+                    'region' => $region,
+                    'gender' => $gender,
+                    'cc1' => $cc1,
+                    'cc2' => $cc2,
+                    'cc3' => $cc3,
+                    'answers' => array_map('intval', explode(',', $sqdAnswers)),
+                    'date' => $date ? Carbon::parse($date) : now(),
+                ]);
+            }
+
+            Notification::make()
+                ->title('Import Successful')
+                ->success()
+                ->send();
+
+            Storage::disk('public')->delete($path);
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Import Failed')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     public function render()

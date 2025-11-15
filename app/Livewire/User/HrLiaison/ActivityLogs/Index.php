@@ -21,17 +21,16 @@ class Index extends Component
     public int $limit = 10;
     public ?string $filter = null;
     public ?string $roleFilter = null;
-    protected $queryString = ['filter', 'roleFilter'];
-
+    public ?string $selectedDate = null;
 
     public function applyFilter(): void
     {
         $this->resetPage();
     }
 
-    public function loadMore(): void
+    public function updatedSelectedDate()
     {
-        $this->limit += 10;
+        $this->resetPage();
     }
 
     public function render()
@@ -66,38 +65,28 @@ class Index extends Component
             ->whereIn('user_id', $userIds)
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
             ->when($this->roleFilter, function ($q) {
-                if ($this->roleFilter === 'HR Liaison') {
-                    $q->where('role_id', 2);
-                } elseif ($this->roleFilter === 'Citizen') {
-                    $q->where('role_id', 3);
-                }
+                if ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
             })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
             ->latest('timestamp');
 
-        $logs = $query->paginate($this->limit);
+        $logsPaginator = $query->paginate($this->limit);
 
-        $pageItems = collect($logs->items());
-
-        $groupedLogs = $pageItems->groupBy(function ($log) {
+        $groupedLogs = collect($logsPaginator->items())->groupBy(function ($log) {
             $date = Carbon::parse($log->timestamp)->startOfDay();
             $today = Carbon::now()->startOfDay();
             $yesterday = Carbon::now()->subDay()->startOfDay();
 
-            if ($date->equalTo($today)) {
-                return 'Today';
-            }
-
-            if ($date->equalTo($yesterday)) {
-                return 'Yesterday';
-            }
+            if ($date->equalTo($today)) return 'Today';
+            if ($date->equalTo($yesterday)) return 'Yesterday';
 
             return $date->format('F j, Y');
         });
 
         return view('livewire.user.hr-liaison.activity-logs.index', [
-            'logs' => $logs,
+            'logsPaginator' => $logsPaginator,
             'groupedLogs' => $groupedLogs,
-            'hasMore' => $logs->hasMorePages(),
         ]);
     }
 }

@@ -1,5 +1,4 @@
-<div class="h-full flex-1 overflow-y-auto p-4">
-    {{-- Header --}}
+<div class="h-full flex-1 p-4">
         <header class="pb-6 border-b border-gray-200 dark:border-gray-700">
             <h1 class="text-4xl font-bold flex items-center gap-3 text-mc_primary_color dark:text-white">
                 <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -13,8 +12,8 @@
         <div class="relative flex flex-col gap-10">
             <div class="relative shadow-md p-3">
                 <header>
-                    <h2 class="text-lg font-medium">{{ __('Profile Information') }}</h2>
-                    <p class="mt-1 text-sm">{{ __("Update your account's profile information and email address.") }}</p>
+                    <h2 class="text-lg font-bold">{{ __('Profile Information') }}</h2>
+                    <p class="mt-1 text-sm font-semibold">{{ __("Update your account's profile information and email address.") }}</p>
                 </header>
 
                 <form wire:submit.prevent="saveProfilePic" class="flex flex-col w-full mt-6 space-y-6">
@@ -36,32 +35,20 @@
                                 $index = crc32($name) % count($palette);
                                 $bgColor = $palette[$index];
 
-                                $profilePic = $authUser->profile_pic
-                                    ? Storage::url($authUser->profile_pic)
-                                    : 'https://ui-avatars.com/api/?name=' . urlencode($name) .
-                                        '&background=' . $bgColor .
-                                        '&color=fff&size=128';
                             @endphp
 
                             <div class="relative w-48 h-48 mb-1 group cursor-pointer" @click="$wire.set('showProfileEditModal', true)">
-                                <img
-                                    src="{{ $profilePic }}"
-                                    alt="Profile Picture"
-                                    class="rounded-full w-48 h-48 object-cover border-4 border-blue-500 shadow-md transition-transform duration-300 group-hover:scale-105"
-                                />
+
+                                    <img
+                                        src="{{ $profilePicPreview ?? ($current_profile_pic ? Storage::url($current_profile_pic) : 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=' . $bgColor . '&color=fff&size=128') }}"
+                                        alt="Profile Picture"
+                                        class="rounded-full w-48 h-48 object-cover border-4 border-blue-500 shadow-md transition-transform duration-300 group-hover:scale-105"
+                                    />
 
                                 <div
                                     class="absolute inset-0 bg-black/50 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="2"
-                                        stroke="white"
-                                        class="w-8 h-8 mb-1">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 8l1.89-1.89A2 2 0 017.34 6h9.32a2 2 0 011.45.61L20 8m-5 4a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
+                                    <x-heroicon-o-camera class="w-5 h-5 text-white"/>
                                     <span class="text-white text-sm font-semibold">Change Photo</span>
                                 </div>
                             </div>
@@ -76,7 +63,7 @@
                         >
                             <div class="flex flex-col items-center justify-center w-full space-y-5">
                                 <div class="text-center space-y-1">
-                                    <span class="text-3xl font-bold text-blue-600">Edit Profile Picture</span>
+                                    <span class="text-3xl font-bold text-mc_primary_color dark:text-blue-600">Edit Profile Picture</span>
                                     <span class="text-sm text-gray-500 dark:text-gray-400 block">
                                         Choose or upload a new photo for your account.
                                     </span>
@@ -91,6 +78,7 @@
                                         variant="subtle"
                                         wire:click="$set('showProfileEditModal', false)"
                                         class="border"
+                                        wire:target="saveProfilePic"
                                         wire:loading.attr="disabled"
                                         wire:loading.remove
                                     >
@@ -233,11 +221,11 @@
 
         <div class="relative shadow-md p-3">
         <header>
-            <h2 class="text-lg font-medium">
+            <h2 class="text-lg font-bold">
                 {{ __('Update Password') }}
             </h2>
 
-            <p class="mt-1 text-sm">
+            <p class="mt-1 text-sm font-semibold">
                 {{ __('Ensure your account is using a long, random password to stay secure.') }}
             </p>
         </header>
@@ -339,11 +327,11 @@
         </div>
         <div class="relative shadow-md p-3">
         <header>
-            <h2 class="text-lg font-medium">
+            <h2 class="text-lg font-bold">
                 {{ __('Delete Account') }}
             </h2>
 
-            <p class="mt-1 text-sm">
+            <p class="mt-1 text-sm font-semibold">
                 {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
             </p>
         </header>

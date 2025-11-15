@@ -119,4 +119,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(UserInfo::class, 'user_id');
     }
+
+    public function getIsDeactivatedAttribute(): bool
+    {
+        return !is_null($this->deleted_at);
+    }
 }

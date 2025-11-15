@@ -2,8 +2,11 @@
 
 namespace App\Livewire\User\Admin\Forms\Grievances;
 
+use App\Models\GrievanceAttachment;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Models\Grievance;
@@ -13,19 +16,23 @@ use App\Models\Department;
 use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
-
 #[Layout('layouts.app')]
 #[Title('Grievances')]
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
     public string $searchInput = '';
     public string $search = '';
+    public $importFile;
     public $selectAll = false;
     public $selected = [];
     public $department;
@@ -478,6 +485,267 @@ class Index extends Component
             ->send();
 
         $this->redirectRoute('admin.forms.grievances.index', navigate: true);
+    }
+
+    public function exportSelectedGrievancesExcel()
+    {
+        if (empty($this->selected)) {
+            Notification::make()
+                ->title('No Grievances Selected')
+                ->body('Please select at least one grievance to export.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $grievances = Grievance::with(['user.info', 'departments', 'attachments'])
+            ->whereIn('grievance_id', $this->selected)
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Grievances Found')
+                ->body('The selected grievances were not found.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Grievances');
+
+        $headers = [
+            'Ticket ID', 'Title', 'Type', 'Category', 'Priority',
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments'
+        ];
+
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . '1', $header);
+        }
+
+        $rowNumber = 2;
+        foreach ($grievances as $grievance) {
+            $submittedBy = $grievance->is_anonymous
+                ? 'Anonymous'
+                : ($grievance->user?->info
+                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+                    : $grievance->user?->name);
+
+            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+            $attachments = $grievance->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+
+            $values = [
+                $grievance->grievance_ticket_id,
+                $grievance->grievance_title,
+                $grievance->grievance_type,
+                $grievance->grievance_category,
+                $grievance->priority_level,
+                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                $submittedBy,
+                $departments,
+                strip_tags($grievance->grievance_details),
+                $attachments,
+            ];
+
+            foreach ($values as $col => $value) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $rowNumber, $value);
+            }
+
+            $rowNumber++;
+        }
+
+        $filename = 'selected_grievances_admin_' . now()->format('Y_m_d_His') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $temp_file = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
+    }
+
+    public function downloadGrievancesExcel()
+    {
+        $grievances = Grievance::with(['user.info', 'departments', 'attachments'])
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Grievances Found')
+                ->body('There are no grievances to export.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Grievances');
+
+        $headers = [
+            'Ticket ID', 'Title', 'Type', 'Category', 'Priority',
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments'
+        ];
+
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . '1', $header);
+        }
+
+        $rowNumber = 2;
+        foreach ($grievances as $grievance) {
+            $submittedBy = $grievance->is_anonymous
+                ? 'Anonymous'
+                : ($grievance->user?->info
+                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+                    : $grievance->user?->name);
+
+            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+            $attachments = $grievance->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+
+            $values = [
+                $grievance->grievance_ticket_id,
+                $grievance->grievance_title,
+                $grievance->grievance_type,
+                $grievance->grievance_category,
+                $grievance->priority_level,
+                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                $submittedBy,
+                $departments,
+                strip_tags($grievance->grievance_details),
+                $attachments,
+            ];
+
+            foreach ($values as $col => $value) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $rowNumber, $value);
+            }
+
+            $rowNumber++;
+        }
+
+        $filename = 'all_grievances_admin_' . now()->format('Y_m_d_His') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $temp_file = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
+    }
+
+
+    public function importGrievancesExcel()
+    {
+        if (!$this->importFile) {
+            Notification::make()
+                ->title('No File Selected')
+                ->body('Please select a grievances Excel file to import.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        try {
+            $path = $this->importFile->store('temp_import', 'public');
+            $fullPath = Storage::disk('public')->path($path);
+            $spreadsheet = IOFactory::load($fullPath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            if (count($rows) <= 1) {
+                Notification::make()
+                    ->title('Empty File')
+                    ->body('The uploaded Excel file contains no grievance records.')
+                    ->warning()
+                    ->send();
+                Storage::disk('public')->delete($path);
+                return;
+            }
+
+            unset($rows[0]);
+            $currentUser = auth()->user();
+
+            foreach ($rows as $row) {
+                [
+                    $ticketId, $title, $type, $category, $priority,
+                    $status, $submittedBy, $departments, $details, $attachmentsColumn
+                ] = array_pad($row, 10, null);
+
+                $existingGrievance = Grievance::withTrashed()->where('grievance_ticket_id', $ticketId)->first();
+                $userId = $existingGrievance?->user_id ?? $currentUser->id;
+
+                $processingDays = match (strtolower($priority)) {
+                    'high' => 3,
+                    'normal' => 7,
+                    'low' => 15,
+                    default => 7,
+                };
+
+                $grievance = Grievance::updateOrCreate(
+                    ['grievance_ticket_id' => $ticketId],
+                    [
+                        'user_id' => $userId,
+                        'grievance_type' => $type,
+                        'grievance_category' => $category,
+                        'priority_level' => $priority,
+                        'grievance_title' => $title,
+                        'grievance_details' => $details,
+                        'is_anonymous' => strtolower($submittedBy) === 'anonymous' ? 1 : 0,
+                        'grievance_status' => strtolower($status) === 'pending' ? 'pending' : strtolower($status),
+                        'processing_days' => $processingDays,
+                    ]
+                );
+
+                $departmentNames = explode(',', $departments);
+                foreach ($departmentNames as $deptName) {
+                    $department = Department::where('department_name', trim($deptName))->first();
+                    if ($department && $department->is_active && $department->is_available) {
+                        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+                            ->get();
+
+                        foreach ($hrLiaisons as $hr) {
+                            Assignment::updateOrCreate([
+                                'grievance_id' => $grievance->grievance_id,
+                                'department_id' => $department->department_id,
+                                'hr_liaison_id' => $hr->id,
+                            ], [
+                                'assigned_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+
+                $attachmentFiles = $attachmentsColumn ? explode(',', $attachmentsColumn) : [];
+                foreach ($attachmentFiles as $fileName) {
+                    $fileName = trim($fileName);
+                    if ($fileName) {
+                        GrievanceAttachment::updateOrCreate(
+                            [
+                                'grievance_id' => $grievance->grievance_id,
+                                'file_name' => $fileName,
+                            ],
+                            [
+                                'file_path' => 'grievance_files/' . $fileName,
+                            ]
+                        );
+                    }
+                }
+            }
+
+            Notification::make()
+                ->title('Import Successful')
+                ->body('Grievances have been successfully imported from the Excel file.')
+                ->success()
+                ->send();
+
+            Storage::disk('public')->delete($path);
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Import Failed')
+                ->body("Something went wrong while importing grievances. Error: {$e->getMessage()}")
+                ->danger()
+                ->send();
+        }
     }
 
     public function exportSelectedGrievancesCsv()

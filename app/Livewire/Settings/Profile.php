@@ -33,14 +33,12 @@ class Profile extends Component implements HasSchemas
     public string $delete_password = '';
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
+    public $profilePicPreview = null;
     public bool $showMyModal = false;
     public bool $showProfileEditModal = false;
-
     public array $data = [];
-
     public string $originalName = '';
     public string $originalEmail = '';
-
     public $authUser;
     protected $listeners = ['reset-form' => 'resetForm'];
     public function resetForm(): void
@@ -67,6 +65,10 @@ class Profile extends Component implements HasSchemas
         $this->dispatch('reset-finished');
     }
 
+    public function updatedDataProfilePic($value)
+    {
+        $this->profilePicPreview = $value ? $this->form->getState()['profile_pic']->temporaryUrl() : null;
+    }
 
     public function mount(): void
     {

@@ -347,15 +347,31 @@
     </div>
 
     <div
-        x-data="{ openRerouteModal: false, openStatusModal: false }"
+        x-data="{ openImportModal: false, openRerouteModal: false, openStatusModal: false }"
         x-on:reroute-success.window="openRerouteModal = false"
         x-on:status-update-success.window="openStatusModal = false"
         class="flex flex-col w-full"
     >
 
         <div class="flex items-center justify-end gap-2 mb-2 px-3">
+
             <button
                 wire:click="downloadGrievancesCsv"
+                wire:loading.attr="disabled"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                    border border-blue-500 dark:border-blue-400
+                    hover:bg-blue-200 dark:hover:bg-blue-800/50
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span wire:loading.remove wire:target="downloadGrievancesCsv">Export All in CSV</span>
+                <span wire:loading wire:target="downloadGrievancesCsv">Processing...</span>
+            </button>
+
+            <button
+                wire:click="downloadGrievancesExcel"
+                wire:loading.attr="disabled"
                 class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
                     border border-green-500 dark:border-green-400
@@ -363,7 +379,22 @@
                     focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                     transition-all duration-200">
                 <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                <span>Export All in CSV</span>
+                <span wire:loading.remove wire:target="downloadGrievancesExcel">Export All in Excel</span>
+                <span wire:loading wire:target="downloadGrievancesExcel">Processing...</span>
+            </button>
+
+            <button
+                @click="openImportModal = true"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    hover:bg-green-200 dark:hover:bg-green-800/50
+                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                    transition-all duration-200"
+            >
+                <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
+                <span wire:loading.remove wire:target="importGrievancesExcel">Import Grievances</span>
+                <span wire:loading wire:target="importGrievancesExcel">Processing...</span>
             </button>
 
             <button
@@ -377,6 +408,88 @@
                 <x-heroicon-o-printer class="w-4 h-4" />
                 Print All
             </button>
+
+            <div
+                x-data="{ progress: 0 }"
+                x-show="openImportModal"
+                x-cloak
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+                x-on:livewire-upload-start="progress = 5"
+                x-on:livewire-upload-finish="progress = 100"
+                x-on:livewire-upload-error="progress = 0"
+                x-on:livewire-upload-progress="progress = $event.detail.progress"
+            >
+                <div
+                    @click.outside="openImportModal = false"
+                    class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+                >
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            <x-heroicon-o-arrow-up-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
+                            Import Grievances
+                        </h2>
+                        <button
+                            @click="openImportModal = false"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                            aria-label="Close"
+                        >
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Upload an Excel file exported from the system. This will import grievances into the database.
+                    </p>
+
+                    <flux:input
+                        type="file"
+                        wire:model="importFile"
+                        label="Select Excel File"
+                        accept=".xlsx,.xls"
+                        required
+                    />
+
+                    <div class="space-y-1 mt-2">
+                        <flux:error name="importFile" />
+                    </div>
+
+                    <div x-show="progress > 0 && progress < 100" class="mt-4">
+                        <div class="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                            <div
+                                class="h-2 bg-green-600 dark:bg-green-400 transition-all"
+                                x-bind:style="'width: ' + progress + '%'"
+                            ></div>
+                        </div>
+                        <span class="text-sm text-gray-600 dark:text-gray-300 mt-1" x-text="progress + '%'"></span>
+                    </div>
+
+                    <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                    <div class="flex justify-end gap-3">
+                        <button
+                            @click="openImportModal = false"
+                            wire:click="$set('importFile', null)"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                        >
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                            Cancel
+                        </button>
+
+                        <button
+                            wire:click="importGrievancesExcel"
+                            @click="openImportModal = false"
+                            wire:loading.attr="disabled"
+                            wire:target="importFile"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition"
+                        >
+                            <x-heroicon-o-check class="w-4 h-4" />
+                            <span wire:loading.remove wire:target="importFile">Import</span>
+                            <span wire:loading wire:target="importFile">Uploading...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="flex items-center justify-between gap-2 mb-4 px-3">
@@ -391,7 +504,20 @@
                             focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span>Export Selected</span>
+                        <span>Export Selected in CSV</span>
+                    </button>
+
+                    <button wire:click="exportSelectedGrievancesExcel"
+                        wire:loading.attr="disabled"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                            border border-blue-500 dark:border-blue-400
+                            hover:bg-blue-200 dark:hover:bg-blue-800/50
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span wire:loading.remove wire:target="exportSelectedGrievancesExcel">Export Selected in Excel</span>
+                        <span wire:loading wire:target="exportSelectedGrievancesExcel">Processing...</span>
                     </button>
 
                     <button wire:click="printSelectedGrievances"

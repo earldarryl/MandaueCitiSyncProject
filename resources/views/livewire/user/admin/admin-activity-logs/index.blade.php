@@ -1,6 +1,6 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 px-6">
         <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
                     border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                     transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
@@ -53,7 +53,6 @@
         </div>
 
     </div>
-
 
     <div
         x-data="{ autoRefresh: true }"
@@ -132,13 +131,7 @@
                     wire:click="applyFilter"
                     wire:loading.attr="disabled"
                     wire:target="applyFilter"
-                    class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                        bg-blue-100 text-blue-800 border-blue-300
-                        hover:bg-blue-200 hover:border-blue-400
-                        dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
-                        dark:hover:bg-blue-700
-                        whitespace-nowrap
-                        transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                    class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
                     <flux:icon.adjustments-horizontal class="w-4 h-4" />
                     <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
                     <span wire:loading wire:target="applyFilter">Processing...</span>
@@ -212,7 +205,6 @@
         </div>
 
     </div>
-
 
     @forelse ($groupedLogs as $dateLabel => $logs)
         <div wire:key="group-{{ md5($dateLabel) }}">

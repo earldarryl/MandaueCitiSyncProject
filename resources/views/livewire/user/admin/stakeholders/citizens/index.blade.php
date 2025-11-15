@@ -137,6 +137,25 @@
                         ]"
                     />
                 </div>
+
+                <div class="w-full md:w-1/4">
+                    <x-filter-select
+                        name="statusFilterInput"
+                        placeholder="Filter by Status"
+                        :options="['Online', 'Away', 'Offline']"
+                        wire:model="statusFilterInput"
+                    />
+                </div>
+
+                <div class="w-full md:w-1/4">
+                    <x-filter-select
+                        name="deactivatedFilterInput"
+                        placeholder="Filter by Account"
+                        :options="['Active', 'Deactivated']"
+                        wire:model="deactivatedFilterInput"
+                    />
+                </div>
+
             </div>
 
             <div class="flex w-full flex-1 px-3 mb-3">
@@ -256,6 +275,23 @@
                                         </span>
                                     </div>
                                 </th>
+                                <th wire:click="sortBy('name')" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Username</span>
+                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                            @if($sortField === 'name')
+                                                @if($sortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
                                 <th wire:click="sortBy('email')" class="px-6 py-3 cursor-pointer">
                                     <div class="flex items-center justify-between">
                                         <span>Email</span>
@@ -278,6 +314,7 @@
                                 <th class="px-6 py-3 text-left">Gender</th>
                                 <th class="px-6 py-3 text-left">Phone</th>
                                 <th class="px-6 py-3 text-left">Status</th>
+                                <th class="px-6 py-3 text-center">Is Deactivated</th>
 
                                 <th wire:click="sortBy('created_at')" class="px-6 py-3 cursor-pointer">
                                     <div class="flex items-center justify-between">
@@ -313,6 +350,7 @@
                                     <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-100">
                                         {{ $citizen->userInfo?->last_name ?? '—' }}
                                     </td>
+                                    <td class="px-6 py-4 text-sm font-medium">{{ $citizen->name }}</td>
                                     <td class="px-6 py-4 text-sm font-medium">{{ $citizen->email }}</td>
                                     <td class="px-6 py-4 text-sm font-medium">
                                         {{ $citizen->userInfo?->barangay ?? '—' }}
@@ -350,6 +388,18 @@
                                         </span>
                                     </td>
 
+                                    <td class="px-6 py-4 text-sm text-center">
+                                        @if($citizen->is_deactivated)
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800 border border-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
+                                                Deactivated
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500">
+                                                Active
+                                            </span>
+                                        @endif
+                                    </td>
+
                                     <td class="px-6 py-4 text-sm text-center text-gray-600 dark:text-gray-300 font-medium">
                                         {{ $citizen->created_at->format('M d, Y h:i A') }}
                                     </td>
@@ -359,7 +409,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="12" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
                                         No citizen users found
                                     </td>

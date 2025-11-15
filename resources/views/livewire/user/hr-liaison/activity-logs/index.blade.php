@@ -1,37 +1,89 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
-    <div class="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-3 mb-5">
+    <div
+        x-data="{ autoRefresh: true }"
+        x-init="
+            setInterval(() => {
+                if (autoRefresh) {
+                    $wire.call('applyFilter');
+                }
+            }, 300000);
+        "
+    >
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
-            <x-filter-select
-                name="filter"
-                placeholder="Filter by module"
-                :options="['Grievance Management', 'Feedbacks']"
-                wire:model="filter"
-            />
+        <div class="flex flex-col justify-center items-center gap-3 mb-5">
 
-            <x-filter-select
-                name="roleFilter"
-                placeholder="Filter by role"
-                :options="['HR Liaison', 'Citizen']"
-                wire:model="roleFilter"
-            />
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
 
-            <button
-                wire:click="applyFilter"
-                wire:loading.attr="disabled"
-                wire:target="applyFilter"
-                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-gray-100 text-gray-800 border-gray-300
-                    hover:bg-gray-200 hover:border-gray-400
-                    dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
-                    dark:hover:bg-zinc-700
-                    whitespace-nowrap
-                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
-                <flux:icon.adjustments-horizontal class="w-4 h-4" />
-                <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
-                <span wire:loading wire:target="applyFilter">Processing...</span>
-            </button>
+                <x-filter-select
+                    name="filter"
+                    placeholder="Filter by module"
+                    :options="['Grievance Management', 'Feedbacks']"
+                    wire:model="filter"
+                />
+
+                <x-filter-select
+                    name="roleFilter"
+                    placeholder="Filter by role"
+                    :options="['HR Liaison', 'Citizen']"
+                    wire:model="roleFilter"
+                />
+
+                <div class="flex flex-col gap-1 w-full"
+                    x-data="{ selected: @entangle('selectedDate') }"
+                    x-init="$nextTick(() => {
+                        flatpickr($refs.dateInput, {
+                            dateFormat: 'Y-m-d',
+                            defaultDate: selected,
+                            onChange: (selectedDates, dateStr) => {
+                                selected = dateStr
+                            }
+                        });
+                    })"
+                >
+                    <div class="relative w-full">
+                        <div
+                            class="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 cursor-pointer"
+                            @click="$refs.dateInput._flatpickr.open()"
+                        >
+                            <input
+                                type="text"
+                                x-ref="dateInput"
+                                x-model="selected"
+                                readonly
+                                placeholder="Select date"
+                                class="w-full bg-transparent text-[12px] focus:outline-none cursor-pointer"
+                            />
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    x-show="selected"
+                                    @click.stop="selected = null; $wire.set('selectedDate', null); $refs.dateInput._flatpickr.clear()"
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1 rounded"
+                                >
+                                    <x-heroicon-o-x-mark class="w-4 h-4"/>
+                                </button>
+                                <x-heroicon-o-calendar class="w-4 h-4 text-gray-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="relative flex flex-col w-full">
+                <button
+                    wire:click="applyFilter"
+                    wire:loading.attr="disabled"
+                    wire:target="applyFilter"
+                    class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                    <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
+                    <span wire:loading wire:target="applyFilter">Processing...</span>
+                </button>
+            </div>
+
         </div>
 
     </div>
@@ -43,8 +95,9 @@
             <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
                 @foreach ($logs as $log)
                     @php
-                        $isGrievance = $log->module === 'Grievance Management';
-                        $bgColor = $isGrievance ? 'bg-green-500 dark:bg-green-700' : 'bg-blue-500 dark:bg-blue-700';
+                        $bgColor = $log->module === 'Grievance Management'
+                            ? 'bg-green-500 dark:bg-green-700'
+                            : 'bg-blue-500 dark:bg-blue-700';
                         $svgColor = 'text-white';
                     @endphp
 
@@ -60,35 +113,58 @@
                             class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
                                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex flex-col gap-1.5">
-                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                        {{ ucwords(str_replace('_', ' ',$log->action_type)) }}
-                                    </span>
+                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
+                                            <x-heroicon-o-clipboard-document-check class="h-6 w-6"/>
+                                        </div>
+                                    </div>
 
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
-                                        {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ',$log->action))) }}
-                                    </h3>
-
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        <span class="font-medium text-gray-700 dark:text-gray-300">
-                                            {{ $log->module_name }}
+                                    <div class="flex-1 flex flex-col gap-1">
+                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                            {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
                                         </span>
-                                        •
-                                        <span>{{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y - g:i A') }}</span>
-                                    </p>
+
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
+                                            {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}
+                                        </h3>
+
+                                        <div class="flex flex-col gap-2 mt-2">
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Module:</span>
+                                                <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->module ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Platform:</span>
+                                                <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->platform ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y – g:i A') ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Location:</span>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ $log->location ?? 'Unknown' }}
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
                                 </div>
-
-                                @if ($loop->first && $loop->parent->first)
-                                    <span
-                                        class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full border
-                                            border-blue-300 dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800 shadow-sm">
-                                        Latest
-                                    </span>
-                                @endif
                             </div>
-
-                            <div class="border-t border-gray-200 dark:border-zinc-700/70 my-3"></div>
 
                         </div>
                     </li>
@@ -102,24 +178,37 @@
         </div>
     @endforelse
 
-    @if ($hasMore)
-        <div class="flex justify-center items-center mt-6">
-            <div wire:target="loadMore" wire:loading.remove>
-                <button wire:click="loadMore"
-                    class="px-6 py-2.5 text-sm font-semibold rounded-md bg-blue-100 text-blue-800 border border-blue-300
-                        hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                        dark:hover:bg-blue-800/60 transition-all duration-200">
-                    Load More
-                </button>
-            </div>
+    <div class="mt-6">
+        {{ $logsPaginator->links() }}
+    </div>
 
-            <div wire:target="loadMore" wire:loading>
-                <div class="w-full flex items-center justify-center gap-2">
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                </div>
-            </div>
-        </div>
-    @endif
 </div>
+<script>
+    (function () {
+        const PAGINATION_SELECTOR = [
+            'a[wire\\:click*="previousPage"]',
+            'a[wire\\:click*="nextPage"]',
+            'a[wire\\:click*="gotoPage"]',
+            'button[wire\\:click*="previousPage"]',
+            'button[wire\\:click*="nextPage"]',
+            'button[wire\\:click*="gotoPage"]',
+            '.pagination a',
+            'ul.pagination li a'
+        ].join(',');
+
+        const SCROLL_CONTAINER_SELECTOR =
+            'div.relative.flex.flex-col.flex-1.h-full.overflow-y-auto.overflow-x-auto';
+
+        document.addEventListener('click', function (ev) {
+            const el = ev.target.closest(PAGINATION_SELECTOR);
+            if (!el) return;
+
+            const scrollArea = document.querySelector(SCROLL_CONTAINER_SELECTOR);
+            if (!scrollArea) return;
+
+            setTimeout(() => {
+                scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+        }, { passive: true });
+    })();
+</script>
