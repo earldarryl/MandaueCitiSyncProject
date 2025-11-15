@@ -54,4 +54,8 @@ class Department extends Model
             : 'https://ui-avatars.com/api/?name=' . urlencode($this->department_name) . '&background=random';
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class, 'department_id', 'department_id');
+    }
 }

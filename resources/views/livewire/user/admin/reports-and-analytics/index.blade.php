@@ -82,11 +82,14 @@
                     <x-filter-select
                         name="filterType"
                         placeholder="Type"
-                        :options="['Grievances', 'Feedbacks', 'Users']"
+                        :options="['Grievances', 'Departments','Feedbacks', 'Users']"
                         x-model="filterType"
                     />
                 </div>
 
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-center gap-2 mb-4 w-full px-4">
                 @if($filterType === 'Grievances')
                     <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
                         <div class="flex items-center gap-2 font-bold mb-1">
@@ -137,6 +140,47 @@
                         />
                     </div>
 
+                @endif
+
+                @if($filterType === 'Departments')
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Service Status</span>
+                        </div>
+                        <x-filter-select
+                            name="filterServiceStatus"
+                            placeholder="Select Options"
+                            :options="['Active', 'Inactive']"
+                            wire:model.live="filterServiceStatus"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Service Availability</span>
+                        </div>
+                        <x-filter-select
+                            name="filterServiceAvailability"
+                            placeholder="Select Options"
+                            :options="['Available', 'Not Available']"
+                            wire:model.live="filterServiceStatus"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <x-heroicon-o-adjustments-horizontal class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                            <span>Dynamic Filter</span>
+                        </div>
+                        <x-filter-select
+                            name="dynamicDepartmentFilter"
+                            placeholder="Select Filter"
+                            :options="$dynamicDepartmentFilterOptions "
+                            wire:model="dynamicDepartmentFilter"
+                        />
+                    </div>
                 @endif
 
                 @if($filterType === 'Feedbacks')
@@ -223,10 +267,9 @@
                         />
                     </div>
                 @endif
-
             </div>
 
-           <div class="px-4 mb-4">
+            <div class="px-4 mb-4">
                 <button
                     wire:click="applyFilters"
                     wire:loading.attr="disabled"
@@ -237,9 +280,74 @@
                     <span wire:loading wire:target="applyFilters">Processing...</span>
                 </button>
             </div>
-
         </div>
     </div>
+
+    @if($filterType === 'Grievances' && $dynamicGrievanceFilter)
+
+        <div class="grid gap-6 mt-6 justify-center"
+            style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+
+            @foreach ($stats as $stat)
+                @php
+                    $key = $stat->grievance_status ?? $stat->priority_level ?? $stat->grievance_type;
+
+                    $bgClass = $colorMap[$key]['bg'] ?? 'from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700';
+                    $textClass = $colorMap[$key]['text'] ?? 'text-gray-600 dark:text-gray-400';
+                @endphp
+
+                <div class="group relative bg-gradient-to-br {{ $bgClass }} border border-gray-200/50 dark:border-zinc-700
+                            rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-gray-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-heroicon-o-chart-pie class="h-8 w-8 {{ $textClass }}" />
+                    </div>
+
+                    <p class="relative text-base font-semibold {{ $textClass }} mt-2">
+                        {{ ucwords(str_replace(['_', '-'], ' ', $key)) }}
+                    </p>
+
+                    <p class="relative text-3xl font-bold {{ $textClass }} tracking-tight">
+                        {{ $stat->total }}
+                    </p>
+                </div>
+            @endforeach
+
+        </div>
+
+    @endif
+
+    @if($filterType === 'Departments' && $dynamicDepartmentFilter)
+        <div class="grid gap-6 mt-6 justify-center"
+            style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            @foreach ($stats as $stat)
+                <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+
+                    <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-gray-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                        <x-dynamic-component :component="$stat->icon" class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+
+                    <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">
+                        {{ $stat->department_name }}
+                    </p>
+
+                    <p class="relative text-3xl font-bold text-blue-600 dark:text-blue-500 tracking-tight">
+                        {{ $stat->total }}
+                    </p>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     <div class="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
 
@@ -257,6 +365,13 @@
                             <th class="px-6 py-3 text-center">STATUS</th>
                             <th class="px-6 py-3 text-center">PROCESSING DAYS</th>
                             <th class="px-6 py-3 text-center">DATE</th>
+
+                        @elseif($filterType === 'Departments')
+                            <th class="px-6 py-3 text-center">DEPARTMENT NAME</th>
+                            <th class="px-6 py-3 text-center">CODE</th>
+                            <th class="px-6 py-3 text-center">TOTAL ASSIGNMENTS</th>
+                            <th class="px-6 py-3 text-center">HR LIAISONS ONLINE</th>
+                            <th class="px-6 py-3 text-center">CREATED AT</th>
 
                         @elseif($filterType === 'Feedbacks')
                             <th class="px-6 py-3 text-center">USER</th>
@@ -311,6 +426,13 @@
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_status }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->processing_days ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+
+                            @elseif($filterType === 'Departments')
+                                <td class="px-6 py-3 text-center">{{ $item->department_name }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item->department_code }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item->assignments_count ?? 0 }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item->hrLiaisonsStatus }}</td>
+                                <td class="px-6 py-3 text-center">{{ $item->created_at->format('Y-m-d') }}</td>
 
                             @elseif($filterType === 'Feedbacks')
                                 <td class="px-6 py-3 text-center">{{ $item->user->name ?? 'Anonymous' }}</td>
