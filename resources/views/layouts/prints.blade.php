@@ -12,45 +12,48 @@
 
   <style>
         @media print {
-            @page {
-                size: A4;
-                margin: 1in;
+            .page {
+                width: 100%;
+                max-width: 794px;
+                margin: 0 auto;
+                padding: 0.5in;
             }
 
-            body {
-                background: white !important;
-                color: black !important;
+            table {
+                width: 100%;
+                table-layout: fixed;
+                word-wrap: break-word;
+                font-size: 10px;
             }
 
-            .no-print {
-                display: none !important;
+            th, td {
+                padding: 4px 6px;
             }
 
-            .bg-white,
-            .bg-gray-100,
-            .dark\:bg-gray-800,
-            .dark\:bg-zinc-900 {
-                background: white !important;
-                color: black !important;
+            .stats-grid {
+                display: block;
             }
 
-            .shadow,
-            .shadow-sm,
-            .shadow-md,
-            .shadow-lg {
-                box-shadow: none !important;
+            .stat-card {
+                width: 100% !important;
+                margin-bottom: 1rem;
             }
 
-            * {
-                opacity: 1 !important;
+            .header img {
+                width: 50px !important;
+                height: 50px !important;
             }
 
-            img {
-                opacity: 1 !important;
+            .summary-date {
+                font-size: 10px;
             }
 
-            [x-cloak], [x-show], [x-data], .fixed, .absolute {
-                display: none !important;
+            .noted {
+                font-size: 10px;
+            }
+
+            .overflow-x-auto {
+                overflow-x: visible !important;
             }
         }
 

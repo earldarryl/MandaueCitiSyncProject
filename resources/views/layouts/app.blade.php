@@ -64,6 +64,31 @@
             userId: {{ auth()->id() ?? 'null' }},
         };
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const userId = @json(auth()->id());
+
+        if (window.Echo && userId) {
+            Echo.private(`App.Models.User.${userId}`)
+                .notification((notification) => {
+                    console.log('Notification received via Echo', notification);
+
+                    window.dispatchEvent(new CustomEvent('notification-received', {
+                        detail: notification
+                    }));
+
+                    new FilamentNotification()
+                        .title(notification.title || 'New Notification')
+                        .body(notification.body || '')
+                        .success()
+                        .send();
+                });
+        }
+    });
+
+    </script>
+
+
     @vite('resources/js/pusher-echo.js')
     @filamentScripts
     @fluxScripts

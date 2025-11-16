@@ -204,11 +204,6 @@ class Index extends Component
         );
     }
 
-    public function print($id)
-    {
-        return redirect()->route('print-grievance', ['id' => $id]);
-    }
-
     public function downloadCsv($id)
     {
         $grievance = Grievance::with(['user.info', 'departments'])->findOrFail($id);
@@ -298,15 +293,13 @@ class Index extends Component
         $title = $grievance->grievance_title;
         $grievance->delete();
 
-        $this->updateStats();
-        $this->dispatch('$refresh');
-        $this->dispatch('close-delete-modal-'.$grievanceId);
-
         Notification::make()
-            ->title('Grievance Removed')
+            ->title('Grievance Deleted')
             ->body("{$title} was removed successfully.")
             ->success()
             ->send();
+
+        $this->updateStats();
     }
 
     public function updatedSelectAll($value)

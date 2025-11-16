@@ -630,8 +630,44 @@
                                         <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
                                             class="px-3 py-1 text-xs rounded-md border border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300">Edit</a>
 
-                                        <button @click="$dispatch('open-delete-modal-{{ $grievance->grievance_id }}')"
-                                            class="px-3 py-1 text-xs rounded-md border border-red-300 text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300">Delete</button>
+                                        <div x-data="{ showModal: false }" class="relative">
+                                            <button @click="showModal = true"
+                                                class="px-3 py-1 text-xs rounded-md border border-red-300 text-red-700 bg-red-50 dark:bg-red-900/40 dark:text-red-300">
+                                                Delete
+                                            </button>
+
+                                            <div x-show="showModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+                                            <div x-show="showModal" x-transition.scale
+                                                class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+                                                    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                                                        <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                                                    </div>
+
+                                                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this grievance? This action cannot be undone.</p>
+
+                                                    <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
+                                                        <button type="button" @click="showModal = false"
+                                                            class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                                                            Cancel
+                                                        </button>
+                                                        <flux:button variant="danger" icon="trash" wire:click="deleteGrievance({{ $grievance->grievance_id }})">
+                                                            Yes, Delete
+                                                        </flux:button>
+                                                    </div>
+
+                                                    <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
+                                                        <div class="flex items-center justify-center gap-2 w-full">
+                                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -679,45 +715,6 @@
                     </tbody>
                 </table>
             </div>
-
-            @foreach ($grievances as $grievance)
-                <div x-data="{ showModal: false }"
-                    x-on:open-delete-modal-{{ $grievance->grievance_id }}.window="showModal = true"
-                    x-on:close-delete-modal-{{ $grievance->grievance_id }}.window="showModal = false"
-                    x-on:close-all-modals.window="showModal = false"
-                    x-show="showModal" x-cloak
-                    class="fixed inset-0 flex items-center justify-center z-50">
-                    <div x-show="showModal" x-transition.opacity class="absolute inset-0 bg-black/50"></div>
-                    <div x-show="showModal" x-transition.scale
-                        class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5 z-50">
-
-                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
-                            <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
-                        </div>
-
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this grievance? This action cannot be undone.</p>
-
-                        <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
-                            <button type="button" @click="showModal = false"
-                                class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
-                                Cancel
-                            </button>
-                            <flux:button variant="danger" icon="trash" wire:click="deleteGrievance({{ $grievance->grievance_id }})">
-                                Yes, Delete
-                            </flux:button>
-                        </div>
-
-                        <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})" >
-                            <div class="flex items-center justify-center gap-2 w-full">
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
 
             <div x-data="{ showFeedbackModal: @entangle('showFeedbackModal') }">
                 <div

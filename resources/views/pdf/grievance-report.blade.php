@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500&display=swap" rel="stylesheet">
 
     @php
-        // 1. Re-calculate the Base64 image data
         $bgImagePath = public_path('images/grievance-report-template-bg.jpg');
         $bgImageBase64 = '';
         if(file_exists($bgImagePath)) {

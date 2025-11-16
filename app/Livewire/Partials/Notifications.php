@@ -34,23 +34,9 @@ class Notifications extends Component
         }
     }
 
-    public function getListeners(): array
-    {
-        return [
-            "echo-private:notifications.{$this->userId},NotificationCreated" => 'handleRealtimeNotification',
-        ];
-    }
-
     public function handleRealtimeNotification($payload): void
     {
-        $notification = $payload['notification'] ?? null;
-        $this->prependNewNotification($notification);
-
-        FilamentNotification::make()
-            ->title($notification['data']['title'] ?? 'New Notification')
-            ->body($notification['data']['body'] ?? '')
-            ->success()
-            ->send();
+        $this->prependNewNotification($payload['notification'] ?? null);
     }
 
     #[On('notificationUpdated')]
@@ -121,7 +107,6 @@ class Notifications extends Component
         $this->loadNotifications();
     }
 
-    /** BULK ACTIONS — optimized for fewer DB queries */
     public function markAllAsRead(): void
     {
         $this->user->unreadNotifications()->update(['read_at' => now()]);
