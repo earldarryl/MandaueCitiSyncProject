@@ -110,24 +110,57 @@
                                 </div>
 
                                 <div class="flex-shrink-0">
-                                    <flux:dropdown align="end">
-                                        <flux:button variant="subtle" icon:trailing="ellipsis-horizontal" />
-                                        <flux:menu>
-                                            @if(is_null($notification['read_at']))
-                                                <flux:menu.item icon="check-circle" wire:click="markNotificationAsRead('{{ $notification['id'] }}')">
-                                                    Mark as Read
-                                                </flux:menu.item>
-                                            @else
-                                                <flux:menu.item icon="arrow-uturn-left" wire:click="markNotificationAsUnread('{{ $notification['id'] }}')">
-                                                    Mark as Unread
-                                                </flux:menu.item>
-                                            @endif
+                                    <div class="relative flex-shrink-0" x-data="{ open: false, showActions: false }">
+                                        <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                            <x-heroicon-o-ellipsis-horizontal class="w-8 h-8 text-black dark:text-white"/>
+                                        </button>
 
-                                            <flux:menu.item icon="trash" variant="danger" wire:click="deleteNotification('{{ $notification['id'] }}')">
-                                                Delete
-                                            </flux:menu.item>
-                                        </flux:menu>
-                                    </flux:dropdown>
+                                        <div x-show="open" @click.away="open = false" x-transition
+                                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+
+                                                @if(is_null($notification['read_at']))
+                                                    <button wire:click="markNotificationAsRead('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
+                                                        <x-heroicon-o-check-circle class="w-5 h-5 text-green-500" /> Mark as Read
+                                                    </button>
+                                                @else
+                                                    <button wire:click="markNotificationAsUnread('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
+                                                        <x-heroicon-o-arrow-uturn-left class="w-5 h-5 text-yellow-500" /> Mark as Unread
+                                                    </button>
+                                                @endif
+
+                                                @if(!empty($notification['actions']))
+                                                    <div class="px-2 py-1">
+                                                        <button @click="showActions = !showActions" class="w-full text-left text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex justify-between items-center">
+                                                            Actions
+                                                            <svg :class="{ 'rotate-180': showActions }" class="h-4 w-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </button>
+
+                                                        <div x-show="showActions" x-transition class="mt-1 space-y-1">
+                                                            @foreach($notification['actions'] as $action)
+                                                                <button
+                                                                    class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                                                                    @if(!empty($action['wireClick'])) wire:click="{{ $action['wireClick'] }}" @endif
+                                                                    @if(!empty($action['url'])) onclick="window.open('{{ $action['url'] }}')" @endif
+                                                                    style="color: {{ $action['color'] ?? 'inherit' }}"
+                                                                >
+                                                                    <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
+                                                                    {{ $action['label'] }}
+                                                                </button>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                <button wire:click="deleteNotification('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500">
+                                                    <x-heroicon-o-trash class="w-5 h-5" /> Delete
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -43,16 +43,24 @@ class Login extends Component
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
+            'module'       => 'Authentication',
             'action'       => $roleName . ' logged in',
             'action_type'  => 'login',
-            'module_name'  => 'Authentication',
+            'model_type'   => null,
+            'model_id'     => null,
             'description'  => $roleName . ' (' . $user->email . ') logged in successfully.',
-            'timestamp'    => now(),
+            'changes'      => [],
+            'status'       => 'success',
             'ip_address'   => request()->ip(),
             'device_info'  => request()->header('User-Agent'),
-            'created_by'   => $user->id,
-            'updated_by'   => $user->id,
+            'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+            'platform'     => php_uname('s'),
+            'location'     => geoip(request()->ip())?->city,
+            'timestamp'    => now(),
         ]);
+
+
+
 
         $redirect = $result['redirect'] ?? null;
 

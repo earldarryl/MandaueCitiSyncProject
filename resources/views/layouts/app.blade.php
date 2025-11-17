@@ -65,30 +65,65 @@
         };
     </script>
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const userId = @json(auth()->id());
+        document.addEventListener('DOMContentLoaded', function () {
+            const userId = @json(auth()->id());
 
-        if (window.Echo && userId) {
-            Echo.private(`App.Models.User.${userId}`)
-                .notification((notification) => {
-                    console.log('Notification received via Echo', notification);
+            if (window.Echo && userId) {
+                Echo.private(`App.Models.User.${userId}`)
+                    .notification((notification) => {
 
-                    window.dispatchEvent(new CustomEvent('notification-received', {
-                        detail: notification
-                    }));
+                        console.log('Incoming notification', notification);
 
-                    new FilamentNotification()
-                        .title(notification.title || 'New Notification')
-                        .body(notification.body || '')
-                        .success()
-                        .send();
-                });
-        }
-    });
+                        const f = new FilamentNotification()
+                            .title(notification.title || 'New Notification')
+                            .body(notification.body || '');
 
+                        switch (notification.type) {
+                            case 'success': f.success(); break;
+                            case 'warning': f.warning(); break;
+                            case 'danger':  f.danger();  break;
+                            default:        f.info();    break;
+                        }
+
+                        if (notification.actions && Array.isArray(notification.actions)) {
+                            const builtActions = notification.actions.map(action => {
+                                let btn = new FilamentNotificationAction(action.label);
+
+                                if (action.button !== false) {
+                                    btn = btn.button();
+                                }
+
+                                if (action.url) {
+                                    btn = btn.url(action.url);
+                                }
+
+                                if (action.open_new_tab) {
+                                    btn = btn.openUrlInNewTab();
+                                }
+
+                                if (action.color) {
+                                    btn = btn.color(action.color);
+                                }
+
+                                if (action.dispatch) {
+                                    btn = btn.dispatch(action.dispatch);
+                                }
+
+                                if (action.close) {
+                                    btn = btn.close();
+                                }
+
+                                return btn;
+                            });
+
+                            f.actions(builtActions);
+                        }
+
+                        f.send();
+                    });
+            }
+        });
     </script>
-
-
     @vite('resources/js/pusher-echo.js')
     @filamentScripts
     @fluxScripts

@@ -4,6 +4,7 @@ namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\ActivityLog;
 use App\Models\HistoryLog;
+use App\Notifications\GeneralNotification;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -116,10 +117,9 @@ class Create extends Component implements Forms\Contracts\HasForms
             return;
         }
 
-        $departmentName = $this->department;
-        $department = Department::where('department_name', $departmentName)->first();
+        $department = Department::where('department_name', $this->department)->first();
 
-        if (!$department) {
+        if (! $department) {
             Notification::make()
                 ->title('Invalid Department')
                 ->body('The selected department does not exist.')
@@ -128,10 +128,10 @@ class Create extends Component implements Forms\Contracts\HasForms
             return;
         }
 
-        if (!$department->is_active || !$department->is_available) {
+        if (! $department->is_active || !$department->is_available) {
             Notification::make()
                 ->title('Department Not Available')
-                ->body('The selected department is either inactive or unavailable. Please select another department.')
+                ->body('The selected department is either inactive or unavailable.')
                 ->warning()
                 ->send();
             return;
@@ -174,8 +174,9 @@ class Create extends Component implements Forms\Contracts\HasForms
             }
 
             $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
-                ->get();
+                ->whereHas('departments', fn($q) =>
+                    $q->where('hr_liaison_departments.department_id', $department->department_id)
+                )->get();
 
             foreach ($hrLiaisons as $hr) {
                 Assignment::create([
@@ -184,69 +185,73 @@ class Create extends Component implements Forms\Contracts\HasForms
                     'assigned_at'   => now(),
                     'hr_liaison_id' => $hr->id,
                 ]);
+
+                $hr->notify(new GeneralNotification(
+                    'New Grievance Assigned',
+                    "A grievance titled '{$grievance->grievance_title}' has been assigned to you.",
+                    'info',
+                    ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                    [],
+                    true,
+                    [
+                        [
+                            'label'        => 'View Grievance',
+                            'url'          => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ]
+                    ]
+                ));
+
+
             }
 
-            HistoryLog::create([
-                'user_id'         => auth()->id(),
-                'action_type'     => 'grievance_submission',
-                'description'     => "Submitted a new grievance titled '{$this->grievance_title}'.",
-                'reference_id'    => $grievance->grievance_id,
-                'reference_table' => 'grievances',
-                'ip_address'      => request()->ip(),
-            ]);
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'New Grievance Submitted',
+                    "A new grievance titled '{$grievance->grievance_title}' has been submitted.",
+                    'warning',
+                    ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                    [],
+                    true,
+                    [
+                        [
+                            'label' => 'Open in Admin Panel',
+                            'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ],
+                        [
+                            'label'   => 'Undo',
+                            'color'   => 'gray',
+                            'dispatch'=> 'undoLatestGrievance',
+                            'close'   => true
+                        ],
+                    ]
+                ));
 
 
-            $user = auth()->user();
-            $roleName = $user->roles->first()?->name ?? 'User';
-
-            ActivityLog::create([
-                'user_id'      => $user->id,
-                'role_id'      => $user->roles->first()?->id,
-                'module'       => 'Grievance Management',
-                'action'       => "Submitted grievance #{$grievance->grievance_ticket_id}",
-                'action_type'  => 'submit',
-                'model_type'   => Grievance::class,
-                'model_id'     => $grievance->grievance_id,
-                'description'  => "{$roleName} ({$user->email}) submitted grievance #{$grievance->grievance_ticket_id}.",
-                'changes'      => [],
-                'status'       => 'success',
-                'ip_address'   => request()->ip(),
-                'device_info'  => request()->header('User-Agent'),
-                'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
-                'platform'     => php_uname('s'),
-                'location'     => geoip(request()->ip())?->city,
-                'timestamp'    => now(),
-            ]);
+            }
 
             Notification::make()
                 ->title('Grievance Submitted')
-                ->body('Your grievance was submitted successfully and assigned to the relevant HR liaisons.')
+                ->body('Your grievance was submitted and assigned to the relevant HR liaisons.')
                 ->success()
                 ->send();
-
-            session()->put('grievance_submitted_once', true);
 
             $this->redirectRoute('citizen.grievance.index', navigate: true);
 
         } catch (\Exception $e) {
-            if (!empty($this->grievance_files)) {
-                foreach ($this->grievance_files as $file) {
-                    if (is_string($file)) {
-                        Storage::disk('public')->delete($file);
-                    }
-                }
-            }
-
             Notification::make()
                 ->title('Submission Failed')
-                ->body('Something went wrong while submitting your grievance. Please try again.')
+                ->body('Something went wrong while submitting your grievance.')
                 ->danger()
                 ->send();
-
 
             $this->showConfirmSubmitModal = false;
         }
     }
+
 
     public function render()
     {

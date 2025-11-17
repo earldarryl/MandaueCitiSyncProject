@@ -79,7 +79,9 @@ class Notifications extends Component
                     'read_at' => $n->read_at,
                     'created_at' => $n->created_at?->toDateTimeString(),
                     'diff' => $n->created_at?->diffForHumans(),
+                    'actions' => $n->data['actions'] ?? [],
                 ];
+
             })->values()->toArray();
         })->toArray();
     }

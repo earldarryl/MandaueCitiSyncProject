@@ -17,15 +17,33 @@ class GeneralNotification extends Notification implements ShouldQueue
     public $body;
     public $type;
 
+    public $extraData;
+    public $metadata;
+    public $saveToDatabase;
+    public $actions;
     /**
      * Create a new notification instance.
      */
-    public function __construct($title = null, $body = null, $type = 'info')
-    {
-        $this->title = $title;
-        $this->body  = $body;
-        $this->type  = $type;
+        public function __construct(
+        $title = null,
+        $body = null,
+        $type = 'info',
+        $extraData = [],
+        $metadata = [],
+        $saveToDatabase = true,
+        $actions = []
+    ) {
+        $this->title          = $title;
+        $this->body           = $body;
+        $this->type           = $type;
+        $this->extraData      = $extraData;
+        $this->metadata       = $metadata;
+        $this->saveToDatabase = $saveToDatabase;
+
+        $this->actions = $actions;
     }
+
+
 
     /**
      * Get the notification's delivery channels.
@@ -35,15 +53,23 @@ class GeneralNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        $channels = ['broadcast'];
+
+        if ($this->saveToDatabase) {
+            $channels[] = 'database';
+        }
+
+        return $channels;
     }
 
     public function toArray($notifiable)
     {
         return [
-            'title' => $this->title ?? 'New Notification',
-            'body'  => $this->body ?? 'You have a new notification',
-            'type'  => $this->type,
+            'title'   => $this->title,
+            'body'    => $this->body,
+            'type'    => $this->type,
+            'extra'   => $this->extraData,
+            'actions' => $this->actions,
         ];
     }
 
@@ -53,9 +79,11 @@ class GeneralNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
-            'title' => $this->title ?? 'New Notification',
-            'body'  => $this->body ?? 'You have a new notification',
-            'type'  => $this->type,
+            'title'    => $this->title,
+            'body'     => $this->body,
+            'type'     => $this->type,
+            'metadata' => $this->metadata,
+            'actions'  => $this->actions,
         ]);
     }
 
