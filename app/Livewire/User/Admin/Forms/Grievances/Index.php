@@ -812,6 +812,8 @@ class Index extends Component
 
                 Grievance::where('grievance_id', $grievanceId)->update([
                     'grievance_category' => $this->category,
+                    'grievance_status'   => 'pending',
+                    'updated_at'         => now(),
                 ]);
 
                 foreach ($hrLiaisons as $hr) {
@@ -827,12 +829,13 @@ class Index extends Component
 
         Notification::make()
             ->title('Grievances Rerouted')
-            ->body('Selected grievances have been rerouted and category updated successfully.')
+            ->body('Selected grievances have been rerouted, category updated, and status set to pending successfully.')
             ->success()
             ->send();
 
         $this->redirectRoute('admin.forms.grievances.index', navigate: true);
     }
+
 
     public function render()
     {

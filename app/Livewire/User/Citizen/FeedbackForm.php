@@ -17,8 +17,8 @@ class FeedbackForm extends Component
     public $showConfirmModal = false;
     public $date;
     public $gender;
-    public $region = "Cebu";
-    public $service = "Grievance";
+    public $region = "Region VII - Central Visayas";
+    public $service = "Grievance Management System";
     public $cc1;
     public $cc2;
     public $cc3;

@@ -147,10 +147,10 @@
                         wire:loading.attr="disabled"
                         wire:target="downloadCsv"
                         class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-green-100 text-green-800 border-green-300
-                            hover:bg-green-200 hover:border-green-400
-                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
-                            dark:hover:bg-green-700
+                            bg-blue-100 text-blue-800 border-blue-300
+                            hover:bg-blue-200 hover:border-blue-400
+                            dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
+                            dark:hover:bg-blue-700
                             whitespace-nowrap
                             transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
@@ -160,9 +160,9 @@
                     </button>
 
                     <button
-                        wire:click="downloadCsv"
+                        wire:click="downloadExcel"
                         wire:loading.attr="disabled"
-                        wire:target="downloadCsv"
+                        wire:target="downloadExcel"
                         class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
                             bg-green-100 text-green-800 border-green-300
                             hover:bg-green-200 hover:border-green-400
@@ -172,8 +172,8 @@
                             transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
-                        <span wire:loading.remove wire:target="downloadCsv">Export CSV</span>
-                        <span wire:loading wire:target="downloadCsv">Processing...</span>
+                        <span wire:loading.remove wire:target="downloadExcel">Export Excel</span>
+                        <span wire:loading wire:target="downloadExcel">Processing...</span>
                     </button>
 
                     <button

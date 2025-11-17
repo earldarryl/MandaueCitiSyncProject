@@ -484,19 +484,131 @@
             </div>
 
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Please select departments to reroute this particular grievance.
+                Please select a department and category to reroute all selected grievances.
             </p>
 
-            <div class="flex flex-col gap-2 mb-2">
+            <div
+                x-data="{
+                    department: @entangle('department'),
+                    grievanceCategory: @entangle('grievance_category'),
 
-                <x-searchable-select
-                    name="selectedDepartment"
-                    placeholder="Select department(s)"
-                    :options="$departmentOptions"
-                />
+                    categoriesMap: {
+                        'Business Permit and Licensing Office': [
+                            'Delayed Business Permit Processing',
+                            'Unclear Requirements or Procedures',
+                            'Unfair Treatment by Personnel',
+                            'Business Permit Requirements Inquiry',
+                            'Renewal Process Clarification',
+                            'Schedule or Fee Inquiry',
+                            'Document Correction or Update Request',
+                            'Business Record Verification Request',
+                            'Appointment or Processing Schedule Request'
+                        ],
+                        'Traffic Enforcement Agency of Mandaue': [
+                            'Traffic Enforcer Misconduct',
+                            'Unjust Ticketing or Penalty',
+                            'Inefficient Traffic Management',
+                            'Traffic Rules Clarification',
+                            'Citation or Violation Inquiry',
+                            'Inquiry About Traffic Assistance',
+                            'Request for Traffic Assistance',
+                            'Request for Event Traffic Coordination',
+                            'Request for Violation Review'
+                        ],
+                        'City Social Welfare Services': [
+                            'Discrimination or Neglect in Assistance',
+                            'Delayed Social Service Response',
+                            'Unprofessional Staff Behavior',
+                            'Assistance Program Inquiry',
+                            'Eligibility or Requirements Clarification',
+                            'Social Service Schedule Inquiry',
+                            'Request for Social Assistance',
+                            'Financial Aid or Program Enrollment Request',
+                            'Home Visit or Consultation Request'
+                        ]
+                    },
 
-                <div class="space-y-1">
+                    get categoryOptions() {
+                        return this.department ? this.categoriesMap[this.department] || [] : [];
+                    }
+                }"
+                class="flex flex-col gap-6"
+            >
+                <div class="flex flex-col gap-2">
+                    <label class="font-medium text-gray-900 dark:text-gray-100">Department</label>
+                    <x-searchable-select
+                        name="department"
+                        placeholder="Select department"
+                        :options="$departmentOptions"
+                        x-on:change="grievanceCategory = ''; $wire.set('category', '', true)"
+                    />
                     <flux:error name="department" />
+                </div>
+
+                <div x-show="department" x-cloak>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
+                            <flux:icon.list-bullet />
+                            <span>Grievance Category</span>
+                        </label>
+
+                        <h3 class="text-sm text-gray-700 dark:text-gray-300">
+                            Choose a category based on the selected department.
+                        </h3>
+
+                        <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                            <flux:input
+                                readonly
+                                x-model="grievanceCategory"
+                                placeholder="Select grievance category"
+                                @click="open = !open"
+                                class:input="border rounded-lg w-full cursor-pointer select-none"
+                            />
+
+                            <div
+                                x-show="open"
+                                @click.outside="open = false"
+                                x-transition
+                                class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
+                            >
+                                <div class="p-1 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-2">
+                                    <flux:icon.magnifying-glass class="text-gray-500 dark:text-zinc-400" />
+                                    <input
+                                        type="text"
+                                        x-model="search"
+                                        placeholder="Search..."
+                                        class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm"
+                                    />
+                                </div>
+
+                                <ul class="max-h-48 overflow-y-auto py-1">
+                                    <template x-for="opt in categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                        <li>
+                                            <button
+                                                type="button"
+                                                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                                @click="
+                                                    grievanceCategory = opt;
+                                                    $wire.set('category', opt, true);
+                                                    open = false;
+                                                    search = '';
+                                                "
+                                                x-text="opt"
+                                            ></button>
+                                        </li>
+                                    </template>
+
+                                    <li
+                                        x-show="categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                        class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+                                    >
+                                        No results found
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <flux:error name="category" />
+                    </div>
                 </div>
             </div>
 
@@ -566,7 +678,7 @@
                     ]"
                 />
                 <div class="space-y-1">
-                    <flux:error name="status" />
+                    <flux:error name="statusUpdate" />
                 </div>
             </div>
 

@@ -666,6 +666,8 @@ class Index extends Component
 
                 Grievance::where('grievance_id', $grievanceId)->update([
                     'grievance_category' => $this->category,
+                    'grievance_status'   => 'pending', // Set status to pending
+                    'updated_at'         => now(),
                 ]);
 
                 foreach ($hrLiaisons as $hr) {
@@ -681,23 +683,30 @@ class Index extends Component
 
         Notification::make()
             ->title('Grievances Rerouted')
-            ->body('Selected grievances have been rerouted and category updated successfully.')
+            ->body('Selected grievances have been rerouted, category updated, and status set to pending successfully.')
             ->success()
             ->send();
 
         $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
     }
 
+    private function formatStatus($value)
+    {
+        return strtolower(str_replace(' ', '_', trim($value)));
+    }
+
     public function updateSelectedGrievanceStatus(): void
     {
         $this->validate([
             'selected' => 'required|array|min:1',
-            'status' => 'required|string|in:pending,acknowledged,in_progress,escalated,resolved,unresolved,closed',
+            'status'   => 'required|string',
         ], [
             'selected.required' => 'Please select at least one grievance to update.',
-            'status.required' => 'Please choose a grievance status.',
-            'status.in' => 'Invalid grievance status selected.',
+            'status.required'   => 'Please choose a grievance status.',
         ]);
+
+        $user = auth()->user();
+        $formattedStatus = $this->formatStatus($this->status);
 
         DB::beginTransaction();
 
@@ -709,27 +718,24 @@ class Index extends Component
                     $oldStatus = $grievance->grievance_status;
 
                     $grievance->update([
-                        'grievance_status' => $this->status,
-                        'updated_at' => now(),
+                        'grievance_status' => $formattedStatus,
+                        'updated_at'       => now(),
                     ]);
 
-                    $roleName = ucfirst(auth()->user()->roles->first()?->name ?? 'User');
-
                     ActivityLog::create([
-                        'user_id'      => auth()->id(),
-                        'role_id'      => auth()->user()->roles->first()?->id,
+                        'user_id'      => $user->id,
+                        'role_id'      => $user->roles->first()?->id,
                         'module'       => 'Grievance Management',
-                        'action'       => "Updated grievance #{$grievance->grievance_id} ({$grievance->grievance_title})",
-                        'action_type'  => 'update',
-                        'description'  => "{$roleName} ({auth()->user()->email}) updated grievance #{$grievance->grievance_id} from {$oldStatus} to {$this->status}.",
-                        'status'       => 'success',
+                        'action'       => "Changed grievance #{$grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
+                        'action_type'  => 'update_status',
                         'model_type'   => 'App\\Models\\Grievance',
                         'model_id'     => $grievance->grievance_id,
+                        'description'  => "HR Liaison ({$user->email}) changed status of grievance #{$grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
+                        'status'       => 'success',
                         'ip_address'   => request()->ip(),
                         'device_info'  => request()->header('User-Agent'),
                         'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
                         'platform'     => php_uname('s'),
-                        'location'     => null,
                         'timestamp'    => now(),
                     ]);
                 }
@@ -741,7 +747,10 @@ class Index extends Component
 
             Notification::make()
                 ->title('Grievance Status Updated')
-                ->body('The selected grievances have been updated to "' . ucwords(str_replace('_', ' ', $this->status)) . '".')
+                ->body(
+                    'The selected grievances have been updated to "' .
+                    ucwords(str_replace('_', ' ', $formattedStatus)) . '".'
+                )
                 ->success()
                 ->send();
 

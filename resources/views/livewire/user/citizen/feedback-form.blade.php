@@ -5,15 +5,15 @@
 >
     <div class="relative w-full">
 
-        <div class="prose max-w-full">
-            <h1 class="text-2xl font-bold">Client Satisfaction Measurement (CSM)</h1>
+        <div class="prose max-w-full my-4 flex flex-col gap-2">
+            <h1 class="text-3xl font-bold">Client Satisfaction Measurement (CSM)</h1>
             <p class="text-sm text-gray-600 dark:text-gray-300">
             This tracks the customer experience of government offices. Your feedback on your recently concluded transaction will help this office provide a better service.
             Personal information shared will be kept confidential and you always have the option not to answer this form.
             </p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
             <div>
             <flux:field>
                 <flux:label class="flex gap-2 items-center">

@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Models\ActivityLog;
 use App\Models\User;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\Response;
 use Livewire\WithPagination;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -80,6 +83,75 @@ class Index extends Component
         return response()->download($pdfPath, 'activity-logs-report.pdf');
     }
 
+    public function downloadExcel()
+    {
+        $query = ActivityLog::query()
+            ->with('user', 'role')
+            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->roleFilter, function ($q) {
+                if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
+                elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
+            })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
+            ->latest('timestamp');
+
+        $logs = $query->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->fromArray([
+            [
+                'ID',
+                'Action Type',
+                'Action',
+                'Module',
+                'Platform',
+                'User',
+                'Role',
+                'Timestamp',
+                'Location',
+            ]
+        ]);
+
+        $row = 2;
+
+        foreach ($logs as $log) {
+            $userName = $log->user?->name ?? 'N/A';
+            $roleName = $log->role?->name ?? 'N/A';
+            $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+            $sheet->fromArray([
+                [
+                    $log->activity_log_id,
+                    ucwords(str_replace('_', ' ', $log->action_type)),
+                    str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
+                    $log->module ?? 'N/A',
+                    $log->platform ?? 'N/A',
+                    $userName,
+                    $roleNameFormatted,
+                    $log->timestamp,
+                    $log->location ?? 'N/A',
+                ]
+            ], null, "A{$row}");
+
+            $row++;
+        }
+
+        foreach (range('A', 'I') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        $fileName = 'activity_logs_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $tempFile = storage_path($fileName);
+        $writer->save($tempFile);
+
+        return Response::download($tempFile, $fileName)->deleteFileAfterSend(true);
+    }
+
     public function downloadCsv()
     {
         $query = ActivityLog::query()
@@ -121,7 +193,7 @@ class Index extends Component
                 $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
 
                 fputcsv($handle, [
-                    $log->activiy_log_id,
+                    $log->activity_log_id,
                     ucwords(str_replace('_', ' ', $log->action_type)),
                     str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
                     $log->module ?? 'N/A',

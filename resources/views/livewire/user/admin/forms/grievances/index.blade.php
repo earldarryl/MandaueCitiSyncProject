@@ -498,10 +498,10 @@
                 <div class="flex flex-wrap gap-2">
                     <button wire:click="exportSelectedGrievancesCsv"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
-                            border border-green-500 dark:border-green-400
-                            hover:bg-green-200 dark:hover:bg-green-800/50
-                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                            border border-blue-500 dark:border-blue-400
+                            hover:bg-blue-200 dark:hover:bg-blue-800/50
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                         <span>Export Selected in CSV</span>
@@ -510,10 +510,10 @@
                     <button wire:click="exportSelectedGrievancesExcel"
                         wire:loading.attr="disabled"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                            border border-blue-500 dark:border-blue-400
-                            hover:bg-blue-200 dark:hover:bg-blue-800/50
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                            border border-green-500 dark:border-green-400
+                            hover:bg-green-200 dark:hover:bg-green-800/50
+                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                         <span wire:loading.remove wire:target="exportSelectedGrievancesExcel">Export Selected in Excel</span>
