@@ -5,7 +5,8 @@ namespace App\Livewire\User\Citizen;
 use App\Models\ActivityLog;
 use App\Models\Feedback;
 use App\Models\HistoryLog;
-use Filament\Notifications\Notification;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -171,14 +172,39 @@ class FeedbackForm extends Component
                 'timestamp'    => now(),
             ]);
 
-            $this->resetForm();
+            $sender = auth()->user();
 
-            Notification::make()
-                ->title('Feedback submitted successfully!')
-                ->body('Thank you for your time and valuable input.')
-                ->success()
-                ->duration(5000)
-                ->send();
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'New Feedback Submitted',
+                    "{$sender->name} submitted feedback #{$feedback->id}.",
+                    'info',
+                    ['feedback_id' => $feedback->id],
+                    [],
+                    true,
+                    [
+                        [
+                            'label'        => 'View Feedback',
+                            'url'          => route('admin.forms.feedbacks.view', $feedback->id),
+                            'open_new_tab' => true,
+                        ]
+                    ]
+                ));
+            }
+
+            $sender->notify(new GeneralNotification(
+                'Feedback Submitted Successfully',
+                "You submitted feedback #{$feedback->id}.",
+                'success',
+                ['feedback_id' => $feedback->id],
+                [],
+                true,
+                []
+            ));
+
+            $this->resetForm();
 
         } catch (ValidationException $e) {
             $this->showConfirmModal = true;

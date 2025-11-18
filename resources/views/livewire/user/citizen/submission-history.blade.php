@@ -119,7 +119,7 @@
                             <div class="flex justify-end items-center gap-2">
                                 @if($log->reference_table === 'grievances')
                                     @php
-                                        $grievance = \App\Models\Grievance::find($log->reference_id);
+                                        $grievance = \App\Models\Grievance::withTrashed()->find($log->reference_id);
                                     @endphp
 
                                     @if($grievance)
@@ -133,13 +133,18 @@
                                         </a>
                                     @endif
                                 @endif
-                                <button wire:click="removeFromHistory({{ $log->id }})"
+                                <button wire:loading.attr="disabled" wire:click="removeFromHistory({{ $log->id }})"
                                     class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
                                         bg-red-100 text-red-800 border border-red-300 hover:bg-red-200
                                         dark:bg-red-900/40 dark:text-red-300 dark:border-red-700
                                         dark:hover:bg-red-800/60 transition-all duration-200">
                                     <flux:icon.trash class="w-4 h-4" />
-                                    Remove
+                                    <span wire:loading.remove wire:target="removeFromHistory({{ $log->id }})">
+                                        Remove
+                                    </span>
+                                    <span wire:loading wire:target="removeFromHistory({{ $log->id }})">
+                                        Processing...
+                                    </span>
                                 </button>
                             </div>
                         </div>

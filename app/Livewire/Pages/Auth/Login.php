@@ -59,9 +59,6 @@ class Login extends Component
             'timestamp'    => now(),
         ]);
 
-
-
-
         $redirect = $result['redirect'] ?? null;
 
         if ($redirect) {

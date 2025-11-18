@@ -8,10 +8,10 @@
     x-transition:leave="transform transition ease-in-out duration-300"
     x-transition:leave-start="translate-x-0"
     x-transition:leave-end="translate-x-full"
-    x-on:notifications-updated.window="
-        document.querySelectorAll('[role=menu]').forEach(el => el.remove());
-    "
+    x-on:notifications-updated.window="document.querySelectorAll('[role=menu]').forEach(el => el.remove());"
+    x-on:close-notification-sidebar.window="$store.notifications.open = false"
 >
+
     <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0 bg-gray-50 dark:bg-zinc-800">
         <span class="flex gap-2 items-center text-xl font-semibold text-gray-800 dark:text-gray-100">
             <flux:icon.bell class="w-6 h-6" />
@@ -120,12 +120,32 @@
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
                                                 @if(is_null($notification['read_at']))
-                                                    <button wire:click="markNotificationAsRead('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
-                                                        <x-heroicon-o-check-circle class="w-5 h-5 text-green-500" /> Mark as Read
+                                                    <button
+                                                        wire:click="markNotificationAsRead('{{ $notification['id'] }}')"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
+                                                        wire:loading.attr="disabled"
+                                                    >
+                                                        <x-heroicon-o-check-circle class="w-5 h-5 text-green-500" />
+                                                        <span wire:loading.remove wire:target="markNotificationAsRead('{{ $notification['id'] }}')">
+                                                            Mark as Read
+                                                        </span>
+                                                        <span wire:loading wire:target="markNotificationAsRead('{{ $notification['id'] }}')">
+                                                            Processing...
+                                                        </span>
                                                     </button>
                                                 @else
-                                                    <button wire:click="markNotificationAsUnread('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
-                                                        <x-heroicon-o-arrow-uturn-left class="w-5 h-5 text-yellow-500" /> Mark as Unread
+                                                    <button
+                                                        wire:click="markNotificationAsUnread('{{ $notification['id'] }}')"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
+                                                        wire:loading.attr="disabled"
+                                                    >
+                                                        <x-heroicon-o-arrow-uturn-left class="w-5 h-5 text-yellow-500" />
+                                                        <span wire:loading.remove wire:target="markNotificationAsUnread('{{ $notification['id'] }}')">
+                                                            Mark as Unread
+                                                        </span>
+                                                        <span wire:loading wire:target="markNotificationAsUnread('{{ $notification['id'] }}')">
+                                                            Processing...
+                                                        </span>
                                                     </button>
                                                 @endif
 
@@ -141,21 +161,39 @@
                                                         <div x-show="showActions" x-transition class="mt-1 space-y-1">
                                                             @foreach($notification['actions'] as $action)
                                                                 <button
-                                                                    class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
-                                                                    @if(!empty($action['wireClick'])) wire:click="{{ $action['wireClick'] }}" @endif
-                                                                    @if(!empty($action['url'])) onclick="window.open('{{ $action['url'] }}')" @endif
+                                                                    class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
+                                                                    wire:click="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
+                                                                    wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
+                                                                    wire:loading.attr="disabled"
                                                                     style="color: {{ $action['color'] ?? 'inherit' }}"
                                                                 >
                                                                     <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
-                                                                    {{ $action['label'] }}
+
+                                                                    <span wire:loading.remove wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')">
+                                                                        {{ $action['label'] }}
+                                                                    </span>
+
+                                                                    <span wire:loading wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')">
+                                                                        Processing...
+                                                                    </span>
                                                                 </button>
                                                             @endforeach
                                                         </div>
                                                     </div>
                                                 @endif
 
-                                                <button wire:click="deleteNotification('{{ $notification['id'] }}')" class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500">
-                                                    <x-heroicon-o-trash class="w-5 h-5" /> Delete
+                                                <button
+                                                    wire:click="deleteNotification('{{ $notification['id'] }}')"
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500 relative"
+                                                    wire:loading.attr="disabled"
+                                                >
+                                                    <x-heroicon-o-trash class="w-5 h-5" />
+                                                    <span wire:loading.remove wire:target="deleteNotification('{{ $notification['id'] }}')">
+                                                        Delete
+                                                    </span>
+                                                    <span wire:loading wire:target="deleteNotification('{{ $notification['id'] }}')">
+                                                        Processing...
+                                                    </span>
                                                 </button>
 
                                             </div>

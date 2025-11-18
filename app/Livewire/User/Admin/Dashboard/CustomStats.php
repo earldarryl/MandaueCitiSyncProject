@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Admin\Dashboard;
 
+use App\Notifications\GeneralNotification;
 use Filament\Notifications\Notification;
 use Filament\Widgets\Widget;
 use App\Models\User;
@@ -16,7 +17,6 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Cache;
-
 class CustomStats extends Widget implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms, InteractsWithActions;
@@ -42,7 +42,6 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
     public $totalFeedbacks = 0;
     public $citizenFeedbacks = 0;
-    public $hrLiaisonFeedbacks = 0;
     protected $listeners = ['dateRangeUpdated' => 'updateDateRange'];
     public $department_profile;
     public $department_background;
@@ -150,6 +149,30 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             ->body("{$user->name} has been successfully added as HR Liaison.")
             ->success()
             ->send();
+        $sender = auth()->user();
+
+        $hrLiaisons = User::role('hr_liaison')->get();
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'New HR Liaison Added',
+                "{$user->name} has been added as an HR Liaison.",
+                'info',
+                ['user_id' => $user->id],
+                [],
+                true,
+                []
+            ));
+        }
+
+         $sender?->notify(new GeneralNotification(
+            'HR Liaison Added Successfully',
+            "You have added {$user->name} as HR Liaison.",
+            'success',
+            ['user_id' => $user->id],
+            [],
+            true,
+            []
+        ));
     }
 
     public function createDepartment()
@@ -203,6 +226,41 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             ->success()
             ->duration(4000)
             ->send();
+
+        $sender = auth()->user();
+
+        $hrLiaisons = User::role('hr_liaison')->get();
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'New Department Created',
+                "The department <b>{$department->department_name}</b> has been added.",
+                'info',
+                ['department_id' => $department->department_id],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Departments',
+                        'url' => route('hr-liaison.department.index'),
+                        'open_new_tab' => true,
+                    ]
+                ]
+            ));
+        }
+
+        $sender?->notify(new GeneralNotification(
+            'Department Created Successfully',
+            "The department <b>{$department->department_name}</b> has been created.",
+            'success',
+            ['department_id' => $department->department_id],
+            [],
+            true,
+        [
+                    'label' => 'View Departments',
+                    'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                    'open_new_tab' => true,
+                ]
+        ));
     }
     protected function calculateStats(): void
     {
@@ -250,14 +308,13 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             $feedbacks = Feedback::with('user.roles')->whereBetween('date', [$start, $end])->get();
             $totalFeedbacks = $feedbacks->count();
             $citizenFeedbacks = $feedbacks->filter(fn($f) => $f->user->hasRole('citizen'))->count();
-            $hrLiaisonFeedbacks = $feedbacks->filter(fn($f) => $f->user->hasRole('hr_liaison'))->count();
 
             return compact(
                 'totalUsers', 'citizenUsers', 'hrLiaisonUsers', 'onlineCount',
                 'citizenOnline', 'hrLiaisonOnline', 'totalAssignments',
                 'assignmentsByDepartment', 'totalGrievances', 'pendingGrievances',
                 'inProgressGrievances', 'resolvedGrievances', 'unresolvedGrievances',
-                'totalFeedbacks', 'citizenFeedbacks', 'hrLiaisonFeedbacks'
+                'totalFeedbacks', 'citizenFeedbacks'
             );
         });
 
@@ -276,7 +333,6 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->unresolvedGrievances = $cachedStats['unresolvedGrievances'];
         $this->totalFeedbacks = $cachedStats['totalFeedbacks'];
         $this->citizenFeedbacks = $cachedStats['citizenFeedbacks'];
-        $this->hrLiaisonFeedbacks = $cachedStats['hrLiaisonFeedbacks'];
     }
 
 }

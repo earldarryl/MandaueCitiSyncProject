@@ -421,7 +421,7 @@
                                     <td class="px-6 py-4 text-center">
                                         <flux:checkbox wire:model.live="selected" value="{{ $feedback->id }}" />
                                     </td>
-                                    <td class="px-6 py-4 text-sm font-medium">{{ $feedback->date->format('M d, Y h:i A') }}</td>
+                                    <td class="px-6 py-4 text-sm font-medium">{{ $feedback->date->format('M d, Y') }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-center">{{ $feedback->gender }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-center">{{ $feedback->email ?? '—' }}</td>
                                     <td class="px-6 py-4 text-sm text-center">

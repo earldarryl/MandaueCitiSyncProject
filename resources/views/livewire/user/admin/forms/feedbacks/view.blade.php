@@ -201,7 +201,7 @@
         @endif
     </div>
 
-    <div class="flex flex-col gap-4 p-5 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm">
+    <div class="flex flex-col gap-4 p-5 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm mb-3">
         <h5 class="flex items-center gap-2 text-[17px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide uppercase">
             <x-heroicon-o-light-bulb class="w-5 h-5 text-gray-500 dark:text-gray-400" />
             Suggestions

@@ -20,183 +20,186 @@
 
     <div class="relative flex flex-col">
 
-    <div class="relative flex flex-col h-[500px] sm:h-[550px] md:h-[550px] lg:h-[550px] overflow-x-hidden overflow-y-auto">
-        <div
-            x-cloak
-            x-data="{
-                screen: window.innerWidth,
-                visible: true,
-                dropdowns: Array({{ count($menuItems) }}).fill(false)
-            }"
-            x-init="
-                visible = !(screen < 1024 && !$store.sidebar.open);
-                $watch('$store.sidebar.open', val => {
-                    visible = !(screen < 1024 && !val);
-                });
-            "
-            @resize.window="
-                screen = window.innerWidth;
-                visible = !(screen < 1024 && !$store.sidebar.open);
-            "
-            class="p-3 gap-2 text-center flex flex-col flex-shrink-0"
-        >
-            @foreach ($menuItems as $index => $item)
-                @php
-                    $hasChildren = !empty($item['children'] ?? []);
+        <div class="relative flex flex-col h-[500px] sm:h-[550px] md:h-[550px] lg:h-[550px] overflow-x-hidden overflow-y-auto">
+            <div
+                x-cloak
+                x-data="{
+                    screen: window.innerWidth,
+                    visible: true,
+                    dropdowns: Array({{ count($menuItems) }}).fill(false)
+                }"
+                x-init="
+                    visible = !(screen < 1024 && !$store.sidebar.open);
+                    $watch('$store.sidebar.open', val => {
+                        visible = !(screen < 1024 && !val);
+                    });
+                "
+                @resize.window="
+                    screen = window.innerWidth;
+                    visible = !(screen < 1024 && !$store.sidebar.open);
+                "
+                class="p-3 gap-2 text-center flex flex-col flex-shrink-0"
+            >
+                @foreach ($menuItems as $index => $item)
+                    @php
+                        $hasChildren = !empty($item['children'] ?? []);
 
-                    $isActive = false;
+                        $isActive = false;
 
-                    if (isset($item['route'])) {
-                        $isActive = request()->routeIs($item['activePattern'] ?? $item['route']);
-                    }
+                        if (isset($item['route'])) {
+                            $isActive = request()->routeIs($item['activePattern'] ?? $item['route']);
+                        }
 
-                    if ($hasChildren) {
-                        $isActive = collect($item['children'])->contains(
-                            fn($child) => request()->routeIs($child['route'])
-                        );
-                    }
-                @endphp
+                        if ($hasChildren) {
+                            $isActive = collect($item['children'])->contains(function ($child) use ($item) {
+                                $pattern = $child['activePattern'] ?? $item['activePattern'] ?? $child['route'] ?? '';
+                                return request()->routeIs($pattern);
+                            });
+                        }
+                    @endphp
 
-                @if ($hasChildren)
-                    <div class="relative"
-                        x-data="{ showTooltip: false }"
-                        @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                        @mouseleave="showTooltip = false">
-
-                        <div
-                            @click="
-                                if ($store.sidebar.open) {
-                                    dropdowns[{{ $index }}] = !dropdowns[{{ $index }}];
-                                } else {
-                                    $store.sidebar.toggle();
-                                }
-                            "
-                            class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition cursor-pointer overflow-hidden select-none
-                                {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
-                            x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+                    @if ($hasChildren)
+                        <div class="relative"
                             x-data="{ showTooltip: false }"
                             @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                            @mouseleave="showTooltip = false"
-                        >
-                            <span class="inline-block text-center">
-                                <i class="{{ $item['icon'] }}"></i>
-                            </span>
+                            @mouseleave="showTooltip = false">
 
                             <div
-                                x-cloak
-                                :class="{
-                                    'left-14 opacity-100 transition-all duration-400': $store.sidebar.open,
-                                    'opacity-0': !$store.sidebar.open
-                                }"
-                                class="absolute w-full text-left ease-in-out overflow-x-hidden"
+                                @click="
+                                    if ($store.sidebar.open) {
+                                        dropdowns[{{ $index }}] = !dropdowns[{{ $index }}];
+                                    } else {
+                                        $store.sidebar.toggle();
+                                    }
+                                "
+                                class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition cursor-pointer overflow-hidden select-none
+                                    {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                                x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+                                x-data="{ showTooltip: false }"
+                                @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                                @mouseleave="showTooltip = false"
                             >
-                                <span>
+                                <span class="inline-block text-center">
+                                    <i class="{{ $item['icon'] }}"></i>
+                                </span>
+
+                                <div
+                                    x-cloak
+                                    :class="{
+                                        'left-14 opacity-100 transition-all duration-400': $store.sidebar.open,
+                                        'opacity-0': !$store.sidebar.open
+                                    }"
+                                    class="absolute w-full text-left ease-in-out overflow-x-hidden"
+                                >
+                                    <span>
+                                        {{ $item['label'] }}
+                                    </span>
+                                </div>
+
+                                <svg x-show="$store.sidebar.open"
+                                    :class="{ 'rotate-180': dropdowns[{{ $index }}] }"
+                                    class="w-4 h-4 transition-transform duration-200 ml-auto mr-2"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+
+                                <span x-show="showTooltip && !$store.sidebar.open"
+                                    x-transition
+                                    x-cloak
+                                    class="fixed w-auto text-left left-14 px-4 py-2 transition-all
+                                            dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap">
                                     {{ $item['label'] }}
                                 </span>
                             </div>
 
-                            <svg x-show="$store.sidebar.open"
-                                :class="{ 'rotate-180': dropdowns[{{ $index }}] }"
-                                class="w-4 h-4 transition-transform duration-200 ml-auto mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
+                            <div
+                                x-show="$store.sidebar.open"
+                                x-ref="dropdown{{ $index }}"
+                                x-data="{ open: false, height: 0 }"
+                                x-init="$watch('dropdowns[{{ $index }}]', value => {
+                                    open = value;
+                                    height = value ? $refs.dropdown{{ $index }}.scrollHeight : 0;
+                                })"
+                                x-effect="$el.style.height = open ? height + 'px' : '0px'"
+                                class="overflow-hidden transition-all duration-300 ease-in-out"
+                                style="height: 0;"
+                            >
+                                <div class="relative flex flex-col items-start pl-6 mt-1 pb-1">
+                                    @foreach ($item['children'] as $child)
+                                        @php
+                                            $pattern = $child['activePattern'] ?? $item['activePattern'] ?? $child['route'];
+                                            $isChildActive = request()->routeIs($pattern);
+
+                                            $isLongLabel = strlen($child['label']) > 18;
+                                        @endphp
+
+                                        <x-responsive-nav-link
+                                            href="{{ route($child['route']) }}"
+                                            class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition select-none
+                                                {{ $isChildActive
+                                                    ? 'bg-gray-200 dark:bg-zinc-800'
+                                                    : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                                            @click="closeOnMobile()"
+                                            wire:navigate
+                                        >
+                                            <i class="{{ $child['icon'] }}"></i>
+                                            <span
+                                                x-show="$store.sidebar.open"
+                                                x-transition
+                                                class="ml-2 {{ $isLongLabel ? 'text-[13px]' : 'text-[15px]' }} truncate"
+                                                title="{{ $child['label'] }}"
+                                            >
+                                                {{ $child['label'] }}
+                                            </span>
+                                        </x-responsive-nav-link>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <x-responsive-nav-link
+                            href="{{ route($item['route']) }}"
+                            class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition overflow-hidden select-none
+                                {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
+                            x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
+                            x-data="{ showTooltip: false }"
+                            wire:navigate
+                            @click="closeOnMobile()"
+                            @mouseenter="if (!$store.sidebar.open) showTooltip = true"
+                            @mouseleave="showTooltip = false">
+                            <span class="inline-block text-center">
+                                <i class="{{ $item['icon'] }}"></i>
+                            </span>
+                            <div
+                                x-cloak
+                                :class="{
+                                    'left-14 opacity-100 transition-all duration-400': $store.sidebar.open,
+                                    'opacity-0 ': !$store.sidebar.open,
+
+                                }"
+                                class="absolute w-full text-left ease-in-out overflow-x-hidden "
+                            >
+                            <span>
+                                {{ $item['label'] }}
+                            </span>
+                            </div>
 
                             <span x-show="showTooltip && !$store.sidebar.open"
                                 x-transition
                                 x-cloak
                                 class="fixed w-auto text-left left-14 px-4 py-2 transition-all
-                                        dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap">
+                                        dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap select-none">
                                 {{ $item['label'] }}
                             </span>
-                        </div>
-
-                        <div
-                            x-show="$store.sidebar.open"
-                            x-ref="dropdown{{ $index }}"
-                            x-data="{ open: false, height: 0 }"
-                            x-init="$watch('dropdowns[{{ $index }}]', value => {
-                                open = value;
-                                height = value ? $refs.dropdown{{ $index }}.scrollHeight : 0;
-                            })"
-                            x-effect="$el.style.height = open ? height + 'px' : '0px'"
-                            class="overflow-hidden transition-all duration-300 ease-in-out"
-                            style="height: 0;"
-                        >
-                            <div class="relative flex flex-col items-start pl-6 mt-1 pb-1">
-                                @foreach ($item['children'] as $child)
-                                    @php
-                                        $isChildActive = request()->routeIs($child['route']);
-                                        $isLongLabel = strlen($child['label']) > 18;
-                                    @endphp
-
-                                    <x-responsive-nav-link
-                                        href="{{ route($child['route']) }}"
-                                        class="flex items-center gap-2 px-4 py-2 rounded-lg w-full transition select-none
-                                            {{ $isChildActive
-                                                ? 'bg-gray-200 dark:bg-zinc-800'
-                                                : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
-                                        @click="closeOnMobile()"
-                                        wire:navigate
-                                    >
-                                        <i class="{{ $child['icon'] }}"></i>
-                                        <span
-                                            x-show="$store.sidebar.open"
-                                            x-transition
-                                            class="ml-2 {{ $isLongLabel ? 'text-[13px]' : 'text-[15px]' }} truncate"
-                                            title="{{ $child['label'] }}"
-                                        >
-                                            {{ $child['label'] }}
-                                        </span>
-                                    </x-responsive-nav-link>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <x-responsive-nav-link
-                        href="{{ route($item['route']) }}"
-                        class="relative flex items-center gap-2 px-4 py-2 rounded-lg w-full transition overflow-hidden select-none
-                            {{ $isActive ? 'bg-gray-200 dark:bg-zinc-800' : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
-                        x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
-                        x-data="{ showTooltip: false }"
-                        wire:navigate
-                        @click="closeOnMobile()"
-                        @mouseenter="if (!$store.sidebar.open) showTooltip = true"
-                        @mouseleave="showTooltip = false">
-                        <span class="inline-block text-center">
-                            <i class="{{ $item['icon'] }}"></i>
-                        </span>
-                        <div
-                            x-cloak
-                            :class="{
-                                'left-14 opacity-100 transition-all duration-400': $store.sidebar.open,
-                                'opacity-0 ': !$store.sidebar.open,
-
-                            }"
-                            class="absolute w-full text-left ease-in-out overflow-x-hidden "
-                        >
-                        <span>
-                            {{ $item['label'] }}
-                        </span>
-                        </div>
-
-                        <span x-show="showTooltip && !$store.sidebar.open"
-                            x-transition
-                            x-cloak
-                            class="fixed w-auto text-left left-14 px-4 py-2 transition-all
-                                    dark:bg-zinc-800 bg-gray-200 rounded-tr-lg rounded-br-lg z-50 whitespace-nowrap select-none">
-                            {{ $item['label'] }}
-                        </span>
-                    </x-responsive-nav-link>
-                @endif
-            @endforeach
+                        </x-responsive-nav-link>
+                    @endif
+                @endforeach
+            </div>
         </div>
-    </div>
     </div>
 
     <div class="relative flex flex-col"

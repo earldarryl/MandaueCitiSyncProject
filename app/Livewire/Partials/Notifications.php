@@ -2,12 +2,12 @@
 
 namespace App\Livewire\Partials;
 
+use App\Models\Grievance;
+use App\Notifications\GeneralNotification;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Support\Collection;
-
 class Notifications extends Component
 {
     public $user;
@@ -130,10 +130,15 @@ class Notifications extends Component
     private function refreshAfterBulk(string $message): void
     {
         $this->loadNotifications();
-        FilamentNotification::make()
-            ->title($message)
-            ->success()
-            ->send();
+
+        auth()->user()->notify(new GeneralNotification(
+            $message,
+            '',
+            'success',
+            [],
+            [],
+            false
+        ));
     }
 
     public function markNotificationAsRead($notificationId): void
@@ -152,12 +157,67 @@ class Notifications extends Component
         }
     }
 
+    public function openNotificationAction($notificationId, $url = null)
+    {
+        $this->markNotificationAsRead($notificationId);
+
+        $this->dispatch('close-notification-sidebar');
+
+        if ($url && str_starts_with($url, url('/'))) {
+            return $this->redirect($url, navigate: true);
+        }
+
+        if ($url) {
+            return redirect()->to($url);
+        }
+    }
+
+
     public function deleteNotification($notificationId): void
     {
         if ($n = $this->user->notifications()->find($notificationId)) {
             $n->delete();
             $this->loadNotifications();
         }
+    }
+
+    public function undoGrievance($grievanceId)
+    {
+        $grievance = Grievance::withTrashed()->find($grievanceId);
+
+        if (! $grievance || ! $grievance->trashed()) {
+
+            auth()->user()->notify(new GeneralNotification(
+                'Undo Failed',
+                'Grievance cannot be restored.',
+                'danger',
+                ['grievance_id' => $grievanceId],
+                [],
+                true
+            ));
+
+            return;
+        }
+
+        $grievance->restore();
+
+        auth()->user()->notify(new GeneralNotification(
+            'Grievance Restored',
+            'The grievance has been successfully restored.',
+            'success',
+            ['grievance_id' => $grievanceId],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Restored Grievance',
+                    'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
+                    'open_new_tab' => true,
+                ]
+            ]
+        ));
+
+        $this->loadNotifications();
     }
 
     public function loadMore(): void

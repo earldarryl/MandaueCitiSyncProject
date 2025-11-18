@@ -25,17 +25,18 @@ class Sidebar extends Component
                     'label' => 'Stakeholders',
                     'icon' => 'bi bi-person-fill',
                     'children' => [
-                        ['label' => 'Citizens', 'route' => 'admin.stakeholders.citizens.index', 'icon' => 'bi bi-people-fill'],
-                        ['label' => 'Departments & HR Liaisons', 'route' => 'admin.stakeholders.departments-and-hr-liaisons.index', 'icon' => 'bi bi-person-badge'],
+                        ['label' => 'Citizens', 'route' => 'admin.stakeholders.citizens.index', 'icon' => 'bi bi-people-fill', 'activePattern' => 'admin.stakeholders.citizens.*',],
+                        ['label' => 'Departments & HR Liaisons', 'route' => 'admin.stakeholders.departments-and-hr-liaisons.index', 'icon' => 'bi bi-person-badge', 'activePattern' => 'admin.stakeholders.departments-and-hr-liaisons.*',],
                     ],
                 ],
                 [
                     'label' => 'Forms',
                     'icon' => 'bi bi-file-earmark-fill',
                     'children' => [
-                        ['label' => 'Grievances', 'route' => 'admin.forms.grievances.index', 'icon' => 'bi bi-file-earmark-text'],
-                        ['label' => 'Feedbacks', 'route' => 'admin.forms.feedbacks.index', 'icon' => 'bi bi-chat-right-dots-fill'],
+                        ['label' => 'Grievances', 'route' => 'admin.forms.grievances.index', 'icon' => 'bi bi-file-earmark-text', 'activePattern' => 'admin.forms.grievances.*',],
+                        ['label' => 'Feedbacks', 'route' => 'admin.forms.feedbacks.index', 'icon' => 'bi bi-chat-right-dots-fill', 'activePattern' => 'admin.forms.feedbacks.*',],
                     ],
+
                 ],
                 [
                     'label' => 'Activity Logs',
@@ -60,9 +61,10 @@ class Sidebar extends Component
                     'label' => 'Department',
                     'icon' => 'bi bi-people',
                     'children' => [
-                        ['label' => 'Department Info', 'route' => 'hr-liaison.department.index', 'icon' => 'bi bi-building-fill-exclamation'],
-                        ['label' => 'Grievance Repository', 'route' => 'hr-liaison.grievance.index', 'icon' => 'bi bi-archive-fill'],
+                        ['label' => 'Department Info', 'route' => 'hr-liaison.department.index', 'icon' => 'bi bi-building-fill-exclamation', 'activePattern' => 'hr-liaison.department.*',],
+                        ['label' => 'Grievance Repository', 'route' => 'hr-liaison.grievance.index', 'icon' => 'bi bi-archive-fill', 'activePattern' => 'hr-liaison.grievance.*',],
                     ],
+
                 ],
                 [
                     'label' => 'Activity Logs',

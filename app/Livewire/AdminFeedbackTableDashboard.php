@@ -160,9 +160,9 @@ class AdminFeedbackTableDashboard extends TableWidget
             ->columns([
                 Tables\Columns\CheckboxColumn::make('selected')->label('')->alignCenter(),
 
-                TextColumn::make('created_at')
+                TextColumn::make('date')
                     ->label('Date Submitted')
-                    ->dateTime('F d, Y • h:i A')
+                    ->dateTime('M d, Y')
                     ->sortable()
                     ->alignCenter()
                     ->extraAttributes([

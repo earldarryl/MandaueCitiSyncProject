@@ -58,6 +58,16 @@ class Index extends Component
     public $closedCount;
     public array $departmentOptions = [];
     public array $categoryOptions = [];
+    protected $updatesQueryString = [
+        'page' => ['except' => 1],
+        'search',
+        'filterPriority',
+        'filterStatus',
+        'filterType',
+        'filterCategory',
+        'filterDepartment',
+        'filterDate',
+    ];
 
     public function mount()
     {

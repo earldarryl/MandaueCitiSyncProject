@@ -3,11 +3,10 @@
 namespace App\Livewire\User\Citizen;
 
 use App\Models\HistoryLog;
-use Filament\Notifications\Notification;
+use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-
 #[Layout('layouts.app')]
 #[Title('Submission History')]
 class SubmissionHistory extends Component
@@ -39,11 +38,14 @@ class SubmissionHistory extends Component
             $log->delete();
             $this->updateRestoreStatus();
 
-            Notification::make()
-                ->title('Removed from History')
-                ->success()
-                ->body('This record has been removed from your submission history.')
-                ->send();
+            auth()->user()->notify(new GeneralNotification(
+                "Removed from History",
+                'This record has been removed from your submission history.',
+                'success',
+                [],
+                [],
+                false
+            ));
         }
     }
 
@@ -52,21 +54,29 @@ class SubmissionHistory extends Component
         HistoryLog::where('user_id', auth()->id())->delete();
         $this->updateRestoreStatus();
 
-        Notification::make()
-            ->title('History Cleared')
-            ->success()
-            ->body('All submission records have been hidden from your history.')
-            ->send();
+        auth()->user()->notify(new GeneralNotification(
+                "History Cleared",
+                'All submission records have been hidden from your history.',
+                'success',
+                [],
+                [],
+                false
+            ));
+
     }
 
     public function restoreHistory(): void
     {
         if (! $this->canRestore) {
-            Notification::make()
-                ->title('Nothing to Restore')
-                ->warning()
-                ->body('There are no hidden records available to restore.')
-                ->send();
+
+            auth()->user()->notify(new GeneralNotification(
+                "Nothing to Restore",
+                'There are no hidden records available to restore.',
+                'warning',
+                [],
+                [],
+                false
+            ));
             return;
         }
 
@@ -76,11 +86,14 @@ class SubmissionHistory extends Component
 
         $this->updateRestoreStatus();
 
-        Notification::make()
-            ->title('History Restored')
-            ->success()
-            ->body('All records have been restored to your submission history.')
-            ->send();
+        auth()->user()->notify(new GeneralNotification(
+            "History Restored",
+            'All records have been restored to your submission history.',
+            'success',
+            [],
+            [],
+            false
+        ));
     }
 
     public function loadMore(): void
@@ -92,11 +105,6 @@ class SubmissionHistory extends Component
     {
         $this->limit = 5;
 
-        Notification::make()
-            ->title('Filter Applied')
-            ->success()
-            ->body('Showing ' . ($this->filter ?: 'all') . ' records.')
-            ->send();
     }
 
     public function getGroupedLogsProperty()

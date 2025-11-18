@@ -173,6 +173,35 @@ class Create extends Component implements Forms\Contracts\HasForms
                 }
             }
 
+
+            ActivityLog::create([
+                'user_id'     => auth()->id(),
+                'role_id'     => auth()->user()->roles->first()?->id ?? null,
+                'module'      => 'Grievance',
+                'action'      => 'Submit',
+                'action_type' => 'create',
+                'model_type'  => Grievance::class,
+                'model_id'    => $grievance->grievance_id,
+                'description' => "User submitted a grievance titled '{$grievance->grievance_title}'",
+                'changes'     => $grievance->toArray(),
+                'status'      => 'success',
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('device') ?? null,
+                'user_agent'  => request()->userAgent(),
+                'platform'    => php_uname(),
+                'location'    => null,
+                'timestamp'   => now(),
+            ]);
+
+            HistoryLog::create([
+                'user_id'        => auth()->id(),
+                'action_type'    => 'create',
+                'description'    => "Submitted grievance titled '{$grievance->grievance_title}'",
+                'reference_table'=> 'grievances',
+                'reference_id'   => $grievance->grievance_id,
+                'ip_address'     => request()->ip(),
+            ]);
+
             $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
                 ->whereHas('departments', fn($q) =>
                     $q->where('hr_liaison_departments.department_id', $department->department_id)

@@ -4,8 +4,10 @@ namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\Department;
 use App\Models\Grievance;
+use App\Notifications\GeneralNotification;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -282,22 +284,64 @@ class Index extends Component
         $grievance = Grievance::find($grievanceId);
 
         if (! $grievance) {
-            Notification::make()
-                ->title('Error')
-                ->body('Grievance not found or already deleted.')
-                ->danger()
-                ->send();
+            auth()->user()->notify(new GeneralNotification(
+                'Error',
+                'Grievance not found or already deleted.',
+                'danger'
+            ));
             return;
         }
 
         $title = $grievance->grievance_title;
+
+        // Soft delete
         $grievance->delete();
 
-        Notification::make()
-            ->title('Grievance Deleted')
-            ->body("{$title} was removed successfully.")
-            ->success()
-            ->send();
+        // Send realtime notification with Undo button
+        auth()->user()->notify(new GeneralNotification(
+            'Grievance Deleted',
+            "{$title} was removed successfully.",
+            'warning',
+            ['grievance_id' => $grievanceId],
+            [],
+            true,
+            [
+                [
+                    'label'    => 'Undo Delete',
+                    'color'    => 'gray',
+                    'dispatch' => 'undoLatestGrievance',
+                    'wireClick' => "undoGrievance('{$grievance->grievance_id}')",
+                    'close'    => true,
+                ]
+            ]
+        ));
+    }
+
+
+    private function sendMessage($message, $type = 'info')
+    {
+        auth()->user()->notify(new GeneralNotification(
+            ucfirst($type),
+            $message,
+            $type
+        ));
+    }
+
+    #[On('undoLatestGrievance')]
+    public function undoLatestGrievance()
+    {
+        $grievance = Grievance::onlyTrashed()
+            ->latest('deleted_at')
+            ->first();
+
+        if (! $grievance) {
+            $this->sendMessage('Nothing to undo.', 'danger');
+            return;
+        }
+
+        $grievance->restore();
+
+        $this->sendMessage("{$grievance->grievance_title} restored successfully.", 'success');
 
         $this->updateStats();
     }

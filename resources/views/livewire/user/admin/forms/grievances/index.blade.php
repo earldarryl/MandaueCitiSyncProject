@@ -42,7 +42,6 @@
                     x-transition:leave-start="opacity-100 transform scale-100"
                     x-transition:leave-end="opacity-0 transform scale-95"
                     class="relative w-full flex flex-col h-auto"
-                    wire:poll.10s="updateStats"
                 >
                     <div class="w-full grid grid-cols-1 gap-4 mx-auto px-3 mb-6">
                         <div

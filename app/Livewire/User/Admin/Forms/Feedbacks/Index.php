@@ -32,7 +32,6 @@ class Index extends Component
     public string $filterSQD = 'All';
     public string $filterCC = 'All';
     public $importFile;
-
     protected $paginationTheme = 'tailwind';
 
     public function downloadSelectedFeedbacksCsv()
@@ -265,7 +264,6 @@ class Index extends Component
         $page = request()->get('page', 1);
         $all = $this->allFilteredFeedbacks();
 
-        // Sort
         if (in_array($this->sortField, ['sqd_summary', 'cc_summary'])) {
             $all = $all->sortBy(function ($feedback) {
                 if ($this->sortField === 'sqd_summary') {
@@ -473,7 +471,6 @@ class Index extends Component
             $sheet->setCellValue("C{$row}", $fb->region);
             $sheet->setCellValue("D{$row}", $fb->gender);
 
-            // ✔ USE COMPUTED FIELDS
             $sheet->setCellValue("E{$row}", $fb->cc_summary);
             $sheet->setCellValue("F{$row}", $fb->sqd_summary);
 
@@ -547,12 +544,47 @@ class Index extends Component
 
     public function render()
     {
+        $query = Feedback::query();
+
+        if (!empty($this->searchInput)) {
+            $query->where(function ($q) {
+                $q->where('email', 'like', '%' . $this->searchInput . '%')
+                ->orWhere('region', 'like', '%' . $this->searchInput . '%')
+                ->orWhere('gender', 'like', '%' . $this->searchInput . '%');
+            });
+        }
+
+        if ($this->filterDate) {
+            switch ($this->filterDate) {
+                case 'Today':
+                    $query->whereDate('date', Carbon::today());
+                    break;
+                case 'Yesterday':
+                    $query->whereDate('date', Carbon::yesterday());
+                    break;
+                case 'This Week':
+                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                    break;
+                case 'This Month':
+                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year);
+                    break;
+                case 'This Year':
+                    $query->whereYear('date', Carbon::now()->year);
+                    break;
+            }
+        }
+
+        $query->orderBy($this->sortField ?? 'date', $this->sortDirection ?? 'desc');
+
+        $feedbacks = $query->paginate(10);
+
         return view('livewire.user.admin.forms.feedbacks.index', [
-            'feedbacks' => $this->feedbacks,
+            'feedbacks' => $feedbacks,
             'totalFeedbacks' => $this->totalFeedbacks,
             'mostCommonCC' => $this->mostCommonCC,
             'mostCommonSQD' => $this->mostCommonSQD,
         ]);
     }
+
 
 }
