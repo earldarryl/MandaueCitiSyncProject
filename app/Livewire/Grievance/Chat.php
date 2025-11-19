@@ -5,12 +5,11 @@ namespace App\Livewire\Grievance;
 use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\Grievance;
+use App\Notifications\GeneralNotification;
 use Filament\Forms;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-
 class Chat extends Component implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
@@ -56,27 +55,11 @@ class Chat extends Component implements Forms\Contracts\HasForms
     {
         $this->loadMessages();
 
-        if ($message['sender_id'] !== $this->currentUserId) {
-
-            $recipient = auth()->user();
-
-            $sender = \App\Models\User::find($message['sender_id']);
-
-            Notification::make()
-                ->title('New Message Received')
-                ->body("{$sender->name} sent you a message in Grievance #{$message['grievance_id']}.")
-                ->icon('heroicon-o-chat-bubble-left-right')
-                ->sendToDatabase($recipient)
-                ->broadcast($recipient)
-                ->send();
-        }
-
         $this->js('$nextTick(() => {
             const chatBox = document.getElementById("chat-box");
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
-
 
     private function checkAuthorization(): bool
     {
@@ -140,22 +123,22 @@ class Chat extends Component implements Forms\Contracts\HasForms
     public function sendMessage()
     {
         $state = $this->form->getState();
+        $sender = auth()->user();
 
         if (!$this->newMessage && empty($state['files'])) {
-            $recipient = auth()->user();
-
-            Notification::make()
-                ->title('Nothing to send')
-                ->warning()
-                ->sendToDatabase($recipient)
-                ->broadcast($recipient);
-
+            $sender->notify(new GeneralNotification(
+                'Nothing to Send',
+                'You must type a message or attach a file before sending.',
+                'warning',
+                [],
+                [],
+                true
+            ));
             return;
         }
 
         $filePaths = [];
         $fileNames = [];
-
         if (!empty($state['files'])) {
             foreach ($state['files'] as $file) {
                 $filePaths[] = $file;
@@ -163,31 +146,59 @@ class Chat extends Component implements Forms\Contracts\HasForms
             }
         }
 
+
         $messageData = [
             'grievance_id' => $this->grievance->grievance_id,
-            'sender_id'    => $this->currentUserId,
+            'sender_id'    => $sender->id,
             'message'      => $this->newMessage,
             'file_path'    => $filePaths ? json_encode($filePaths) : null,
             'file_name'    => $fileNames ? json_encode($fileNames) : null,
         ];
 
-        if (!auth()->user()->hasRole('admin')) {
-            $messageData['receiver_id'] = $this->getReceiverId();
-        }
-
         $message = Message::create($messageData)->load('sender');
 
-        broadcast(new MessageSent($message));
 
-        $sender = auth()->user();
+        $recipients = collect();
 
-        Notification::make()
-            ->title('Message Sent')
-            ->body('Your message has been successfully delivered.')
-            ->success()
-            ->sendToDatabase($sender)
-            ->broadcast($sender)
-            ->send();
+        $receiverId = $this->getReceiverId();
+        if ($receiverId && $receiverId !== $sender->id) {
+            $receiver = \App\Models\User::find($receiverId);
+            if ($receiver) $recipients->push($receiver);
+        }
+
+        $admins = \App\Models\User::role('admin')->get()->filter(fn($admin) => $admin->id !== $sender->id);
+        $recipients = $recipients->merge($admins);
+
+
+        foreach ($recipients as $recipient) {
+            broadcast(new MessageSent($message));
+
+            $viewRoute = match (true) {
+                $recipient->hasRole('citizen') => route('citizen.grievance.view', $this->grievance->grievance_ticket_id),
+                $recipient->hasRole('hr_liaison') => route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id),
+                $recipient->hasRole('admin') => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id),
+                default => null,
+            };
+
+            $recipient->notify(new GeneralNotification(
+                'New Message Received',
+                "{$sender->name} sent you a message in Grievance #{$this->grievance->grievance_ticket_id}.",
+                'info',
+                ['grievance_id' => $this->grievance->grievance_id],
+                [],
+                true,
+                $viewRoute ? [['label' => 'Open Chat', 'url' => $viewRoute, 'open_new_tab' => true]] : []
+            ));
+        }
+
+        $sender->notify(new GeneralNotification(
+            'Message Sent',
+            'Your message has been successfully delivered.',
+            'success',
+            ['grievance_id' => $this->grievance->grievance_id],
+            [],
+            true
+        ));
 
         $this->reset(['newMessage']);
         $this->form->fill();
@@ -198,7 +209,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
         })');
     }
-
 
     private function getReceiverId()
     {

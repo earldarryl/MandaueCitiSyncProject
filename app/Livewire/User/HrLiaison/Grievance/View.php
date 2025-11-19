@@ -17,6 +17,7 @@ class View extends Component
     public Grievance $grievance;
     public $department;
     public $statusUpdate;
+    public $priorityUpdate;
     public $category;
     public $departmentOptions;
 
@@ -157,6 +158,59 @@ class View extends Component
         }
 
         $this->dispatch('close-status-modal');
+        $this->dispatch('update-success-modal');
+
+        $this->grievance->refresh();
+    }
+
+    public function updatePriority()
+    {
+        $this->validate([
+            'priorityUpdate' => 'required|string',
+        ]);
+
+        $formattedPriority = $this->priorityUpdate;
+        $user = auth()->user();
+        $oldPriority = $this->grievance->priority_level;
+        $oldProcessingDays = $this->grievance->processing_days;
+
+        $priorityProcessingDays = match (strtolower($formattedPriority)) {
+            'low'      => 7,
+            'normal'   => 5,
+            'high'     => 3,
+            'critical' => 1,
+            default    => 7,
+        };
+
+        $this->grievance->update([
+            'priority_level' => $formattedPriority,
+            'processing_days' => $priorityProcessingDays,
+        ]);
+
+        ActivityLog::create([
+            'user_id'      => $user->id,
+            'role_id'      => $user->roles->first()?->id,
+            'module'       => 'Grievance Management',
+            'action'       => "Changed grievance #{$this->grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+            'action_type'  => 'update_priority',
+            'model_type'   => 'App\\Models\\Grievance',
+            'model_id'     => $this->grievance->grievance_id,
+            'description'  => "HR Liaison ({$user->email}) changed priority of grievance #{$this->grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'status'       => 'success',
+            'ip_address'   => request()->ip(),
+            'device_info'  => request()->header('User-Agent'),
+            'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+            'platform'     => php_uname('s'),
+            'timestamp'    => now(),
+        ]);
+
+        Notification::make()
+            ->title('Priority Updated')
+            ->body("Grievance priority successfully changed from {$oldPriority} to {$formattedPriority}. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.")
+            ->success()
+            ->send();
+
+        $this->dispatch('close-priority-modal');
         $this->dispatch('update-success-modal');
 
         $this->grievance->refresh();

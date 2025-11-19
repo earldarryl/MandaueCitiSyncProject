@@ -14,8 +14,17 @@ Broadcast::channel('grievance.{grievance_id}', function ($user, $grievance_id) {
         return true;
     }
 
-    return $grievance->assignments->contains('hr_liaison_id', $user->id);
+    if ($grievance->assignments->contains('hr_liaison_id', $user->id)) {
+        return true;
+    }
+
+    if ($user->hasRole('admin')) {
+        return true;
+    }
+
+    return false;
 });
+
 
 Broadcast::channel('App.Models.User.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;

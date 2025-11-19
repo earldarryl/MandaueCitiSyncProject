@@ -49,9 +49,11 @@ class Index extends Component
     public $department;
     public $category;
     public $status;
+    public $priorityUpdate;
     public $departmentOptions;
     public $categoryOptions;
     public $totalGrievances = 0;
+    public $criticalPriorityCount = 0;
     public $highPriorityCount = 0;
     public $normalPriorityCount = 0;
     public $lowPriorityCount = 0;
@@ -767,6 +769,86 @@ class Index extends Component
         }
     }
 
+
+    public function updateSelectedPriority(): void
+    {
+        $this->validate([
+            'selected' => 'required|array|min:1',
+            'priorityUpdate' => 'required|string',
+        ], [
+            'selected.required' => 'Please select at least one grievance to update.',
+            'priorityUpdate.required' => 'Please choose a priority level.',
+        ]);
+
+        $user = auth()->user();
+        $formattedPriority = $this->priorityUpdate;
+
+        $priorityProcessingDays = match (strtolower($formattedPriority)) {
+            'low'      => 7,
+            'normal'   => 5,
+            'high'     => 3,
+            'critical' => 1,
+            default    => 7,
+        };
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($this->selected as $grievanceId) {
+                $grievance = Grievance::find($grievanceId);
+
+                if ($grievance) {
+                    $oldPriority = $grievance->priority_level;
+                    $oldProcessingDays = $grievance->processing_days;
+
+                    $grievance->update([
+                        'priority_level'  => $formattedPriority,
+                        'processing_days' => $priorityProcessingDays,
+                        'updated_at'      => now(),
+                    ]);
+
+                    ActivityLog::create([
+                        'user_id'      => $user->id,
+                        'role_id'      => $user->roles->first()?->id,
+                        'module'       => 'Grievance Management',
+                        'action'       => "Changed grievance #{$grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+                        'action_type'  => 'update_priority',
+                        'model_type'   => 'App\\Models\\Grievance',
+                        'model_id'     => $grievance->grievance_id,
+                        'description'  => "HR Liaison ({$user->email}) changed priority of grievance #{$grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+                        'status'       => 'success',
+                        'ip_address'   => request()->ip(),
+                        'device_info'  => request()->header('User-Agent'),
+                        'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                        'platform'     => php_uname('s'),
+                        'timestamp'    => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $this->dispatch('priority-update-success');
+
+            Notification::make()
+                ->title('Priority Updated')
+                ->body('The selected grievances have been updated to "' . ucfirst($formattedPriority) . '" with updated processing days.')
+                ->success()
+                ->send();
+
+            $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Notification::make()
+                ->title('Priority Update Failed')
+                ->body('An error occurred while updating grievance priorities: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     public function downloadPdf($id)
     {
         $grievance = Grievance::with(['departments', 'attachments', 'user'])->find($id);
@@ -1020,9 +1102,11 @@ class Index extends Component
         }
 
         $this->totalGrievances     = $query->count();
-        $this->highPriorityCount   = (clone $query)->where('priority_level', 'High')->count();
-        $this->normalPriorityCount = (clone $query)->where('priority_level', 'Normal')->count();
-        $this->lowPriorityCount    = (clone $query)->where('priority_level', 'Low')->count();
+        $this->criticalPriorityCount = (clone $query)->where('priority_level', 'Critical')->count();
+        $this->highPriorityCount     = (clone $query)->where('priority_level', 'High')->count();
+        $this->normalPriorityCount   = (clone $query)->where('priority_level', 'Normal')->count();
+        $this->lowPriorityCount      = (clone $query)->where('priority_level', 'Low')->count();
+
 
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
         $this->acknowledgedCount = (clone $query)->where('grievance_status', 'acknowledged')->count();

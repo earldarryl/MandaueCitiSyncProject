@@ -20,7 +20,7 @@
         selected: @entangle($name),
         search: '',
         optionsMap: @js($normalized),
-        highlightedIndex: -1, // Track highlighted option
+        highlightedIndex: -1,
 
         get optionsList() {
             return Object.entries(this.optionsMap);
@@ -73,6 +73,7 @@
         class="relative !cursor-pointer"
     >
         <flux:input
+            name="{{ $name }}"
             readonly
             placeholder="{{ $placeholder }}"
             class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
