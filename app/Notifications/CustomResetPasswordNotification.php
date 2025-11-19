@@ -40,11 +40,13 @@ class CustomResetPasswordNotification extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Reset your account password')
-            ->greeting('Hi ' . $notifiable->name . '!')
-            ->line('We received a request to reset your password.')
-            ->action('Click here to reset it', $url)
-            ->line('If you didn’t request a password reset, you can safely ignore this email.');
+            ->subject('Reset Your Account Password')
+            ->view('emails.reset-password', [
+                'user' => $notifiable,
+                'url' => $url,
+                'token' => $this->token,
+            ]);
+
     }
 
     /**

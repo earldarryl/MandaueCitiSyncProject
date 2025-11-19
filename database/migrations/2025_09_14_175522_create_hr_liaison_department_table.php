@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('hr_liaison_department', function (Blueprint $table) {
+        Schema::create('hr_liaison_departments', function (Blueprint $table) {
             $table->id('id');
             $table->unsignedBigInteger('hr_liaison_id');   // FK to users
             $table->unsignedBigInteger('department_id');   // FK to departments
@@ -22,6 +22,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('hr_liaison_department');
+        Schema::dropIfExists('hr_liaison_departments');
     }
 };

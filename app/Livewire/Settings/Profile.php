@@ -13,13 +13,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-// Filament schema-based APIs (v4+)
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Schema;
 
-// Filament form field(s)
 use Filament\Forms\Components\FileUpload;
 
 #[Layout('layouts.app')]
@@ -34,36 +33,57 @@ class Profile extends Component implements HasSchemas
     public string $delete_password = '';
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
+    public $profilePicPreview = null;
     public bool $showMyModal = false;
-
-    // Filament form state (statePath('data') below)
+    public bool $showProfileEditModal = false;
     public array $data = [];
-
-    // Track original values
     public string $originalName = '';
     public string $originalEmail = '';
+    public $authUser;
+    protected $listeners = ['reset-form' => 'resetForm'];
+    public function resetForm(): void
+    {
+        $user = Auth::user();
+
+        $this->reset([
+            'current_password',
+            'password',
+            'password_confirmation',
+            'delete_password',
+        ]);
+
+        $this->name = $user->name ?? '';
+        $this->email = $user->email ?? '';
+
+        $this->originalName = $this->name;
+        $this->originalEmail = $this->email;
+
+        $this->form->fill([
+            'profile_pic' => $user->profile_pic,
+        ]);
+
+        $this->dispatch('reset-finished');
+    }
+
+    public function updatedDataProfilePic($value)
+    {
+        $this->profilePicPreview = $value ? $this->form->getState()['profile_pic']->temporaryUrl() : null;
+    }
 
     public function mount(): void
     {
         $user = Auth::user();
 
+        $this->authUser = $user;
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
         $this->current_profile_pic = $user->profile_pic;
 
-        // original values for dirty checks
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
-        // Initialize the Filament form
-        $this->form->fill([
-            'profile_pic' => $user->profile_pic,
-        ]);
     }
 
-    /**
-     * NOTE: For Filament v4+ use Schema here.
-     */
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -74,7 +94,6 @@ class Profile extends Component implements HasSchemas
                     ->directory('profile_pics')
                     ->image()
                     ->imageEditor()
-                    ->circleCropper()
                     ->maxSize(2048)
                     ->hiddenLabel(true)
             ])
@@ -85,34 +104,37 @@ class Profile extends Component implements HasSchemas
     {
         $user = Auth::user();
 
-        // Use the form API to get validated/processed state
-        $state = $this->form->getState(); // or $this->data
+        $state = $this->form->getState();
         $path = $state['profile_pic'] ?? null;
 
         if (! $path) {
-            Notification::make()->title('No image uploaded')->warning()->send();
+            Notification::make()
+                ->title('No image uploaded')
+                ->body('Please select and upload a profile picture before saving.')
+                ->warning()
+                ->send();
+
             return;
         }
 
-        // delete old image if exists
         if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
             Storage::disk('public')->delete($user->profile_pic);
         }
 
-        // persist new path to DB
         $user->update([
             'profile_pic' => $path,
         ]);
 
         $this->current_profile_pic = $path;
 
-        // refill form with persisted value (keeps state consistent)
         $this->form->fill(['profile_pic' => $path]);
 
         Notification::make()
             ->title('Profile picture updated!')
             ->success()
             ->send();
+
+        $this->showProfileEditModal = false;
     }
 
     public function isDirty(string $field): bool
@@ -163,7 +185,10 @@ class Profile extends Component implements HasSchemas
 
     public function redirectEmailVerify()
     {
-        return $this->redirect(route('verification.notice', ['trigger' => 1]), navigate: true);
+        $trigger = Str::uuid()->toString();
+        session(['email_verify_trigger' => $trigger]);
+
+        return $this->redirect(route('verification.notice', ['trigger' => $trigger]), navigate: true);
     }
 
     public function updatePassword(): void
@@ -186,7 +211,7 @@ class Profile extends Component implements HasSchemas
         $this->reset('current_password', 'password', 'password_confirmation');
 
         Notification::make()
-            ->title('Password updated ✅')
+            ->title('Password updated')
             ->success()
             ->send();
     }
@@ -197,14 +222,18 @@ class Profile extends Component implements HasSchemas
             'delete_password' => ['required', 'string', 'current_password'],
         ]);
 
-        if (Auth::user()->profile_pic && Storage::disk('public')->exists(Auth::user()->profile_pic)) {
-            Storage::disk('public')->delete(Auth::user()->profile_pic);
+        $user = Auth::user();
+
+        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
+            Storage::disk('public')->delete($user->profile_pic);
         }
 
-        tap(Auth::user(), $logout(...))->delete();
+        $user->profile_pic = null;
+
+        tap($user, $logout(...))->delete();
 
         Notification::make()
-            ->title('Account deactivated 🚫')
+            ->title('Account deactivated')
             ->danger()
             ->send();
 

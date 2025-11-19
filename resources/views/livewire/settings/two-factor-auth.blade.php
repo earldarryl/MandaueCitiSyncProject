@@ -1,22 +1,22 @@
-<div class="h-full flex-1 overflow-y-auto p-6">
-    <div class="max-w-2xl mx-auto">
+<div class="h-full flex-1 overflow-y-auto p-4">
         {{-- Header --}}
         <header class="pb-6 border-b border-gray-200 dark:border-gray-700">
-            <h1 class="text-4xl font-bold flex items-center gap-3 text-gray-900 dark:text-gray-100">
-                <svg class="w-10 h-10 text-blue-500" xmlns="http://www.w3.org/2000/svg"
+            <h1 class="text-4xl font-bold flex items-center gap-3 text-mc_primary_color dark:text-white">
+                <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg"
                      fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                Two-Factor Authentication
+                <span>
+                    Two-Factor Authentication
+                </span>
             </h1>
             <p class="mt-2 text-gray-600 dark:text-gray-400 text-lg">
                 Activate two-factor authentication to strengthen your account’s security.
             </p>
         </header>
 
-        {{-- Flash messages --}}
         <div class="mt-6">
             @if (session('status') === 'two-factor-authentication-enabled')
                 <div class="p-4 rounded-xl bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
@@ -78,32 +78,68 @@
 
                             {{-- Error Message --}}
                             @error('two_factor')
-                                <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 text-sm">
-                                    {{ $message }}
+                                <div class="mb-4 flex justify-center rounded-lg bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+                                    <span class="pb-2">
+                                        <flux:error name="two_factor" />
+                                    </span>
                                 </div>
                             @enderror
 
                             {{-- Input Form --}}
                             <form wire:submit.prevent="confirm" class="space-y-4">
-                                <div>
-                                    <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Authentication Code
-                                    </label>
-                                    <input type="text" id="code" wire:model="code"
-                                        maxlength="6" inputmode="numeric" pattern="[0-9]*"
-                                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600
-                                                dark:bg-gray-900 dark:text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                        placeholder="123456" required>
-                                    @error('code')
-                                        <span class="text-sm text-red-600 dark:text-red-400">{{ $message }}</span>
-                                    @enderror
+                                <flux:field class="flex flex-col gap-2">
+                                    <div class="flex flex-col gap-2">
+                                        <flux:label class="flex gap-2">
+                                            <flux:icon.key class="text-mc_primary_color dark:text-white"/>
+                                            <span>Authentication Code</span>
+                                        </flux:label>
+
+                                        <flux:input.group>
+                                            <flux:input
+                                                wire:model="code"
+                                                id="code"
+                                                name="code"
+                                                type="text"
+                                                maxlength="6"
+                                                inputmode="numeric"
+                                                pattern="[0-9]*"
+                                                placeholder="123456"
+                                                clearable
+                                            />
+                                        </flux:input.group>
+
+
+                                    </div>
+                                </flux:field>
+
+                                <div class="flex justify-center items-center w-full">
+                                    <flux:button
+                                        variant="primary"
+                                        color="blue"
+                                        type="submit"
+                                        class="w-full bg-mc_primary_color dark:text-blue-500"
+                                        wire:target="confirm"
+                                        wire:loading.remove
+                                        >
+
+                                        <span class="flex items-center justify-center gap-2">
+                                            <span><flux:icon.check/></span>
+                                            <span>
+                                                Verify Code
+                                            </span>
+                                        </span>
+
+                                    </flux:button>
+
+                                    <div wire:loading wire:target="confirm">
+                                        <div class="w-full flex items-center justify-center gap-2">
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <button type="submit"
-                                    class="w-full inline-flex justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700
-                                        text-white font-medium px-4 py-2 transition">
-                                    Verify Code
-                                </button>
                             </form>
                         </div>
                     </div>
@@ -113,7 +149,12 @@
                     @csrf
                     @method('DELETE')
                     <flux:button variant="danger" type="submit" class="w-full">
-                        Disable Two-Factor Authentication
+                        <span class="flex gap-2 justify-center items-center">
+                            <flux:icon.shield-exclamation />
+                            <span>
+                                Disable Two-Factor Authentication
+                            </span>
+                        </span>
                     </flux:button>
                 </form>
 
@@ -127,11 +168,15 @@
 
                 <form method="POST" action="/user/two-factor-authentication">
                     @csrf
-                    <flux:button variant="primary" type="submit" class="w-full">
-                        Enable Two-Factor Authentication
+                    <flux:button variant="primary" color="green" type="submit" class="w-full">
+                        <span class="flex gap-2 justify-center items-center">
+                            <flux:icon.shield-check />
+                            <span>
+                                Enable Two-Factor Authentication
+                            </span>
+                        </span>
                     </flux:button>
                 </form>
             @endif
-        </div>
     </div>
 </div>

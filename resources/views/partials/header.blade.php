@@ -21,17 +21,13 @@
         <!-- Icon -->
         {{-- <link rel="icon" href="{{ asset('LOGO.png') }}" type="image/x-icon"> --}}
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament.css', 'resources/sass/app.scss'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
         <!-- Flatpickr CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
         <!-- Flatpickr JS -->
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <!-- Cropper  -->
-        <script src="
-        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.js
-        "></script>
-        <link href="
-        https://cdn.jsdelivr.net/npm/@7anshuai/cropperjs@1.5.14/dist/cropper.min.css
-        " rel="stylesheet">
-
-
+        <!-- Flowbite Js -->
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+        <!-- Pusher JS -->
+        <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>

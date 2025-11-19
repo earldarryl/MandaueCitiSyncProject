@@ -32,7 +32,7 @@ class Assignment extends Model
     {
         return $this->belongsToMany(
             User::class,
-            'hr_liaison_department',
+            'hr_liaison_departments',
             'department_id',
             'hr_liaison_id'
         )->withTimestamps();

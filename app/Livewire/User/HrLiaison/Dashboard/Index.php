@@ -14,20 +14,26 @@ class Index extends Component
     public $startDate;
     public $endDate;
 
-    protected $listeners = ['dateRangeUpdated'];
-
     public function mount()
     {
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
 
-    public function dateRangeUpdated($start, $end)
+    public function updated($propertyName, $value)
+    {
+        if (in_array($propertyName, ['startDate', 'endDate'])) {
+            $this->dispatch('dateRangeUpdated', $this->startDate, $this->endDate);
+        }
+    }
+
+    public function applyDates($start, $end)
     {
         $this->startDate = $start;
         $this->endDate = $end;
-    }
 
+        $this->dispatch('dateRangeUpdated', $this->startDate, $this->endDate);
+    }
     public function render()
     {
         return view('livewire.user.hr-liaison.dashboard.index', [
@@ -36,4 +42,3 @@ class Index extends Component
         ]);
     }
 }
-

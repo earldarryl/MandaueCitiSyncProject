@@ -12,7 +12,6 @@ class SendWelcomeNotification
 {
     public function handle(Registered $event): void
     {
-        // Make sure we are using App\Models\User
         $user = $event->user instanceof User
             ? $event->user
             : User::find($event->user->getAuthIdentifier());
@@ -21,23 +20,27 @@ class SendWelcomeNotification
             return;
         }
 
-        // Send the welcome notification
         Notification::make()
-            ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User') . ' 🎉')
+            ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User'))
             ->body('Thanks for registering! Explore your dashboard!')
             ->success()
             ->send()
             ->sendToDatabase($user);
 
-        // Record an activity log for registration
         $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
         ActivityLog::create([
-            'user_id'    => $user->id,
-            'role_id'    => $user->roles->first()?->id,
-            'action'     => $roleName . ' registered an account',
-            'ip_address' => Request::ip(),
-            'device_info'=> Request::header('User-Agent'),
+            'user_id'      => $user->id,
+            'role_id'      => $user->roles->first()?->id,
+            'action'       => $roleName . ' registered an account',
+            'action_type'  => 'register',
+            'module_name'  => 'Authentication',
+            'description'  => $roleName . ' (' . $user->email . ') successfully registered.',
+            'ip_address'   => Request::ip(),
+            'device_info'  => Request::header('User-Agent'),
+            'created_by'   => $user->id,
+            'updated_by'   => $user->id,
         ]);
+
     }
 }

@@ -20,6 +20,7 @@
 @source '../**/*.js';
 @source '../**/*.vue';
 
+
 /* ============================= */
 /*         Tailwind Theme        */
 /* ============================= */
@@ -100,7 +101,7 @@
 /*        Global Defaults        */
 /* ============================= */
 :root {
-    --livewire-progress-bar-color: rgb(255, 230, 0);
+    --livewire-progress-bar-color: #2563eb;
 }
 
 *, *::before, *::after {
@@ -147,10 +148,10 @@ body {
 /*     NProgress Customization   */
 /* ============================= */
 #nprogress .bar {
-    background: rgb(255, 230, 0) !important;
-    border-color: rgb(255, 230, 0) !important;
-    color: rgb(255, 230, 0) !important;
-    height: 4px;
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #2563eb !important;
+    height: 6px;
 }
 
 #nprogress .spinner {
@@ -229,4 +230,22 @@ body {
 .hide-password-toggle::-ms-clear,
 .hide-password-toggle::-webkit-reveal {
     display: none !important;
+}
+
+.fi-ta-filters-apply-action-ctn > .fi-btn.fi-ac-btn-action {
+    @apply bg-blue-500 text-white font-medium rounded-md transition-all duration-150
+           hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:outline-none
+           dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-500;
+}
+
+.fi-ta-filters-apply-action-ctn > .fi-btn.fi-ac-btn-action .fi-loading-indicator {
+    @apply text-white;
+}
+
+.filepond--label-action {
+    @apply text-blue-500 font-medium hover:text-blue-600 focus:text-blue-600;
+}
+
+.fi-select-input:focus {
+    @apply !ring-2 !ring-blue-500 !outline-none rounded-md;
 }

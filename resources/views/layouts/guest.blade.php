@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- Shared head content --}}
     @include('partials.header')
 
     <title>{{ $title ?? 'My App' }}</title>
@@ -16,88 +15,132 @@
         }
     </style>
 
-    {{-- Styles --}}
     @livewireStyles
     @filamentStyles
     @fluxAppearance
 </head>
 
 <body class="w-full h-full antialiased" @show-register-modal.window="console.log('Event caught!'); $store.modal.show();">
- <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
-    <template x-if="dark">
-        <flux:button
-            x-on:click="$flux.dark = false"
-            icon="moon"
-            variant="subtle"
-            aria-label="Switch to light mode"
-            class="border-none"
-        />
-    </template>
-
-    <template x-if="!dark">
-        <flux:button
-            x-on:click="$flux.dark = true"
-            icon="sun"
-            variant="subtle"
-            aria-label="Switch to dark mode"
-            class="border-none"
-        />
-    </template>
-</div>
     @if(Route::is('login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="ghost"
+                    aria-label="Switch to dark mode"
+                    class="border-none"
+                />
+            </template>
+        </div>
         <div x-data>
-            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
                     <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
                         {{ $slot }}
                     </div>
                 </div>
 
-                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
-                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
-                    </h1>
+                <div class="w-full lg:col-span-3 min-h-[50vh] lg:min-h-screen relative">
+                    <img
+                        src="{{ asset('/images/app-main-bg-img.png') }}"
+                        class="w-full h-full object-cover"
+                        alt="Background Image"
+                    >
                 </div>
             </div>
 
-            <!-- Modal Wrapper -->
             <livewire:pages.auth.register />
 
-        </div>
+            <x-registration-success-modal />
+
     @endif
     @if(Route::is('hr-liaison.login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="ghost"
+                    aria-label="Switch to dark mode"
+                    class="border-none"
+                />
+            </template>
+        </div>
         <div x-data>
-            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
                     <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
                         {{ $slot }}
                     </div>
                 </div>
 
-                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
-                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
-                    </h1>
+                <div class="w-full lg:col-span-3 min-h-[50vh] lg:min-h-screen relative">
+                    <img
+                        src="{{ asset('/images/app-main-bg-img.png') }}"
+                        class="w-full h-full object-cover"
+                        alt="Background Image"
+                    >
                 </div>
             </div>
         </div>
     @endif
     @if(Route::is('admin.login'))
+        <div class="absolute top-0 left-0 z-50" x-data="{ dark: $flux.dark }" x-effect="dark = $flux.dark">
+            <template x-if="dark">
+                <flux:button
+                    x-on:click="$flux.dark = false"
+                    icon="moon"
+                    variant="ghost"
+                    aria-label="Switch to light mode"
+                    class="border-none"
+                />
+            </template>
+
+            <template x-if="!dark">
+                <flux:button
+                    x-on:click="$flux.dark = true"
+                    icon="sun"
+                    variant="ghost"
+                    aria-label="Switch to dark mode"
+                    class="border-none"
+                />
+            </template>
+        </div>
         <div x-data>
-            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-3 items-center justify-center">
+            <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
                     <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">
                         {{ $slot }}
                     </div>
                 </div>
 
-                <div class="bg-mc_primary_color dark:bg-zinc-900 w-full lg:col-span-2 flex flex-col items-center justify-center text-start min-h-[25vh] lg:min-h-screen select-none">
-                    <h1 class="tracking-tighter archivo-black-regular text-white dark:text-blue-600 font-extrabold uppercase inline-flex flex-col justify-start">
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Mandaue</span>
-                        <span class="block leading-[0.8] text-6xl sm:text-7xl md:text-8xl lg:text-9xl">Citi-Sync</span>
-                    </h1>
+                <div class="w-full lg:col-span-3 min-h-[50vh] lg:min-h-screen relative">
+                    <img
+                        src="{{ asset('/images/app-main-bg-img.png') }}"
+                        class="w-full h-full object-cover"
+                        alt="Background Image"
+                    >
                 </div>
             </div>
         </div>

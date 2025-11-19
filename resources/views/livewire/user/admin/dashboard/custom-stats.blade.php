@@ -1,64 +1,303 @@
-<div class="p-4 rounded-lg w-full shadow-sm bg-white dark:bg-zinc-800">
-    <!-- Stats Cards Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div x-data="{ openCreate: false, openCreateLiaison: false }">
 
-        <!-- Users Card -->
-        <div class="relative bg-blue-500 rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-shadow duration-300 min-h-[250px] flex flex-col justify-between lg:col-span-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="absolute -top-4 -right-4 w-32 h-32 opacity-20 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-            </svg>
-            <div class="z-10 p-6 flex flex-col justify-center items-center">
-                <h2 class="text-xl font-bold text-white mb-4">Users</h2>
-                <span class="text-4xl font-extrabold text-white">{{ $totalUsers }}</span>
-                <p class="text-sm text-white/80 mt-1 text-center">Total of registered users</p>
+    <div class="flex flex-col w-full space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                        border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                        transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
+
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                            group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
+                <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                            dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                    <x-heroicon-o-user class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
+                </div>
+
+                <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Total Users</p>
+                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                    {{ $totalUsers }}
+                </p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Registered in the system</p>
+
+                <div class="grid grid-cols-2 gap-3 mt-3 w-full">
+                    <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                                border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                                transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-user-circle class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Citizens</span>
+                        </div>
+                        <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                            {{ $citizenOnline }} online / {{ $citizenUsers }} total
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                                border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                                transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-briefcase class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">HR Liaisons</span>
+                        </div>
+                        <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                            {{ $hrLiaisonOnline }} online / {{ $hrLiaisonUsers }} total
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
+
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-200/20 to-transparent opacity-0
+                            group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
+                <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-indigo-200/50
+                            dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-indigo-600 dark:text-indigo-400" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/>
+                    </svg>
+                </div>
+
+                <p class="text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Assignments</p>
+                <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
+                    {{ $totalAssignments }}
+                </p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">All assignments processed</p>
+
+                <div x-data="{ open: false }" class="mt-3 w-full">
+                    <button @click="open = !open"
+                            class="flex items-center justify-between w-full px-4 py-2 bg-indigo-100 dark:bg-zinc-700
+                                rounded-lg text-sm font-medium text-indigo-700 dark:text-indigo-300
+                                hover:bg-indigo-200 dark:hover:bg-zinc-600 transition focus:outline-none">
+                        <span>Assignments by Department</span>
+                        <svg :class="{ 'rotate-180': open }"
+                            class="w-4 h-4 ml-2 transition-transform"
+                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-collapse x-show="open"
+                        class="mt-2 w-full bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-4 border border-indigo-200/40 dark:border-zinc-700">
+                        <div class="divide-y divide-gray-200 dark:divide-zinc-700">
+                            @foreach($assignmentsByDepartment as $dept)
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                        {{ $dept['department_name'] }}
+                                    </span>
+                                    <span class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                        {{ $dept['total'] }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
+
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                            group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
+                <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                            dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                    <x-heroicon-o-document-text class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
+                </div>
+
+                <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Forms Collected</p>
+                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                    {{ $totalGrievances + $totalFeedbacks }}
+                </p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Total grievances and feedback</p>
+
+                <div class="grid grid-cols-2 gap-3 mt-3 w-full">
+                    <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                                border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                                transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-clipboard-document-list class="w-5 h-5 text-blue-600 dark:text-blue-400"/>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Grievances</span>
+                        </div>
+                        <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                            {{ $totalGrievances }}
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
+                                border border-blue-200/40 dark:border-zinc-700 rounded-xl p-3 shadow-sm
+                                transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-chat-bubble-oval-left class="w-5 h-5 text-blue-600 dark:text-blue-400"/>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Feedback</span>
+                        </div>
+                        <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
+                            {{ $totalFeedbacks }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-blue-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                transition-all duration-300 p-6 flex flex-col items-center justify-center gap-4">
+
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-200/20 to-transparent opacity-0
+                        group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none"></div>
+
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-blue-200/50
+                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                <x-heroicon-o-bolt class="h-8 w-8 text-blue-600 dark:text-blue-400"/>
+            </div>
+
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Quick Actions</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 -mt-1">Manage your HR and Departments</p>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-3 w-full justify-center">
+                <button
+                    @click="openCreateLiaison = true"
+                    wire:loading.attr="disabled"
+                    wire:target="createHrLiaison"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700
+                        text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-300">
+                    <x-heroicon-o-user-plus class="w-5 h-5" />
+                    <span wire:loading.remove wire:target="createHrLiaison">
+                        <span class="flex gap-2 justify-center items-center">
+                            <x-heroicon-o-plus class="w-4 h-4" />
+                            <span>Add HR Liaison</span>
+                        </span>
+                    </span>
+                    <span wire:loading wire:target="createHrLiaison">
+                        Processing...
+                    </span>
+                </button>
+
+                <button
+                    wire:loading.attr="disabled"
+                    wire:target="createDepartment"
+                    @click="openCreate = true"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800
+                        border border-blue-300 dark:border-zinc-700 text-blue-600 dark:text-blue-400
+                        text-sm font-medium rounded-xl shadow-sm hover:bg-blue-50 dark:hover:bg-zinc-700
+                        transition-all duration-300">
+                    <x-heroicon-o-building-office class="w-5 h-5" />
+                    <span wire:loading.remove wire:target="createDepartment">
+                        <span class="flex gap-2 justify-center items-center">
+                            <x-heroicon-o-plus class="w-4 h-4" />
+                            <span>Create Department</span>
+                        </span>
+                    </span>
+                    <span wire:loading wire:target="createDepartment">
+                        Processing...
+                    </span>
+                </button>
             </div>
         </div>
 
-        <!-- Assignment Card -->
-        <div class="relative bg-indigo-700 rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-shadow duration-300 min-h-[250px] flex flex-col justify-between lg:col-span-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="absolute -top-4 -right-4 w-32 h-32 opacity-20 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
-            </svg>
-            <div class="z-10 p-6 flex flex-col justify-center items-center">
-                <h2 class="text-xl font-bold text-white mb-4">Assignments</h2>
-                <span class="text-4xl font-extrabold text-white">{{ $totalAssignments }}</span>
-                <p class="text-sm text-white/80 mt-1">Total processed</p>
-            </div>
-        </div>
+    </div>
 
-        <!-- Grievances Card (bigger) -->
-        <div class="relative bg-zinc-900 dark:bg-zinc-700/50 rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-shadow duration-300 min-h-[300px] flex flex-col justify-between lg:col-span-2">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                class="absolute -top-6 -right-6 w-36 h-36 opacity-20 text-white"
-                fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-            </svg>
-            <div class="z-10 p-6 text-center">
-                <h2 class="text-xl font-bold text-white mb-4">Grievances</h2>
-                <span class="text-4xl font-extrabold text-white">{{ $totalGrievances }}</span>
-                <p class="text-sm text-white/80 mt-1">Total submitted</p>
-            </div>
-            <!-- Status Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 z-10 p-4">
-                <div class="p-3 bg-yellow-300/80 text-yellow-900 text-sm font-semibold text-center shadow">
-                    Pending
-                    <div class="text-xl font-bold">{{ $pendingGrievances }}</div>
-                </div>
-                <div class="p-3 bg-red-500/80 text-white text-sm font-semibold text-center shadow">
-                    Rejected
-                    <div class="text-xl font-bold">{{ $rejectedGrievances }}</div>
-                </div>
-                <div class="p-3 bg-blue-500/80 text-white text-sm font-semibold text-center shadow">
-                    In Progress
-                    <div class="text-xl font-bold">{{ $inProgressGrievances }}</div>
-                </div>
-                <div class="p-3 bg-green-500/80 text-white text-sm font-semibold text-center shadow">
-                    Resolved
-                    <div class="text-xl font-bold">{{ $resolvedGrievances }}</div>
-                </div>
-            </div>
-        </div>
+    <div x-show="openCreate" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreate = false">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
 
+            <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                <x-heroicon-o-squares-plus class="w-6 h-6" />
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                    Create New Department
+                </h3>
+            </header>
+
+            <div class="space-y-3 w-full p-6">
+                <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
+                <flux:error name="newDepartment.department_name" />
+
+                <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
+                <flux:error name="newDepartment.department_code" />
+
+                <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
+                <flux:error name="newDepartment.department_description" />
+
+                <x-select
+                    name="newDepartment.is_active"
+                    wire:model.defer="newDepartment.is_active"
+                    placeholder="Select active status"
+                    :options="['Inactive','Active']"
+                />
+                <flux:error name="newDepartment.is_active" />
+
+                <x-select
+                    name="newDepartment.is_available"
+                    wire:model.defer="newDepartment.is_available"
+                    placeholder="Select availability status"
+                    :options="['Yes','No']"
+                />
+                <flux:error name="newDepartment.is_available" />
+
+                {{ $this->form->getComponent('department_profile') }}
+                {{ $this->form->getComponent('department_background') }}
+            </div>
+
+            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                <button @click="openCreate = false"
+                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                    Cancel
+                </button>
+                <button wire:click="createDepartment" wire:loading.attr="disabled" @click="openCreate = false"
+                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="createDepartment">Save</span>
+                    <span wire:loading wire:target="createDepartment">Processing...</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <div x-show="openCreateLiaison" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreateLiaison = false">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
+
+            <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                <x-heroicon-o-user-plus class="w-6 h-6" />
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                    Add HR Liaison
+                </h3>
+            </header>
+
+            <div class="space-y-3 w-full p-6">
+                <flux:input type="text" wire:model.defer="newLiaison.name" placeholder="Full Name" clearable/>
+                <flux:error name="newLiaison.name" />
+
+                <flux:input type="email" wire:model.defer="newLiaison.email" placeholder="Email Address" clearable/>
+                <flux:error name="newLiaison.email" />
+
+                <flux:input type="password" wire:model.defer="newLiaison.password" placeholder="Password" class:input="hide-password-toggle" viewable clearable/>
+                <flux:error name="newLiaison.password" />
+            </div>
+
+            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                <button @click="openCreateLiaison = false"
+                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                    Cancel
+                </button>
+                <button wire:click="createHrLiaison" wire:loading.attr="disabled" @click="openCreateLiaison = false"
+                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="createHrLiaison">Save</span>
+                    <span wire:loading wire:target="createHrLiaison">Processing...</span>
+                </button>
+            </footer>
+        </div>
     </div>
 </div>

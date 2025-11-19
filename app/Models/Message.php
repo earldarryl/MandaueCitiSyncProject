@@ -12,6 +12,8 @@ class Message extends Model
         'receiver_id',
         'message',
         'is_read',
+        'file_path',
+        'file_name',
     ];
 
     public function grievance()
@@ -28,4 +30,15 @@ class Message extends Model
     {
         return $this->belongsTo(User::class, 'receiver_id');
     }
+
+    public function hasFile(): bool
+    {
+        return !empty($this->file_path);
+    }
+
+    public function fileUrl(): ?string
+    {
+        return $this->file_path ? asset('storage/' . $this->file_path) : null;
+    }
+
 }

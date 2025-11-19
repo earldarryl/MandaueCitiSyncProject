@@ -23,10 +23,15 @@ class VerifyOtp extends Component
 
    public function mount()
     {
-        if (request()->query('trigger') == 1) {
+        $trigger = request()->query('trigger');
+
+        if ($trigger && session('email_verify_trigger') === $trigger) {
+            session()->forget('email_verify_trigger');
+
             $this->sendOtpInternal();
         }
     }
+
 
     private function getLimiterKey(): string
     {
@@ -49,7 +54,6 @@ class VerifyOtp extends Component
             return;
         }
 
-        // Check rate limit (1 attempt per 60 seconds)
         if (RateLimiter::tooManyAttempts($this->getLimiterKey(), 1)) {
             $this->cooldown = RateLimiter::availableIn($this->getLimiterKey());
             $this->addError('otp', 'Please wait before resending another OTP.');
@@ -87,17 +91,24 @@ class VerifyOtp extends Component
             $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
             ActivityLog::create([
-                'user_id'    => $user->id,
-                'role_id'    => $user->roles->first()?->id,
-                'action'     => $roleName . ' logged in',
-                'ip_address' => RequestFacade::ip(),
-                'device_info'=> RequestFacade::header('User-Agent'),
+                'user_id'      => $user->id,
+                'role_id'      => $user->roles->first()?->id,
+                'action'       => $roleName . ' logged in',
+                'action_type'  => 'login',
+                'module_name'  => 'Authentication',
+                'description'  => $roleName . ' (' . $user->email . ') logged in successfully.',
+                'timestamp'    => now(),
+                'ip_address'   => RequestFacade::ip(),
+                'device_info'  => RequestFacade::header('User-Agent'),
+                'created_by'   => $user->id,
+                'updated_by'   => $user->id,
             ]);
 
             $this->redirectIntended(
                 default: route('citizen.grievance.index', absolute: false),
                 navigate: true
             );
+
             session()->flash('success', 'Email verified successfully.');
             return;
         }

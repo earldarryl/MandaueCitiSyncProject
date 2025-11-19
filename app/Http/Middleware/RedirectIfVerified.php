@@ -16,7 +16,7 @@ class RedirectIfVerified
      public function handle(Request $request, Closure $next): Response
     {
         if ($request->user() && $request->user()->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('citizen.grievance.index');
         }
 
         return $next($request);

@@ -7,21 +7,15 @@ use App\Livewire\Forms\LoginForm;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Illuminate\Support\Facades\Auth;
-use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\ValidationException;
 
 #[Layout('layouts.guest')]
 #[Title('HR Liaison | Login')]
 class Login extends Component
 {
     public LoginForm $form;
-    public bool $isOpenModalLogin = false;
     public string $title = 'HR Liaison | Login';
     public string $redirectLink = '';
-    public bool $isButtonShow = false;
+    public bool $showSuccessModal = false;
     protected $listeners = ['openModalRegister'];
 
     public function openModalRegister()
@@ -31,8 +25,7 @@ class Login extends Component
         $this->resetErrorBag(["form.email", 'form.password']);
     }
 
-
-    public function login(): void
+    public function login()
     {
         $this->validate();
 
@@ -45,8 +38,10 @@ class Login extends Component
         $redirect = $result['redirect'] ?? null;
 
         if ($redirect) {
-            $this->redirect($redirect, navigate: true);
+            $this->redirectLink = $redirect;
+            $this->showSuccessModal = true;
         }
+
     }
 
     public function render()

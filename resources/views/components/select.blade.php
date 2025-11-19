@@ -4,8 +4,6 @@
     'options' => [],
 ])
 
-
-
 <div
     x-data="{
         open: false,
@@ -28,7 +26,6 @@
     "
     class="relative w-full"
 >
-    <!-- Trigger -->
     <div
         @click="open = !open"
         @keydown.enter.prevent="open = !open"
@@ -52,9 +49,7 @@
                     : selected)"
         />
 
-        <!-- Right controls -->
         <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-            <!-- Clear button -->
             <flux:button
                 x-show="!!selected"
                 size="sm"
@@ -68,7 +63,6 @@
                 "
             />
 
-            <!-- Chevron -->
             <div class="h-5 w-5 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="2" stroke="currentColor"
@@ -81,12 +75,11 @@
         </div>
     </div>
 
-    <!-- Dropdown -->
     <div
         x-show="open"
         @click.outside="open = false"
         x-transition
-        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-black ring-opacity-5 rounded-md shadow-md"
+        class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-gray-300 ring-opacity-5 rounded-md shadow-md"
     >
         <ul class="py-1" role="listbox">
             @foreach ($options as $option)

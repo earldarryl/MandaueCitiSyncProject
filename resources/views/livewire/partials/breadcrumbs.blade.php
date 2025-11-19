@@ -1,34 +1,46 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Diglactic\Breadcrumbs\Breadcrumbs;
+use Illuminate\Support\Facades\Route;
+use Diglactic\Breadcrumbs\Breadcrumbs;
 
-    $breadcrumbs = Breadcrumbs::generate(Route::currentRouteName(), ...Route::current()->parameters());
+$currentRoute = Route::currentRouteName();
+$breadcrumbs = Breadcrumbs::generate($currentRoute, ...Route::current()->parameters());
 @endphp
 
 <div>
-    @if ($breadcrumbs->count() > 1)
+    @if ($breadcrumbs->count() > 0)
         <header class="relative w-full pl-4 py-3 flex items-center">
-            @foreach ($breadcrumbs as $index => $crumb)
-                @php
-                    $isCurrent = request()->url() === $crumb->url;
-                @endphp
+            <flux:breadcrumbs>
+                @foreach ($breadcrumbs as $index => $crumb)
+                    @php
+                        $isCurrent = request()->url() === $crumb->url;
+                        $tooltipText = $crumb->data['tooltip'] ?? strip_tags($crumb->title);
 
-                @if ($isCurrent)
-                    <span class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-bold">
-                        {!! $crumb->title !!}
-                    </span>
-                @else
-                    <a href="{{ $crumb->url }}" wire:navigate class="text-mc_primary_color dark:text-white bg-mc_primary_color/10 dark:bg-zinc-700/50 p-2 rounded-full text-[12px] font-semibold underline-none hover:underline">
-                        {!! $crumb->title !!}
-                    </a>
-                @endif
+                        $isLast = $index === $breadcrumbs->count() - 1;
+                    @endphp
 
-                @if (!$loop->last)
-                    <span class="mx-2 text-mc_primary_color dark:text-white font-bold">
-                        <flux:icon.chevron-right class="size-4"/>
-                    </span>
-                @endif
-            @endforeach
+                    @if ($isLast && $breadcrumbs->count() > 1)
+                        <flux:breadcrumbs.item active="true">
+                            {!! $crumb->title !!}
+                        </flux:breadcrumbs.item>
+                    @elseif ($isLast && $breadcrumbs->count() === 1)
+                        @continue
+                    @else
+                        @if ($index === 0)
+                            <flux:tooltip :content="$tooltipText" position="bottom">
+                                <flux:breadcrumbs.item href="{{ $crumb->url }}" icon="home" wire:navigate>
+                                    {!! $crumb->title !!}
+                                </flux:breadcrumbs.item>
+                            </flux:tooltip>
+                        @else
+                            <flux:tooltip :content="$tooltipText" position="bottom">
+                                <flux:breadcrumbs.item href="{{ $crumb->url }}">
+                                    {!! $crumb->title !!}
+                                </flux:breadcrumbs.item>
+                            </flux:tooltip>
+                        @endif
+                    @endif
+                @endforeach
+            </flux:breadcrumbs>
         </header>
     @endif
 </div>

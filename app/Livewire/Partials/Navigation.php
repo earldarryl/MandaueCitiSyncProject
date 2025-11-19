@@ -24,25 +24,37 @@ class Navigation extends Component
     protected $listeners = [
         'user-profile-updated' => 'refreshUserData',
         'notification-created'  => 'prependNewNotification',
-        'refreshNotifications' => 'refreshNotifications',
+        'refreshNotifications'  => 'loadCounts',
+        'updateUnreadCount'     => 'loadCounts',
     ];
     private $routeHeaders = [
 
-        'dashboard'          => 'Dashboard',
-        'activity-logs.index' => 'Activity Logs',
-        'users.citizens'     => 'Citizen Users',
-        'users.hr-liaisons'  => 'HR Liaisons Users',
+        'admin.dashboard'          => 'Dashboard',
+        'admin.activtiy-logs.index' => 'Activity Logs',
+        'admin.stakeholders.citizens.index' => 'Citizens',
+        'admin.stakeholders.citizens.view' => 'View Citizen',
+        'admin.stakeholders.departments-and-hr-liaisons.index' => 'Departments & HR Liaisons',
+        'admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view' =>'HR Liaison List View',
+        'admin.reports-and-analytics.index' => 'Reports & Analytics',
+        'admin.forms.grievances.index' => 'Grievances',
+        'admin.forms.grievances.view'=> 'View Grievance',
+        'admin.forms.feedbacks.index' => 'Feedbacks',
+        'admin.forms.feedbacks.view' => 'View Feedback',
 
         'hr-liaison.dashboard'           => 'Dashboard',
         'hr-liaison.activity-logs.index' => 'Activity Logs',
-
-        'hr-liaison.grievance.index' => 'Grievance List',
+        'hr-liaison.department.index' => 'Department Info',
+        'hr-liaison.department.view' => 'Department Info View',
+        'hr-liaison.grievance.index' => 'Grievance Reports',
         'hr-liaison.grievance.view' => 'View Grievance',
+        'hr-liaison.reports-and-analytics.index' => 'Reports & Analytics',
 
         'citizen.grievance.index'    => 'My Grievances',
         'citizen.grievance.create'   => 'File a Grievance',
         'citizen.grievance.edit'     => 'Edit Grievance',
         'citizen.grievance.view'     => 'View Grievance',
+        'citizen.feedback-form'     => 'Feedback Form',
+        'citizen.submission-history'     => 'Submission History',
 
         'settings'              => 'Settings',
         'settings.profile'      => 'Profile Settings',
@@ -62,7 +74,7 @@ class Navigation extends Component
             $this->userName  = $this->user->name;
             $this->userEmail = $this->user->email;
             $this->updateStatus();
-            $this->loadNotifications();
+            $this->loadCounts();
         }
 
         $this->setHeader();
@@ -72,15 +84,23 @@ class Navigation extends Component
         $icons = [
             'Dashboard' => 'bi bi-speedometer2',
             'Activity Logs' => 'bi bi-journal-text',
-            'Citizen Users' => 'bi bi-people',
-            'HR Liaisons Users' => 'bi bi-person-badge',
-
+            'Citizens' => 'bi bi-people',
+            'View Citizen' => 'bi bi-person-bounding-box',
+            'View Feedback' => 'bi bi-info-circle-fill',
+            'HR Liaison List View' => 'bi bi-person-lines-fill',
+            'Departments & HR Liaisons' => 'bi bi-person-badge',
+            'Grievances' => 'bi bi-file-earmark-text',
+            'Feedbacks' => 'bi bi-chat-right-dots-fill',
+            'Department Info' => 'bi bi-building-fill-exclamation',
+            'Department Info View' => 'bi bi-building-fill-exclamation',
             'My Grievances' => 'bi bi-file-earmark-text',
-            'File a Grievance' => 'bi bi-plus-square',
+            'File a Grievance' => 'bi bi-file-earmark-plus',
             'Edit Grievance' => 'bi bi-pencil-square',
             'View Grievance' => 'bi bi-eye',
-            'Grievance List' => 'bi bi-file-earmark-text',
-
+            'Feedback Form' => 'bi bi-chat-right-dots-fill',
+            'Submission History' => 'bi bi-clock-history',
+            'Grievance Reports' => 'bi bi-file-earmark-text',
+            'Reports & Analytics' => 'bi bi-file-bar-graph',
             'Settings' => 'bi bi-gear',
             'Profile Settings' => 'bi bi-person-circle',
             'Appearance Settings' => 'bi bi-palette',
@@ -89,7 +109,7 @@ class Navigation extends Component
             'Sidebar' => 'bi bi-list',
         ];
 
-        return $icons[$this->header] ?? 'bi bi-circle'; // fallback
+        return $icons[$this->header] ?? 'bi bi-circle';
     }
 
     public function hydrate()
@@ -105,7 +125,6 @@ class Navigation extends Component
         $this->header = $this->routeHeaders[$currentRoute]
             ?? ucfirst(str_replace('.', ' ', $currentRoute));
     }
-    /** ------------------ STATUS ------------------ */
     public function getUserStatus()
     {
         if (!$this->user || !$this->user->last_seen_at) {
@@ -123,151 +142,23 @@ class Navigation extends Component
     {
         $this->status = $this->getUserStatus();
     }
-
-    /** ------------------ NOTIFICATIONS ------------------ */
-    public function loadNotifications()
-    {
-        if (!$this->user) return;
-
-        $this->unreadNotifications = $this->user
-            ->unreadNotifications()
-            ->latest('created_at')
-            ->take($this->unreadLimit)
-            ->get();
-
-        $this->readNotifications = $this->user
-            ->readNotifications()
-            ->latest('created_at')
-            ->take($this->readLimit)
-            ->get();
-
-        $this->loadCounts();
-    }
-
-    public function refreshNotifications()
-    {
-        $this->loadNotifications();
-    }
-
-    private function loadCounts()
+    public function loadCounts()
     {
         if (!$this->user) return;
 
         $this->unreadCount = $this->user->unreadNotifications()->count();
         $this->readCount   = $this->user->readNotifications()->count();
     }
-
-    public function loadMore($type = 'all')
-    {
-        if (!$this->user) return;
-
-        if ($type === 'unread' || $type === 'all') {
-            $moreUnread = $this->user
-                ->unreadNotifications()
-                ->latest('created_at')
-                ->skip($this->unreadNotifications->count())
-                ->take(20)
-                ->get();
-            $this->unreadNotifications = $this->unreadNotifications->concat($moreUnread);
-            $this->unreadLimit += 20;
-        }
-
-        if ($type === 'read' || $type === 'all') {
-            $moreRead = $this->user
-                ->readNotifications()
-                ->latest('created_at')
-                ->skip($this->readNotifications->count())
-                ->take(20)
-                ->get();
-            $this->readNotifications = $this->readNotifications->concat($moreRead);
-            $this->readLimit += 20;
-        }
-
-        $this->loadCounts();
-    }
-
-    public function markNotificationAsRead($id)
-    {
-        $notification = $this->user->notifications()->where('id', $id)->first();
-        if (!$notification || !is_null($notification->read_at)) return;
-
-        $notification->markAsRead();
-
-        $this->unreadNotifications = $this->unreadNotifications->reject(fn($n) => $n->id === $id);
-        $fresh = $this->user->notifications()->where('id', $id)->first();
-        if ($fresh) $this->readNotifications->prepend($fresh);
-
-        $this->loadCounts();
-    }
-
-    public function markNotificationAsUnread($id)
-    {
-        $notification = $this->user->notifications()->where('id', $id)->first();
-        if (!$notification || is_null($notification->read_at)) return;
-
-        $notification->update(['read_at' => null]);
-
-        $this->readNotifications = $this->readNotifications->reject(fn($n) => $n->id === $id);
-        $fresh = $this->user->notifications()->where('id', $id)->first();
-        if ($fresh) $this->unreadNotifications->prepend($fresh);
-
-        $this->loadCounts();
-    }
-
-    public function deleteNotification($id)
-    {
-        $notif = $this->user->notifications()->where('id', $id)->first();
-        if (!$notif) return;
-
-        $notif->delete();
-
-        $this->unreadNotifications = $this->unreadNotifications->reject(fn($n) => $n->id === $id);
-        $this->readNotifications   = $this->readNotifications->reject(fn($n) => $n->id === $id);
-
-        $this->loadCounts();
-    }
-
-    /** ------------------ BULK ACTIONS ------------------ */
-    public function markAllAsRead()
-    {
-        $this->user->notifications()->whereNull('read_at')->update(['read_at' => now()]);
-        $this->loadNotifications();
-    }
-
-    public function markAllAsUnread()
-    {
-        $this->user->notifications()->whereNotNull('read_at')->update(['read_at' => null]);
-        $this->loadNotifications();
-    }
-
-    public function deleteAllUnread()
-    {
-        $this->user->notifications()->whereNull('read_at')->delete();
-        $this->loadNotifications();
-    }
-
-    public function deleteAllRead()
-    {
-        $this->user->notifications()->whereNotNull('read_at')->delete();
-        $this->loadNotifications();
-    }
-
-    /** ------------------ LISTENER HELPERS ------------------ */
     public function prependNewNotification($notification = null)
     {
-        if (!$this->user || !$notification) return;
+        if (!$notification) return;
 
-        if (is_array($notification)) $notification = (object)$notification;
-        if (isset($notification->notifiable_id) && $notification->notifiable_id !== $this->user->id) return;
-
-        $this->unreadNotifications->prepend($notification);
         $this->unreadCount++;
     }
-
-    public function refreshUserData($updatedData)
+    public function refreshUserData($data)
     {
-        $this->userName  = $updatedData['name']  ?? $this->userName;
-        $this->userEmail = $updatedData['email'] ?? $this->userEmail;
+        $this->userName  = $data['name']  ?? $this->userName;
+        $this->userEmail = $data['email'] ?? $this->userEmail;
     }
 
     public function render()

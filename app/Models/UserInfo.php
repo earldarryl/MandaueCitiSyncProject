@@ -10,7 +10,13 @@ class UserInfo extends Model
         'user_id',
         'first_name', 'middle_name', 'last_name', 'suffix',
         'gender', 'civil_status', 'barangay',
-        'sitio', 'birthdate', 'age'
+        'sitio', 'birthdate', 'age',
+        'phone_number',
+        'emergency_contact_name', 'emergency_contact_number', 'emergency_relationship',
+    ];
+
+    protected $casts = [
+        'birthdate' => 'date',
     ];
 
     public function user()

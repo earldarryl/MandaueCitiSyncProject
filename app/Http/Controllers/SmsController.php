@@ -9,8 +9,8 @@ class SmsController extends Controller
 {
     public function sendSms(Request $request)
     {
-        $number = $request->input('number'); // e.g. '09171234567'
-        $message = $request->input('message'); // e.g. 'Welcome to our app!'
+        $number = $request->input('number');
+        $message = $request->input('message');
 
         $payload = [
             'apikey'  => config('services.semaphore.api_key'),
