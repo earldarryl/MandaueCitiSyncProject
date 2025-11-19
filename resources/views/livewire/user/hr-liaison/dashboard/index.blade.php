@@ -90,20 +90,27 @@
                 </div>
             </section>
 
-            <section class="w-full h-full p-4">
-                <div class="flex flex-col lg:flex-row gap-6 w-full h-full">
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+            <section class="w-full h-full p-4 flex justify-center items-center gap-6">
+                <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
                         <livewire:grievance-line-chart
                             :start-date="$startDate"
                             :end-date="$endDate"
                             wire:key="grievance-line-{{ $startDate }}-{{ $endDate }}" />
                     </div>
 
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
                         <livewire:hr-liaison-user-grievance-chart
                             :start-date="$startDate"
                             :end-date="$endDate"
                             wire:key="user-grievance-chart-{{ $startDate }}-{{ $endDate }}" />
+                    </div>
+
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
+                        <livewire:grievance-priority-levels-chart
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="grievance-priority-chart-{{ $startDate }}-{{ $endDate }}" />
                     </div>
                 </div>
             </section>

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Grievance;
 use Filament\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Columns\TextColumn;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\Support\Htmlable;
-
 class DashboardGrievanceTable extends TableWidget
 {
     public ?string $startDate = null;
@@ -186,7 +186,8 @@ class DashboardGrievanceTable extends TableWidget
                     ->colors([
                         'success' => 'Low',
                         'info' => 'Normal',
-                        'danger' => 'High',
+                        'primary' => 'High',
+                        'danger' => 'Critical',
                     ])
                     ->sortable()
                     ->extraAttributes([
@@ -237,6 +238,50 @@ class DashboardGrievanceTable extends TableWidget
                         'class' => 'uppercase text-gray-600 dark:text-gray-300 tracking-wide text-[12px] font-bold',
                     ]),
             ])
+
+            ->filters([
+                SelectFilter::make('priority_level')
+                    ->label('Priority')
+                    ->options([
+                        'High' => 'High',
+                        'Medium' => 'Normal',
+                        'Low' => 'Low',
+                        'Critical' => 'Critical',
+
+                    ]),
+
+                SelectFilter::make('grievance_status')
+                    ->label('Status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'acknowledged' => 'Acknowledged',
+                        'in_progress' => 'In Progress',
+                        'escalated' => 'Escalated',
+                        'resolved' => 'Resolved',
+                        'unresolved' => 'Unresolved',
+                        'closed' => 'Closed',
+                    ]),
+
+                SelectFilter::make('grievance_type')
+                    ->label('Type')
+                    ->options([
+                        'Complaint' => 'Complaint',
+                        'Request' => 'Request',
+                        'Inquiry' => 'Inquiry',
+                    ]),
+
+                SelectFilter::make('is_anonymous')
+                    ->label('Anonymous')
+                    ->options([
+                        '1' => 'Yes',
+                        '0' => 'No',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!isset($data['value'])) return $query;
+                        return $query->where('is_anonymous', $data['value']);
+                    }),
+            ])
+            ->filtersTriggerAction(fn (Action $action) => $action->button()->color('info'))
             ->actions([
                 Action::make('view')
                     ->label('View')

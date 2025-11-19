@@ -10,17 +10,14 @@ Broadcast::channel('grievance.{grievance_id}', function ($user, $grievance_id) {
         return false;
     }
 
-    // Grievance owner
     if ($grievance->user_id === $user->id) {
         return true;
     }
 
-    // Assigned HR liaison
     if ($grievance->assignments->contains('hr_liaison_id', $user->id)) {
         return true;
     }
 
-    // Admins can also listen
     if ($user->hasRole('admin')) {
         return true;
     }

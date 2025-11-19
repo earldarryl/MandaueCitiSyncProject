@@ -14,6 +14,7 @@ class Grievance extends Model
     const PRIORITY_LOW = 'Low';
     const PRIORITY_NORMAL = 'Normal';
     const PRIORITY_HIGH = 'High';
+    const PRIORITY_CRITICAL = 'Critical';
 
     protected $fillable = [
         'user_id',

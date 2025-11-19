@@ -259,7 +259,6 @@ class Create extends Component implements Forms\Contracts\HasForms
                     ]
                 ));
 
-
             }
 
             Notification::make()
@@ -269,6 +268,8 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->send();
 
             $this->redirectRoute('citizen.grievance.index', navigate: true);
+            session()->put('grievance_submitted_once', true);
+
 
         } catch (\Exception $e) {
             Notification::make()

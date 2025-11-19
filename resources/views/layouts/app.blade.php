@@ -120,6 +120,17 @@
                         }
 
                         f.send();
+
+                        const hrComponent = document.querySelector('[data-component="hr-liaison-grievance-index"]');
+                        if (hrComponent && window.Livewire) {
+                            Livewire.find(hrComponent.dataset.wireId)?.$call('applyFilters');
+                        }
+
+                        const adminComponent = document.querySelector('[data-component="admin-grievance-index"]');
+                        if (adminComponent && window.Livewire) {
+                            Livewire.find(adminComponent.dataset.wireId)?.$call('applyFilters');
+                        }
+
                     });
             }
         });

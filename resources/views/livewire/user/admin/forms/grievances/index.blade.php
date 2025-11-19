@@ -1,4 +1,7 @@
-<div class="p-6 space-y-6 relative w-full">
+<div class="p-6 space-y-6 relative w-full"
+     data-component="admin-grievance-index"
+     data-wire-id="{{ $this->id() }}"
+>
 
     <header class="relative w-full flex flex-col items-center justify-center">
 
@@ -68,7 +71,30 @@
                         </div>
                     </div>
 
-                    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
+                    <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto px-3 mb-6">
+                        <div
+                            class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
+                            border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2"
+                        >
+                            <div
+                                class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-200/20 to-transparent opacity-0
+                                group-hover:opacity-100 blur-xl transition-all duration-500"
+                            ></div>
+
+                            <div
+                                class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-red-200/50
+                                dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300"
+                            >
+                                <flux:icon.exclamation-triangle class="h-8 w-8 text-red-600 dark:text-red-400" />
+                            </div>
+
+                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Critical Priority</p>
+                            <p class="relative text-3xl font-bold text-red-600 dark:text-red-400 tracking-tight">
+                                {{ $criticalPriorityCount }}
+                            </p>
+                        </div>
+
                         <div
                             class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
                             border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
@@ -251,7 +277,7 @@
                 <x-filter-select
                     name="filterPriority"
                     placeholder="Priority"
-                    :options="['High', 'Normal', 'Low']"
+                    :options="['Critical','High', 'Normal', 'Low']"
                 />
 
                 <x-filter-select
@@ -346,7 +372,7 @@
     </div>
 
     <div
-        x-data="{ openImportModal: false, openRerouteModal: false, openStatusModal: false }"
+        x-data="{ openImportModal: false, openRerouteModal: false, openStatusModal: false, openPriorityModal: false }"
         x-on:reroute-success.window="openRerouteModal = false"
         x-on:status-update-success.window="openStatusModal = false"
         class="flex flex-col w-full"
@@ -551,6 +577,18 @@
                             focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-700
                             transition-all duration-200">
                         <x-heroicon-o-pencil-square class="w-5 h-5" />
+                        <span>Update Selected Status</span>
+                    </button>
+
+                    <button
+                        @click="openPriorityModal = true"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200">
+                        <x-heroicon-o-exclamation-circle class="w-5 h-5" />
                         <span>Update Selected Status</span>
                     </button>
 
@@ -805,6 +843,74 @@
             </div>
         </div>
 
+        <div
+            x-show="openPriorityModal"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+        >
+            <div
+                @click.outside="openPriorityModal = false"
+                class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+            >
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <x-heroicon-o-exclamation-circle class="w-5 h-5 text-red-600 dark:text-red-400" />
+                        Update Selected Grievance Priority
+                    </h2>
+                    <button
+                        @click="openPriorityModal = false"
+                        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                        aria-label="Close"
+                    >
+                        <x-heroicon-o-x-mark class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    Choose a new priority level to apply to all selected grievances.
+                </p>
+
+                <div class="flex flex-col gap-2 mb-2">
+                    <x-searchable-select
+                        name="priorityUpdate"
+                        placeholder="Select Priority"
+                        :options="[
+                            'low' => 'Low',
+                            'normal' => 'Normal',
+                            'high' => 'High',
+                            'critical' => 'Critical',
+                        ]"
+                    />
+                    <div class="space-y-1">
+                        <flux:error name="priorityUpdate" />
+                        <flux:error name="selected" />
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                <div class="flex justify-end gap-3">
+                    <button
+                        @click="openPriorityModal = false"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                    >
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                        Cancel
+                    </button>
+
+                    <button
+                        wire:click="updateSelectedPriority"
+                        wire:loading.attr="disabled"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+                    >
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="updateSelectedPriority">Update</span>
+                        <span wire:loading wire:target="updateSelectedPriority">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="relative">
@@ -1018,12 +1124,15 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
-                                            {{ $grievance->priority_level === 'High'
-                                                ? 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500'
-                                                : ($grievance->priority_level === 'Normal'
-                                                    ? 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500'
-                                                    : 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500') }}">
+                                        @php
+                                            $priorityClasses = match($grievance->priority_level) {
+                                                'Critical' => 'bg-red-200 text-red-900 border-red-500 dark:bg-red-900/60 dark:text-red-300 dark:border-red-600',
+                                                'High'     => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                                'Normal'   => 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500',
+                                                default    => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm {{ $priorityClasses }}">
                                             {{ $grievance->priority_level }}
                                         </span>
                                     </td>
@@ -1114,7 +1223,7 @@
                     <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                         @for ($row = 0; $row < 5; $row++)
                             <tr>
-                                @for ($col = 0; $col < 8; $col++)
+                                @for ($col = 0; $col < 11; $col++)
                                     <td class="px-4 py-3 align-middle">
                                         @if($col === 0)
                                             <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>

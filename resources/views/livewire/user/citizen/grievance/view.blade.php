@@ -68,26 +68,27 @@
                 $isEscalated = $status === 'escalated';
 
                 $endDate = $isCompleted ? $grievance->updated_at : now();
-
                 $created = Carbon::parse($grievance->created_at);
-                $ended = Carbon::parse($endDate);
+                $elapsedDays = ceil($created->diffInHours($endDate) / 24);
 
-                $processingDays = ceil($created->diffInHours($ended) / 24);
+                $expectedDays = $grievance->processing_days ?? 7;
 
-                $expectedDays = match (strtolower($grievance->priority_level)) {
-                    'low' => 7,
-                    'medium' => 5,
-                    'high' => 3,
-                    default => 7,
-                };
-
-                $isOverdue = !$isCompleted && $processingDays > $expectedDays;
+                $isOverdue = !$isCompleted && $elapsedDays > $expectedDays;
 
                 $processingDisplay = match (true) {
-                    $isCompleted => "{$processingDays} / {$expectedDays} days (Completed)",
-                    $isEscalated => "{$processingDays} / {$expectedDays} days (Escalated — under review)",
-                    $isOverdue   => "{$processingDays} / {$expectedDays} days (Overdue)",
-                    default      => "{$processingDays} / {$expectedDays} days (Ongoing)",
+                    $isCompleted => "{$elapsedDays} / {$expectedDays} days (Completed)",
+                    $isEscalated => "{$elapsedDays} / {$expectedDays} days (Escalated — under review)",
+                    $isOverdue   => "{$elapsedDays} / {$expectedDays} days (Overdue)",
+                    default      => "{$elapsedDays} / {$expectedDays} days (Ongoing)",
+                };
+
+                $priorityClass = match (strtolower($grievance->priority_level)) {
+                    'low'      => 'text-blue-600 font-semibold',
+                    'normal'   => 'text-gray-600 font-semibold',
+                    'medium'   => 'text-yellow-600 font-semibold',
+                    'high'     => 'text-orange-600 font-semibold',
+                    'critical' => 'text-red-700 font-extrabold',
+                    default    => 'text-gray-600 font-semibold',
                 };
 
                 $class = match (true) {
@@ -100,7 +101,12 @@
                 $info = [
                     ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
                     ['label' => 'Category', 'value' => $grievance->grievance_category ?? 'N/A', 'icon' => 'tag'],
-                    ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
+                    [
+                        'label' => 'Priority Level',
+                        'value' => ucfirst($grievance->priority_level),
+                        'icon'  => 'exclamation-circle',
+                        'class' => $priorityClass,
+                    ],
                     ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
                     ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
                     [
@@ -111,7 +117,8 @@
                     ],
                     ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', subject: $grievance->grievance_status)), 'icon' => 'chart-bar'],
                 ];
-            @endphp
+                @endphp
+
 
             @foreach ($info as $item)
                 <div class="flex items-start justify-between border-b border-gray-300 dark:border-zinc-700 py-2">
@@ -119,9 +126,7 @@
                         <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <span class="text-[16px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
                     </div>
-                    <span
-                        class="text-[15px] font-bold flex-1 text-right
-                        text-gray-900 dark:text-gray-100 {{ $item['class'] ?? '' }}">
+                    <span class="text-[15px] font-bold flex-1 text-right {{ $item['class'] ?? 'text-gray-900 dark:text-gray-100' }}">
                         {{ $item['value'] }}
                     </span>
                 </div>

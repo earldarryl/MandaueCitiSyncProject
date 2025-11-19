@@ -121,125 +121,94 @@ class Chat extends Component implements Forms\Contracts\HasForms
     }
 
     public function sendMessage()
-{
-    $state = $this->form->getState();
-    $sender = auth()->user();
+    {
+        $state = $this->form->getState();
+        $sender = auth()->user();
 
-    // Validate
-    if (!$this->newMessage && empty($state['files'])) {
-        $sender->notify(new GeneralNotification(
-            'Nothing to Send',
-            'You must type a message or attach a file before sending.',
-            'warning',
-            [],
-            [],
-            true
-        ));
-        return;
-    }
-
-    // Handle files
-    $filePaths = [];
-    $fileNames = [];
-    if (!empty($state['files'])) {
-        foreach ($state['files'] as $file) {
-            $filePaths[] = $file;
-            $fileNames[] = basename($file);
+        if (!$this->newMessage && empty($state['files'])) {
+            $sender->notify(new GeneralNotification(
+                'Nothing to Send',
+                'You must type a message or attach a file before sending.',
+                'warning',
+                [],
+                [],
+                true
+            ));
+            return;
         }
-    }
 
-    // -----------------------------
-    // Send message to HR Liaison / Receiver
-    // -----------------------------
-    if (!$sender->hasRole('admin')) {
-        $receiverId = $this->getReceiverId();
-        if ($receiverId) {
-            $messageData = [
-                'grievance_id' => $this->grievance->grievance_id,
-                'sender_id'    => $sender->id,
-                'receiver_id'  => $receiverId,
-                'message'      => $this->newMessage,
-                'file_path'    => $filePaths ? json_encode($filePaths) : null,
-                'file_name'    => $fileNames ? json_encode($fileNames) : null,
-            ];
-
-            $message = Message::create($messageData)->load('sender');
-            broadcast(new MessageSent($message));
-
-            // Notify the receiver
-            $receiver = \App\Models\User::find($receiverId);
-            if ($receiver) {
-                $viewRoute = $receiver->hasRole('citizen')
-                    ? route('citizen.grievance.view', $this->grievance->grievance_ticket_id)
-                    : route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id);
-
-                $receiver->notify(new GeneralNotification(
-                    'New Message Received',
-                    "{$sender->name} sent you a message in Grievance #{$this->grievance->grievance_ticket_id}.",
-                    'info',
-                    ['grievance_id' => $this->grievance->grievance_id],
-                    [],
-                    true,
-                    [['label' => 'Open Chat', 'url' => $viewRoute, 'open_new_tab' => true]]
-                ));
+        $filePaths = [];
+        $fileNames = [];
+        if (!empty($state['files'])) {
+            foreach ($state['files'] as $file) {
+                $filePaths[] = $file;
+                $fileNames[] = basename($file);
             }
         }
-    }
 
-    // -----------------------------
-    // Send message to Admins individually
-    // -----------------------------
-    $admins = \App\Models\User::role('admin')->get()->filter(fn($admin) => $admin->id !== $sender->id);
 
-    foreach ($admins as $admin) {
-        $adminMessageData = [
+        $messageData = [
             'grievance_id' => $this->grievance->grievance_id,
             'sender_id'    => $sender->id,
-            'receiver_id'  => $admin->id,
             'message'      => $this->newMessage,
             'file_path'    => $filePaths ? json_encode($filePaths) : null,
             'file_name'    => $fileNames ? json_encode($fileNames) : null,
         ];
 
-        $adminMessage = Message::create($adminMessageData)->load('sender');
-        broadcast(new MessageSent($adminMessage));
+        $message = Message::create($messageData)->load('sender');
 
-        $admin->notify(new GeneralNotification(
-            'New Message in Grievance',
-            "{$sender->name} sent a message in Grievance #{$this->grievance->grievance_ticket_id}.",
-            'info',
+
+        $recipients = collect();
+
+        $receiverId = $this->getReceiverId();
+        if ($receiverId && $receiverId !== $sender->id) {
+            $receiver = \App\Models\User::find($receiverId);
+            if ($receiver) $recipients->push($receiver);
+        }
+
+        $admins = \App\Models\User::role('admin')->get()->filter(fn($admin) => $admin->id !== $sender->id);
+        $recipients = $recipients->merge($admins);
+
+
+        foreach ($recipients as $recipient) {
+            broadcast(new MessageSent($message));
+
+            $viewRoute = match (true) {
+                $recipient->hasRole('citizen') => route('citizen.grievance.view', $this->grievance->grievance_ticket_id),
+                $recipient->hasRole('hr_liaison') => route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id),
+                $recipient->hasRole('admin') => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id),
+                default => null,
+            };
+
+            $recipient->notify(new GeneralNotification(
+                'New Message Received',
+                "{$sender->name} sent you a message in Grievance #{$this->grievance->grievance_ticket_id}.",
+                'info',
+                ['grievance_id' => $this->grievance->grievance_id],
+                [],
+                true,
+                $viewRoute ? [['label' => 'Open Chat', 'url' => $viewRoute, 'open_new_tab' => true]] : []
+            ));
+        }
+
+        $sender->notify(new GeneralNotification(
+            'Message Sent',
+            'Your message has been successfully delivered.',
+            'success',
             ['grievance_id' => $this->grievance->grievance_id],
             [],
-            true,
-            [['label' => 'Open Grievance', 'url' => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id), 'open_new_tab' => true]]
+            true
         ));
+
+        $this->reset(['newMessage']);
+        $this->form->fill();
+        $this->loadMessages();
+
+        $this->js('$nextTick(() => {
+            const chatBox = document.getElementById("chat-box");
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        })');
     }
-
-    // -----------------------------
-    // Notify sender
-    // -----------------------------
-    $sender->notify(new GeneralNotification(
-        'Message Sent',
-        'Your message has been successfully delivered.',
-        'success',
-        ['grievance_id' => $this->grievance->grievance_id],
-        [],
-        true
-    ));
-
-    // -----------------------------
-    // Reset UI
-    // -----------------------------
-    $this->reset(['newMessage']);
-    $this->form->fill();
-    $this->loadMessages();
-
-    $this->js('$nextTick(() => {
-        const chatBox = document.getElementById("chat-box");
-        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-    })');
-}
-
 
     private function getReceiverId()
     {

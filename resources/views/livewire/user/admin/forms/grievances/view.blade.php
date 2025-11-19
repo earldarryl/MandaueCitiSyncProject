@@ -1,6 +1,7 @@
 <div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
-     x-data="{ openRerouteModal: false, openStatusModal: false, showModal: false }"
+     x-data="{ openRerouteModal: false, openStatusModal: false, openPriorityModal: false, showModal: false }"
      x-on:close-status-modal.window="openStatusModal = false"
+     x-on:close-priority-modal.window="openPriorityModal = false"
      x-on:update-success-modal.window="showModal = true"
      x-on:close-success-modal.window="showModal = false"
      x-on:close-all-modals.window="showModal = false"
@@ -42,6 +43,18 @@
                 transition-all duration-200">
             <x-heroicon-o-pencil-square class="w-5 h-5" />
             <span>Update Status</span>
+        </button>
+
+        <button
+            @click="openPriorityModal = true"
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                border border-red-500 dark:border-red-400
+                hover:bg-red-200 dark:hover:bg-red-800/50
+                focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                transition-all duration-200">
+            <x-heroicon-o-exclamation-circle class="w-5 h-5" />
+            <span>Update Priority</span>
         </button>
 
     </div>
@@ -150,6 +163,7 @@
         </h4>
 
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
+
             <div class="flex-1 flex flex-col gap-2">
                 @php
                     use Carbon\Carbon;
@@ -160,26 +174,27 @@
                     $isEscalated = $status === 'escalated';
 
                     $endDate = $isCompleted ? $grievance->updated_at : now();
-
                     $created = Carbon::parse($grievance->created_at);
-                    $ended = Carbon::parse($endDate);
+                    $elapsedDays = ceil($created->diffInHours($endDate) / 24);
 
-                    $processingDays = ceil($created->diffInHours($ended) / 24);
+                    $expectedDays = $grievance->processing_days ?? 7;
 
-                    $expectedDays = match (strtolower($grievance->priority_level)) {
-                        'low' => 7,
-                        'medium' => 5,
-                        'high' => 3,
-                        default => 7,
-                    };
-
-                    $isOverdue = !$isCompleted && $processingDays > $expectedDays;
+                    $isOverdue = !$isCompleted && $elapsedDays > $expectedDays;
 
                     $processingDisplay = match (true) {
-                        $isCompleted => "{$processingDays} / {$expectedDays} days (Completed)",
-                        $isEscalated => "{$processingDays} / {$expectedDays} days (Escalated — under review)",
-                        $isOverdue   => "{$processingDays} / {$expectedDays} days (Overdue)",
-                        default      => "{$processingDays} / {$expectedDays} days (Ongoing)",
+                        $isCompleted => "{$elapsedDays} / {$expectedDays} days (Completed)",
+                        $isEscalated => "{$elapsedDays} / {$expectedDays} days (Escalated — under review)",
+                        $isOverdue   => "{$elapsedDays} / {$expectedDays} days (Overdue)",
+                        default      => "{$elapsedDays} / {$expectedDays} days (Ongoing)",
+                    };
+
+                    $priorityClass = match (strtolower($grievance->priority_level)) {
+                        'low'      => 'text-blue-600 font-semibold',
+                        'normal'   => 'text-gray-600 font-semibold',
+                        'medium'   => 'text-yellow-600 font-semibold',
+                        'high'     => 'text-orange-600 font-semibold',
+                        'critical' => 'text-red-700 font-extrabold',
+                        default    => 'text-gray-600 font-semibold',
                     };
 
                     $class = match (true) {
@@ -191,7 +206,13 @@
 
                     $info = [
                         ['label' => 'Type', 'value' => $grievance->grievance_type, 'icon' => 'briefcase'],
-                        ['label' => 'Priority Level', 'value' => ucfirst($grievance->priority_level), 'icon' => 'exclamation-circle'],
+                        ['label' => 'Category', 'value' => $grievance->grievance_category ?? 'N/A', 'icon' => 'tag'],
+                        [
+                            'label' => 'Priority Level',
+                            'value' => ucfirst($grievance->priority_level),
+                            'icon'  => 'exclamation-circle',
+                            'class' => $priorityClass,
+                        ],
                         ['label' => 'Anonymous', 'value' => $grievance->is_anonymous ? 'Yes' : 'No', 'icon' => 'user'],
                         ['label' => 'Filed On', 'value' => $grievance->created_at->format('M d, Y h:i A'), 'icon' => 'calendar-days'],
                         [
@@ -200,19 +221,18 @@
                             'icon'  => 'clock',
                             'class' => $class,
                         ],
-                        ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', $grievance->grievance_status)), 'icon' => 'chart-bar'],
+                        ['label' => 'Status', 'value' => ucwords(str_replace('_', ' ', subject: $grievance->grievance_status)), 'icon' => 'chart-bar'],
                     ];
-                @endphp
+                    @endphp
+
 
                 @foreach ($info as $item)
                     <div class="flex items-start justify-between border-b border-gray-300 dark:border-zinc-700 py-2">
-                        <div class="flex items-center gap-2 w-44">
+                        <div class="flex items-center gap-2 w-40">
                             <x-dynamic-component :component="'heroicon-o-' . $item['icon']" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
+                            <span class="text-[16px] font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
                         </div>
-                        <span
-                            class="text-[15px] font-bold flex-1 text-right
-                            text-gray-900 dark:text-gray-100 {{ $item['class'] ?? '' }}">
+                        <span class="text-[15px] font-bold flex-1 text-right {{ $item['class'] ?? 'text-gray-900 dark:text-gray-100' }}">
                             {{ $item['value'] }}
                         </span>
                     </div>
@@ -707,6 +727,74 @@
     </div>
 
     <div
+        x-show="openPriorityModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+    >
+        <div
+            @click.outside="openPriorityModal = false"
+            class="relative w-full max-w-md p-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <x-heroicon-o-exclamation-circle class="w-5 h-5 text-red-600 dark:text-red-400" />
+                    Update Grievance Priority
+                </h2>
+                <button
+                    @click="openPriorityModal = false"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+                    aria-label="Close"
+                >
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+            </div>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Choose a new priority level for this grievance.
+            </p>
+
+            <div class="flex flex-col gap-2 mb-2">
+                <x-searchable-select
+                    wire:model.defer="priorityUpdate"
+                    name="priorityUpdate"
+                    placeholder="Select Priority Level"
+                    :options="[
+                        'low' => 'Low',
+                        'normal' => 'Normal',
+                        'high' => 'High',
+                        'critical' => 'Critical',
+                    ]"
+                />
+                <div class="space-y-1">
+                    <flux:error name="priorityUpdate" />
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+            <div class="flex justify-end gap-3">
+                <button
+                    @click="openPriorityModal = false"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                >
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                    Cancel
+                </button>
+
+                <button
+                    wire:click="updatePriority"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+                >
+                    <x-heroicon-o-check class="w-4 h-4" />
+                    <span wire:loading.remove wire:target="updatePriority">Update</span>
+                    <span wire:loading wire:target="updatePriority">Processing...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
         x-show="showModal"
         x-cloak
         class="fixed inset-0 flex items-center justify-center z-50"
@@ -716,17 +804,21 @@
         <div
             x-show="showModal"
             x-transition.scale
-            class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5 z-50"
+            class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg max-w-md w-full p-6 flex flex-col items-center gap-4 z-50"
         >
-            <div class="flex items-center justify-center w-20 h-20 rounded-full bg-green-500/15 mx-auto ring-2 ring-green-500/20">
-                <x-heroicon-o-check-circle class="w-12 h-12 text-green-500" />
+            <div class="relative">
+                <img
+                    src="{{ asset('/images/check.png') }}"
+                    class="w-full h-48 sm:h-56 object-cover"
+                    alt="Registration Success Background"
+                >
             </div>
 
             <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
                 Update Successful
             </h2>
 
-            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            <p class="text-sm font-medium text-center text-gray-600 dark:text-gray-300 leading-relaxed">
                 The grievance record has been successfully updated and saved.
             </p>
 
@@ -734,7 +826,7 @@
                 <button
                     type="button"
                     @click="showModal = false"
-                    class="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
+                    class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
                 >
                     <x-heroicon-o-check class="w-5 h-5" />
                     <span>Okay</span>

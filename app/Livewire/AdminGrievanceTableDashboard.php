@@ -166,7 +166,8 @@ class AdminGrievanceTableDashboard extends TableWidget
                     ->colors([
                         'success' => 'Low',
                         'info' => 'Normal',
-                        'danger' => 'High',
+                        'primary' => 'High',
+                        'danger' => 'Critical',
                     ])
                     ->weight('semibold')
                     ->searchable()
