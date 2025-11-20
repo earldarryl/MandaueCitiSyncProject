@@ -1,13 +1,13 @@
 <div
     x-data="{ showModal: false }"
     x-cloak
-    class="max-w-5xl mx-auto p-6 lg:p-10 space-y-8 border border-gray-300 dark:border-zinc-700 rounded-md m-4"
+    class="max-w-full lg:max-w-5xl lg:mx-auto p-6 lg:p-10 lg:space-y-8 border border-gray-300 dark:border-zinc-700 rounded-md lg:m-4"
 >
     <div class="relative w-full">
 
         <div class="prose max-w-full my-4 flex flex-col gap-2">
             <h1 class="text-3xl font-bold">Client Satisfaction Measurement (CSM)</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-300">
+            <p class="text-sm text-gray-600 font-semibold dark:text-gray-300 text-justify text-body">
             This tracks the customer experience of government offices. Your feedback on your recently concluded transaction will help this office provide a better service.
             Personal information shared will be kept confidential and you always have the option not to answer this form.
             </p>
@@ -113,10 +113,12 @@
         <div class="border border-gray-200 dark:border-zinc-700 rounded-lg p-6 bg-white dark:bg-zinc-900 shadow-sm">
             <div class="flex flex-col gap-2 mb-3 border-b border-gray-200 dark:border-zinc-700">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Citizen's Charter (CC)</h3>
-                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                    <span class="font-semibold text-gray-800 dark:text-gray-200">Instructions:</span>
-                    The Citizen’s Charter is an official document that reflects the services of a government agency or office including
-                    its requirements, fees, and processing times. Please answer the questions below.
+                <p class="text-gray-600 dark:text-gray-400 text-sm text-justify text-body leading-relaxed">
+                    <span class="font-bold text-gray-800 dark:text-gray-200">Instructions:</span>
+                    <span class="font-semibold">
+                        The Citizen’s Charter is an official document that reflects the services of a government agency or office including
+                        its requirements, fees, and processing times. Please answer the questions below.
+                    </span>
                 </p>
             </div>
 
@@ -157,7 +159,7 @@
                                     </div>
 
                                     <span
-                                        class="text-sm text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
+                                        class="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
                                         {{ match($i) {
                                             1 => '1. I know what a CC is and I saw this office’s CC / Easy to see / Helped very much',
                                             2 => '2. I know what a CC is but did not see this office’s CC / Somewhat easy / Somewhat helped',
@@ -200,9 +202,9 @@
     >
         <div class="flex flex-col gap-2">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Service Quality & Delivery (SQD)</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                <span class="font-semibold text-gray-800 dark:text-gray-200">Instructions:</span>
-                For SQD 0–8, please select the column that best corresponds to your answer.
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed text-justify text-body">
+                <span class="font-bold text-gray-800 dark:text-gray-200">Instructions:</span>
+                <span class="font-semibold">For SQD 0–8, please select the column that best corresponds to your answer.</span>
             </p>
         </div>
 

@@ -1,4 +1,7 @@
-<div class="p-6 space-y-6 relative w-full">
+<div class="p-6 space-y-6 relative w-full"
+     data-component="admin-citizens-index"
+     data-wire-id="{{ $this->id() }}"
+>
     <div class="relative">
         <div
             x-data="{

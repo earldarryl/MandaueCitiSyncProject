@@ -1,4 +1,8 @@
-    <div class="p-6 space-y-6 relative w-full" x-data="{ openCreate: false, openCreateLiaison: false }">
+    <div class="p-6 space-y-6 relative w-full"
+         x-data="{ openCreate: false, openCreateLiaison: false }"
+         data-component="admin-departments-and-hr-liaisons-index"
+         data-wire-id="{{ $this->id() }}"
+    >
         <div class="relative">
 
             <div
@@ -228,6 +232,7 @@
                 >
                     <span wire:loading.remove wire:target="createDepartment">
                         <span class="flex gap-2 justify-center items-center">
+                            <x-heroicon-o-building-office class="w-5 h-5" />
                             <x-heroicon-o-plus class="w-4 h-4" />
                             <span>Create Department</span>
                         </span>
@@ -245,6 +250,7 @@
                 >
                     <span wire:loading.remove wire:target="createHrLiaison">
                         <span class="flex gap-2 justify-center items-center">
+                            <x-heroicon-o-user-plus class="w-5 h-5" />
                             <x-heroicon-o-plus class="w-4 h-4" />
                             <span>Add HR Liaison</span>
                         </span>

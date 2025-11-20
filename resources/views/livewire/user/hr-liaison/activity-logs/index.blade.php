@@ -1,4 +1,7 @@
-<div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+<div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm"
+     data-component="hr-liaison-activity-logs-index"
+     data-wire-id="{{ $this->id() }}"
+>
 
     <div
         x-data="{ autoRefresh: true }"

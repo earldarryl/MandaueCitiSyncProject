@@ -1,5 +1,5 @@
 <div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50"
-      x-data="{ showModal: @entangle('showConfirmSubmitModal') }">
+     x-data="{ showModal: @entangle('showConfirmSubmitModal') }">
 
     <x-responsive-nav-link
         href="{{ route('citizen.grievance.index') }}"

@@ -1,6 +1,6 @@
 <div class="w-full p-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm">
 
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+    <div class="flex flex-col justify-between items-start sm:items-center gap-3 mb-5">
 
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <x-filter-select
@@ -9,17 +9,55 @@
                 :options="['Grievances', 'Feedbacks']"
             />
 
+            <div class="flex flex-col gap-1 w-full"
+                x-data="{ selected: @entangle('selectedDate') }"
+                x-init="$nextTick(() => {
+                    flatpickr($refs.dateInput, {
+                        dateFormat: 'Y-m-d',
+                        defaultDate: selected,
+                        onChange: (selectedDates, dateStr) => {
+                            selected = dateStr
+                        }
+                    });
+                })"
+            >
+                <div class="relative w-full">
+                    <div
+                        class="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 cursor-pointer"
+                        @click="$refs.dateInput._flatpickr.open()"
+                    >
+                        <input
+                            type="text"
+                            x-ref="dateInput"
+                            x-model="selected"
+                            readonly
+                            placeholder="Select date"
+                            class="w-full bg-transparent text-[12px] focus:outline-none cursor-pointer"
+                        />
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                x-show="selected"
+                                @click.stop="selected = null; $wire.set('selectedDate', null); $refs.dateInput._flatpickr.clear()"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1 rounded"
+                            >
+                                <x-heroicon-o-x-mark class="w-4 h-4"/>
+                            </button>
+                            <x-heroicon-o-calendar class="w-4 h-4 text-gray-500" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <button
                 wire:click="applyFilter"
                 wire:loading.attr="disabled"
                 wire:target="applyFilter"
-                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-gray-100 text-gray-800 border-gray-300
-                    hover:bg-gray-200 hover:border-gray-400
-                    dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
-                    dark:hover:bg-zinc-700
-                    whitespace-nowrap
-                    transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
                 <flux:icon.adjustments-horizontal class="w-4 h-4" />
                 <span wire:loading.remove wire:target="applyFilter">Apply Filter</span>
                 <span wire:loading wire:target="applyFilter">Processing...</span>
@@ -65,13 +103,10 @@
             <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
                 @foreach ($logs as $log)
                     @php
-                        if ($log->reference_table === 'grievances') {
-                            $bgColor  = 'bg-green-400 dark:bg-green-700';
-                            $svgColor = 'text-white';
-                        } else {
-                            $bgColor  = 'bg-purple-500 dark:bg-purple-700';
-                            $svgColor = 'text-white';
-                        }
+                        $bgColor = $log->reference_table === 'grievances'
+                            ? 'bg-green-500 dark:bg-green-700'
+                            : 'bg-purple-500 dark:bg-purple-700';
+                        $svgColor = 'text-white';
                     @endphp
 
                     <li class="mb-10 ms-5 group w-full" wire:key="log-{{ $log->id }}">
@@ -86,67 +121,51 @@
                             class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
                                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex flex-col gap-1.5">
-                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                        {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
-                                    </span>
+                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
+                                            <x-heroicon-o-clipboard-document-check class="h-6 w-6"/>
+                                        </div>
+                                    </div>
 
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
-                                        {{ $log->description ?? 'No description provided' }}
-                                    </h3>
-
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        <span class="font-medium text-gray-700 dark:text-gray-300">
-                                            {{ ucwords(str_replace('_', ' ', $log->reference_table)) }}
+                                    <div class="flex-1 flex flex-col gap-1">
+                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                            Submission
                                         </span>
-                                        •
-                                        <span>{{ $log->created_at->format('F j, Y - g:i A') }}</span>
-                                    </p>
+
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
+                                            {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
+                                        </h3>
+
+                                        <div class="flex flex-col gap-2 mt-2">
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">CC Summary:</span>
+                                                <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->cc_summary ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">SQD Summary:</span>
+                                                <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                    {{ $log->sqd_summary ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y – g:i A') ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
-
-                                @if ($loop->first && $loop->parent->first)
-                                    <span
-                                        class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full border
-                                            border-blue-300 dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800 shadow-sm">
-                                        Latest
-                                    </span>
-                                @endif
                             </div>
 
-                            <div class="border-t border-gray-200 dark:border-zinc-700/70 my-3"></div>
-
-                            <div class="flex justify-end items-center gap-2">
-                                @if($log->reference_table === 'grievances')
-                                    @php
-                                        $grievance = \App\Models\Grievance::withTrashed()->find($log->reference_id);
-                                    @endphp
-
-                                    @if($grievance)
-                                        <a href="{{ route('citizen.grievance.view', $grievance) }}" wire:navigate
-                                            class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
-                                                bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200
-                                                dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                                                dark:hover:bg-blue-800/60 transition-all duration-200">
-                                            <flux:icon.eye class="w-4 h-4" />
-                                            View
-                                        </a>
-                                    @endif
-                                @endif
-                                <button wire:loading.attr="disabled" wire:click="removeFromHistory({{ $log->id }})"
-                                    class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
-                                        bg-red-100 text-red-800 border border-red-300 hover:bg-red-200
-                                        dark:bg-red-900/40 dark:text-red-300 dark:border-red-700
-                                        dark:hover:bg-red-800/60 transition-all duration-200">
-                                    <flux:icon.trash class="w-4 h-4" />
-                                    <span wire:loading.remove wire:target="removeFromHistory({{ $log->id }})">
-                                        Remove
-                                    </span>
-                                    <span wire:loading wire:target="removeFromHistory({{ $log->id }})">
-                                        Processing...
-                                    </span>
-                                </button>
-                            </div>
                         </div>
                     </li>
                 @endforeach

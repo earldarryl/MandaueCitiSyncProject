@@ -2,12 +2,13 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Auth\Events\Logout as LogoutEvent;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\ActivityLog;
-
 class Logout extends Component
 {
 
@@ -21,19 +22,36 @@ class Logout extends Component
             ActivityLog::create([
                 'user_id'      => $user->id,
                 'role_id'      => $user->roles->first()?->id,
+                'module'       => 'Authentication',
                 'action'       => $roleName . ' logged out',
                 'action_type'  => 'logout',
-                'module_name'  => 'Authentication',
-                'description'  => $roleName . ' (' . $user->email . ') successfully logged out.',
+                'model_type'   => null,
+                'model_id'     => null,
+                'description'  => "{$roleName} ({$user->email}) successfully logged out.",
+                'changes'      => [],
+                'status'       => 'success',
                 'ip_address'   => request()->ip(),
                 'device_info'  => request()->header('User-Agent'),
-                'created_by'   => $user->id,
-                'updated_by'   => $user->id,
+                'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                'platform'     => php_uname('s'),
+                'location'     => geoip(request()->ip())?->city,
+                'timestamp'    => now(),
             ]);
 
-        }
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
 
-        if ($user) {
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'User Logged Out',
+                    "{$roleName} ({$user->email}) has logged out.",
+                    'info',
+                    ['user_id' => $user->id],
+                    [],
+                    true
+                ));
+
+            }
+
             $user->markOffline();
         }
 
@@ -43,6 +61,7 @@ class Logout extends Component
 
         $this->redirectIntended(default: route('login', absolute: false), navigate: true);
     }
+
     public function render()
     {
         return view('livewire.pages.auth.logout');

@@ -1,4 +1,7 @@
-<div class="w-full mx-auto p-2">
+<div class="w-full mx-auto p-2"
+     data-component="hr-liaison-department-index"
+     data-wire-id="{{ $this->id() }}"
+>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto px-3 mb-6">
 

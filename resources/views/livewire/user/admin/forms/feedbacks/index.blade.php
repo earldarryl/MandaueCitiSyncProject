@@ -1,4 +1,7 @@
-<div class="p-6 space-y-6 relative w-full">
+<div class="p-6 space-y-6 relative w-full"
+     data-component="admin-feedback-index"
+     data-wire-id="{{ $this->id() }}"
+    >
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 px-6">
 
         <div class="group relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-900

@@ -45,6 +45,11 @@ class View extends Component
 
     }
 
+    public function refreshGrievance()
+    {
+        $this->grievance->refresh();
+    }
+
     public function render()
     {
         return view('livewire.user.citizen.grievance.view');

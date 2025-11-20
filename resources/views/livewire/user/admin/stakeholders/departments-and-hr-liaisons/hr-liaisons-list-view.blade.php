@@ -1,4 +1,7 @@
-<div class="relative w-full">
+<div class="relative w-full"
+     data-component="admin-hr-liaisons-list-view"
+     data-wire-id="{{ $this->id() }}"
+>
     <div class="flex flex-col gap-6">
        <div class="flex-1">
             @php

@@ -24,7 +24,6 @@ class Index extends Component
     public ?string $filter = null;
     public ?string $roleFilter = null;
     public ?string $selectedDate = null;
-
     public $totalUsers = 0;
     public $activeUsers = 0;
     public $totalOnlineTimeFormatted = '0m';
