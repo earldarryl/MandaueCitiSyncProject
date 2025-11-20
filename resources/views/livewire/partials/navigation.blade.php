@@ -44,6 +44,13 @@
                                     ];
                                     $index = crc32($user->name) % count($palette);
                                     $bgColor = $palette[$index];
+
+                                    $statusDotColor = match($status['text'] ?? 'Offline') {
+                                        'Online' => 'bg-green-400',
+                                        'Away' => 'bg-yellow-400',
+                                        default => 'bg-gray-400',
+                                    };
+
                                 @endphp
 
                                 <img
@@ -55,6 +62,8 @@
                                     alt="profile-pic"
                                     class="rounded-full w-full h-full object-cover"
                                 />
+
+                                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ring-1 ring-white {{ $statusDotColor }}"></span>
 
                             </div>
 

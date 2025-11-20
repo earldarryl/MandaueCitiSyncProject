@@ -1,4 +1,7 @@
-<div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm w-full">
+<div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm w-full"
+     data-component="hr-liaison-department-view"
+     data-wire-id="{{ $this->id() }}"
+>
     <div class="flex flex-col gap-6">
        <div class="flex-1 relative">
             @php

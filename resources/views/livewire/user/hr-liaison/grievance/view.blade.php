@@ -1,4 +1,6 @@
 <div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
+     data-component="hr-liaison-grievance-view"
+     data-wire-id="{{ $this->id() }}"
      x-data="{ openRerouteModal: false, openStatusModal: false, openPriorityModal: false, showModal: false }"
      x-on:close-status-modal.window="openStatusModal = false"
      x-on:close-priority-modal.window="openPriorityModal = false"

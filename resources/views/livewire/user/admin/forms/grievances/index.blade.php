@@ -272,7 +272,7 @@
                 x-data="{
                     filterType: '',
                 }"
-                class="grid grid-cols-2 lg:grid-cols-5 gap-3 w-full mx-auto px-3 my-2"
+                class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
             >
                 <x-filter-select
                     name="filterPriority"
@@ -290,6 +290,14 @@
                     name="filterDate"
                     placeholder="Date"
                     :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
+                />
+
+                <x-filter-select
+                    name="filterDepartment"
+                    placeholder="Department"
+                    :options="$departmentOptions"
+                    x-model="filterDepartment"
+                    x-on:change="filterType = ''"
                 />
 
                 <x-filter-select
@@ -431,7 +439,8 @@
                     focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
                     transition-all duration-200">
                 <x-heroicon-o-printer class="w-4 h-4" />
-                Print All
+                <span wire:loading.remove wire:target="printAllGrievances">Print All</span>
+                <span wire:loading wire:target="printAllGrievances">Processing...</span>
             </button>
 
             <div
@@ -529,7 +538,8 @@
                             focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span>Export Selected in CSV</span>
+                        <span wire:loading.remove wire:target="exportSelectedGrievancesCsv">Export Selected in CSV</span>
+                        <span wire:loading wire:target="exportSelectedGrievancesCsv">Processing...</span>
                     </button>
 
                     <button wire:click="exportSelectedGrievancesExcel"
@@ -553,7 +563,8 @@
                             focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
                             transition-all duration-200">
                         <x-heroicon-o-printer class="w-5 h-5" />
-                        <span>Print Selected</span>
+                        <span wire:loading.remove wire:target="printSelectedGrievances">Print Selected</span>
+                        <span wire:loading wire:target="printSelectedGrievances">Processing...</span>
                     </button>
 
                     <button
@@ -1244,6 +1255,5 @@
 
         </div>
     </div>
-
 
 </div>

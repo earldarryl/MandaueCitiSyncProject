@@ -1,89 +1,122 @@
-<div class="max-w-5xl mx-auto bg-white p-10 rounded-lg shadow space-y-12">
+<div class="page w-full relative p-5 print:mx-0 print:p-5">
 
-    <div class="text-center border-b pb-6">
-        <h1 class="text-3xl font-bold">All Grievance Reports</h1>
-
-        @if(isset($hr_liaison))
-            <p class="text-gray-600 mt-2">
-                HR Liaison: <strong>{{ $hr_liaison->name }}</strong>
-            </p>
-        @elseif(isset($admin))
-            <p class="text-gray-600 mt-2">
-                Admin: <strong>{{ $admin->name }}</strong>
-            </p>
-        @endif
-
-        <p class="text-gray-500 text-sm">{{ now()->format('F j, Y, g:i A') }}</p>
-        <button onclick="window.print()" class="no-print mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-            Print
-        </button>
+    <div class="header flex justify-center items-center border-b-4 border-blue-700 pb-2 mb-4">
+        <div class="header-left flex items-center gap-3 border-r-2 border-gray-800 pr-3">
+            <img src="{{ asset('images/mandaue-logo.png') }}" alt="Mandaue Logo"
+                 class="w-16 h-16 rounded-full object-cover bg-white">
+        </div>
+        <div class="header-right flex flex-col justify-center items-center text-center ml-3">
+            <span class="text-sm text-black">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
+            <span class="text-2xl font-light uppercase text-black">GRIEVANCE REPORTS</span>
+        </div>
     </div>
 
-    @forelse ($grievances as $grievance)
-        <div class="border rounded-lg p-6 shadow-sm page-break">
-            <h2 class="text-xl font-semibold mb-4 text-center text-blue-800">Grievance Report #{{ $grievance->grievance_ticket_id }}</h2>
+    <div class="summary-date text-center font-semibold mt-5 mb-3 text-sm">
+        {{ now()->format('F d, Y') }}
+    </div>
 
-            <div class="grid grid-cols-2 gap-6 mb-4">
-                <div>
-                    <p>
-                        <strong>Citizen:</strong>
-                        @if ($grievance->is_anonymous)
-                            <span class="italic text-gray-500">Anonymous</span>
-                        @else
-                            {{ $grievance->user->name }}
-                        @endif
-                    </p>
+    <div class="overflow-x-auto rounded-lg border border-gray-300 bg-white">
+        <table class="w-full text-xs border-collapse text-gray-800">
+            <thead class="bg-gray-100 uppercase font-semibold text-gray-700 text-xs">
+                <tr>
+                    <th class="px-3 py-2 border">TICKET ID</th>
+                    <th class="px-3 py-2 border">CITIZEN</th>
+                    <th class="px-3 py-2 border">DEPARTMENTS</th>
+                    <th class="px-3 py-2 border">CATEGORY</th>
+                    <th class="px-3 py-2 border">PRIORITY</th>
+                    <th class="px-3 py-2 border">STATUS</th>
+                    <th class="px-3 py-2 border">DATE FILED</th>
+                    <th class="px-3 py-2 border">DETAILS</th>
+                    <th class="px-3 py-2 border">ATTACHMENTS</th>
+                </tr>
+            </thead>
 
-                    <p><strong>Departments:</strong>
-                        {{ $grievance->departments->pluck('department_name')->join(', ') ?? 'N/A' }}
-                    </p>
-                </div>
-                <div>
-                    <p><strong>Date Filed:</strong> {{ $grievance->created_at->format('F j, Y') }}</p>
-                    <p><strong>Priority Level:</strong> {{ ucfirst($grievance->priority_level) }}</p>
-                    <p><strong>Status:</strong> {{ ucwords(str_replace('_', ' ', $grievance->grievance_status ?? 'N/A')) }}</p>
-                </div>
+            <tbody class="bg-white">
+                @forelse ($grievances as $index => $grievance)
+                    <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }}">
+                        <td class="px-3 py-2 border text-center font-bold">
+                            {{ $grievance->grievance_ticket_id }}
+                        </td>
+
+                        <td class="px-3 py-2 border">
+                            @if ($grievance->is_anonymous)
+                                <span class="italic text-gray-500 flex justify-center w-full">Anonymous</span>
+                            @else
+                                {{ $grievance->user->name }}
+                            @endif
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            {{ $grievance->departments->pluck('department_name')->join(', ') ?? '—' }}
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            {{ ucfirst($grievance->grievance_category) }}
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            {{ ucfirst($grievance->priority_level) }}
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            {{ ucwords(str_replace('_', ' ', $grievance->grievance_status ?? '—')) }}
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            {{ $grievance->created_at->format('Y-m-d h:i A') }}
+                        </td>
+
+                        <td class="px-3 py-2 border">
+                            {!! Str::limit(strip_tags($grievance->grievance_details), 120, '...') !!}
+                        </td>
+
+                        <td class="px-3 py-2 border text-center">
+                            @if ($grievance->attachments && $grievance->attachments->count() > 0)
+                                <span class="text-blue-700 font-semibold">
+                                    {{ $grievance->attachments->count() }} file(s)
+                                </span>
+                            @else
+                                <span class="text-gray-500">None</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center italic text-gray-500 py-3">
+                            No grievances available.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="noted flex gap-3 mt-10 ml-5">
+        <div class="noted-text text-base">Noted:</div>
+
+        <div class="name-with-role flex flex-col items-center gap-1">
+
+            {{-- Name Line --}}
+            <div class="name font-semibold border-b-2 border-gray-800 px-3">
+                @if(isset($hr_liaison))
+                    {{ $hr_liaison->name }}
+                @elseif(isset($admin))
+                    {{ $admin->name }}
+                @else
+                    N/A
+                @endif
             </div>
 
-            <div class="border-t pt-4">
-                <p class="text-gray-700 whitespace-pre-line">{!! $grievance->grievance_details !!}</p>
+            <div class="position text-gray-500 text-sm font-medium text-center">
+                @if(isset($hr_liaison))
+                    HR Liaison
+                @elseif(isset($admin))
+                    Admin
+                @else
+                    —
+                @endif
             </div>
-
-            @if ($grievance->attachments && $grievance->attachments->count() > 0)
-                <div class="mt-6">
-                    <h3 class="font-medium mb-2">Attachments:</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        @foreach ($grievance->attachments as $attachment)
-                            @php
-                                $url = Storage::url($attachment->file_path);
-                                $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
-                                $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                            @endphp
-
-                            <div class="bg-gray-100 rounded-xl border border-gray-300 overflow-hidden transition group relative">
-                                @if ($isImage)
-                                    <img src="{{ $url }}" alt="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
-                                        class="w-full h-36 object-cover cursor-pointer hover:opacity-80 transition-opacity" />
-                                @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
-                                        <x-heroicon-o-document class="w-10 h-10 text-gray-500" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
-                                        </span>
-                                    </a>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
         </div>
+    </div>
 
-        @if (!$loop->last)
-            <hr class="my-10 border-gray-300">
-        @endif
-    @empty
-        <p class="text-center text-gray-600 italic">No grievances available for printing.</p>
-    @endforelse
 </div>

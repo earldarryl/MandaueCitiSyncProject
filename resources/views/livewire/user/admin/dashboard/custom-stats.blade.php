@@ -170,7 +170,7 @@
                     @click="openCreateLiaison = true"
                     wire:loading.attr="disabled"
                     wire:target="createHrLiaison"
-                    class="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700
                         text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-300">
                     <x-heroicon-o-user-plus class="w-5 h-5" />
                     <span wire:loading.remove wire:target="createHrLiaison">
@@ -188,10 +188,8 @@
                     wire:loading.attr="disabled"
                     wire:target="createDepartment"
                     @click="openCreate = true"
-                    class="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800
-                        border border-blue-300 dark:border-zinc-700 text-blue-600 dark:text-blue-400
-                        text-sm font-medium rounded-xl shadow-sm hover:bg-blue-50 dark:hover:bg-zinc-700
-                        transition-all duration-300">
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700
+                        text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-300">
                     <x-heroicon-o-building-office class="w-5 h-5" />
                     <span wire:loading.remove wire:target="createDepartment">
                         <span class="flex gap-2 justify-center items-center">
@@ -292,8 +290,8 @@
                     Cancel
                 </button>
                 <button wire:click="createHrLiaison" wire:loading.attr="disabled" @click="openCreateLiaison = false"
-                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
+                            dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span wire:loading.remove wire:target="createHrLiaison">Save</span>
                     <span wire:loading wire:target="createHrLiaison">Processing...</span>
                 </button>

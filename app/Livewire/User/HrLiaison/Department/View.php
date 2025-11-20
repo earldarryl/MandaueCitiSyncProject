@@ -12,12 +12,19 @@ use App\Models\Department;
 class View extends Component
 {
     public Department $department;
+    protected $listeners = [
+        'refreshHrLiaisons' => 'refreshHrLiaisonsData'
+    ];
 
-    protected $listeners = ['refreshHrLiaisons' => '$refresh'];
 
     public function mount(Department $department)
     {
         $this->department = $department->load('hrLiaisons');
+    }
+
+    public function refreshHrLiaisonsData(): void
+    {
+        $this->department = $this->department->load('hrLiaisons');
     }
 
     public function render()

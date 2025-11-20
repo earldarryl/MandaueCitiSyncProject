@@ -14,6 +14,7 @@ class SubmissionHistory extends Component
     public bool $canRestore = false;
     public int $limit = 5;
     public int $increment = 5;
+    public ?string $selectedDate = null;
     public string $filter = '';
 
     public function mount(): void
@@ -104,7 +105,6 @@ class SubmissionHistory extends Component
     public function applyFilter(): void
     {
         $this->limit = 5;
-
     }
 
     public function getGroupedLogsProperty()
@@ -113,6 +113,10 @@ class SubmissionHistory extends Component
 
         $query->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
               ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'));
+
+        $query->when($this->selectedDate, fn($q) =>
+            $q->whereDate('created_at', $this->selectedDate)
+        );
 
         $logs = $query->latest()
                       ->take($this->limit)
@@ -130,6 +134,7 @@ class SubmissionHistory extends Component
             };
         });
     }
+
 
     public function render()
     {

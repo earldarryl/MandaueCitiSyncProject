@@ -66,74 +66,64 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const userId = @json(auth()->id());
+        const userId = @json(auth()->id());
 
-            if (window.Echo && userId) {
-                Echo.private(`App.Models.User.${userId}`)
-                    .notification((notification) => {
+        if (!window.Echo || !userId) return;
 
-                        console.log('Incoming notification', notification);
+        const componentMap = {
+            'hr-liaison-grievance-index': 'applyFilters',
+            'hr-liaison-grievance-view': 'refreshGrievance',
+            'hr-liaison-department-view': 'refreshHrLiaisonsData',
+            'hr-liaison-department-index': 'refreshDepartments',
+            'hr-liaison-activity-logs-index': 'applyFilter',
+            'citizen-grievance-index': 'applyFilters',
+            'citizen-grievance-view': 'refreshGrievance',
+            'admin-grievance-index': 'applyFilters',
+            'admin-feedback-index': 'applyFilters',
+            'admin-activity-logs-index': 'applyFilter',
+            'admin-departments-and-hr-liaisons-index': 'applyFilters',
+            'admin-hr-liaisons-list-view': 'loadHrLiaisons',
+            'admin-citizens-index': 'applyFilters',
+        };
 
-                        const f = new FilamentNotification()
-                            .title(notification.title || 'New Notification')
-                            .body(notification.body || '');
+        Echo.private(`App.Models.User.${userId}`).notification((notification) => {
+            console.log('Incoming notification', notification);
 
-                        switch (notification.type) {
-                            case 'success': f.success(); break;
-                            case 'warning': f.warning(); break;
-                            case 'danger':  f.danger();  break;
-                            default:        f.info();    break;
-                        }
+            const f = new FilamentNotification()
+                .title(notification.title || 'New Notification')
+                .body(notification.body || '');
 
-                        if (notification.actions && Array.isArray(notification.actions)) {
-                            const builtActions = notification.actions.map(action => {
-                                let btn = new FilamentNotificationAction(action.label);
-
-                                if (action.button !== false) {
-                                    btn = btn.button();
-                                }
-
-                                if (action.url) {
-                                    btn = btn.url(action.url);
-                                }
-
-                                if (action.open_new_tab) {
-                                    btn = btn.openUrlInNewTab();
-                                }
-
-                                if (action.color) {
-                                    btn = btn.color(action.color);
-                                }
-
-                                if (action.dispatch) {
-                                    btn = btn.dispatch(action.dispatch);
-                                }
-
-                                if (action.close) {
-                                    btn = btn.close();
-                                }
-
-                                return btn;
-                            });
-
-                            f.actions(builtActions);
-                        }
-
-                        f.send();
-
-                        const hrComponent = document.querySelector('[data-component="hr-liaison-grievance-index"]');
-                        if (hrComponent && window.Livewire) {
-                            Livewire.find(hrComponent.dataset.wireId)?.$call('applyFilters');
-                        }
-
-                        const adminComponent = document.querySelector('[data-component="admin-grievance-index"]');
-                        if (adminComponent && window.Livewire) {
-                            Livewire.find(adminComponent.dataset.wireId)?.$call('applyFilters');
-                        }
-
-                    });
+            switch (notification.type) {
+                case 'success': f.success(); break;
+                case 'warning': f.warning(); break;
+                case 'danger':  f.danger();  break;
+                default:        f.info();    break;
             }
+
+            if (notification.actions && Array.isArray(notification.actions)) {
+                const builtActions = notification.actions.map(action => {
+                    let btn = new FilamentNotificationAction(action.label);
+                    if (action.button !== false) btn = btn.button();
+                    if (action.url) btn = btn.url(action.url);
+                    if (action.open_new_tab) btn = btn.openUrlInNewTab();
+                    if (action.color) btn = btn.color(action.color);
+                    if (action.dispatch) btn = btn.dispatch(action.dispatch);
+                    if (action.close) btn = btn.close();
+                    return btn;
+                });
+                f.actions(builtActions);
+            }
+
+            f.send();
+
+            Object.entries(componentMap).forEach(([selector, method]) => {
+                const el = document.querySelector(`[data-component="${selector}"]`);
+                if (el && window.Livewire) {
+                    Livewire.find(el.dataset.wireId)?.$call(method);
+                }
+            });
         });
+    });
     </script>
     @vite('resources/js/pusher-echo.js')
     @filamentScripts

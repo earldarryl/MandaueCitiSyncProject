@@ -1,4 +1,6 @@
 <div class="flex-col w-full h-full"
+     data-component="citizen-grievance-index"
+     data-wire-id="{{ $this->id() }}"
      x-data
      x-on:close-all-modals.window="
         document.querySelectorAll('[x-data][x-show]').forEach(el => {

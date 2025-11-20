@@ -94,7 +94,7 @@ class AdminGrievancePriorityLevels extends ChartWidget
                         '#22c55e',
                         '#6b7280',
                         '#facc15',
-                        '#ef4444',
+                        '#ff0000ff',
                     ],
                     'borderWidth' => 3,
                     'barThickness' => 30,

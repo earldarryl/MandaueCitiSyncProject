@@ -131,33 +131,31 @@
                                 {{ \Carbon\Carbon::parse($item->created_at)->format('Y-m-d h:i A') }}
                             </td>
                         @elseif($filterType === 'Users' && $filterUserType === 'Citizen')
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->first_name ?? '' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->middle_name ?? '' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->last_name ?? '' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->suffix ?? '' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->gender ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->civil_status ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->barangay ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->sitio ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ optional($item['userInfo']->birthdate)->format('Y-m-d') ?? '—' }}</td>
-                            <td class="px-2 py-1 border text-center">{{ $item['userInfo']->age ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->phone_number ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->emergency_contact_name ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->emergency_contact_number ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['userInfo']->emergency_relationship ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['email'] }}</td>
-                            <td class="px-2 py-1 border text-center">
-                                {{ \Carbon\Carbon::parse($item->created_at)->format('Y-m-d h:i A') }}
-                            </td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->first_name ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->middle_name ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->last_name ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->suffix ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->gender ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->civil_status ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->barangay ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->sitio ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional($item->userInfo)->birthdate ?? '—' }}</td>
+                            <td class="px-2 py-1 border text-center">{{ optional(optional($item)->userInfo)->age ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->phone_number ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->emergency_contact_name ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->emergency_contact_number ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ optional(optional($item)->userInfo)->emergency_relationship ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ $item->email ?? '—' }}</td>
+                            <td class="px-2 py-1 border text-center">{{ optional($item->created_at)->format('Y-m-d h:i A') ?? '—' }}</td>
+
                         @elseif($filterType === 'Users' && $filterUserType === 'HR Liaison')
-                            <td class="px-2 py-1 border">{{ $item['name'] }}</td>
-                            <td class="px-2 py-1 border">{{ $item['email'] }}</td>
-                            <td class="px-2 py-1 border">{{ $item['departments'] ?? '—' }}</td>
-                            <td class="px-2 py-1 border">{{ $item['status'] }}</td>
-                            <td class="px-2 py-1 border text-center">
-                                {{ \Carbon\Carbon::parse($item->created_at)->format('Y-m-d h:i A') }}
-                            </td>
+                            <td class="px-2 py-1 border">{{ $item->name ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ $item->email ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ $item->departments ?? '—' }}</td>
+                            <td class="px-2 py-1 border">{{ $item->status ?? '—' }}</td>
+                            <td class="px-2 py-1 border text-center">{{ optional($item->created_at)->format('Y-m-d h:i A') ?? '—' }}</td>
                         @endif
+
                     </tr>
                 @empty
                     <tr>

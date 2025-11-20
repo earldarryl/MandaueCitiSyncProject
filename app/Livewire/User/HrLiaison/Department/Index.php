@@ -21,6 +21,10 @@ class Index extends Component
     public $accountCreated;
     public $totalDepartments = 0;
     public $recentDepartment = null;
+    protected $listeners = [
+        'refreshHrDepartments' => 'refreshDepartments'
+    ];
+
 
     public function mount(): void
     {
@@ -31,6 +35,15 @@ class Index extends Component
         $this->totalDepartments = $this->departments->count();
         $this->recentDepartment = $this->departments->sortByDesc('pivot_created_at')->first();
     }
+
+    public function refreshDepartments(): void
+    {
+        $user = auth()->user();
+        $this->departments = $user->departments()->get();
+        $this->totalDepartments = $this->departments->count();
+        $this->recentDepartment = $this->departments->sortByDesc('pivot_created_at')->first();
+    }
+
 
     public function updatePhoto($departmentId)
     {

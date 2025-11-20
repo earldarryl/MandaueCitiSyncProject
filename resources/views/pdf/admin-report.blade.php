@@ -77,6 +77,39 @@
         .header-right .span-1 { font-size: 12px; color: #000; }
         .header-right .span-2 { font-size: 21px; font-weight: 300; color: #000; }
 
+        .report-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .report-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0;
+            color: #1f2937;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .report-subtitle {
+            margin-top: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .report-meta {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .report-meta span {
+            margin-right: 12px;
+        }
+
         .summary-date {
             text-align:center;
             font-weight:600;
@@ -87,34 +120,46 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 25px 0;
         }
 
         .stat-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            border-radius: 1rem;
-            background: #f3f4f6;
             border: 1px solid #d1d5db;
-            page-break-inside: avoid;
+            border-radius: 10px;
+            padding: 18px 20px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .stat-card h3 {
-            margin: 6px 0 2px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
-            text-align: center;
+            margin-bottom: 8px;
+            color: #374151;
         }
 
-        .stat-card p {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .stat-subtext {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background-color: #f3f4f6;
+            color: #374151;
         }
 
         .total-online {
@@ -129,25 +174,27 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
-            background-color: rgba(255,255,255,0.85);
-            border-radius: 0.5rem;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            font-size: 10px;
+            table-layout: fixed;
         }
 
         th, td {
             border: 1px solid #D1D5DB;
-            padding: 8px;
-            text-align: center;
-            font-size: 12px;
+            padding: 4px 6px;
+            word-wrap: break-word;
+            vertical-align: middle;
         }
 
         th {
-            background-color: #F3F4F6;
-            color: #374151;
-            text-transform: uppercase;
-            font-weight: 600;
+            font-size: 11px;
+        }
+
+        td {
+            font-size: 10px;
+        }
+
+        td:nth-child(1), td:nth-child(2), td:nth-child(3) {
+            text-align: left;
         }
 
         td span.status {
@@ -215,6 +262,12 @@
         </div>
     </div>
 
+    <div class="report-header">
+        <div class="report-subtitle">
+            {{ $dynamicTitle }}
+        </div>
+    </div>
+
     <div class="summary-date">
         @php
             $start = $startDate ? \Carbon\Carbon::parse($startDate) : \Carbon\Carbon::now();
@@ -230,13 +283,30 @@
      @if(!empty($stats))
         <div class="stats-grid">
             @foreach($stats as $stat)
-                <div class="stat-card" style="background: {{ $stat->bg ?? '#f3f4f6' }}; color: {{ $stat->text ?? '#374151' }}">
-                    <h3>{{ $stat->label ?? $stat->department_name ?? $stat->grievance_type ?? 'N/A' }}</h3>
-                    <p>{{ $stat->total ?? 0 }}</p>
+                <div class="stat-card">
+                    <div class="tag" style="background: {{ $stat->bg ?? '#f3f4f6' }}; color: {{ $stat->text ?? '#374151' }}">
+                        {{
+                            $stat->label
+                            ?? $stat->priority_level
+                            ?? $stat->department_name
+                            ?? $stat->grievance_type
+                            ?? $stat->grievance_status
+                            ?? 'N/A'
+                        }}
+                    </div>
+                    <div class="stat-value">
+                        {{ $stat->total ?? 0 }}
+                    </div>
+
                     @if(isset($stat->total_online_time))
-                        <span class="total-online">
+                        <div class="stat-subtext">
                             Total Online: {{ $stat->total_online_time }}
-                        </span>
+                        </div>
+                    @endif
+                    @if(isset($stat->percentage))
+                        <div class="stat-subtext">
+                            Percentage: {{ number_format($stat->percentage, 2) }}%
+                        </div>
                     @endif
                 </div>
             @endforeach
@@ -333,22 +403,55 @@
                         <td style="padding:6px; border:1px solid #E5E7EB; text-align:center;">{{ $item->date->format('Y-m-d') }}</td>
 
                     @elseif($filterType === 'Users' && $filterUserType === 'Citizen')
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->first_name ?? '' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->middle_name ?? '' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->last_name ?? '' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->suffix ?? '' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->gender ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->civil_status ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->barangay ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->sitio ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ optional($item['userInfo']->birthdate)->format('Y-m-d') ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB; text-align:center;">{{ $item['userInfo']->age ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->phone_number ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->emergency_contact_name ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->emergency_contact_number ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['userInfo']->emergency_relationship ?? '—' }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['email'] }}</td>
-                        <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['created_at']->format('Y-m-d') }}</td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->first_name ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->middle_name ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->last_name ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->suffix ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->gender ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->civil_status ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->barangay ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->sitio ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional(optional($item['userInfo'])->birthdate)->format('Y-m-d') ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB; text-align:center;">
+                            {{ optional($item['userInfo'])->age ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->phone_number ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->emergency_contact_name ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->emergency_contact_number ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['userInfo'])->emergency_relationship ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ $item['email'] ?? '—' }}
+                        </td>
+                        <td style="padding:6px; border:1px solid #E5E7EB;">
+                            {{ optional($item['created_at'])->format('Y-m-d') ?? '—' }}
+                        </td>
+
 
                     @elseif($filterType === 'Users' && $filterUserType === 'HR Liaison')
                         <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item['name'] }}</td>

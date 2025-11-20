@@ -111,7 +111,7 @@
                         <x-filter-select
                             name="grievancePriority"
                             placeholder="Select Priority"
-                            :options="['Low', 'Normal', 'High']"
+                            :options="['Low', 'Normal', 'High', 'Critical']"
                         />
                     </div>
 
@@ -392,7 +392,7 @@
 
             @foreach ($stats as $stat)
                 @php
-                    $key = $dynamicGrievanceFilter === 'High → Low Priority'
+                    $key = $dynamicGrievanceFilter === 'Critical → Low Priority'
                             ? $stat->priority_level
                             : ($dynamicGrievanceFilter === 'Most Submitted Grievance Type'
                                 ? $stat->grievance_type
@@ -492,30 +492,24 @@
             style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
 
             @foreach ($stats as $stat)
-            @php
-                $color = $this->dynamicColorMap[$this->dynamicUserFilter] ?? null;
 
-                $bgClass = $color['bg'] ?? 'from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900';
-                $textClass = $color['text'] ?? 'text-green-600 dark:text-green-400';
-            @endphp
-
-                <div class="group relative bg-gradient-to-br {{ $bgClass }}
+                <div class="group relative bg-gradient-to-br {{ $stat->bg }}
                             border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                             transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-
                     <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-gray-200/50
                                 dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                        <x-dynamic-component :component="$stat->icon" class="h-8 w-8 {{ $textClass }}" />
+                        <x-dynamic-component :component="$stat->icon" class="h-8 w-8 {{ $stat->text }}" />
                     </div>
 
                     <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">
                         {{ $stat->label }}
                     </p>
 
-                    <p class="relative text-3xl font-bold {{ $textClass }} tracking-tight">
+                    <p class="relative text-3xl font-bold {{ $stat->text }} tracking-tight">
                         {{ $stat->total }}
                     </p>
                 </div>
+
             @endforeach
         </div>
     @endif

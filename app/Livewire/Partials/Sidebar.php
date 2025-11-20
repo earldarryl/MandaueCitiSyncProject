@@ -59,7 +59,7 @@ class Sidebar extends Component
                 ],
                  [
                     'label' => 'Department',
-                    'icon' => 'bi bi-people',
+                    'icon' => 'bi bi-building-gear',
                     'children' => [
                         ['label' => 'Department Info', 'route' => 'hr-liaison.department.index', 'icon' => 'bi bi-building-fill-exclamation', 'activePattern' => 'hr-liaison.department.*',],
                         ['label' => 'Grievance Repository', 'route' => 'hr-liaison.grievance.index', 'icon' => 'bi bi-archive-fill', 'activePattern' => 'hr-liaison.grievance.*',],
