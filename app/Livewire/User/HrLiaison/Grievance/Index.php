@@ -94,14 +94,16 @@ class Index extends Component
 
         $currentHrLiaison = auth()->user();
 
-        $excludedDepartmentIds = $currentHrLiaison->departments->pluck('department_id');
+        // Get the department names the HR liaison belongs to
+        $liaisonDepartments = $currentHrLiaison->departments->pluck('department_name')->toArray();
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
-            ->whereNotIn('department_id', $excludedDepartmentIds)
+            ->whereIn('department_name', $liaisonDepartments)
             ->pluck('department_name', 'department_name')
             ->toArray();
 
-        $this->categoryOptions = [
+        // Original category options
+        $allCategoryOptions = [
             'Business Permit and Licensing Office' => [
                 'Complaint' => [
                     'Delayed Business Permit Processing',
@@ -155,18 +157,21 @@ class Index extends Component
             ],
         ];
 
+        // Filter categories only for the departments the HR liaison belongs to
         $flattened = [];
-        foreach ($this->categoryOptions as $department => $types) {
-            foreach ($types as $type => $categories) {
-                foreach ($categories as $category) {
-                    $flattened[$category] = $category;
+        foreach ($liaisonDepartments as $department) {
+            if (isset($allCategoryOptions[$department])) {
+                foreach ($allCategoryOptions[$department] as $type => $categories) {
+                    foreach ($categories as $category) {
+                        $flattened[$category] = $category;
+                    }
                 }
             }
         }
 
         $this->categoryOptions = $flattened;
-
     }
+
 
     public function sortBy(string $field): void
     {

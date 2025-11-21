@@ -2,10 +2,8 @@
     x-cloak
     x-data="{
         isDesktop: window.matchMedia('(min-width: 1024px)').matches,
-        closeOnMobile() {
-            if (!this.isDesktop) {
-                $store.sidebar.open = false;
-            }
+        closeWhenClicked() {
+            $store.sidebar.open = false;
         }
     }"
     @resize.window="isDesktop = window.matchMedia('(min-width: 1024px)').matches"
@@ -143,7 +141,7 @@
                                                 {{ $isChildActive
                                                     ? 'bg-gray-200 dark:bg-zinc-800'
                                                     : 'dark:hover:bg-zinc-800 hover:bg-gray-200' }}"
-                                            @click="closeOnMobile()"
+                                            @click="closeWhenClicked()"
                                             wire:navigate
                                         >
                                             <i class="{{ $child['icon'] }}"></i>
@@ -168,7 +166,7 @@
                             x-bind:class="'justify-' + ($store.sidebar.open ? 'start' : 'center')"
                             x-data="{ showTooltip: false }"
                             wire:navigate
-                            @click="closeOnMobile()"
+                            @click="closeWhenClicked()"
                             @mouseenter="if (!$store.sidebar.open) showTooltip = true"
                             @mouseleave="showTooltip = false">
                             <span class="inline-block text-center">

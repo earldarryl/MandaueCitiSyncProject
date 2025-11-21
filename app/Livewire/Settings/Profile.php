@@ -40,7 +40,14 @@ class Profile extends Component implements HasSchemas
     public string $originalName = '';
     public string $originalEmail = '';
     public $authUser;
+
+    public ?string $contact = null;
+    public ?string $emergency_contact_name = null;
+    public ?string $emergency_contact_number = null;
+    public ?string $sitio = null;
+
     protected $listeners = ['reset-form' => 'resetForm'];
+
     public function resetForm(): void
     {
         $user = Auth::user();
@@ -52,11 +59,13 @@ class Profile extends Component implements HasSchemas
             'delete_password',
         ]);
 
-        $this->name = $user->name ?? '';
-        $this->email = $user->email ?? '';
+        $this->name  = $this->originalName;
+        $this->email = $this->originalEmail;
 
-        $this->originalName = $this->name;
-        $this->originalEmail = $this->email;
+        $this->contact = $this->contact ?? '';
+        $this->emergency_contact_name = $this->emergency_contact_name ?? '';
+        $this->emergency_contact_number = $this->emergency_contact_number ?? '';
+        $this->sitio = $this->sitio ?? '';
 
         $this->form->fill([
             'profile_pic' => $user->profile_pic,
@@ -70,11 +79,69 @@ class Profile extends Component implements HasSchemas
         $this->profilePicPreview = $value ? $this->form->getState()['profile_pic']->temporaryUrl() : null;
     }
 
+    public function isDirty(string $field): bool
+    {
+        return match ($field) {
+            'name'  => $this->name !== $this->originalName,
+            'email' => $this->email !== $this->originalEmail,
+            'contact' => $this->contact !== $this->formatPhoneForDisplay($this->authUser->contact ?? ''),
+            'emergency_contact_name' => $this->emergency_contact_name !== ($this->authUser->userInfo->emergency_contact_name ?? ''),
+            'emergency_contact_number' => $this->emergency_contact_number !== $this->formatPhoneForDisplay($this->authUser->userInfo->emergency_contact_number ?? ''),
+            'sitio' => $this->sitio !== ($this->authUser->userInfo->sitio ?? ''),
+            default => false,
+        };
+    }
+
+
+    public function isClean(string $field): bool
+    {
+        return !$this->isDirty($field);
+    }
+
+   private function formatPhoneForDisplay($number)
+    {
+        if (!$number) return '';
+
+        $number = preg_replace('/\D/', '', $number);
+
+        if (str_starts_with($number, '63')) {
+            $number = substr($number, 2);
+        } elseif (str_starts_with($number, '0')) {
+            $number = substr($number, 1);
+        }
+
+        if (strlen($number) === 9) {
+            $number = '9' . $number;
+        }
+
+        if (strlen($number) > 10) {
+            $number = substr($number, -10);
+        }
+
+        if (strlen($number) !== 10) return '';
+
+        return substr($number, 0, 3) . '-' .
+            substr($number, 3, 3) . '-' .
+            substr($number, 6, 4);
+    }
+
+    private function sanitizePhoneForSaving($value)
+    {
+        if (!$value) return null;
+
+        $digits = preg_replace('/\D/', '', $value);
+        $digits = ltrim($digits, '0');
+
+        return '+63' . $digits;
+    }
+
+
     public function mount(): void
     {
         $user = Auth::user();
 
         $this->authUser = $user;
+
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
         $this->current_profile_pic = $user->profile_pic;
@@ -82,6 +149,21 @@ class Profile extends Component implements HasSchemas
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
+        if ($user->hasRole('citizen') && $user->userInfo) {
+            $rawContact = $user->contact ?? '';
+            $rawEmergency = $user->userInfo->emergency_contact_number ?? '';
+
+            $this->contact = $this->formatPhoneForDisplay($rawContact);
+            $this->emergency_contact_number = $this->formatPhoneForDisplay($rawEmergency);
+
+            $this->emergency_contact_name = $user->userInfo->emergency_contact_name ?? '';
+            $this->sitio = $user->userInfo->sitio ?? '';
+        } else {
+            $this->contact = '';
+            $this->emergency_contact_name = '';
+            $this->emergency_contact_number = '';
+            $this->sitio = '';
+        }
     }
 
     public function form(Schema $schema): Schema
@@ -137,25 +219,25 @@ class Profile extends Component implements HasSchemas
         $this->showProfileEditModal = false;
     }
 
-    public function isDirty(string $field): bool
-    {
-        return match ($field) {
-            'name'  => $this->name !== $this->originalName,
-            'email' => $this->email !== $this->originalEmail,
-            default => false,
-        };
-    }
-
-    public function isClean(string $field): bool
-    {
-        return !$this->isDirty($field);
-    }
-
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
+        $userInfo = $user->userInfo;
 
-        if ($this->isClean('name') && $this->isClean('email')) {
+        $fieldsChanged =
+            $this->isClean('name') &&
+            $this->isClean('email') &&
+            $this->isClean('contact') &&
+            (
+                !$user->hasRole('citizen') ||
+                !$userInfo || (
+                    $this->isClean('emergency_contact_name') &&
+                    $this->isClean('emergency_contact_number') &&
+                    $this->isClean('sitio')
+                )
+            );
+
+        if ($fieldsChanged) {
             Notification::make()
                 ->title('No changes detected')
                 ->warning()
@@ -163,16 +245,47 @@ class Profile extends Component implements HasSchemas
             return;
         }
 
-        $validated = $this->validate([
+        $validatedUser = $this->validate([
             'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
+            'contact' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
         ]);
 
-        if ($user->email !== $validated['email']) {
+        $validatedUser['contact'] = $this->sanitizePhoneForSaving($this->contact);
+
+        if ($user->hasRole('citizen')) {
+
+            $validatedUserInfo = $this->validate([
+                'emergency_contact_number' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
+                'emergency_contact_name'   => ['nullable', 'string', 'max:255'],
+                'sitio'                    => ['nullable', 'string', 'max:255'],
+            ]);
+
+            $validatedUserInfo['phone_number'] = $validatedUser['contact'];
+            $validatedUserInfo['emergency_contact_number'] =
+                $this->sanitizePhoneForSaving($this->emergency_contact_number);
+        }
+
+        if ($user->email !== $validatedUser['email']) {
             $user->email_verified_at = null;
         }
 
-        $user->update($validated);
+        $user->update($validatedUser);
+
+        if ($user->hasRole('citizen')) {
+            if ($userInfo) {
+                $userInfo->update($validatedUserInfo);
+            } else {
+                $user->userInfo()->create($validatedUserInfo);
+            }
+        }
 
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;

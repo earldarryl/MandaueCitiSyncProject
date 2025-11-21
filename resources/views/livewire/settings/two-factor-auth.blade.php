@@ -1,6 +1,5 @@
-<div class="h-full flex-1 overflow-y-auto p-4">
-        {{-- Header --}}
-        <header class="pb-6 border-b border-gray-200 dark:border-gray-700">
+<div class="h-full flex-1">
+        <header class="p-6 border-b border-gray-200 dark:border-gray-700">
             <h1 class="text-4xl font-bold flex items-center gap-3 text-mc_primary_color dark:text-white">
                 <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg"
                      fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -12,39 +11,46 @@
                     Two-Factor Authentication
                 </span>
             </h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400 text-lg">
+            <p class="mt-2 text-gray-600 dark:text-gray-400 text-md text-justify text-body">
                 Activate two-factor authentication to strengthen your account’s security.
             </p>
         </header>
 
-        <div class="mt-6">
+        <div class="m-6">
             @if (session('status') === 'two-factor-authentication-enabled')
-                <div class="p-4 rounded-xl bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                    ✅ Two-factor authentication has been <strong>enabled</strong>.
+                <div class="flex items-center gap-3 p-4 mb-4 rounded-xl bg-green-50 dark:bg-green-900 shadow-sm border border-green-200 dark:border-green-700">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div class="text-sm text-green-800 dark:text-green-100 font-medium">
+                        Two-factor authentication has been <span class="font-semibold">enabled</span>.
+                    </div>
                 </div>
             @endif
 
             @if (session('status') === 'two-factor-authentication-disabled')
-                <div class="p-4 rounded-xl bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
-                    ⚠️ Two-factor authentication has been <strong>disabled</strong>.
+                <div class="flex items-center gap-3 p-4 mb-4 rounded-xl bg-yellow-50 dark:bg-yellow-900 shadow-sm border border-yellow-200 dark:border-yellow-700">
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="text-sm text-yellow-800 dark:text-yellow-100 font-medium">
+                        Two-factor authentication has been <span class="font-semibold">disabled</span>.
+                    </div>
                 </div>
             @endif
         </div>
 
-        {{-- QR Code / Forms --}}
-        <div class="mt-8 bg-white dark:bg-gray-800 shadow-md rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+        <div class="mt-8 bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700">
            @if (auth()->user()->two_factor_secret)
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Scan this QR code with your authenticator app:
                     </h2>
 
                     <div class="flex flex-col items-center gap-6">
-                        {{-- QR Code --}}
                         <div class="p-6 bg-gray-50 dark:bg-gray-900 rounded-xl">
                             {!! auth()->user()->twoFactorQrCodeSvg() !!}
                         </div>
 
-                        {{-- OTP Display with Alpine --}}
                        <div
                             x-data="{
                                 otp: @entangle('currentOtp'),
@@ -65,7 +71,6 @@
                     </div>
                 </div>
 
-                {{-- Code confirmation form --}}
                 <div class="mt-6">
                     <div class="h-full flex items-center justify-center p-6">
                         <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
@@ -76,7 +81,6 @@
                                 Enter the 6-digit code from your authenticator app to confirm your identity.
                             </p>
 
-                            {{-- Error Message --}}
                             @error('two_factor')
                                 <div class="mb-4 flex justify-center rounded-lg bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
                                     <span class="pb-2">
@@ -85,7 +89,6 @@
                                 </div>
                             @enderror
 
-                            {{-- Input Form --}}
                             <form wire:submit.prevent="confirm" class="space-y-4">
                                 <flux:field class="flex flex-col gap-2">
                                     <div class="flex flex-col gap-2">
@@ -145,7 +148,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="/user/two-factor-authentication" class="mt-6">
+                <form method="POST" action="/user/two-factor-authentication" class="m-6">
                     @csrf
                     @method('DELETE')
                     <flux:button variant="danger" type="submit" class="w-full">

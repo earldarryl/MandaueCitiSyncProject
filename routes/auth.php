@@ -3,6 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+/*
+|--------------------------------------------------------------------------
+| Public / Guest Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('emails/verify-otp', function () {
     return view('emails.verify-otp');
 });
@@ -18,6 +24,11 @@ Route::middleware('guest')->group(function () {
     Volt::route('reset-password/{token}', 'pages.auth.reset-password')->name('password.reset');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Email Verification Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified.redirect', 'single_session'])->prefix('verify')->group(function () {
     Volt::route('email', 'pages.auth.verify-otp')->name('verification.notice');
 
@@ -27,8 +38,23 @@ Route::middleware(['auth', 'verified.redirect', 'single_session'])->prefix('veri
     })->middleware('throttle:6,1')->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Two-Factor Authentication Page (Livewire)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'single_session'])->group(function () {
+    Volt::route('/two-factor-auth', 'pages.auth.two-factor-auth')->name('two-factor-auth');
+});
 
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Require Auth, Verified, Single Session, 2FA)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function () {
+
+    // Citizen routes (2FA not required)
     Route::middleware('role:citizen')->group(function () {
         Volt::route('citizen/grievance/index', 'user.citizen.grievance.index')->name('citizen.grievance.index');
         Volt::route('citizen/grievance/create', 'user.citizen.grievance.create')->name('citizen.grievance.create');
@@ -38,6 +64,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('citizen/submission-history', 'user.citizen.submission-history')->name('citizen.submission-history');
     });
 
+    // HR Liaison routes (2FA required)
     Route::middleware('role:hr_liaison')->group(function () {
         Volt::route('hr-liaison/dashboard', 'user.hr-liaison.dashboard.index')->name('hr-liaison.dashboard');
         Volt::route('hr-liaison/department/index', 'user.hr-liaison.department.index')->name('hr-liaison.department.index');
@@ -48,6 +75,7 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('hr-liaison/reports-and-analytics/index', 'user.hr-liaison.reports-and-analytics.index')->name('hr-liaison.reports-and-analytics.index');
     });
 
+    // Admin routes (2FA required)
     Route::middleware('role:admin')->group(function () {
         Volt::route('admin/dashboard', 'user.admin.dashboard.index')->name('admin.dashboard');
         Volt::route('admin/stakeholders/citizens', 'user.admin.stakeholders.citizens.index')->name('admin.stakeholders.citizens.index');
@@ -62,17 +90,17 @@ Route::middleware(['auth', 'verified', 'single_session'])->group(function () {
         Volt::route('admin/reports-and-analytics/index', 'user.admin.reports-and-analytics.index')->name('admin.reports-and-analytics.index');
     });
 
+    // General settings routes
     Volt::route('/settings', 'layout.settings')->name('settings');
     Volt::route('/settings/profile', 'settings.profile')->name('settings.profile');
-    Volt::route('/settings/appearance', 'settings.appearance')->name('settings.appearance');
     Volt::route('/settings/two-factor-auth', 'settings.two-factor-auth')->name('settings.two-factor-auth');
     Volt::route('/user/confirm-password', 'pages.auth.confirm-password')->name('password.confirm');
     Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
+    // Print routes
     Volt::route('/print/print-all-grievances', 'print-files.print-all-grievances')->name('print-all-grievances');
     Volt::route('/print/print-selected-grievances/{selected}', 'print-files.print-selected-grievances')->name('print-selected-grievances');
     Volt::route('/print/print-all-feedbacks', 'print-files.print-all-feedbacks')->name('print-all-feedbacks');
     Volt::route('/print/print-selected-feedbacks/{selected}', 'print-files.print-selected-feedbacks')->name('print-selected-feedbacks');
     Volt::route('/print/print-admin-reports/{key}', 'print-files.print-admin-reports')->name('print-admin-reports');
-
 });

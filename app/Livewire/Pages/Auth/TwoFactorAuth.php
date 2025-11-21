@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Livewire\Settings;
+namespace App\Livewire\Pages\Auth;
 
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use PragmaRX\Google2FA\Google2FA;
 use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
+#[Title('Two Factor Authentication')]
 class TwoFactorAuth extends Component
 {
     public string $code = '';
@@ -23,6 +25,7 @@ class TwoFactorAuth extends Component
     public function updateOtp()
     {
         $user = Auth::user();
+
         if (! $user || ! $user->two_factor_secret) {
             $this->currentOtp = null;
             return;
@@ -33,6 +36,7 @@ class TwoFactorAuth extends Component
             decrypt($user->two_factor_secret)
         );
     }
+
     public function confirm()
     {
         $user = Auth::user();
@@ -73,8 +77,9 @@ class TwoFactorAuth extends Component
 
         return $google2fa->getCurrentOtp(decrypt(auth()->user()->two_factor_secret));
     }
+
     public function render()
     {
-        return view('livewire.settings.two-factor-auth');
+        return view('livewire.pages.auth.two-factor-auth');
     }
 }
