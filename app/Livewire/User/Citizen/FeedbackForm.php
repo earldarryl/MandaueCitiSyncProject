@@ -78,8 +78,15 @@ class FeedbackForm extends Component
 
     public function mount()
     {
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('citizen') && $user->userInfo) {
+            $this->gender = $user->userInfo->gender;
+        }
+
         $this->date = now()->format('Y-m-d');
     }
+
     public function submit()
     {
         try {

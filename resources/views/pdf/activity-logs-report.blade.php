@@ -5,23 +5,10 @@
     <title>Activity Logs Report</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400&display=swap" rel="stylesheet">
 
-    @php
-        $bgImagePath = public_path('images/grievance-report-template-bg.jpg');
-        $bgImageBase64 = '';
-        if(file_exists($bgImagePath)) {
-            $ext = pathinfo($bgImagePath, PATHINFO_EXTENSION);
-            $bgImageBase64 = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($bgImagePath));
-        }
-    @endphp
-
     <style>
         @page {
             size: A4;
             margin: 0;
-
-            @if($bgImageBase64)
-                background-image: url("{{ $bgImageBase64 }}");
-            @endif
             background-repeat: no-repeat;
             background-position: center top;
             background-size: cover;
@@ -85,11 +72,27 @@
             color: #000;
         }
 
-        .report-title {
+        .report-header {
             text-align: center;
-            font-weight: 600;
-            margin: 25px 0 15px 0;
-            font-size: 13px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .report-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0;
+            color: #1f2937;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .report-subtitle {
+            margin-top: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #4b5563;
         }
 
         .table-container {
@@ -129,15 +132,44 @@
             text-align: center;
         }
 
-        .footer {
+        .noted {
+            display: flex;
+            flex-direction: row;
+            gap: 6px;
             margin-top: 50px;
+            margin-left: 20px;
             font-size: 13px;
-            font-weight: 600;
+            width: fit-content;
         }
 
-        .footer .noted {
-            border-bottom: 1.8px solid #374151;
-            padding-bottom: 2px;
+        .noted .name-with-role{
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-content: center;
+            align-items: center;
+        }
+        .noted .noted-text{
+            display: flex;
+            flex-direction: column;
+            font-size:15px;
+            align-content: center;
+            align-items: center;
+        }
+        .noted .name {
+            font-weight:600;
+            font-size:15px;
+            border-bottom:1.8px solid #374151;
+            padding-bottom:2px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .noted .position {
+            text-align:center;
+            font-size:12px;
+            color:#6B7280;
+            font-weight:500;
+            margin-top:2px;
         }
     </style>
 </head>
@@ -152,11 +184,17 @@
             </div>
         </div>
 
+        <div class="report-header">
+            <div class="report-subtitle">
+                {{ $dynamicTitle }}
+            </div>
+        </div>
+
         <div class="report-title">
             @if($selectedDate)
                 {{ \Carbon\Carbon::parse($selectedDate)->format('F d, Y') }}
             @else
-                All Dates
+                <div></div>
             @endif
         </div>
 
@@ -193,10 +231,17 @@
             </table>
         </div>
 
-        <div class="footer">
-            <div>Noted by:</div>
-            <div class="noted">{{ $user->name ?? 'N/A' }}</div>
-            <div style="font-size:12px; color:#6B7280;">Admin</div>
+        <div class="noted">
+            <div class="noted-text">Noted:</div>
+            <div class="name-with-role">
+                <div class="name">{{ $user->name ?? 'N/A' }}</div>
+                <div class="position">
+                    {{ $user->getRoleNames()->first()
+                        ? ucwords(str_replace('_', ' ', $user->getRoleNames()->first()))
+                        : 'N/A'
+                    }}
+                </div>
+            </div>
         </div>
     </div>
 </body>

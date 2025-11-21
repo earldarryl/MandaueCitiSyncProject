@@ -1,8 +1,8 @@
 <div
     x-cloak
     x-data="{ open: true }"
-    class="relative lg:sticky lg:top-[60px] lg:h-[calc(100vh-60px)] w-full lg:w-[280px]
-           z-20 shadow-md overflow-y-auto
+    class="bg-white dark:bg-black sticky top-[60px] lg:h-[calc(100vh-60px)] w-full lg:w-[280px]
+           z-20 border border-gray-300 dark:border-zinc-800 overflow-y-auto
            flex flex-col items-center gap-3 p-4">
     @foreach ($menuItems as $index => $item)
         @php
@@ -26,8 +26,6 @@
             @endif
         </div>
     @endforeach
-
-    <!-- Toggle Sidebar for mobile -->
     <div
         x-show="$store.sidebar.screen < 1024"
         @click="open = !open"

@@ -87,6 +87,70 @@
                 </button>
             </div>
 
+            <div class="relative flex flex-col w-full">
+
+                <div class="relative flex flex-row justify-end gap-2">
+
+                    <button
+                        wire:click="downloadCsv"
+                        wire:loading.attr="disabled"
+                        wire:target="downloadCsv"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-blue-100 text-blue-800 border-blue-300
+                            hover:bg-blue-200 hover:border-blue-400
+                            dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
+                            dark:hover:bg-blue-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="downloadCsv">Export CSV</span>
+                        <span wire:loading wire:target="downloadCsv">Processing...</span>
+                    </button>
+
+                    <button
+                        wire:click="downloadExcel"
+                        wire:loading.attr="disabled"
+                        wire:target="downloadExcel"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-green-100 text-green-800 border-green-300
+                            hover:bg-green-200 hover:border-green-400
+                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
+                            dark:hover:bg-green-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
+                        <span wire:loading.remove wire:target="downloadExcel">Export Excel</span>
+                        <span wire:loading wire:target="downloadExcel">Processing...</span>
+                    </button>
+
+                    <button
+                        wire:click="exportActivityLogsPDF"
+                        wire:loading.attr="disabled"
+                        wire:target="exportActivityLogsPDF"
+                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                            bg-red-100 text-red-800 border-red-300
+                            hover:bg-red-200 hover:border-red-400
+                            dark:bg-red-800 dark:text-red-300 dark:border-red-700
+                            dark:hover:bg-red-700
+                            whitespace-nowrap
+                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        <x-heroicon-o-document-arrow-down class="w-4 h-4" />
+
+                        <span wire:loading.remove wire:target="exportActivityLogsPDF">
+                            Export PDF
+                        </span>
+
+                        <span wire:loading wire:target="exportActivityLogsPDF">
+                            Processing...
+                        </span>
+                    </button>
+                </div>
+
+            </div>
+
         </div>
 
     </div>

@@ -19,7 +19,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
         <!-- Icon -->
-        {{-- <link rel="icon" href="{{ asset('LOGO.png') }}" type="image/x-icon"> --}}
+        <link rel="icon" href="{{ asset('images/logo-mandaue-citisync.png') }}" type="image/x-icon">
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <!-- Flatpickr CSS -->

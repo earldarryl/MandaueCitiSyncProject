@@ -106,14 +106,25 @@
                         $bgColor = $log->reference_table === 'grievances'
                             ? 'bg-green-500 dark:bg-green-700'
                             : 'bg-purple-500 dark:bg-purple-700';
+
                         $svgColor = 'text-white';
+
+                        $grievance = $log->reference_table === 'grievances'
+                            ? \App\Models\Grievance::find($log->reference_id)
+                            : null;
+
+                        $feedback = $log->reference_table === 'feedback'
+                            ? \App\Models\Feedback::find($log->reference_id)
+                            : null;
                     @endphp
 
                     <li class="mb-10 ms-5 group w-full" wire:key="log-{{ $log->id }}">
                         <span
                             class="absolute flex items-center justify-center w-6 h-6 {{ $bgColor }} rounded-full -start-3 ring-8 ring-white dark:ring-zinc-900 group-hover:scale-110 transition-transform duration-200">
-                            <svg class="w-2.5 h-2.5 {{ $svgColor }}" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                            <svg class="w-2.5 h-2.5 {{ $svgColor }}" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path
+                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
                             </svg>
                         </span>
 
@@ -121,16 +132,20 @@
                             class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
                                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+                            <div
+                                class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+
                                 <div class="flex items-start gap-4">
                                     <div class="flex-shrink-0">
-                                        <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
-                                            <x-heroicon-o-clipboard-document-check class="h-6 w-6"/>
+                                        <div
+                                            class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
+                                            <x-heroicon-o-clipboard-document-check class="h-6 w-6" />
                                         </div>
                                     </div>
 
                                     <div class="flex-1 flex flex-col gap-1">
-                                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                        <span
+                                            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             Submission
                                         </span>
 
@@ -140,35 +155,65 @@
 
                                         <div class="flex flex-col gap-2 mt-2">
 
+                                            @if ($grievance)
+                                                <p class="text-sm text-gray-600 dark:text-gray-300">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Grievance Ticket ID:</span>
+                                                    <span class="font-bold text-blue-600">{{ $grievance->grievance_ticket_id }}</span>
+                                                </p>
+                                            @endif
+
+
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">CC Summary:</span>
-                                                <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                <span
+                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">CC
+                                                    Summary:</span>
+                                                <span
+                                                    class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
                                                     {{ $log->cc_summary ?? 'N/A' }}
                                                 </span>
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">SQD Summary:</span>
-                                                <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                <span
+                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">SQD
+                                                    Summary:</span>
+                                                <span
+                                                    class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
                                                     {{ $log->sqd_summary ?? 'N/A' }}
                                                 </span>
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                                <span
+                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y – g:i A') ?? 'N/A' }}
+                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y – g:i A') }}
                                                 </span>
                                             </div>
 
                                         </div>
+
+                                        <div class="mt-4 flex justify-end">
+
+                                            @if ($grievance)
+                                                <a href="{{ route('citizen.grievance.view', $grievance) }}"
+                                                wire:navigate
+                                                class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">
+                                                    View
+                                                </a>
+                                            @endif
+
+                                        </div>
+
                                     </div>
                                 </div>
+
                             </div>
 
                         </div>
                     </li>
                 @endforeach
+
             </ol>
         </div>
     @empty

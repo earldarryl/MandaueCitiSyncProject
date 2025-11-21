@@ -28,7 +28,14 @@
         <div class="flex h-full w-full justify-center items-center">
             {{ $slot }}
         </div>
+
+    @elseif(Route::is('two-factor-auth'))
+        <div class="flex h-full w-full justify-center items-center">
+            {{ $slot }}
+        </div>
+
     @else
+
     <div class="flex h-full">
 
         <livewire:partials.sidebar />

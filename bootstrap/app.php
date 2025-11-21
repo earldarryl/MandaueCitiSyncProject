@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureTwoFactorVerified;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -9,7 +10,6 @@ use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\RedirectIfVerified;
 use App\Http\Middleware\SingleSession;
-
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'verified.redirect' => RedirectIfVerified::class,
             'single_session' => SingleSession::class,
+            '2fa' => EnsureTwoFactorVerified::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

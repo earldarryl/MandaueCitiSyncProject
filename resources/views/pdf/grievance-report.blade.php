@@ -40,12 +40,10 @@
             page-break-after: always;
         }
 
-        /* Ensure the last page doesn't break unnecessarily */
         .page:last-child {
             page-break-after: avoid;
         }
 
-        /* The .bg-image class is no longer needed */
         .bg-image {
             display: none;
         }
@@ -55,9 +53,7 @@
             z-index: 10;
         }
 
-        /* ... (rest of your existing styles below) ... */
 
-        /* Header fix */
         .header {
             position: relative;
             top: 40px;

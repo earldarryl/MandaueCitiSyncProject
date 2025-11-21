@@ -3,6 +3,8 @@
 namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\ActivityLog;
+use App\Models\HistoryLog;
+use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Notifications\Notification;
@@ -18,7 +20,6 @@ use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Storage;
-
 #[Layout('layouts.app')]
 #[Title('Edit Grievance')]
 class Edit extends Component implements Forms\Contracts\HasForms
@@ -288,6 +289,22 @@ class Edit extends Component implements Forms\Contracts\HasForms
                     'assigned_at'   => now(),
                     'hr_liaison_id' => $hr->id,
                 ]);
+
+                $hr->notify(new GeneralNotification(
+                    'Grievance Updated',
+                    "A grievance titled '{$this->grievance->grievance_title}' was updated and reassigned to you.",
+                    'info',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    [],
+                    true,
+                    [
+                        [
+                            'label'        => 'View Grievance',
+                            'url'          => route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ]
+                    ]
+                ));
             }
 
             ActivityLog::create([
@@ -302,12 +319,41 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 'changes'      => $this->grievance->getChanges(),
                 'status'       => 'success',
                 'ip_address'   => request()->ip(),
-                'device_info'  => request()->header('User-Agent'),
+                'device_info'  => request()->header('device') ?? request()->header('User-Agent'),
                 'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
                 'platform'     => php_uname('s'),
                 'location'     => geoip(request()->ip())?->city,
                 'timestamp'    => now(),
             ]);
+
+            HistoryLog::create([
+                'user_id'        => auth()->id(),
+                'action_type'    => 'update',
+                'description'    => "Updated grievance titled '{$this->grievance->grievance_title}'",
+                'reference_table'=> 'grievances',
+                'reference_id'   => $this->grievance->grievance_id,
+                'ip_address'     => request()->ip(),
+            ]);
+
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'Grievance Updated',
+                    "A grievance titled '{$this->grievance->grievance_title}' has been updated.",
+                    'info',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    [],
+                    true,
+                    [
+                        [
+                            'label' => 'Open in Admin Panel',
+                            'url'   => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ]
+                    ]
+                ));
+            }
 
             Notification::make()
                 ->title('Grievance Updated')

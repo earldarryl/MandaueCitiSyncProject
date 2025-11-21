@@ -188,8 +188,8 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'ip_address'  => request()->ip(),
                 'device_info' => request()->header('device') ?? null,
                 'user_agent'  => request()->userAgent(),
-                'platform'    => php_uname(),
-                'location'    => null,
+                'platform'    => php_uname('s'),
+                'location'    => geoip(request()->ip())?->city,
                 'timestamp'   => now(),
             ]);
 
@@ -230,7 +230,6 @@ class Create extends Component implements Forms\Contracts\HasForms
                         ]
                     ]
                 ));
-
 
             }
 
@@ -281,7 +280,6 @@ class Create extends Component implements Forms\Contracts\HasForms
             $this->showConfirmSubmitModal = false;
         }
     }
-
 
     public function render()
     {
