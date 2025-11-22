@@ -220,6 +220,10 @@
                             ? 'bg-green-500 dark:bg-green-700'
                             : 'bg-blue-500 dark:bg-blue-700';
                         $svgColor = 'text-white';
+
+                        $logUser = \App\Models\User::find($log->user_id);
+                        $userName = $logUser->name ?? 'Unknown User';
+                        $userRole = $logUser?->getRoleNames()->first() ?? 'N/A';
                     @endphp
 
                     <li class="mb-10 ms-5 group w-full" wire:key="log-{{ $log->id }}">
@@ -250,6 +254,12 @@
                                         <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
                                             {{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}
                                         </h3>
+
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                            <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">By:</span>
+                                            <span class="font-semibold">{{ $userName }}</span>
+                                            (<span class="italic">{{ str_replace('Hr', 'HR', strtoupper(str_replace('_', ' ',$userRole))) }}</span>)
+                                        </p>
 
                                         <div class="flex flex-col gap-2 mt-2">
 

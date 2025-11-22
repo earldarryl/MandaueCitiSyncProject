@@ -581,14 +581,14 @@
 
                             @if($filterType === 'Grievances')
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_ticket_id }}</td>
-                                <td class="px-6 py-3">{{ $item->grievance_title }}</td>
+                                <td class="px-6 py-3">{{ ucwords($item->grievance_title) }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_type ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_category ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">
                                     {{ $item->departments->pluck('department_name')->join(', ') ?? '—' }}
                                 </td>
                                 <td class="px-6 py-3 text-center">{{ $item->priority_level ?? '—' }}</td>
-                                <td class="px-6 py-3 text-center">{{ $item->grievance_status }}</td>
+                                <td class="px-6 py-3 text-center">{{ ucwords($item->grievance_status) }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->processing_days ?? '—' }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
 

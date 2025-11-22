@@ -45,6 +45,8 @@ class Index extends Component
 
     public function exportActivityLogsPDF()
     {
+        $user = Auth::user();
+
         $query = ActivityLog::query()
             ->with('user', 'role')
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
@@ -56,15 +58,20 @@ class Index extends Component
             ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
             ->latest('timestamp');
 
+        if ($user->hasRole('hr_liaison')) {
+            $query->where('user_id', $user->id);
+        }
+
         $logs = $query->get();
 
         $html = view('pdf.activity-logs-report', [
             'logs' => $logs,
-            'user' => Auth::user(),
+            'user' => $user,
             'filter' => $this->filter,
             'roleFilter' => $this->roleFilter,
             'selectedDate' => $this->selectedDate,
             'dynamicTitle' => $this->dynamicLogsTitle(),
+            'isAdmin' => $user->hasRole('admin'),
         ])->render();
 
         $pdfPath = storage_path('app/public/activity-logs-report.pdf');
@@ -82,9 +89,10 @@ class Index extends Component
         return response()->download($pdfPath, 'activity-logs-report.pdf');
     }
 
+
     public function downloadExcel()
     {
-        $query = ActivityLog::query()
+        $logs = ActivityLog::query()
             ->with('user', 'role')
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
             ->when($this->roleFilter, function ($q) {
@@ -93,12 +101,23 @@ class Index extends Component
                 elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
             })
             ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
-            ->latest('timestamp');
-
-        $logs = $query->get();
+            ->latest('timestamp')
+            ->get();
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->mergeCells('A1:I1');
+        $sheet->setCellValue('A1', $this->dynamicLogsTitle());
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A2:I2');
+        $downloadedBy = Auth::user()->name ?? 'Unknown';
+        $downloadedRole = ucwords(Auth::user()?->getRoleNames()->first()) ?? 'N/A';
+        $sheet->setCellValue('A2', "Downloaded by: {$downloadedBy} ({$downloadedRole}) | Time: " . now()->format('F j, Y – g:i A'));
+        $sheet->getStyle('A2')->getFont()->setItalic(true);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
         $sheet->fromArray([
             [
@@ -112,9 +131,9 @@ class Index extends Component
                 'Timestamp',
                 'Location',
             ]
-        ]);
+        ], null, 'A3');
 
-        $row = 2;
+        $row = 4;
 
         foreach ($logs as $log) {
             $userName = $log->user?->name ?? 'N/A';
@@ -143,7 +162,6 @@ class Index extends Component
         }
 
         $writer = new Xlsx($spreadsheet);
-
         $fileName = 'activity_logs_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
         $tempFile = storage_path($fileName);
         $writer->save($tempFile);
@@ -153,7 +171,7 @@ class Index extends Component
 
     public function downloadCsv()
     {
-        $query = ActivityLog::query()
+        $logs = ActivityLog::query()
             ->with('user', 'role')
             ->when($this->filter, fn($q) => $q->where('module', $this->filter))
             ->when($this->roleFilter, function ($q) {
@@ -162,9 +180,8 @@ class Index extends Component
                 elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
             })
             ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
-            ->latest('timestamp');
-
-        $logs = $query->get();
+            ->latest('timestamp')
+            ->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -173,6 +190,13 @@ class Index extends Component
 
         $callback = function () use ($logs) {
             $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [$this->dynamicLogsTitle()]);
+            $downloadedBy = Auth::user()->name ?? 'Unknown';
+            $downloadedRole = ucwords(Auth::user()?->getRoleNames()->first()) ?? 'N/A';
+            fputcsv($handle, ["Downloaded by: {$downloadedBy} ({$downloadedRole}) | Time: " . now()->format('F j, Y – g:i A')]);
+
+            fputcsv($handle, []);
 
             fputcsv($handle, [
                 'ID',

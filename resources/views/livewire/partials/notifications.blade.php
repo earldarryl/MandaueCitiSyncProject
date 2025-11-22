@@ -10,6 +10,8 @@
     x-transition:leave-end="translate-x-full"
     x-on:notifications-updated.window="document.querySelectorAll('[role=menu]').forEach(el => el.remove());"
     x-on:close-notification-sidebar.window="$store.notifications.open = false"
+    data-component="notifications-live"
+    data-wire-id="{{ $this->id() }}"
 >
 
     <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0 bg-gray-50 dark:bg-zinc-800">
@@ -82,7 +84,6 @@
 
     <div
         class="relative flex-1 overflow-y-auto px-4 py-3 space-y-6"
-        wire:poll.5s="loadNotifications"
     >
         @forelse ($groupedNotifications as $dateLabel => $notifications)
             <div>

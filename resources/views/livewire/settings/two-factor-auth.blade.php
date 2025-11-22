@@ -40,7 +40,7 @@
             @endif
         </div>
 
-        <div class="mt-8 bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700">
            @if (auth()->user()->two_factor_secret)
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Scan this QR code with your authenticator app:
@@ -57,7 +57,7 @@
                                 seconds: 30,
                                 refresh() {
                                     this.seconds = 30;
-                                    $wire.updateOtp(); // just triggers Livewire to update
+                                    $wire.updateOtp();
                                 }
                             }"
                             x-init="setInterval(() => {
@@ -71,7 +71,7 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
+                {{-- <div class="mt-6">
                     <div class="h-full flex items-center justify-center p-6">
                         <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -146,9 +146,9 @@
                             </form>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
-                <form method="POST" action="/user/two-factor-authentication" class="m-6">
+                <form method="POST" action="/user/two-factor-authentication" class="mx-6">
                     @csrf
                     @method('DELETE')
                     <flux:button variant="danger" type="submit" class="w-full">
