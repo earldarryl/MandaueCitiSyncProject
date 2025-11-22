@@ -101,12 +101,14 @@
                     <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }}">
                         @if($filterType === 'Grievances')
                             <td class="px-2 py-1 border text-center">{{ $item->grievance_ticket_id }}</td>
-                            <td class="px-2 py-1 border">{{ $item->grievance_title }}</td>
+                            <td class="px-2 py-1 border">{{ ucwords($item->grievance_title) }}</td>
                             <td class="px-2 py-1 border text-center">{{ $item->grievance_type ?? '—' }}</td>
                             <td class="px-2 py-1 border text-center">{{ $item->grievance_category ?? '—' }}</td>
-                            <td class="px-2 py-1 border text-center">{{ collect($item->departments)->pluck('department_name')->join(', ') ?? '—' }}</td>
+                            <td class="px-2 py-1 border text-center">
+                                {{ collect($item->departments)->join(', ') ?? '—' }}
+                            </td>
                             <td class="px-2 py-1 border text-center">{{ $item->priority_level ?? '—' }}</td>
-                            <td class="px-2 py-1 border text-center">{{ $item->grievance_status ?? '—' }}</td>
+                            <td class="px-2 py-1 border text-center">{{ ucwords($item->grievance_status) ?? '—' }}</td>
                             <td class="px-2 py-1 border text-center">{{ $item->processing_days ?? '—' }}</td>
                             <td class="px-2 py-1 border text-center">
                                 {{ \Carbon\Carbon::parse($item->created_at)->format('Y-m-d h:i A') }}

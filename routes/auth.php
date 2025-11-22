@@ -16,14 +16,13 @@ Route::get('emails/reset-password', function () {
     return view('emails.reset-password');
 });
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['redirect.auth'])->group(function () {
     Volt::route('/', 'pages.auth.login')->name('login');
     Volt::route('/admin', 'pages.auth.admin.login')->name('admin.login');
     Volt::route('/hr-liaison', 'pages.auth.hr-liaison.login')->name('hr-liaison.login');
     Volt::route('forgot-password', 'pages.auth.forgot-password')->name('password.request');
     Volt::route('reset-password/{token}', 'pages.auth.reset-password')->name('password.reset');
 });
-
 /*
 |--------------------------------------------------------------------------
 | Email Verification Routes

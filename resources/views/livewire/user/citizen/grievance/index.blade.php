@@ -627,18 +627,15 @@
 
                                     <td class="px-6 py-4 text-center">
                                         <div class="relative" x-data="{ open: false }">
-                                            <!-- Trigger button -->
                                             <button @click="open = !open"
                                                 class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                                 <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
                                             </button>
 
-                                            <!-- Dropdown menu -->
                                             <div x-show="open" @click.away="open = false" x-transition
                                                 class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
                                                 <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
-                                                    <!-- View action -->
                                                     <a
                                                         href="{{ route('citizen.grievance.view', $grievance) }}"
                                                         wire:navigate
@@ -648,7 +645,6 @@
                                                         View
                                                     </a>
 
-                                                    <!-- Edit action -->
                                                     <a
                                                         href="{{ route('citizen.grievance.edit', $grievance) }}"
                                                         wire:navigate
@@ -658,7 +654,6 @@
                                                         Edit
                                                     </a>
 
-                                                    <!-- Delete action -->
                                                     <div x-data="{ showDeleteModal: false }">
                                                         <button @click="showDeleteModal = true"
                                                             class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-500">
@@ -666,7 +661,6 @@
                                                             Delete
                                                         </button>
 
-                                                        <!-- Delete confirmation modal -->
                                                         <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
 
                                                         <div x-show="showDeleteModal" x-transition.scale

@@ -59,7 +59,7 @@
                         variant="primary"
                         color="blue"
                         type="submit"
-                        class="w-full bg-mc_primary_color dark:text-blue-500"
+                        class="w-full bg-mc_primary_color dark:text-white"
                         wire:target="confirm"
                         wire:loading.remove
                         >
@@ -83,7 +83,7 @@
 
                     <div class="text-center font-semibold text-sm text-gray-500 dark:text-gray-400">
                         Didn't receive the code?
-                        <button type="button" wire:click="updateOtp" class="text-blue-600 dark:text-blue-400 font-medium underline-none">
+                        <button type="button" wire:click="updateOtp" class="text-blue-600 dark:text-blue-500 font-medium underline-none">
                             Resend Code
                         </button>
                     </div>

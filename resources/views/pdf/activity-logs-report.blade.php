@@ -40,10 +40,10 @@
 
         .header-left {
             display: flex;
-            align-items: center;
+            align-items: end;
             gap: 12px;
             width: 30%;
-            justify-content: center;
+            justify-content: end;
             border-right: 2px solid #1F2937;
             padding-right: 12px;
         }
@@ -209,22 +209,30 @@
                         <th class="center">Executed At</th>
                         <th>Platform</th>
                         <th>Location</th>
+                        @if($isAdmin)
+                            <th>User</th>
+                            <th>Role</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
                         <tr>
-                            <td class="center">{{ $log->activiy_log_id }}</td>
+                            <td class="center">{{ $log->activity_log_id }}</td>
                             <td>{{ $log->module ?? 'N/A' }}</td>
                             <td>{{ ucwords(str_replace('_', ' ', $log->action_type)) }}</td>
                             <td>{{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}</td>
                             <td class="center">{{ \Carbon\Carbon::parse($log->timestamp ?? $log->created_at)->format('M d, Y h:i A') }}</td>
                             <td>{{ $log->platform ?? 'N/A' }}</td>
                             <td>{{ $log->location ?? 'Unknown' }}</td>
+                            @if($isAdmin)
+                                <td>{{ $log->user?->name ?? 'N/A' }}</td>
+                                <td>{{ $log->role?->name ? strtoupper(str_replace('_', ' ', $log->role->name)) : 'N/A' }}</td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="text-align:center; font-style:italic; color:#6B7280;">No activity logs found.</td>
+                            <td colspan="{{ $isAdmin ? 9 : 7 }}" style="text-align:center; font-style:italic; color:#6B7280;">No activity logs found.</td>
                         </tr>
                     @endforelse
                 </tbody>

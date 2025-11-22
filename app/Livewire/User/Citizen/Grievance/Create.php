@@ -173,7 +173,6 @@ class Create extends Component implements Forms\Contracts\HasForms
                 }
             }
 
-
             ActivityLog::create([
                 'user_id'     => auth()->id(),
                 'role_id'     => auth()->user()->roles->first()?->id ?? null,

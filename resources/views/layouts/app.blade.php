@@ -91,6 +91,7 @@
             'admin-departments-and-hr-liaisons-index': 'applyFilters',
             'admin-hr-liaisons-list-view': 'loadHrLiaisons',
             'admin-citizens-index': 'applyFilters',
+            'notifications-live': 'loadNotifications',
         };
 
         Echo.private(`App.Models.User.${userId}`).notification((notification) => {

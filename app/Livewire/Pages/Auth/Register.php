@@ -201,7 +201,11 @@ class Register extends Component
                 'civil_status' => strtolower(trim($validated['civil_status'])) === 'prefer not to say'
                     ? 'N/A'
                     : ucwords(strtolower(trim($validated['civil_status']))),
-                'barangay' => ucwords(strtolower(trim($validated['barangay']))),
+                'barangay' => preg_replace_callback(
+                        '/\b\w|(?<=-)\w/',
+                        fn($m) => strtoupper($m[0]),
+                        strtolower(trim($validated['barangay']))
+                    ),
                 'sitio' => ucwords(strtolower(trim($validated['sitio']))),
                 'birthdate' => $validated['birthdate'],
                 'age' => $this->age,

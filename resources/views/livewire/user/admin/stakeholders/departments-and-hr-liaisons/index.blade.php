@@ -1,4 +1,4 @@
-    <div class="p-6 space-y-6 relative w-full"
+    <div class="p-6 relative w-full"
          x-data="{ openCreate: false, openCreateLiaison: false }"
          data-component="admin-departments-and-hr-liaisons-index"
          data-wire-id="{{ $this->id() }}"
@@ -406,68 +406,56 @@
                                     </span>
                                 </td>
 
-                                <td class="px-6 py-4 text-center space-x-1" x-data="{ openAdd: false, openRemove: false, openEdit: false, openDelete: false }">
-                                    <a href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view', $department->department_id) }}" wire:navigate class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">View</a>
+                                <td class="px-6 py-4 text-center space-x-1" x-data="{ open: false, openAdd: false, openRemove: false, openEdit: false, openDelete: false }">
+                                    <div class="relative">
+                                        <button @click="open = !open"
+                                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                            <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
+                                        </button>
 
-                                    <button
-                                        wire:loading.attr="disabled"
-                                        wire:target="updateDepartment({{ $department->department_id }})"
-                                        @click="openEdit = true; $wire.editDepartment({{ $department->department_id }})"
-                                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100
-                                            dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/60"
-                                    >
-                                        <span wire:loading.remove wire:target="updateDepartment({{ $department->department_id }})">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 inline-block mr-1" /> Edit
-                                        </span>
-                                        <span wire:loading wire:target="updateDepartment({{ $department->department_id }})">
-                                            Processing...
-                                        </span>
-                                    </button>
+                                        <div x-show="open" @click.away="open = false" x-transition
+                                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 overflow-hidden">
 
-                                    <button
-                                        @click="openAdd = true"
-                                        class="px-3 py-1 text-xs rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100
-                                            dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
-                                        wire:loading.attr="disabled"
-                                        wire:target="saveLiaison({{ $department->department_id }})"
-                                    >
-                                        <span wire:loading.remove wire:target="saveLiaison({{ $department->department_id }})">
-                                            <x-heroicon-o-user-plus class="w-4 h-4 inline-block mr-1" /> Add
-                                        </span>
-                                        <span wire:loading wire:target="saveLiaison({{ $department->department_id }})">
-                                            Processing...
-                                        </span>
-                                    </button>
+                                            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
-                                    <button
-                                        @click="openRemove = true"
-                                        class="px-3 py-1 text-xs rounded-md border border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100
-                                            dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-600 dark:hover:bg-amber-900/60"
-                                        wire:loading.attr="disabled"
-                                        wire:target="removeLiaison({{ $department->department_id }})"
-                                    >
-                                        <span wire:loading.remove wire:target="removeLiaison({{ $department->department_id }})">
-                                            <x-heroicon-o-user-minus class="w-4 h-4 inline-block mr-1" /> Remove
-                                        </span>
-                                        <span wire:loading wire:target="removeLiaison({{ $department->department_id }})">
-                                            Processing...
-                                        </span>
-                                    </button>
+                                                <a
+                                                    href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view', $department->department_id) }}"
+                                                    wire:navigate
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
+                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500"/>
+                                                    View
+                                                </a>
 
-                                    <button
-                                        class="px-3 py-1 text-xs rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100
-                                            dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60"
-                                        @click="openDelete = true"
-                                        wire:loading.attr="disabled"
-                                        wire:target="deleteDepartment({{ $department->department_id }})"
-                                    >
-                                        <span wire:loading.remove wire:target="deleteDepartment({{ $department->department_id }})">
-                                            <x-heroicon-o-trash class="w-4 h-4 inline-block mr-1" /> Delete
-                                        </span>
-                                        <span wire:loading wire:target="deleteDepartment({{ $department->department_id }})">
-                                            Processing...
-                                        </span>
-                                    </button>
+                                                <button
+                                                    @click="open = false; openEdit = true; $wire.editDepartment({{ $department->department_id }})"
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
+                                                    <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/>
+                                                    Edit
+                                                </button>
+
+                                                <button
+                                                    @click="open = false; openAdd = true"
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-green-600">
+                                                    <x-heroicon-o-user-plus class="w-4 h-4" />
+                                                    Add HR Liaison
+                                                </button>
+
+                                                <button
+                                                    @click="open = false; openRemove = true"
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-amber-600">
+                                                    <x-heroicon-o-user-minus class="w-4 h-4" />
+                                                    Remove HR Liaison
+                                                </button>
+
+                                                <button
+                                                    @click="open = false; openDelete = true"
+                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-600">
+                                                    <x-heroicon-o-trash class="w-4 h-4"/>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div x-show="openAdd" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openAdd = false">
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">

@@ -22,15 +22,12 @@ class MiniSidebar extends Component
                 'icon' => 'bi bi-person-lines-fill',
                 'route' => 'profile',
             ],
-        ];
-
-        if (!in_array($roleName, ['citizen'])) {
-            $this->menuItems[] = [
+            [
                 'label' => 'Two Factor Authentication',
                 'icon' => 'bi bi-gear-fill',
                 'route' => 'two-factor-auth',
-            ];
-        }
+            ]
+        ];
     }
 
     public function render()
