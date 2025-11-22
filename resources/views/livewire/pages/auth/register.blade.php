@@ -44,9 +44,6 @@
                         sitio: '',
                         birthdate: '',
                         contact: '',
-                        emergency_contact_name: '',
-                        emergency_contact_number: '',
-                        emergency_relationship: '',
 
                         name: '',
                         email: '',
@@ -534,99 +531,6 @@
                                             <flux:error name="contact" />
                                         </flux:field>
 
-                                        <flux:field>
-                                            <div class="flex flex-col gap-2">
-                                                <flux:label class="flex gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color dark:text-blue-500">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                                    </svg>
-                                                    <span>Emergency Contact Person</span>
-                                                </flux:label>
-
-                                                <flux:description>The person to contact if you cannot be reached</flux:description>
-
-                                                <flux:input.group>
-                                                    <flux:input wire:model="emergency_contact_name" x-model="emergency_contact_name" id="emergency_contact_name" type="text" name="emergency_contact_name"
-                                                            autocomplete="emergency_contact_name" placeholder="Enter your emergency contact name" clearable />
-                                                </flux:input.group>
-                                            </div>
-
-                                            <flux:error name="emergency_contact_name" />
-                                        </flux:field>
-
-                                        <flux:field>
-                                            <div class="flex flex-col gap-2">
-                                                <flux:label class="flex gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color dark:text-blue-500">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                                                    </svg>
-                                                    <span>Relationship</span>
-                                                </flux:label>
-
-                                                <flux:description>How is this person related to you? (e.g. Parent, Spouse, Friend)</flux:description>
-
-                                                <flux:input.group>
-                                                    <flux:input wire:model="emergency_relationship" x-model="emergency_relationship" id="emergency_relationship" type="text" name="emergency_relationship"
-                                                            autocomplete="emergency_relationship" clearable />
-                                                </flux:input.group>
-                                            </div>
-
-                                            <flux:error name="emergency_relationship" />
-                                        </flux:field>
-
-                                        <flux:field>
-                                            <div class="flex flex-col gap-2">
-                                                <flux:label class="flex gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-mc_primary_color dark:text-blue-500">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                                    </svg>
-                                                    <span>Emergency Contact Number</span>
-                                                </flux:label>
-
-                                                <flux:description>Contact number of your emergency contact (e.g. 917-456-7890)</flux:description>
-
-                                                <flux:input.group
-                                                    x-data="{
-                                                        formatPhone(event) {
-                                                            let value = event.target.value.replace(/\D/g, '');
-                                                            if (value.length > 10) value = value.slice(0, 10);
-                                                            if (value.length > 6)
-                                                                event.target.value = `${value.slice(0,3)}-${value.slice(3,6)}-${value.slice(6,10)}`;
-                                                            else if (value.length > 3)
-                                                                event.target.value = `${value.slice(0,3)}-${value.slice(3,6)}`;
-                                                            else event.target.value = value;
-                                                        }
-                                                    }"
-                                                >
-
-                                                    <flux:input.group.prefix class="flex gap-2 justify-center items-center">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 72 72">
-                                                                <path fill="#1e50a0" d="M5 17h62v38H5z" />
-                                                                <path fill="#d22f27" d="M5 36h62v19H5z" />
-                                                                <path fill="#fff" d="M37 36L5 55V17z" />
-                                                            </svg>
-                                                            <span>+63</span>
-                                                        </flux:input.group.prefix>
-
-                                                        <flux:input
-                                                            wire:model="emergency_contact_number"
-                                                            x-model="emergency_contact_number"
-                                                            id="emergency_contact_number"
-                                                            type="text"
-                                                            name="emergency_contact_number"
-                                                            maxlength="12"
-                                                            inputmode="numeric"
-                                                            placeholder="917-456-7890"
-                                                            autocomplete="tel"
-                                                            x-on:input="formatPhone($event)"
-                                                            clearable
-                                                        />
-                                                </flux:input.group>
-                                            </div>
-
-                                            <flux:error name="emergency_contact_number" />
-                                        </flux:field>
-
                                     </div>
 
                                     <!-- Page 2 -->
@@ -791,25 +695,6 @@
                                                 </div>
                                             </div>
 
-                                            <div class="bg-white dark:bg-zinc-900 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                <div class="flex gap-2 justify-start bg-blue-500 px-5 py-4">
-                                                    <x-heroicon-o-users class="w-6 h-6 text-white"/>
-                                                    <h2 class="text-lg font-semibold text-white uppercase tracking-wide">Emergency Contact Information</h2>
-                                                </div>
-
-                                                <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                                                    <template x-for="(value, label) in {
-                                                        'Emergency Contact Name': emergency_contact_name,
-                                                        'Relationship': emergency_relationship,
-                                                        'Emergency Contact Number': emergency_contact_number ? `+63${emergency_contact_number}` : '—'
-                                                    }" :key="label">
-                                                        <div class="grid grid-cols-2 px-4 py-2">
-                                                            <div class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="label"></div>
-                                                            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="value || '—'"></div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <flux:field

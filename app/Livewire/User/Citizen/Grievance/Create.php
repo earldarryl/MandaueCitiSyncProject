@@ -143,7 +143,7 @@ class Create extends Component implements Forms\Contracts\HasForms
             $processingDays = match ($this->priority_level) {
                 'High'   => 3,
                 'Normal' => 7,
-                'Low'    => 15,
+                'Low'    => 20,
                 default  => 7,
             };
 
@@ -188,7 +188,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'device_info' => request()->header('device') ?? null,
                 'user_agent'  => request()->userAgent(),
                 'platform'    => php_uname('s'),
-                'location'    => geoip(request()->ip())?->city,
+                'location'    => null,
                 'timestamp'   => now(),
             ]);
 

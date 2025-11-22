@@ -30,6 +30,7 @@ class Profile extends Component implements HasSchemas
     public string $email = '';
     public string $current_password = '';
     public string $password = '';
+    public ?string $contact = null;
     public string $delete_password = '';
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
@@ -40,12 +41,6 @@ class Profile extends Component implements HasSchemas
     public string $originalName = '';
     public string $originalEmail = '';
     public $authUser;
-
-    public ?string $contact = null;
-    public ?string $emergency_contact_name = null;
-    public ?string $emergency_contact_number = null;
-    public ?string $sitio = null;
-
     protected $listeners = ['reset-form' => 'resetForm'];
 
     public function resetForm(): void
@@ -61,11 +56,7 @@ class Profile extends Component implements HasSchemas
 
         $this->name  = $this->originalName;
         $this->email = $this->originalEmail;
-
         $this->contact = $this->contact ?? '';
-        $this->emergency_contact_name = $this->emergency_contact_name ?? '';
-        $this->emergency_contact_number = $this->emergency_contact_number ?? '';
-        $this->sitio = $this->sitio ?? '';
 
         $this->form->fill([
             'profile_pic' => $user->profile_pic,
@@ -85,9 +76,6 @@ class Profile extends Component implements HasSchemas
             'name'  => $this->name !== $this->originalName,
             'email' => $this->email !== $this->originalEmail,
             'contact' => $this->contact !== $this->formatPhoneForDisplay($this->authUser->contact ?? ''),
-            'emergency_contact_name' => $this->emergency_contact_name !== ($this->authUser->userInfo->emergency_contact_name ?? ''),
-            'emergency_contact_number' => $this->emergency_contact_number !== $this->formatPhoneForDisplay($this->authUser->userInfo->emergency_contact_number ?? ''),
-            'sitio' => $this->sitio !== ($this->authUser->userInfo->sitio ?? ''),
             default => false,
         };
     }
@@ -149,21 +137,9 @@ class Profile extends Component implements HasSchemas
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
-        if ($user->hasRole('citizen') && $user->userInfo) {
-            $rawContact = $user->contact ?? '';
-            $rawEmergency = $user->userInfo->emergency_contact_number ?? '';
+        $rawContact = $user->contact ?? '';
+        $this->contact = $this->formatPhoneForDisplay($rawContact);
 
-            $this->contact = $this->formatPhoneForDisplay($rawContact);
-            $this->emergency_contact_number = $this->formatPhoneForDisplay($rawEmergency);
-
-            $this->emergency_contact_name = $user->userInfo->emergency_contact_name ?? '';
-            $this->sitio = $user->userInfo->sitio ?? '';
-        } else {
-            $this->contact = '';
-            $this->emergency_contact_name = '';
-            $this->emergency_contact_number = '';
-            $this->sitio = '';
-        }
     }
 
     public function form(Schema $schema): Schema
@@ -227,15 +203,7 @@ class Profile extends Component implements HasSchemas
         $fieldsChanged =
             $this->isClean('name') &&
             $this->isClean('email') &&
-            $this->isClean('contact') &&
-            (
-                !$user->hasRole('citizen') ||
-                !$userInfo || (
-                    $this->isClean('emergency_contact_name') &&
-                    $this->isClean('emergency_contact_number') &&
-                    $this->isClean('sitio')
-                )
-            );
+            $this->isClean('contact');
 
         if ($fieldsChanged) {
             Notification::make()
@@ -261,16 +229,7 @@ class Profile extends Component implements HasSchemas
         $validatedUser['contact'] = $this->sanitizePhoneForSaving($this->contact);
 
         if ($user->hasRole('citizen')) {
-
-            $validatedUserInfo = $this->validate([
-                'emergency_contact_number' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
-                'emergency_contact_name'   => ['nullable', 'string', 'max:255'],
-                'sitio'                    => ['nullable', 'string', 'max:255'],
-            ]);
-
             $validatedUserInfo['phone_number'] = $validatedUser['contact'];
-            $validatedUserInfo['emergency_contact_number'] =
-                $this->sanitizePhoneForSaving($this->emergency_contact_number);
         }
 
         if ($user->email !== $validatedUser['email']) {

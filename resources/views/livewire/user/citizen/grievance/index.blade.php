@@ -187,17 +187,10 @@
             </div> --}}
 
             <div
-                x-data="{
+                 x-data="{
                     filterDepartment: '',
                     filterType: '',
-                    categoriesMap: @js($categoryOptions),
-
-                    get categoryOptions() {
-                        if (this.filterDepartment && this.filterType) {
-                            return this.categoriesMap[this.filterDepartment]?.[this.filterType] || [];
-                        }
-                        return [];
-                    },
+                    categoryOptions: @js($categoryOptions),
                 }"
                 class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
             >
@@ -557,28 +550,13 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
-                                            {{ match($grievance->grievance_category) {
-                                                'Category A' => 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-600',
-                                                'Category B' => 'bg-green-50 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-200 dark:border-green-600',
-                                                default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
-                                            } }}">
-                                            {{ $grievance->grievance_category ?? '—' }}
-                                        </span>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-800 dark:text-gray-100 text-center">
+                                        {{ $grievance->grievance_category ?? '—' }}
                                     </td>
 
-                                    <td class="px-6 py-4 text-center">
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-800 dark:text-gray-100 text-center">
                                         @forelse ($grievance->departments->unique('department_id') as $department)
-                                            <span
-                                                class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
-                                                    border border-blue-400 dark:border-blue-600
-                                                    text-blue-700 dark:text-blue-300 font-medium text-xs
-                                                    px-3 py-1.5 rounded-full shadow-sm
-                                                    hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
-                                            >
                                                 {{ $department->department_name }}
-                                            </span>
                                         @empty
                                             <span class="text-gray-500 dark:text-gray-400 text-sm">—</span>
                                         @endforelse
@@ -626,14 +604,14 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
-                                        <div class="relative" x-data="{ open: false }">
+                                        <div x-data="{ open: false }">
                                             <button @click="open = !open"
                                                 class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                                 <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
                                             </button>
 
                                             <div x-show="open" @click.away="open = false" x-transition
-                                                class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                                class="absolute right-10 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
                                                 <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
                                                     <a
