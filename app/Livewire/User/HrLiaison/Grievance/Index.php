@@ -94,7 +94,6 @@ class Index extends Component
 
         $currentHrLiaison = auth()->user();
 
-        // Get the department names the HR liaison belongs to
         $liaisonDepartments = $currentHrLiaison->departments->pluck('department_name')->toArray();
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
@@ -102,7 +101,6 @@ class Index extends Component
             ->pluck('department_name', 'department_name')
             ->toArray();
 
-        // Original category options
         $allCategoryOptions = [
             'Business Permit and Licensing Office' => [
                 'Complaint' => [
