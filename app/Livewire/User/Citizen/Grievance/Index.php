@@ -4,6 +4,8 @@ namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\Department;
 use App\Models\Grievance;
+use App\Models\EditRequest;
+use App\Models\User;
 use App\Notifications\GeneralNotification;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -105,6 +107,99 @@ class Index extends Component
             $this->categoryOptions[$category] = $category;
         }
 
+    }
+
+    public function requestEditPermission($grievanceId)
+    {
+        $grievance = Grievance::findOrFail($grievanceId);
+        $user = auth()->user();
+
+        // Check for existing pending request
+        $existing = EditRequest::where('grievance_id', $grievance->grievance_id)
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existing) {
+            Notification::make()
+                ->title('Request Pending')
+                ->body('You already have a pending edit request for this grievance.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $editRequest = EditRequest::create([
+            'grievance_id' => $grievance->grievance_id,
+            'user_id'      => $user->id,
+            'status'       => 'pending',
+            'reason'       => 'User requested edit permission.',
+        ]);
+
+        $assignedHrIds = $grievance->assignments->pluck('hr_liaison_id')->unique();
+
+        $hrLiaisons = User::whereIn('id', $assignedHrIds)->get();
+
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'Edit Request Pending',
+                "User {$user->name} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                'info',
+                [
+                    'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                    'edit_request_id'    => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'Review Request',
+                        'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                        'open_new_tab' => true,
+                    ],
+                    [
+                        'label' => 'Approve',
+                        'action' => 'approveEditRequest',
+                        'color'  => 'green',
+                        'icon'   => 'heroicon-o-check',
+                    ],
+                    [
+                        'label' => 'Deny',
+                        'action' => 'denyEditRequest',
+                        'color'  => 'red',
+                        'icon'   => 'heroicon-o-x-mark',
+                    ]
+                ]
+            ));
+        }
+
+        $admins = User::role('admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Edit Request Submitted',
+                "User {$user->name} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                'warning',
+                [
+                    'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                    'edit_request_id' => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'Review Request',
+                        'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
+                        'open_new_tab' => true,
+                    ]
+                ]
+            ));
+        }
+
+        Notification::make()
+            ->title('Request Sent')
+            ->body('Your edit request has been sent to the assigned HR Liaisons and Admin.')
+            ->success()
+            ->send();
     }
 
     public function closeFeedbackModal()

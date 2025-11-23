@@ -17,11 +17,9 @@ Artisan::command('activitylogs:clear-old', function () {
     Log::info('Activity logs table cleared automatically on schedule.');
 })->describe('Clear all activity logs monthly');
 
-// --- New Command: Mark Grievances Overdue ---
 Artisan::command('grievances:mark-overdue', function () {
     $now = Carbon::now();
 
-    // Only check active grievances
     $activeStatuses = ['pending', 'acknowledged', 'in_progress', 'escalated'];
 
     $grievances = Grievance::whereIn('grievance_status', $activeStatuses)

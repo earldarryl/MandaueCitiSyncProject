@@ -5,6 +5,8 @@ namespace App\Livewire\User\HrLiaison\Grievance;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Grievance;
+use App\Models\EditRequest;
+use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -20,6 +22,7 @@ class View extends Component
     public $priorityUpdate;
     public $category;
     public $departmentOptions;
+    public $editRequests;
 
     public function mount(Grievance $grievance)
     {
@@ -32,6 +35,10 @@ class View extends Component
         if (!$isAssigned) {
             abort(403, 'You are not authorized to view this grievance.');
         }
+
+        $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
+                                ->where('status', 'pending')
+                                ->get();
 
         $excludedDepartmentIds = $user->departments->pluck('department_id');
 
@@ -219,6 +226,82 @@ class View extends Component
         $this->dispatch('update-success-modal');
 
         $this->grievance->refresh();
+    }
+
+    public function approveEditRequest($editRequestId)
+    {
+        $editRequest = EditRequest::findOrFail($editRequestId);
+        $editRequest->update(['status' => 'approved']);
+
+        $user = $editRequest->user;
+        $grievance = $editRequest->grievance;
+
+        $user->notify(new GeneralNotification(
+            'Edit Request Approved',
+            "Your request to edit grievance '{$grievance->grievance_title}' has been approved.",
+            'success',
+            [
+                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'edit_request_id'     => $editRequest->id
+            ],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Grievance',
+                    'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                    'open_new_tab' => true,
+                ]
+            ]
+        ));
+
+        $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
+                                        ->where('status', 'pending')
+                                        ->get();
+
+        Notification::make()
+            ->title('Edit Request Approved')
+            ->body("You approved the edit request for '{$grievance->grievance_title}'.")
+            ->success()
+            ->send();
+    }
+
+    public function denyEditRequest($editRequestId)
+    {
+        $editRequest = EditRequest::findOrFail($editRequestId);
+        $editRequest->update(['status' => 'denied']);
+
+        $user = $editRequest->user;
+        $grievance = $editRequest->grievance;
+
+        $user->notify(new GeneralNotification(
+            'Edit Request Denied',
+            "Your request to edit grievance '{$grievance->grievance_title}' has been denied.",
+            'danger',
+            [
+                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'edit_request_id'     => $editRequest->id
+            ],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Grievance',
+                    'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                    'open_new_tab' => true,
+                ]
+            ]
+        ));
+
+        $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
+                                        ->where('status', 'pending')
+                                        ->get();
+
+        Notification::make()
+            ->title('Edit Request Denied')
+            ->body("You denied the edit request for '{$grievance->grievance_title}'.")
+            ->warning()
+            ->send();
     }
 
     public function render()

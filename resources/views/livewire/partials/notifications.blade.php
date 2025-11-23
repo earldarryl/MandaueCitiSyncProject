@@ -151,37 +151,51 @@
                                                 @endif
 
                                                 @if(!empty($notification['actions']))
-                                                    <div class="px-2 py-1">
-                                                        <button @click="showActions = !showActions" class="w-full text-left text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex justify-between items-center">
+                                                    <div x-data="{ showActions: false }" class="px-2 py-1 relative">
+                                                        <button @click="showActions = !showActions"
+                                                                class="w-full text-left text-sm font-medium px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex justify-between items-center">
                                                             Actions
-                                                            <svg :class="{ 'rotate-180': showActions }" class="h-4 w-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg :class="{ 'rotate-180': showActions }"
+                                                                class="h-4 w-4 transform transition-transform"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                             </svg>
                                                         </button>
 
-                                                        <div x-show="showActions" x-transition class="mt-1 space-y-1">
+                                                        <div x-show="showActions" @click.away="showActions = false" x-transition
+                                                            class="absolute right-0 mt-1 w-full bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 space-y-1">
+
                                                             @foreach($notification['actions'] as $action)
-                                                                <button
-                                                                    class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
-                                                                    wire:click="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
-                                                                    wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
-                                                                    wire:loading.attr="disabled"
-                                                                    style="color: {{ $action['color'] ?? 'inherit' }}"
-                                                                >
-                                                                    <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
-
-                                                                    <span wire:loading.remove wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')">
-                                                                        {{ $action['label'] }}
-                                                                    </span>
-
-                                                                    <span wire:loading wire:target="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')">
-                                                                        Processing...
-                                                                    </span>
-                                                                </button>
+                                                                @if(isset($action['action']))
+                                                                    <button
+                                                                        class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
+                                                                        wire:click="{{ $action['action'] }}('{{ $notification['extra']['edit_request_id'] ?? '' }}')"
+                                                                        wire:loading.attr="disabled"
+                                                                        style="color: {{ $action['color'] ?? 'inherit' }}"
+                                                                    >
+                                                                        <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
+                                                                        <span wire:loading.remove wire:target="{{ $action['action'] ?? '' }}">
+                                                                            {{ $action['label'] }}
+                                                                        </span>
+                                                                        <span wire:loading wire:target="{{ $action['action'] ?? '' }}">
+                                                                            Processing...
+                                                                        </span>
+                                                                    </button>
+                                                                @elseif(isset($action['url']))
+                                                                    <button
+                                                                        class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
+                                                                        @click="window.open('{{ $action['url'] }}', '{{ $action['open_new_tab'] ?? false ? '_blank' : '_self' }}')"
+                                                                        style="color: {{ $action['color'] ?? 'inherit' }}"
+                                                                    >
+                                                                        <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
+                                                                        <span>{{ $action['label'] }}</span>
+                                                                    </button>
+                                                                @endif
                                                             @endforeach
                                                         </div>
                                                     </div>
                                                 @endif
+
 
                                                 <button
                                                     wire:click="deleteNotification('{{ $notification['id'] }}')"

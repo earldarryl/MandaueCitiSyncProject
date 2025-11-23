@@ -95,4 +95,9 @@ class Grievance extends Model
         return $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null;
     }
 
+    public function editRequests()
+    {
+        return $this->hasMany(EditRequest::class, 'grievance_id', 'grievance_id');
+    }
+
 }
