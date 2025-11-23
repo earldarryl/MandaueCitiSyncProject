@@ -22,8 +22,6 @@ class View extends Component
     public $priorityUpdate;
     public $category;
     public $departmentOptions;
-    public $editRequests;
-
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -37,8 +35,9 @@ class View extends Component
         }
 
         $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
-                                ->where('status', 'pending')
+                                ->orderBy('created_at', 'desc')
                                 ->get();
+
 
         $excludedDepartmentIds = $user->departments->pluck('department_id');
 
@@ -76,7 +75,16 @@ class View extends Component
 
     public function refreshGrievance()
     {
+        $this->dispatch('$refresh');
         $this->grievance->refresh();
+
+    }
+
+    public function getEditRequestsProperty()
+    {
+        return EditRequest::where('grievance_id', $this->grievance->grievance_id)
+                        ->where('status', 'pending')
+                        ->get();
     }
 
     public function reroute()
@@ -249,7 +257,7 @@ class View extends Component
             [
                 [
                     'label' => 'View Grievance',
-                    'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
                     'open_new_tab' => true,
                 ]
             ]
@@ -287,7 +295,7 @@ class View extends Component
             [
                 [
                     'label' => 'View Grievance',
-                    'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
                     'open_new_tab' => true,
                 ]
             ]

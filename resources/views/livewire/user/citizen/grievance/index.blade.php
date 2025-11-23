@@ -636,7 +636,7 @@
                                                     @endphp
 
                                                     @if ($hasPermission)
-                                                        <a href="{{ route('citizen.grievance.edit', $grievance) }}"
+                                                        <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
                                                         class="px-4 py-2 flex hover:bg-gray-100 dark:hover:bg-zinc-800 items-center gap-2 text-sm font-medium">
                                                             <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/> Edit
                                                         </a>

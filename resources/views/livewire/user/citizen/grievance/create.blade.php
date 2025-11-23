@@ -397,144 +397,142 @@
                     </flux:field>
 
                     <flux:field x-show="grievanceType" x-cloak>
-    <div
-        class="flex flex-col gap-2"
-        x-data="{
-            open: false,
-            search: '',
-            selectedCategory: grievanceCategory,  // value shown in main input
-            grievanceCategoryInput: '',           // typing state for 'Other'
+                        <div
+                            class="flex flex-col gap-2"
+                            x-data="{
+                                open: false,
+                                search: '',
+                                selectedCategory: grievanceCategory,
+                                grievanceCategoryInput: '',
 
-            confirmOther() {
-                if (this.grievanceCategoryInput.trim() === '') return;
-                this.selectedCategory = this.grievanceCategoryInput;          // update main display
-                $wire.set('grievance_category', this.grievanceCategoryInput, true); // update Livewire
-                this.open = false;
-                this.search = '';
-            }
-        }"
-        x-init="selectedCategory = grievanceCategory"
-    >
-
-        <!-- Label -->
-        <flux:label class="flex gap-2 items-center">
-            <flux:icon.list-bullet />
-            <span>Grievance Category</span>
-        </flux:label>
-
-        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-            Choose a category based on the selected department and grievance type.
-        </h3>
-
-        <div class="relative !cursor-pointer">
-
-            <!-- MAIN READONLY INPUT -->
-            <flux:input
-                name="grievance_category"
-                readonly
-                x-bind:value="selectedCategory"
-                placeholder="Select grievance category"
-                @click="open = !open"
-                class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-            />
-
-            <!-- DROPDOWN -->
-            <div
-                x-show="open"
-                @click.outside="open = false; search=''; grievanceCategoryInput='';"
-                x-transition
-                class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-            >
-
-                <!-- Search -->
-                <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
-                    <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                    <input
-                        type="text"
-                        x-model="search"
-                        placeholder="Search..."
-                        class="w-full border-none focus:outline-none bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
-                    />
-                </div>
-
-                <!-- CATEGORY OPTIONS -->
-                <ul class="py-1">
-                    <template
-                        x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))"
-                        :key="opt"
-                    >
-                        <li>
-                            <button
-                                type="button"
-                                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                x-text="opt"
-                                @click="
-                                    if (opt === 'Other') {
-                                        selectedCategory = '';       // main input shows blank
-                                        grievanceCategoryInput = '';  // start typing empty
-                                        open = true;
-                                        $nextTick(() => {
-                                            $refs.otherBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                            $refs.otherInput.focus();
-                                        });
-                                    } else {
-                                        selectedCategory = opt;
-                                        $wire.set('grievance_category', opt, true);
-                                        open = false;
-                                        search = '';
-                                    }
-                                "
-                            ></button>
-                        </li>
-                    </template>
-
-                    <li
-                        x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
-                        class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        No results found
-                    </li>
-                </ul>
-
-                <!-- OTHER INPUT -->
-                <div
-                    x-show="selectedCategory === '' && categoryOptions.includes('Other') && open"
-                    x-transition
-                    x-ref="otherBox"
-                    class="p-3 border-t border-gray-300 dark:border-zinc-700"
-                >
-                    <flux:label>Specify Other Category</flux:label>
-
-                    <div class="flex gap-2 mt-1">
-                        <flux:input
-                            type="text"
-                            placeholder="Enter category"
-                            x-ref="otherInput"
-                            x-model="grievanceCategoryInput"
-                            @keydown.enter.prevent="confirmOther()"
-                            class="flex-1"
-                        />
-
-                        <flux:button
-                            @click="confirmOther()"
-                            size="sm"
-                            variant="primary"
+                                confirmOther() {
+                                    if (this.grievanceCategoryInput.trim() === '') return;
+                                    this.selectedCategory = this.grievanceCategoryInput;
+                                    $wire.set('grievance_category', this.grievanceCategoryInput, true);
+                                    this.open = false;
+                                    this.search = '';
+                                }
+                            }"
+                            x-init="selectedCategory = grievanceCategory"
                         >
-                            Select
-                        </flux:button>
-                    </div>
 
-                    <flux:error name="grievance_category" />
-                </div>
+                            <!-- Label -->
+                            <flux:label class="flex gap-2 items-center">
+                                <flux:icon.list-bullet />
+                                <span>Grievance Category</span>
+                            </flux:label>
 
-            </div>
-        </div>
-    </div>
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                                Choose a category based on the selected department and grievance type.
+                            </h3>
 
-    <flux:error name="grievance_category" />
-</flux:field>
+                            <div class="relative !cursor-pointer">
 
+                                <!-- MAIN READONLY INPUT -->
+                                <flux:input
+                                    name="grievance_category"
+                                    readonly
+                                    x-bind:value="selectedCategory"
+                                    placeholder="Select grievance category"
+                                    @click="open = !open"
+                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                />
 
+                                <!-- DROPDOWN -->
+                                <div
+                                    x-show="open"
+                                    @click.outside="open = false; search=''; grievanceCategoryInput='';"
+                                    x-transition
+                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
+                                >
+
+                                    <!-- Search -->
+                                    <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
+                                        <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
+                                        <input
+                                            type="text"
+                                            x-model="search"
+                                            placeholder="Search..."
+                                            class="w-full border-none focus:outline-none bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+                                        />
+                                    </div>
+
+                                    <!-- CATEGORY OPTIONS -->
+                                    <ul class="py-1">
+                                        <template
+                                            x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))"
+                                            :key="opt"
+                                        >
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                                    x-text="opt"
+                                                    @click="
+                                                        if (opt === 'Other') {
+                                                            selectedCategory = '';       // main input shows blank
+                                                            grievanceCategoryInput = '';  // start typing empty
+                                                            open = true;
+                                                            $nextTick(() => {
+                                                                $refs.otherBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                                $refs.otherInput.focus();
+                                                            });
+                                                        } else {
+                                                            selectedCategory = opt;
+                                                            $wire.set('grievance_category', opt, true);
+                                                            open = false;
+                                                            search = '';
+                                                        }
+                                                    "
+                                                ></button>
+                                            </li>
+                                        </template>
+
+                                        <li
+                                            x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+                                        >
+                                            No results found
+                                        </li>
+                                    </ul>
+
+                                    <!-- OTHER INPUT -->
+                                    <div
+                                        x-show="selectedCategory === '' && categoryOptions.includes('Other') && open"
+                                        x-transition
+                                        x-ref="otherBox"
+                                        class="p-3 border-t border-gray-300 dark:border-zinc-700"
+                                    >
+                                        <flux:label>Specify Other Category</flux:label>
+
+                                        <div class="flex gap-2 mt-1">
+                                            <flux:input
+                                                type="text"
+                                                placeholder="Enter category"
+                                                x-ref="otherInput"
+                                                x-model="grievanceCategoryInput"
+                                                @keydown.enter.prevent="confirmOther()"
+                                                class="flex-1"
+                                            />
+
+                                            <flux:button
+                                                @click="confirmOther()"
+                                                size="sm"
+                                                variant="primary"
+                                            >
+                                                Select
+                                            </flux:button>
+                                        </div>
+
+                                        <flux:error name="grievance_category" />
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <flux:error name="grievance_category" />
+                    </flux:field>
 
                 </div>
 

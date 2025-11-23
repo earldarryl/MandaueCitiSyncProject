@@ -54,14 +54,13 @@
                                 @endphp
 
                                 <img
-                                    src="{{ $user->profile_pic
+                                    src="{{ $user->profile_pic && !str_starts_with($user->profile_pic, '/storage/')
                                         ? Storage::url($user->profile_pic)
-                                        : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) .
-                                        '&background=' . $bgColor .
-                                        '&color=fff&size=128' }}"
+                                        : $user->profile_pic ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=' . $bgColor . '&color=fff&size=128' }}"
                                     alt="profile-pic"
                                     class="rounded-full w-full h-full object-cover"
                                 />
+
 
                                 <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ring-1 ring-white {{ $statusDotColor }}"></span>
 
