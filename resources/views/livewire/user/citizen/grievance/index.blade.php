@@ -623,18 +623,42 @@
                                                         View
                                                     </a>
 
-                                                    <a
-                                                        href="{{ route('citizen.grievance.edit', $grievance) }}"
-                                                        wire:navigate
-                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium"
-                                                    >
-                                                        <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/>
-                                                        Edit
-                                                    </a>
+                                                    @php
+                                                        $hasPermission = $grievance->editRequests()
+                                                            ->where('user_id', auth()->id())
+                                                            ->where('status', 'approved')
+                                                            ->exists();
+
+                                                        $pending = $grievance->editRequests()
+                                                            ->where('user_id', auth()->id())
+                                                            ->where('status', 'pending')
+                                                            ->exists();
+                                                    @endphp
+
+                                                    @if ($hasPermission)
+                                                        <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
+                                                        class="px-4 py-2 flex hover:bg-gray-100 dark:hover:bg-zinc-800 items-center gap-2 text-sm font-medium">
+                                                            <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/> Edit
+                                                        </a>
+                                                    @elseif ($pending)
+                                                        <span class="px-4 py-2 text-green-500 text-[12px] flex items-center gap-2 select-none">
+                                                            Request Pending...
+                                                            <span class="flex space-x-1">
+                                                                <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-0"></span>
+                                                                <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-150"></span>
+                                                                <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-300"></span>
+                                                            </span>
+                                                        </span>
+                                                    @else
+                                                        <button wire:click="requestEditPermission({{ $grievance->grievance_id }})"
+                                                            class="px-4 py-2 w-full hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-[10px]">
+                                                            <x-heroicon-o-lock-open class="w-4 h-4 text-green-500"/> Request Edit Permission
+                                                        </button>
+                                                    @endif
 
                                                     <div x-data="{ showDeleteModal: false }">
                                                         <button @click="showDeleteModal = true"
-                                                            class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-500">
+                                                            class="px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-500">
                                                             <x-heroicon-o-trash class="w-4 h-4"/>
                                                             Delete
                                                         </button>

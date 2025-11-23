@@ -30,12 +30,6 @@ class MarkOverdueGrievances extends Command
         ->whereNotNull('processing_days')
         ->get();
 
-    dd([
-        'processing_days' => $grievances->pluck('processing_days', 'grievance_ticket_id'),
-        'created_at' => $grievances->pluck('created_at', 'grievance_ticket_id'),
-        'now' => $now,
-    ]);
-
     $updatedCount = 0;
 
     foreach ($grievances as $grievance) {

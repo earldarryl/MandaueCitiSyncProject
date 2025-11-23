@@ -61,6 +61,66 @@
 
     </div>
 
+    @if($this->editRequests->isNotEmpty())
+        <div class="mt-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300">Pending Edit Requests</h3>
+
+            @foreach($this->editRequests as $request)
+                <div class="p-4 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 flex flex-col gap-2">
+                    <div class="text-sm text-gray-800 dark:text-gray-200">
+                        <span class="font-bold">{{ $request->user->name }}</span>
+                        requested to edit this grievance.
+                    </div>
+
+                    <div class="flex gap-2 mt-2 items-center">
+
+                        @if($request->status === 'pending')
+                            <button
+                                wire:click="approveEditRequest({{ $request->id }})"
+                                wire:loading.attr="disabled"
+                                wire:target="approveEditRequest({{ $request->id }})"
+                                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                                    border border-green-500 dark:border-green-400
+                                    hover:bg-green-200 dark:hover:bg-green-800/50
+                                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                                    transition-all duration-200"
+                            >
+                                <x-heroicon-o-check class="w-5 h-5" />
+                                <span wire:loading.remove wire:target="approveEditRequest({{ $request->id }})">Approve</span>
+
+                                <span wire:loading wire:target="approveEditRequest({{ $request->id }})">
+                                    Processing...
+                                </span>
+                            </button>
+                        @endif
+
+                        <button
+                            wire:click="denyEditRequest({{ $request->id }})"
+                            wire:loading.attr="disabled"
+                            wire:target="denyEditRequest({{ $request->id }})"
+                            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                                bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                                border border-red-500 dark:border-red-400
+                                hover:bg-red-200 dark:hover:bg-red-800/50
+                                focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                                transition-all duration-200"
+                        >
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                            <span wire:loading.remove wire:target="denyEditRequest({{ $request->id }})">Deny</span>
+
+                            <span wire:loading wire:target="denyEditRequest({{ $request->id }})">
+                                Processing...
+                            </span>
+                        </button>
+
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+
     <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 dark:border-zinc-800">
             <div class="flex flex-col gap-2">

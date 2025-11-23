@@ -149,7 +149,7 @@ class Profile extends Component implements HasSchemas
                 FileUpload::make('profile_pic')
                     ->avatar()
                     ->disk('public')
-                    ->directory('profile_pics')
+                    ->directory('avatars')
                     ->image()
                     ->imageEditor()
                     ->maxSize(2048)
@@ -157,6 +157,7 @@ class Profile extends Component implements HasSchemas
             ])
             ->statePath('data');
     }
+
 
     public function saveProfilePic(): void
     {

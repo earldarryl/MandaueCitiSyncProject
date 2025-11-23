@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Partials;
 
+use App\Models\EditRequest;
 use App\Models\Grievance;
 use App\Notifications\GeneralNotification;
 use Livewire\Attributes\On;
@@ -80,12 +81,11 @@ class Notifications extends Component
                     'created_at' => $n->created_at?->toDateTimeString(),
                     'diff' => $n->created_at?->diffForHumans(),
                     'actions' => $n->data['actions'] ?? [],
+                    'extra' => $n->data['extra'] ?? [],
                 ];
-
             })->values()->toArray();
         })->toArray();
     }
-
 
     private function updateCounts(): void
     {
@@ -219,6 +219,35 @@ class Notifications extends Component
 
         $this->loadNotifications();
     }
+
+    public function approveEditRequest($editRequestId)
+    {
+        $editRequest = EditRequest::findOrFail($editRequestId);
+        $editRequest->update(['status' => 'approved']);
+
+        $editRequest->user->notify(new GeneralNotification(
+            'Edit Request Approved',
+            "Your request to edit '{$editRequest->grievance->grievance_title}' has been approved.",
+            'success'
+        ));
+
+        $this->loadNotifications();
+    }
+
+    public function denyEditRequest($editRequestId)
+    {
+        $editRequest = EditRequest::findOrFail($editRequestId);
+        $editRequest->update(['status' => 'denied']);
+
+        $editRequest->user->notify(new GeneralNotification(
+            'Edit Request Denied',
+            "Your request to edit '{$editRequest->grievance->grievance_title}' has been denied.",
+            'danger'
+        ));
+
+        $this->loadNotifications();
+    }
+
 
     public function loadMore(): void
     {
