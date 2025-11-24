@@ -69,14 +69,14 @@
     <div
         @click="open = !open; if(open) highlightedIndex=0"
         @keydown.enter.prevent="open = true; highlightedIndex=0"
-        tabindex="0"
+        tabindex="-1"
         class="relative !cursor-pointer"
     >
         <flux:input
             name="{{ $name }}"
             readonly
             placeholder="{{ $placeholder }}"
-            class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+            class:input="border rounded-lg w-full !cursor-pointer select-none"
             x-bind:value="displayValue"
         />
 

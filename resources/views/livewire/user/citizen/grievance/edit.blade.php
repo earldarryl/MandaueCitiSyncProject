@@ -27,7 +27,7 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Do you want to keep your identity hidden when submitting this grievance?
+                            Do you want to keep your identity hidden when submitting this report?
                         </h3>
 
                         <ul class="grid w-full gap-4 md:grid-cols-1">
@@ -205,7 +205,7 @@
                             </flux:label>
 
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Which department is involved or related to your grievance?
+                                Which department is involved or related to your report?
                             </h3>
 
                             <div
@@ -338,7 +338,7 @@
                                 <span>Grievance Type</span>
                             </flux:label>
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                What kind of grievance would you like to file?
+                                What kind of report would you like to file?
                             </h3>
 
                             <div class="relative !cursor-pointer">
@@ -419,11 +419,11 @@
                             <!-- Label -->
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.list-bullet />
-                                <span>Grievance Category</span>
+                                <span>Category</span>
                             </flux:label>
 
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Choose a category based on the selected department and grievance type.
+                                Choose a category based on the selected department and type.
                             </h3>
 
                             <div class="relative !cursor-pointer">
@@ -544,7 +544,7 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            How urgent is this grievance?
+                            How urgent is this report?
                         </h3>
 
                         <x-searchable-select
@@ -566,11 +566,11 @@
                     <div class="flex flex-col gap-2">
                         <flux:label class="flex gap-2">
                             <flux:icon.tag />
-                            <span>Grievance Title</span>
+                            <span>Title</span>
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Provide a short and descriptive title for your grievance.
+                            Provide a short and descriptive title for your report.
                         </h3>
 
                         <flux:input.group>
@@ -591,16 +591,16 @@
                     <div class="flex flex-col gap-2 w-full">
                         <flux:label class="flex gap-2">
                             <flux:icon.document-magnifying-glass />
-                            <span>Grievance Details</span>
+                            <span>Report Details</span>
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Please explain your grievance in detail for better understanding.
+                            Please explain your report in detail for better understanding.
                         </h3>
 
                         {{ $this->form->getComponent('grievance_details') }}
+
                     </div>
-                    <flux:error name="grievance_details" />
                 </flux:field>
 
                 <flux:field>
@@ -611,12 +611,17 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Upload any files or evidence related to your grievance.
+                            Upload any files or evidence related to your report.
                         </h3>
 
-                        {{ $this->form->getComponent('grievance_files') }}
+                        <flux:input
+                            type="file"
+                            wire:model="attachments"
+                            multiple
+                        />
+
+                        <flux:error name="attachments" />
                     </div>
-                    <flux:error name="grievance_files" />
                 </flux:field>
             </div>
 
@@ -629,10 +634,11 @@
                     type="button"
                     class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                     wire:loading.attr="disabled"
-                    wire:target="submit"
+                    wire:target="attachments,submit"
                 >
-                    <span wire:loading.remove wire:target="submit">Update</span>
+                    <span wire:loading.remove wire:target="submit, attachments">Update</span>
                     <span wire:loading wire:target="submit">Processing..</span>
+                    <span wire:loading wire:target="attachments">Uploading...</span>
                 </flux:button>
             </div>
         </div>
@@ -682,24 +688,65 @@
                             @endif
 
                             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <flux:dropdown>
-                                    <flux:button icon="ellipsis-horizontal" class="!p-2 !rounded-full bg-white/80 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition" />
-                                    <flux:menu>
-                                        <flux:menu.item
-                                            icon="arrow-down-tray"
-                                            tag="a"
-                                            href="{{ $url }}"
-                                            download="{{ $attachment['file_name'] }}">
-                                            Download
-                                        </flux:menu.item>
-                                        <flux:menu.item
-                                            icon="trash"
-                                            variant="danger"
-                                            @click="$dispatch('open-delete-attachment-modal-{{ $attachment['attachment_id'] }}')">
-                                            Delete
-                                        </flux:menu.item>
-                                    </flux:menu>
-                                </flux:dropdown>
+                                <div x-data="{ open: false, showDeleteModal: false }"
+                                     x-on:close-all-modals.window="showDeleteModal = false; open = false"
+                                     class="relative group">
+                                     <button @click="open = !open"
+                                        class="p-2 rounded-full bg-white transition-colors">
+                                        <x-heroicon-o-ellipsis-horizontal
+                                            class="w-6 h-6 text-white group-hover:text-gray-800 dark:group-hover:text-black transition-colors"/>
+                                    </button>
+
+                                    <div x-show="open" @click.away="open = false" x-transition
+                                        class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                        <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+
+                                            <a href="{{ $url }}"
+                                                download="{{ $attachment['file_name'] }}"
+                                                class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 flex rounded-t-xl items-center gap-2 text-sm font-medium">
+                                                <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-blue-500"/> Download
+                                            </a>
+
+                                            <div class="w-full">
+                                                <button @click="showDeleteModal = true"
+                                                    class="px-4 py-2 text-left w-full hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-b-xl flex items-center gap-2 text-sm font-medium text-red-500">
+                                                    <x-heroicon-o-trash class="w-4 h-4"/> Delete
+                                                </button>
+
+                                                <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+                                                <div x-show="showDeleteModal" x-transition.scale
+                                                    class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                                    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+                                                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                                                            <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                                                        </div>
+                                                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                                                        <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this attachment? This action cannot be undone.</p>
+
+                                                        <div wire:loading.remove wire:target="removeAttachment({{ $attachment['attachment_id'] }})" class="flex justify-center gap-3 mt-4">
+                                                            <button type="button" @click="showDeleteModal = false"
+                                                                class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                                                                Cancel
+                                                            </button>
+                                                            <flux:button variant="danger" icon="trash" wire:click="removeAttachment({{ $attachment['attachment_id'] }})">
+                                                                Yes, Delete
+                                                            </flux:button>
+                                                        </div>
+
+                                                        <div wire:loading wire:target="removeAttachment({{ $attachment['attachment_id'] }})">
+                                                            <div class="flex items-center justify-center gap-2 w-full">
+                                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @elseif ($loop->iteration === 4 && !$extraAttachments->isEmpty())
@@ -724,7 +771,7 @@
                 x-show="showMore"
                 x-transition.opacity
                 x-cloak
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
                 @click.self="showMore = false">
                 <div
                     x-transition.scale
@@ -768,15 +815,68 @@
                                         </a>
                                     @endif
 
-                                    <!-- Dropdown -->
                                     <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <flux:dropdown>
-                                            <flux:button icon="ellipsis-horizontal" class="!p-2 !rounded-full bg-white/80 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition" />
-                                            <flux:menu>
-                                                <flux:menu.item icon="arrow-down-tray" tag="a" href="{{ $url }}" download="{{ $attachment['file_name'] }}">Download</flux:menu.item>
-                                                <flux:menu.item icon="trash" variant="danger" @click="$dispatch('open-delete-attachment-modal-{{ $attachment['attachment_id'] }}')">Delete</flux:menu.item>
-                                            </flux:menu>
-                                        </flux:dropdown>
+                                        <div x-data="{ open: false, showDeleteModal: false }"
+                                             x-on:close-all-modals.window="showDeleteModal = false; open = false"
+                                             class="relative group">
+
+                                            <button @click="open = !open"
+                                                class="p-2 rounded-full bg-white transition-colors">
+                                                <x-heroicon-o-ellipsis-horizontal
+                                                    class="w-6 h-6 text-white group-hover:text-gray-800 dark:group-hover:text-black transition-colors"/>
+                                            </button>
+
+                                            <div x-show="open" @click.away="open = false" x-transition
+                                                class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                                <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+
+                                                    <a href="{{ $url }}"
+                                                        download="{{ $attachment['file_name'] }}"
+                                                        class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-t-xl flex items-center gap-2 text-sm font-medium">
+                                                        <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-blue-500"/> Download
+                                                    </a>
+
+                                                    <div class="w-full">
+                                                        <button @click="showDeleteModal = true"
+                                                            class="px-4 py-2 text-left w-full hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-b-xl flex items-center gap-2 text-sm font-medium text-red-500">
+                                                            <x-heroicon-o-trash class="w-4 h-4"/> Delete
+                                                        </button>
+
+                                                        <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+                                                        <div x-show="showDeleteModal" x-transition.scale
+                                                            class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+                                                                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                                                                    <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                                                                </div>
+                                                                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                                                                <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this attachment? This action cannot be undone.</p>
+
+                                                                <div wire:loading.remove wire:target="removeAttachment({{ $attachment['attachment_id'] }})" class="flex justify-center gap-3 mt-4">
+                                                                    <button type="button" @click="showDeleteModal = false"
+                                                                        class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                                                                        Cancel
+                                                                    </button>
+                                                                    <flux:button variant="danger" icon="trash" wire:click="removeAttachment({{ $attachment['attachment_id'] }})">
+                                                                        Yes, Delete
+                                                                    </flux:button>
+                                                                </div>
+
+                                                                <div wire:loading wire:target="removeAttachment({{ $attachment['attachment_id'] }})">
+                                                                    <div class="flex items-center justify-center gap-2 w-full">
+                                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -810,6 +910,33 @@
             </div>
         @endif
     </div>
+
+    <flux:modal wire:model.self="showConfirmModal" :closable="false">
+        <div class="p-6 flex flex-col items-center text-center space-y-4">
+            <div class="rounded-full bg-red-100 p-3 text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Missing Required Information
+            </h2>
+
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Some required fields are incomplete or invalid. Please review your input before proceeding.
+            </p>
+
+            <div class="flex justify-center gap-3 mt-4">
+                <flux:button
+                    variant="subtle" class="border border-gray-200 dark:border-zinc-800"
+                    @click="$wire.showConfirmModal = false"
+                >
+                    Close
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <div
         x-show="showModal"

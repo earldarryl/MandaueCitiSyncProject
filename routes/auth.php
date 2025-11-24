@@ -55,10 +55,10 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
 
     // Citizen routes (2FA not required)
     Route::middleware('role:citizen')->group(function () {
-        Volt::route('citizen/grievance/index', 'user.citizen.grievance.index')->name('citizen.grievance.index');
-        Volt::route('citizen/grievance/create', 'user.citizen.grievance.create')->name('citizen.grievance.create');
-        Volt::route('citizen/grievance/view/{grievance}', 'user.citizen.grievance.view')->name('citizen.grievance.view');
-        Volt::route('citizen/grievance/edit/{grievance}', 'user.citizen.grievance.edit')->name('citizen.grievance.edit');
+        Volt::route('citizen/reports/index', 'user.citizen.grievance.index')->name('citizen.grievance.index');
+        Volt::route('citizen/reports/create', 'user.citizen.grievance.create')->name('citizen.grievance.create');
+        Volt::route('citizen/reports/view/{grievance}', 'user.citizen.grievance.view')->name('citizen.grievance.view');
+        Volt::route('citizen/reports/edit/{grievance}', 'user.citizen.grievance.edit')->name('citizen.grievance.edit');
         Volt::route('citizen/feedback-form', 'user.citizen.feedback-form')->name('citizen.feedback-form');
         Volt::route('citizen/submission-history', 'user.citizen.submission-history')->name('citizen.submission-history');
     });
@@ -68,8 +68,8 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
         Volt::route('hr-liaison/dashboard', 'user.hr-liaison.dashboard.index')->name('hr-liaison.dashboard');
         Volt::route('hr-liaison/department/index', 'user.hr-liaison.department.index')->name('hr-liaison.department.index');
         Volt::route('hr-liaison/department/{department}', 'user.hr-liaison.department.view')->name('hr-liaison.department.view');
-        Volt::route('hr-liaison/grievance/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
-        Volt::route('hr-liaison/grievance/view/{grievance}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
+        Volt::route('hr-liaison/reports/index', 'user.hr-liaison.grievance.index')->name('hr-liaison.grievance.index');
+        Volt::route('hr-liaison/reports/view/{grievance}', 'user.hr-liaison.grievance.view')->name('hr-liaison.grievance.view');
         Volt::route('hr-liaison/activity-logs', 'user.hr-liaison.activity-logs.index')->name('hr-liaison.activity-logs.index');
         Volt::route('hr-liaison/reports-and-analytics/index', 'user.hr-liaison.reports-and-analytics.index')->name('hr-liaison.reports-and-analytics.index');
     });
@@ -81,8 +81,8 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
         Volt::route('admin/stakeholders/citizens/{id}', 'user.admin.stakeholders.citizens.view')->name('admin.stakeholders.citizens.view');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons', 'user.admin.stakeholders.departments-and-hr-liaisons.index')->name('admin.stakeholders.departments-and-hr-liaisons.index');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons/hr-liaisons-list-view/{department}', 'user.admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view')->name('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view');
-        Volt::route('admin/forms/grievances', 'user.admin.forms.grievances.index')->name('admin.forms.grievances.index');
-        Volt::route('admin/forms/grievances/view/{grievance}', 'user.admin.forms.grievances.view')->name('admin.forms.grievances.view');
+        Volt::route('admin/forms/reports', 'user.admin.forms.grievances.index')->name('admin.forms.grievances.index');
+        Volt::route('admin/forms/reports/view/{grievance}', 'user.admin.forms.grievances.view')->name('admin.forms.grievances.view');
         Volt::route('admin/forms/feedbacks', 'user.admin.forms.feedbacks.index')->name('admin.forms.feedbacks.index');
         Volt::route('admin/forms/feedbacks/view/{id}', 'user.admin.forms.feedbacks.view')->name('admin.forms.feedbacks.view');
         Volt::route('admin/activity-logs', 'user.admin.admin-activity-logs.index')->name('admin.activtiy-logs.index');
@@ -97,8 +97,8 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
     Volt::route('/sidebar', 'layout.sidebar')->name('sidebar');
 
     // Print routes
-    Volt::route('/print/print-all-grievances', 'print-files.print-all-grievances')->name('print-all-grievances');
-    Volt::route('/print/print-selected-grievances/{selected}', 'print-files.print-selected-grievances')->name('print-selected-grievances');
+    Volt::route('/print/print-all-reports', 'print-files.print-all-grievances')->name('print-all-grievances');
+    Volt::route('/print/print-selected-reports/{selected}', 'print-files.print-selected-grievances')->name('print-selected-grievances');
     Volt::route('/print/print-all-feedbacks', 'print-files.print-all-feedbacks')->name('print-all-feedbacks');
     Volt::route('/print/print-selected-feedbacks/{selected}', 'print-files.print-selected-feedbacks')->name('print-selected-feedbacks');
     Volt::route('/print/print-admin-reports/{key}', 'print-files.print-admin-reports')->name('print-admin-reports');

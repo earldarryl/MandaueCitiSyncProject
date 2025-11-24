@@ -33,6 +33,7 @@ class Index extends Component
     public $filterDepartment = '';
     public $filterCategory = '';
     public $filterDate = '';
+    public $filterEditable = '';
     public $selected = [];
     public $selectAll = false;
     public $totalGrievances = 0;
@@ -43,6 +44,8 @@ class Index extends Component
     public $inProgressCount = 0;
     public $resolvedCount = 0;
     public $unresolvedCount = 0;
+    public $closedCount = 0;
+    public $overdueCount = 0;
     public $departmentOptions;
     public $categoryOptions;
     public bool $showFeedbackModal = false;
@@ -56,6 +59,7 @@ class Index extends Component
         'filterDate' => ['except' => ''],
         'filterCategory' => ['except' => ''],
         'filterDepartment' => ['except' => ''],
+        'filterEditable' => ['except' => ''],
     ];
 
     protected $listeners = [
@@ -114,7 +118,6 @@ class Index extends Component
         $grievance = Grievance::findOrFail($grievanceId);
         $user = auth()->user();
 
-        // Check for existing pending request
         $existing = EditRequest::where('grievance_id', $grievance->grievance_id)
             ->where('user_id', $user->id)
             ->where('status', 'pending')
@@ -335,10 +338,8 @@ class Index extends Component
 
         $title = $grievance->grievance_title;
 
-        // Soft delete
         $grievance->delete();
 
-        // Send realtime notification with Undo button
         auth()->user()->notify(new GeneralNotification(
             'Grievance Deleted',
             "{$title} was removed successfully.",
@@ -474,6 +475,7 @@ class Index extends Component
                 'Resolved' => 'resolved',
                 'Unresolved' => 'unresolved',
                 'Closed' => 'closed',
+                'Overdue' => 'overdue'
             ];
             $query->when(isset($map[$this->filterStatus]), fn($q) => $q->where('grievance_status', $map[$this->filterStatus]));
         }
@@ -524,6 +526,7 @@ class Index extends Component
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
         $this->unresolvedCount     = (clone $query)->where('grievance_status', 'unresolved')->count();
         $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
+        $this->overdueCount       = (clone $query)->where('grievance_status', 'overdue')->count();
     }
 
     public function render()
@@ -540,6 +543,7 @@ class Index extends Component
                     'Resolved' => 'resolved',
                     'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
+                    'Overdue' => 'overdue'
                 ];
                 if(isset($map[$this->filterStatus])) $q->where('grievance_status', $map[$this->filterStatus]);
             })
@@ -549,6 +553,21 @@ class Index extends Component
                 $q->whereHas('departments', function ($sub) {
                     $sub->where('department_name', $this->filterDepartment);
                 });
+            })
+            ->when($this->filterEditable, function($query) {
+                $userId = auth()->id();
+
+                if ($this->filterEditable === 'Editable') {
+                    $query->whereHas('editRequests', function ($q) use ($userId) {
+                        $q->where('user_id', $userId)
+                        ->where('status', 'approved');
+                    });
+                } elseif ($this->filterEditable === 'Not Editable') {
+                    $query->whereDoesntHave('editRequests', function ($q) use ($userId) {
+                        $q->where('user_id', $userId)
+                        ->where('status', 'approved');
+                    });
+                }
             })
             ->when($this->search, function ($query) {
                 $term = trim($this->search);

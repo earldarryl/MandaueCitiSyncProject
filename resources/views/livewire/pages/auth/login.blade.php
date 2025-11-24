@@ -21,6 +21,7 @@
                                 placeholder="Enter your email"
                                 class:input="text-lg font-semibold"
                                 clearable
+                                x-on:keydown.enter.prevent="$wire.call('login')"
                             />
 
                     </flux:input.group>
@@ -45,6 +46,7 @@
                         placeholder="Enter your password"
                         viewable
                         clearable
+                        x-on:keydown.enter.prevent="$wire.call('login')"
                     />
                 </flux:input.group>
                 </div>

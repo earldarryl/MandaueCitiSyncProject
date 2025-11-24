@@ -27,7 +27,7 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Do you want to keep your identity hidden when submitting this grievance?
+                            Do you want to keep your identity hidden when submitting this report?
                         </h3>
 
                         <ul class="grid w-full gap-4 md:grid-cols-1">
@@ -205,7 +205,7 @@
                             </flux:label>
 
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Which department is involved or related to your grievance?
+                                Which department is involved or related to your report?
                             </h3>
 
                             <div
@@ -335,10 +335,10 @@
                         <div class="flex flex-col gap-2" x-data="{ open: false, search: '' }">
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.squares-2x2 />
-                                <span>Grievance Type</span>
+                                <span>Type</span>
                             </flux:label>
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                What kind of grievance would you like to file?
+                                What kind of report would you like to file?
                             </h3>
 
                             <div class="relative !cursor-pointer">
@@ -419,11 +419,11 @@
                             <!-- Label -->
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.list-bullet />
-                                <span>Grievance Category</span>
+                                <span>Category</span>
                             </flux:label>
 
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Choose a category based on the selected department and grievance type.
+                                Choose a category based on the selected department and type.
                             </h3>
 
                             <div class="relative !cursor-pointer">
@@ -565,11 +565,11 @@
                     <div class="flex flex-col gap-2">
                         <flux:label class="flex gap-2">
                             <flux:icon.tag />
-                            <span>Grievance Title</span>
+                            <span>Title</span>
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Provide a short title for your grievance.
+                            Provide a short title for your report.
                         </h3>
 
                         <flux:input.group>
@@ -589,11 +589,11 @@
                     <div class="flex flex-col gap-2 w-full">
                         <flux:label class="flex gap-2">
                             <flux:icon.document-magnifying-glass />
-                            <span>Grievance Details</span>
+                            <span>Report Details</span>
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Please explain your grievance in detail for better understanding.
+                            Please explain your report in detail for better understanding.
                         </h3>
 
                         {{ $this->form->getComponent('grievance_details') }}
@@ -609,13 +609,19 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Upload any files or evidence related to your grievance.
+                            Upload any files or evidence related to your report.
                         </h3>
 
-                        {{ $this->form->getComponent('grievance_files') }}
+                        <flux:input
+                            type="file"
+                            wire:model="attachments"
+                            multiple
+                        />
+
+                        <flux:error name="attachments" />
                     </div>
-                    <flux:error name="grievance_files" />
                 </flux:field>
+
             </div>
 
             <div class="mt-4 flex justify-end w-full">
@@ -627,10 +633,11 @@
                     type="button"
                     class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                     wire:loading.attr="disabled"
-                    wire:target="submit"
+                    wire:target="attachments,submit"
                 >
-                    <span wire:loading.remove wire:target="submit">Submit</span>
+                    <span wire:loading.remove wire:target="submit, attachments">Submit</span>
                     <span wire:loading wire:target="submit">Processing..</span>
+                    <span wire:loading wire:target="attachments">Uploading...</span>
                 </flux:button>
             </div>
         </div>
@@ -665,7 +672,7 @@
                     Confirm Submission
                 </h2>
                 <p class="text-sm font-medium text-gray-600 dark:text-gray-300 text-center">
-                    Are you sure you want to submit this grievance? <br>
+                    Are you sure you want to submit this report? <br>
                 Once submitted, it will be assigned to the HR Liaison(s).
                 </p>
             </div>

@@ -249,3 +249,14 @@ body {
 .fi-select-input:focus {
     @apply !ring-2 !ring-blue-500 !outline-none rounded-md;
 }
+
+.fi-input-wrp:not(.fi-disabled):not(:has(.fi-ac-action:focus)):focus-within {
+    --tw-ring-color: #3b82f6 !important; /* Tailwind blue-500 */
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow) !important;
+}
+
+.fi-fo-rich-editor .fi-fo-rich-editor-tool.fi-active {
+    background-color: #f9fafb;
+    color: #3b82f6;
+}
+
