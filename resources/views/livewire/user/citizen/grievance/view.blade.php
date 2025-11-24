@@ -266,7 +266,7 @@
                     x-show="showMore"
                     x-transition.opacity
                     x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
                     @click.self="showMore = false"
                 >
                     <div
@@ -336,7 +336,7 @@
                 <div
                     x-show="zoomSrc"
                     x-cloak
-                    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+                    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
                     @click.self="zoomSrc = null"
                 >
                     <div class="relative max-w-5xl w-[90%] flex items-center justify-center">

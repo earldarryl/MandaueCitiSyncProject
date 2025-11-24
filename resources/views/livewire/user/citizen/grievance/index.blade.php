@@ -170,17 +170,45 @@
                         </div>
 
                         <div
-                            class="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800 dark:to-zinc-900
-                                border border-gray-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                            class="group relative bg-gradient-to-br from-red-50 to-red-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-red-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                                 transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
-                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-200/20 to-transparent opacity-0
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-200/20 to-transparent opacity-0
                                         group-hover:opacity-100 blur-xl transition-all duration-500"></div>
-                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-gray-200/50
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-red-200/50
                                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                                <flux:icon.x-circle class="h-8 w-8 text-gray-500 dark:text-gray-400" />
+                                <flux:icon.x-circle class="h-8 w-8 text-red-500 dark:text-red-400" />
                             </div>
-                            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Unresolved</p>
-                            <p class="relative text-3xl font-bold text-gray-500 dark:text-gray-400 tracking-tight">{{ $unresolvedCount }}</p>
+                            <p class="relative text-base font-semibold text-red-700 dark:text-red-300 mt-2">Unresolved</p>
+                            <p class="relative text-3xl font-bold text-red-500 dark:text-red-400 tracking-tight">{{ $unresolvedCount }}</p>
+                        </div>
+
+                        <div
+                            class="group relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-purple-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-200/20 to-transparent opacity-0
+                                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-purple-200/50
+                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                                <flux:icon.x-circle class="h-8 w-8 text-purple-500 dark:text-purple-400" />
+                            </div>
+                            <p class="relative text-base font-semibold text-purple-700 dark:text-purple-300 mt-2">Closed</p>
+                            <p class="relative text-3xl font-bold text-purple-500 dark:text-purple-400 tracking-tight">{{ $closedCount }}</p>
+                        </div>
+
+                        <div
+                            class="group relative bg-gradient-to-br from-rose-50 to-rose-100 dark:from-zinc-800 dark:to-zinc-900
+                                border border-rose-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+                                transition-all duration-300 p-5 flex flex-col items-center justify-center gap-2">
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-200/20 to-transparent opacity-0
+                                        group-hover:opacity-100 blur-xl transition-all duration-500"></div>
+                            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-rose-200/50
+                                        dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
+                                <flux:icon.x-circle class="h-8 w-8 text-rose-500 dark:text-rose-400" />
+                            </div>
+                            <p class="relative text-base font-semibold text-rose-700 dark:text-rose-300 mt-2">Overdue</p>
+                            <p class="relative text-3xl font-bold text-rose-500 dark:text-rose-400 tracking-tight">{{ $overdueCount }}</p>
                         </div>
                     </div>
                 </div>
@@ -192,7 +220,7 @@
                     filterType: '',
                     categoryOptions: @js($categoryOptions),
                 }"
-                class="grid grid-cols-2 lg:grid-cols-6 gap-3 w-full mx-auto px-3 my-2"
+                class="grid grid-cols-2 lg:grid-cols-7 gap-3 w-full mx-auto px-3 my-2"
             >
                 <x-filter-select
                     name="filterPriority"
@@ -203,7 +231,7 @@
                 <x-filter-select
                     name="filterStatus"
                     placeholder="Status"
-                    :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed']"
+                    :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed', 'Overdue']"
                 />
 
                 <x-filter-select
@@ -232,6 +260,13 @@
                     placeholder="Category"
                     :options="$categoryOptions"
                 />
+
+                <x-filter-select
+                    name="filterEditable"
+                    placeholder="Editable/Not Editable"
+                    :options="['Editable', 'Not Editable']"
+                    x-model="filterEditable"
+                />
             </div>
 
             <div class="flex justify-center w-full px-3">
@@ -239,7 +274,8 @@
                     wire:click="applyFilters"
                     class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
                     <flux:icon.adjustments-horizontal class="w-4 h-4" />
-                    <span>Apply Filters</span>
+                    <span wire:loading.remove wire:target="applyFilters">Apply Filters</span>
+                    <span wire:loading wire:target="applyFilters">Processing...</span>
                 </button>
             </div>
         </div>
@@ -581,6 +617,7 @@
                                                 'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
                                                 'unresolved' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
                                                 'closed' => 'bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500',
+                                                'overdue' => 'bg-rose-100 text-rose-800 border-rose-400 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500',
                                                 default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
                                             } }}"
                                             >
@@ -694,8 +731,6 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!-- End Delete Modal -->
-
                                                 </div>
                                             </div>
                                         </div>

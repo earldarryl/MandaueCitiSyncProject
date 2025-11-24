@@ -155,7 +155,6 @@ class Index extends Component
             ],
         ];
 
-        // Filter categories only for the departments the HR liaison belongs to
         $flattened = [];
         foreach ($liaisonDepartments as $department) {
             if (isset($allCategoryOptions[$department])) {

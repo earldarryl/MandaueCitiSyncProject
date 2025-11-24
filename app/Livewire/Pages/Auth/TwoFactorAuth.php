@@ -21,7 +21,6 @@ class TwoFactorAuth extends Component
         $this->updateOtp();
     }
 
-    #[On('refresh-otp')]
     public function updateOtp()
     {
         $user = Auth::user();

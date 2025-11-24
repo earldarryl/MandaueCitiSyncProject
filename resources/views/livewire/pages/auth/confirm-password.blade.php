@@ -52,7 +52,6 @@
                             <span>{{ __('Confirm Password') }}</span>
                         </span>
                     </flux:button>
-
                 </div>
             </form>
         </div>

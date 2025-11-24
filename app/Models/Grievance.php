@@ -48,7 +48,7 @@ class Grievance extends Model
     private static function generateUniqueTicketId($length = 8)
     {
         do {
-            $ticket = 'GRV-' . strtoupper(Str::random($length));
+            $ticket = 'RPT-' . strtoupper(Str::random($length));
         } while (self::where('grievance_ticket_id', $ticket)->exists());
 
         return $ticket;

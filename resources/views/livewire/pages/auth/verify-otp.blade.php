@@ -60,7 +60,7 @@
 
         </form>
 
-        <div wire:target="verifyOtp" wire:loading.remove>
+        <div>
              <div class="w-full flex justify-end gap-2 mt-4">
                 <div
                     x-data="{
@@ -79,7 +79,7 @@
                             }, 1000);
                         }
                     "
-                    class="w-1/2 text-black"
+                    class="w-full text-black"
                 >
                     <flux:button
                         type="button"
@@ -90,6 +90,7 @@
                         wire:click="sendVerification"
                         wire:loading.attr="disabled"
                         x-bind:disabled="timeLeft > 0"
+                        wire:target="verifyOtp" wire:loading.remove
                     >
                         <span x-text="label"></span>
                     </flux:button>

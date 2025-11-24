@@ -34,7 +34,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $grievance_category;
     public $priority_level;
     public $department;
-    public $grievance_files = [];
+    public $attachments = [];
     public $grievance_title;
     public $grievance_details;
     public $departmentOptions;
@@ -52,7 +52,7 @@ class Create extends Component implements Forms\Contracts\HasForms
     protected function getFormSchema(): array
     {
         return [
-            RichEditor::make('grievance_details')
+           RichEditor::make('grievance_details')
                 ->hiddenLabel(true)
                 ->required()
                 ->toolbarButtons([
@@ -60,50 +60,45 @@ class Create extends Component implements Forms\Contracts\HasForms
                     'bulletList','orderedList','link',
                     'blockquote','codeBlock'
                 ])
-                ->placeholder('Enter the details of your grievance here...'),
+                ->allowHtmlValidationMessages()
+                ->placeholder('Edit report details...'),
 
-            FileUpload::make('grievance_files')
-                ->hiddenLabel(true)
-                ->multiple()
-                ->preserveFilenames()
-                ->downloadable()
-                ->openable()
-                ->previewable(true)
-                ->reorderable()
-                ->disk('public')
-                ->panelLayout('grid')
-                ->directory('grievance_files')
-                ->maxSize(51200)
-                ->acceptedFileTypes([
-                    'application/pdf',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'application/vnd.ms-powerpoint',
-                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'image/jpeg',
-                    'image/png',
-                    'image/gif',
-                ])
-                ->helperText('Accepted files: PDF, Word, Excel, PowerPoint, JPG, PNG, GIF. Max size 50MB.'),
         ];
     }
 
     protected function rules(): array
     {
         return [
-            'is_anonymous'      => ['required', 'boolean'],
-            'grievance_type'    => ['required', 'string', 'max:255'],
+            'is_anonymous'        => ['required', 'boolean'],
+            'grievance_type'      => ['required', 'string', 'max:255'],
             'grievance_category'  => ['required', 'string', 'max:255'],
-            'priority_level'    => ['required', 'string', 'max:50'],
-            'department' => ['required', 'exists:departments,department_name'],
-            'grievance_title'   => ['required', 'string', 'max:255'],
-            'grievance_details' => ['required', 'string'],
-            'grievance_files.*' => ['nullable', 'file', 'max:51200'],
+            'priority_level'      => ['required', 'string', 'max:50'],
+            'department'          => ['required', 'exists:departments,department_name'],
+            'grievance_title'     => ['required', 'string', 'max:255'],
+            'attachments.*'       => ['nullable', 'file', 'max:51200'],
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'is_anonymous.required'       => 'Please specify whether the report is anonymous.',
+            'grievance_type.required'     => 'Please select a type.',
+            'grievance_category.required' => 'Please select a category.',
+            'priority_level.required'     => 'Please choose a priority level.',
+            'department.required'         => 'Please select a department.',
+            'department.exists'           => 'The selected department does not exist.',
+            'grievance_title.required'    => 'Please provide a title of your report.',
+            'grievance_title.max'         => 'The title cannot exceed 255 characters.',
+            'attachments.*.file'          => 'Each attachment must be a valid file.',
+            'attachments.*.max'           => 'Each attachment must not exceed 50MB.',
+        ];
+    }
+
+    public function getUploadingAttachmentsProperty()
+    {
+        return $this->attachments && collect($this->attachments)->some(fn($f) => $f->getError() === null && !$f->hashName());
+    }
 
     public function submit(): void
     {
@@ -139,6 +134,28 @@ class Create extends Component implements Forms\Contracts\HasForms
 
         $data = $this->form->getState();
 
+        $cleanDetails = trim(strip_tags($data['grievance_details'] ?? ''));
+
+        if ($cleanDetails === '' || $cleanDetails === null) {
+            $this->addError('grievance_details', '
+                <div class="flex items-center justify-start gap-2 mt-3 text-sm font-medium text-red-500 dark:text-red-400">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        class="w-5 h-5 flex-shrink-0">
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.75 1.335-.213 3.05-1.742 3.05H3.48c-1.53 0-2.492-1.715-1.741-3.05L8.257 3.1zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-4a.75.75 0 00-.75.75v2.5c0 .414.336.75.75.75s.75-.336.75-.75v-2.5A.75.75 0 0010 9z"
+                            clip-rule="evenodd" />
+                    </svg>
+
+                    <span>Please provide detailed information about your report.</span>
+                </div>
+            ');
+
+            $this->showConfirmModal = true;
+            return;
+        }
+
         try {
             $processingDays = match ($this->priority_level) {
                 'High'   => 3,
@@ -159,16 +176,14 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'processing_days'  => $processingDays,
             ]);
 
-            if (!empty($this->grievance_files)) {
-                foreach ($this->grievance_files as $file) {
-                    $storedPath = is_string($file)
-                        ? $file
-                        : $file->store('grievance_files', 'public');
+            if (!empty($this->attachments)) {
+                foreach ($this->attachments as $file) {
+                    $storedPath = $file->store('grievance_files', 'public');
 
                     GrievanceAttachment::create([
                         'grievance_id' => $grievance->grievance_id,
                         'file_path'    => $storedPath,
-                        'file_name'    => basename($storedPath),
+                        'file_name'    => $file->getClientOriginalName(),
                     ]);
                 }
             }
