@@ -28,6 +28,17 @@ class Index extends Component
     public ?string $filter = null;
     public ?string $roleFilter = null;
     public ?string $selectedDate = null;
+    public $options = [];
+
+    public function mount()
+    {
+        $this->options = ActivityLog::query()
+            ->where('module', 'Report Management')
+            ->distinct()
+            ->pluck('action_type')
+            ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
+            ->toArray();
+    }
 
     public function applyFilter(): void
     {
@@ -52,39 +63,34 @@ class Index extends Component
     {
         $user = Auth::user();
 
-        // Get HR Liaison departments
         $departmentIds = DB::table('hr_liaison_departments')
             ->where('hr_liaison_id', $user->id)
             ->pluck('department_id')
             ->toArray();
 
-        // Get HR liaisons in the same departments
         $hrLiaisonIds = DB::table('hr_liaison_departments')
             ->whereIn('department_id', $departmentIds)
             ->pluck('hr_liaison_id')
             ->unique()
             ->toArray();
 
-        // Grievances assigned to these HR liaisons
         $grievanceIds = Assignment::whereIn('hr_liaison_id', $hrLiaisonIds)
             ->pluck('grievance_id')
             ->unique()
             ->toArray();
 
-        // Citizens related to those grievances
         $citizenIds = DB::table('grievances')
             ->whereIn('grievance_id', $grievanceIds)
             ->pluck('user_id')
             ->unique()
             ->toArray();
 
-        // Combine HR liaisons, citizens, and admins
         $userIds = array_unique(array_merge($hrLiaisonIds, $citizenIds));
 
         return ActivityLog::query()
             ->with('user', 'role')
             ->whereIn('user_id', $userIds)
-            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->filter, fn($q) => $q->where('action_type', $this->filter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
@@ -125,22 +131,37 @@ class Index extends Component
     public function downloadExcel()
     {
         $logs = $this->getFilteredQuery()->get();
+        $currentUserName = auth()->user()->name ?? 'N/A';
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $sheet->fromArray([
-            [
-                'ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Location',
-            ]
-        ]);
+        $sheet->mergeCells('A1:J1');
+        $sheet->setCellValue('A1', $this->dynamicLogsTitle());
+        $sheet->getStyle('A1')->getFont()->setBold(true);
 
-        $row = 2;
+        $sheet->fromArray([
+            ['ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Changes']
+        ], null, 'A2');
+
+        $row = 3;
 
         foreach ($logs as $log) {
-            $userName = $log->user?->name ?? 'N/A';
             $roleName = $log->role?->name ?? 'N/A';
             $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+            $changes = [];
+            if (is_array($log->changes)) {
+                foreach ($log->changes as $field => $value) {
+                    if (is_array($value)) {
+                        $old = isset($value['old']) ? (is_array($value['old']) ? implode(', ', $value['old']) : $value['old']) : null;
+                        $new = isset($value['new']) ? (is_array($value['new']) ? implode(', ', $value['new']) : $value['new']) : null;
+                        $changes[] = $old !== null ? "$field (OLD: $old, NEW: $new)" : "$field (NEW: $new)";
+                    } else {
+                        $changes[] = "$field: $value";
+                    }
+                }
+            }
 
             $sheet->fromArray([
                 [
@@ -149,22 +170,23 @@ class Index extends Component
                     str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
                     $log->module ?? 'N/A',
                     $log->platform ?? 'N/A',
-                    $userName,
+                    $currentUserName,
                     $roleNameFormatted,
                     $log->timestamp,
-                    $log->location ?? 'N/A',
+                    implode('; ', $changes)
                 ]
             ], null, "A{$row}");
 
             $row++;
         }
 
-        foreach (range('A', 'I') as $column) {
+        foreach (range('A', 'J') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
-        $fileName = 'activity_logs_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $fileName = $this->dynamicLogsTitle() . '_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $fileName = str_replace([' ', '|'], ['_', ''], $fileName);
         $tempFile = storage_path($fileName);
         $writer->save($tempFile);
 
@@ -174,23 +196,34 @@ class Index extends Component
     public function downloadCsv()
     {
         $logs = $this->getFilteredQuery()->get();
+        $currentUserName = auth()->user()->name ?? 'N/A';
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="activity_logs_' . now()->format('Y-m-d_H-i-s') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="' . str_replace([' ', '|'], ['_', ''], $this->dynamicLogsTitle()) . '_' . now()->format('Y-m-d_H-i-s') . '.csv"',
         ];
 
-        $callback = function () use ($logs) {
+        $callback = function () use ($logs, $currentUserName) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, [
-                'ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Location',
-            ]);
+            fputcsv($handle, ['ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Changes']);
 
             foreach ($logs as $log) {
-                $userName = $log->user?->name ?? 'N/A';
                 $roleName = $log->role?->name ?? 'N/A';
                 $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+                $changes = [];
+                if (is_array($log->changes)) {
+                    foreach ($log->changes as $field => $value) {
+                        if (is_array($value)) {
+                            $old = isset($value['old']) ? (is_array($value['old']) ? implode(', ', $value['old']) : $value['old']) : null;
+                            $new = isset($value['new']) ? (is_array($value['new']) ? implode(', ', $value['new']) : $value['new']) : null;
+                            $changes[] = $old !== null ? "$field (OLD: $old, NEW: $new)" : "$field (NEW: $new)";
+                        } else {
+                            $changes[] = "$field: $value";
+                        }
+                    }
+                }
 
                 fputcsv($handle, [
                     $log->activity_log_id,
@@ -198,10 +231,10 @@ class Index extends Component
                     str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
                     $log->module ?? 'N/A',
                     $log->platform ?? 'N/A',
-                    $userName,
+                    $currentUserName,
                     $roleNameFormatted,
                     $log->timestamp,
-                    $log->location ?? 'N/A',
+                    implode('; ', $changes),
                 ]);
             }
 

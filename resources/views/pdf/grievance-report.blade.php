@@ -16,36 +16,25 @@
     @endphp
 
     <style>
+        @page {
+            size: A4;
+            margin: 20px;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: sans-serif;
+            font-family: 'Poppins', sans-serif;
             color: #1F2937;
+            background-color: #fff;
         }
 
         .page {
-            position: relative;
             width: 794px;
-            height: 1122px;
             margin: 0 auto;
-            overflow: hidden;
-
-            @if($bgImageBase64)
-                background-image: url("{{ $bgImageBase64 }}");
-            @endif
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: cover;
-
+            position: relative;
+            padding: 20px;
             page-break-after: always;
-        }
-
-        .page:last-child {
-            page-break-after: avoid;
-        }
-
-        .bg-image {
-            display: none;
         }
 
         .content {
@@ -162,7 +151,7 @@
                 @if($startDate !== $endDate) – {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }} @endif
             </div>
 
-            <div style="display: flex; gap: 20px; margin-top: 30px;">
+            {{-- <div style="display: flex; gap: 20px; margin-top: 30px;">
                 <div style="
                     flex: 1;
                     border: 1px solid #D1D5DB;
@@ -174,7 +163,7 @@
                 ">
                     <canvas id="grievanceChart" width="250" height="200"></canvas>
                 </div>
-            </div>
+            </div> --}}
 
                 <div style="margin:20px; border:1px solid #D1D5DB; background-color: rgba(255,255,255,0.85); overflow-x:auto; border-radius:0.5rem; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
                     <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:13px;">

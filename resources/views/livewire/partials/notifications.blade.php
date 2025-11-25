@@ -169,7 +169,7 @@
                                                                 @if(isset($action['action']))
                                                                     <button
                                                                         class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
-                                                                        wire:click="{{ $action['action'] }}('{{ $notification['extra']['edit_request_id'] ?? '' }}')"
+                                                                        wire:click="handleNotificationAction('{{ $notification['id'] }}', '{{ $action['action'] }}', '{{ $notification['extra']['edit_request_id'] ?? '' }}')"
                                                                         wire:loading.attr="disabled"
                                                                         style="color: {{ $action['color'] ?? 'inherit' }}"
                                                                     >
@@ -184,7 +184,7 @@
                                                                 @elseif(isset($action['url']))
                                                                     <button
                                                                         class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
-                                                                        @click="window.open('{{ $action['url'] }}', '{{ $action['open_new_tab'] ?? false ? '_blank' : '_self' }}')"
+                                                                        wire:click="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
                                                                         style="color: {{ $action['color'] ?? 'inherit' }}"
                                                                     >
                                                                         <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />

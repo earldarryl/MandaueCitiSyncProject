@@ -12,7 +12,7 @@
         $highlight = fn($text, $search) => $search
             ? preg_replace(
                 '/(' . preg_quote($search, '/') . ')/i',
-                '<mark class="bg-yellow-200 text-black dark:bg-yellow-500 dark:text-black">$1</mark>',
+                '<mark class="bg-blue-400 text-white dark:bg-blue-500 dark:text-black">$1</mark>',
                 $text
             )
             : $text;
@@ -349,7 +349,7 @@
                     transition-all duration-200 w-full sm:w-auto"
             >
                 <flux:icon.document-plus class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span>File Grievance</span>
+                <span>File a Report</span>
             </x-responsive-nav-link>
 
     </header>
@@ -390,7 +390,7 @@
    <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, deleteSelected, markSelectedHighPriority, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -752,7 +752,7 @@
             </div>
 
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, deleteSelected, markSelectedHighPriority, clearSearch"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, deleteSelected, markSelectedHighPriority, clearSearch"
                  class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

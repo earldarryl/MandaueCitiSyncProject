@@ -133,6 +133,7 @@ class DashboardGrievanceTable extends TableWidget
                         'resolved' => 'Resolved',
                         'unresolved' => 'Unresolved',
                         'closed' => 'Closed',
+                        'overdue' => 'Overdue',
                         default => ucfirst($state),
                     })
                     ->colors([
@@ -143,8 +144,10 @@ class DashboardGrievanceTable extends TableWidget
                         'success' => 'resolved',
                         'danger' => 'unresolved',
                         'secondary' => 'closed',
+                        'danger' => 'overdue',
                     ])
                     ->sortable()
+                    ->searchable()
                     ->extraAttributes([
                         'class' => 'text-[12px] font-bold text-center',
                     ])
@@ -161,6 +164,7 @@ class DashboardGrievanceTable extends TableWidget
                         'info' => 'Inquiry',
                     ])
                     ->sortable()
+                    ->searchable()
                     ->extraAttributes([
                         'class' => 'text-[12px] font-bold text-center',
                     ])
@@ -173,6 +177,7 @@ class DashboardGrievanceTable extends TableWidget
                         ->badge()
                         ->colors(['info' ])
                         ->sortable()
+                        ->searchable()
                         ->extraAttributes([
                             'class' => 'text-[12px] font-bold text-center',
                         ])
@@ -190,6 +195,7 @@ class DashboardGrievanceTable extends TableWidget
                         'danger' => 'Critical',
                     ])
                     ->sortable()
+                    ->searchable()
                     ->extraAttributes([
                         'class' => 'text-[12px] font-bold text-center',
                     ])

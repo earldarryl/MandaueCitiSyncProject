@@ -105,12 +105,12 @@
                             <span>Created: {{ $department->created_at->format('M d, Y') }}</span>
                         </div>
 
-                        <div class="flex items-center justify-end">
+                        <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('hr-liaison.department.view', $department->department_id) }}" wire:navigate
-                                class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md
-                                    bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200
-                                    dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                                    dark:hover:bg-blue-800/60 transition-all duration-200">
+                                class="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold rounded-md
+                                    bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200
+                                    dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-700
+                                    dark:hover:bg-gray-800/60 transition-all duration-200">
                                 <flux:icon.eye class="w-4 h-4" />
                                 View
                             </a>

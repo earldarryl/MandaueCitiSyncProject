@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Citizen\Grievance;
 
+use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Grievance;
 use App\Models\EditRequest;
@@ -60,6 +61,7 @@ class Index extends Component
         'filterCategory' => ['except' => ''],
         'filterDepartment' => ['except' => ''],
         'filterEditable' => ['except' => ''],
+        'page'           => ['except' => 1],
     ];
 
     protected $listeners = [
@@ -120,17 +122,17 @@ class Index extends Component
 
         $existing = EditRequest::where('grievance_id', $grievance->grievance_id)
             ->where('user_id', $user->id)
-            ->where('status', 'pending')
             ->first();
 
         if ($existing) {
             Notification::make()
-                ->title('Request Pending')
-                ->body('You already have a pending edit request for this grievance.')
+                ->title('Request Not Allowed')
+                ->body('You already have submitted an edit request for this grievance.')
                 ->warning()
                 ->send();
             return;
         }
+
 
         $editRequest = EditRequest::create([
             'grievance_id' => $grievance->grievance_id,
@@ -139,18 +141,19 @@ class Index extends Component
             'reason'       => 'User requested edit permission.',
         ]);
 
-        $assignedHrIds = $grievance->assignments->pluck('hr_liaison_id')->unique();
+        $requesterName = $grievance->is_anonymous ? 'An anonymous user' : $user->name;
 
+        $assignedHrIds = $grievance->assignments->pluck('hr_liaison_id')->unique();
         $hrLiaisons = User::whereIn('id', $assignedHrIds)->get();
 
         foreach ($hrLiaisons as $hr) {
             $hr->notify(new GeneralNotification(
                 'Edit Request Pending',
-                "User {$user->name} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                "{$requesterName} requested permission to edit grievance '{$grievance->grievance_title}'.",
                 'info',
                 [
                     'grievance_ticket_id' => $grievance->grievance_ticket_id,
-                    'edit_request_id'    => $editRequest->id
+                    'edit_request_id'     => $editRequest->id
                 ],
                 [],
                 true,
@@ -180,7 +183,7 @@ class Index extends Component
         foreach ($admins as $admin) {
             $admin->notify(new GeneralNotification(
                 'Edit Request Submitted',
-                "User {$user->name} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                "{$requesterName} requested permission to edit grievance '{$grievance->grievance_title}'.",
                 'warning',
                 [
                     'grievance_ticket_id' => $grievance->grievance_ticket_id,
@@ -203,7 +206,27 @@ class Index extends Component
             ->body('Your edit request has been sent to the assigned HR Liaisons and Admin.')
             ->success()
             ->send();
+
+        ActivityLog::create([
+            'user_id'      => $user->id,
+            'role_id'      => $user->roles->first()?->id,
+            'module'       => 'Grievance Edit Request',
+            'action'       => 'create',
+            'action_type'  => 'request_edit',
+            'model_type'   => EditRequest::class,
+            'model_id'     => $editRequest->id,
+            'description'  => "{$requesterName} requested edit permission for grievance '{$grievance->grievance_ticket_id}'.",
+            'changes'      => null,
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
     }
+
 
     public function closeFeedbackModal()
     {
@@ -415,8 +438,8 @@ class Index extends Component
 
     protected function resetSelection()
     {
-        $this->selectAll = false;
-        $this->selected = [];
+        // $this->selectAll = false;
+        // $this->selected = [];
     }
 
     public function deleteSelected()

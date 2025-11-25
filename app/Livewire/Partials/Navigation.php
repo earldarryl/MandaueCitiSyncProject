@@ -45,7 +45,7 @@ class Navigation extends Component
         'hr-liaison.activity-logs.index' => 'Activity Logs',
         'hr-liaison.department.index' => 'Department Info',
         'hr-liaison.department.view' => 'Department Info View',
-        'hr-liaison.grievance.index' => 'Report Reports',
+        'hr-liaison.grievance.index' => 'Assignment Reports',
         'hr-liaison.grievance.view' => 'View Report',
         'hr-liaison.reports-and-analytics.index' => 'Reports & Analytics',
 
@@ -99,7 +99,7 @@ class Navigation extends Component
             'Edit Report' => 'bi bi-pencil-square',
             'Feedback Form' => 'bi bi-chat-right-dots-fill',
             'Submission History' => 'bi bi-clock-history',
-            'Report Reports' => 'bi bi-file-earmark-text',
+            'Assignment Reports' => 'bi bi-file-earmark-text',
             'Reports & Analytics' => 'bi bi-file-bar-graph',
             'Settings' => 'bi bi-gear',
             'Profile Settings' => 'bi bi-person-circle',

@@ -5,6 +5,7 @@ namespace App\Livewire\Partials;
 use App\Models\EditRequest;
 use App\Models\Grievance;
 use App\Notifications\GeneralNotification;
+use Filament\Notifications\Notification;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
@@ -157,6 +158,15 @@ class Notifications extends Component
         }
     }
 
+    public function handleNotificationAction($notificationId, $action, $editRequestId = null)
+    {
+        $this->markNotificationAsRead($notificationId);
+
+        if (method_exists($this, $action)) {
+            $this->$action($editRequestId);
+        }
+    }
+
     public function openNotificationAction($notificationId, $url = null)
     {
         $this->markNotificationAsRead($notificationId);
@@ -225,13 +235,35 @@ class Notifications extends Component
         $editRequest = EditRequest::findOrFail($editRequestId);
         $editRequest->update(['status' => 'approved']);
 
-        $editRequest->user->notify(new GeneralNotification(
+        $user = $editRequest->user;
+        $grievance = $editRequest->grievance;
+
+        $user->notify(new GeneralNotification(
             'Edit Request Approved',
-            "Your request to edit '{$editRequest->grievance->grievance_title}' has been approved.",
-            'success'
+            "Your request to edit grievance '{$grievance->grievance_title}' has been approved.",
+            'success',
+            [
+                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'edit_request_id'     => $editRequest->id
+            ],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Grievance',
+                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
+                    'open_new_tab' => true,
+                ]
+            ]
         ));
 
         $this->loadNotifications();
+
+        Notification::make()
+            ->title('Edit Request Approved')
+            ->body("You approved the edit request for '{$grievance->grievance_title}'.")
+            ->success()
+            ->send();
     }
 
     public function denyEditRequest($editRequestId)
@@ -239,15 +271,36 @@ class Notifications extends Component
         $editRequest = EditRequest::findOrFail($editRequestId);
         $editRequest->update(['status' => 'denied']);
 
-        $editRequest->user->notify(new GeneralNotification(
+        $user = $editRequest->user;
+        $grievance = $editRequest->grievance;
+
+        $user->notify(new GeneralNotification(
             'Edit Request Denied',
-            "Your request to edit '{$editRequest->grievance->grievance_title}' has been denied.",
-            'danger'
+            "Your request to edit grievance '{$grievance->grievance_title}' has been denied.",
+            'danger',
+            [
+                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'edit_request_id'     => $editRequest->id
+            ],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Grievance',
+                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
+                    'open_new_tab' => true,
+                ]
+            ]
         ));
 
         $this->loadNotifications();
-    }
 
+        Notification::make()
+            ->title('Edit Request Denied')
+            ->body("You denied the edit request for '{$grievance->grievance_title}'.")
+            ->warning()
+            ->send();
+    }
 
     public function loadMore(): void
     {
