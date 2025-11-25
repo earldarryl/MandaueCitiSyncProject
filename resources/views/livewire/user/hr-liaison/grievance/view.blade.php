@@ -74,7 +74,7 @@
 
                     <div class="flex gap-2 mt-2 items-center">
 
-                        @if($request->status === 'pending')
+                        @if($request->status === 'pending' || $request->status === 'denied')
                             <button
                                 wire:click="approveEditRequest({{ $request->id }})"
                                 wire:loading.attr="disabled"
@@ -120,7 +120,6 @@
         </div>
     @endif
 
-
     <header class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-6 transition-colors">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 dark:border-zinc-800">
             <div class="flex flex-col gap-2">
@@ -160,9 +159,31 @@
         </div>
     </header>
 
+    @php
+        $palette = [
+            '0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899',
+            '14B8A6','6366F1','F97316','84CC16',
+        ];
+    @endphp
+
     @if (!$grievance->is_anonymous && $grievance->user?->userInfo)
         @php
             $info = $grievance->user->userInfo;
+            $user = $grievance->user;
+
+            $index = crc32($user->name) % count($palette);
+            $bgColor = $palette[$index];
+            $statusDotColor = match($user->status) {
+                'online' => 'bg-green-400 text-green-500 dark:text-green-400',
+                'away'   => 'bg-yellow-400 text-yellow-500 dark:text-yellow-400',
+                default  => 'bg-gray-400 text-gray-500 dark:text-gray-400',
+            };
+
+            $statusTextColor = match($user->status) {
+                'online' => 'text-green-500 dark:text-green-400',
+                'away'   => 'text-yellow-500 dark:text-yellow-400',
+                default  => 'text-gray-500 dark:text-gray-400',
+            };
 
             $citizenInfo = [
                 [
@@ -178,11 +199,34 @@
             ];
         @endphp
 
-        <div class="flex flex-col gap-2 font-sans p-3 rounded-sm">
+        <div class="flex flex-col gap-2 font-sans p-3 rounded-sm border border-gray-200 dark:border-zinc-700">
             <h4 class="flex items-center gap-2 text-[17px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide uppercase">
                 <x-heroicon-o-user-circle class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 Citizen Information
             </h4>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="relative w-10 h-10 rounded-full shrink-0 dark:bg-white overflow-visible">
+                        <img
+                            src="{{ $user->profile_pic
+                                ? Storage::url($user->profile_pic)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=' . $bgColor . '&color=fff&size=128' }}"
+                            alt="profile-pic"
+                            class="rounded-full w-full h-full object-cover"
+                        />
+                        <span class="absolute bottom-0 right-0 w-3 h-3 z-50 rounded-full ring-1 ring-white {{ $statusDotColor }}"></span>
+                    </div>
+                    <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                        {{ $user->name }}
+                    </span>
+                </div>
+                <div class="flex justify-end">
+                    <span class="text-[15px] font-semibold {{ $statusTextColor }}">
+                        {{ ucwords($user->status) }}
+                    </span>
+                </div>
+            </div>
 
             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
                 @foreach ($citizenInfo as $item)
@@ -205,15 +249,47 @@
         </div>
 
     @else
-        <div class="flex items-center gap-3 font-sans p-4 rounded-sm border border-gray-300 dark:border-zinc-700">
-            <x-heroicon-o-user class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-            <div class="flex flex-col">
-                <h4 class="text-[17px] font-semibold text-gray-600 dark:text-gray-400 tracking-wide uppercase">
-                    Anonymous User
-                </h4>
-                <p class="text-[15px] text-gray-700 dark:text-gray-300">
-                    This grievance was filed anonymously. No personal information is available.
-                </p>
+        @php
+            $user = $grievance->user;
+            $index = crc32('Anonymous') % count($palette);
+            $bgColor = $palette[$index];
+
+            $statusDotColor = match($user->status) {
+                'online' => 'bg-green-400 text-green-500 dark:text-green-400',
+                'away'   => 'bg-yellow-400 text-yellow-500 dark:text-yellow-400',
+                default  => 'bg-gray-400 text-gray-500 dark:text-gray-400',
+            };
+
+            $statusTextColor = match($user->status) {
+                'online' => 'text-green-500 dark:text-green-400',
+                'away'   => 'text-yellow-500 dark:text-yellow-400',
+                default  => 'text-gray-500 dark:text-gray-400',
+            };
+        @endphp
+
+        <div class="flex items-center justify-between font-sans p-4 rounded-sm border border-gray-300 dark:border-zinc-700">
+            <div class="flex items-center gap-3">
+                <div class="relative w-10 h-10 rounded-full shrink-0 dark:bg-white overflow-visible">
+                    <img
+                        src="https://ui-avatars.com/api/?name=Anonymous&background={{ $bgColor }}&color=fff&size=128"
+                        alt="anonymous-pic"
+                        class="rounded-full w-full h-full object-cover"
+                    />
+                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ring-1 ring-white {{ $statusDotColor }}"></span>
+                </div>
+                <div class="flex flex-col">
+                    <h4 class="text-[17px] font-semibold text-gray-600 dark:text-gray-400 tracking-wide uppercase">
+                        Anonymous User
+                    </h4>
+                    <p class="text-[15px] text-gray-700 dark:text-gray-300">
+                        This grievance was filed anonymously. No personal information is available.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <span class="text-[15px] font-semibold {{ $statusTextColor }}">
+                    {{ ucwords($user->status) }}
+                </span>
             </div>
         </div>
     @endif

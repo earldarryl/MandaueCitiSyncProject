@@ -1,4 +1,4 @@
-<div class="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-md p-6" wire:poll.visible.30s>
+<div class="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
 
     <div class="flex flex-col md:flex-row gap-4 mb-6">
         <div class="w-full flex flex-col bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-zinc-700 relative p-3 rounded-lg shadow-sm"
@@ -122,13 +122,12 @@
                         wire:click="printReport"
                         wire:loading.attr="disabled"
                         wire:target="printReport"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-gray-100 text-gray-800 border-gray-300
-                            hover:bg-gray-200 hover:border-gray-400
-                            dark:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700
-                            dark:hover:bg-zinc-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300
+                            border border-gray-500 dark:border-gray-400
+                            hover:bg-gray-200 dark:hover:bg-gray-800/50
+                            focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-700
+                            transition-all duration-200 disabled:cursor-not-allowed"
                     >
                         <flux:icon.printer class="w-4 h-4" />
                         <span wire:loading.remove wire:target="printReport">Print</span>
@@ -139,13 +138,12 @@
                         wire:click="exportPDF"
                         wire:loading.attr="disabled"
                         wire:target="exportPDF"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-red-100 text-red-800 border-red-300
-                            hover:bg-red-200 hover:border-red-400
-                            dark:bg-red-800 dark:text-red-200 dark:border-red-700
-                            dark:hover:bg-red-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200 disabled:cursor-not-allowed"
                     >
                         <flux:icon.document-text class="w-4 h-4" />
                         <span wire:loading.remove wire:target="exportPDF">Export PDF</span>
@@ -156,13 +154,12 @@
                         wire:click="exportCSV"
                         wire:loading.attr="disabled"
                         wire:target="exportCSV"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-blue-100 text-blue-800 border-blue-300
-                            hover:bg-blue-200 hover:border-blue-400
-                            dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
-                            dark:hover:bg-blue-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                            border border-blue-500 dark:border-blue-400
+                            hover:bg-blue-200 dark:hover:bg-blue-800/50
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            transition-all duration-200 disabled:cursor-not-allowed"
                     >
                         <flux:icon.arrow-down-tray class="w-4 h-4" />
                         <span wire:loading.remove wire:target="exportCSV">Export CSV</span>
@@ -173,13 +170,12 @@
                         wire:click="exportExcel"
                         wire:loading.attr="disabled"
                         wire:target="exportExcel"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-green-100 text-green-800 border-green-300
-                            hover:bg-green-200 hover:border-green-400
-                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
-                            dark:hover:bg-green-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                            border border-green-500 dark:border-green-400
+                            hover:bg-green-200 dark:hover:bg-green-800/50
+                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                            transition-all duration-200 disabled:cursor-not-allowed"
                     >
                         <flux:icon.arrow-down-tray class="w-4 h-4" />
                         <span wire:loading.remove wire:target="exportExcel">Export Excel</span>

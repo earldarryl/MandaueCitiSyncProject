@@ -598,7 +598,6 @@
 
                         {{ $this->form->getComponent('grievance_details') }}
                     </div>
-                    <flux:error name="grievance_details" />
                 </flux:field>
 
                 <flux:field>

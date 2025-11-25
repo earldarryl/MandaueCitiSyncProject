@@ -20,8 +20,8 @@
 
                 <x-filter-select
                     name="filter"
-                    placeholder="Filter by module"
-                    :options="['Grievance Management', 'Feedbacks']"
+                    placeholder="Filter by action"
+                    :options="$options"
                     wire:model="filter"
                 />
 
@@ -95,13 +95,12 @@
                         wire:click="downloadCsv"
                         wire:loading.attr="disabled"
                         wire:target="downloadCsv"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-blue-100 text-blue-800 border-blue-300
-                            hover:bg-blue-200 hover:border-blue-400
-                            dark:bg-blue-800 dark:text-blue-200 dark:border-blue-700
-                            dark:hover:bg-blue-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                            border border-blue-500 dark:border-blue-400
+                            hover:bg-blue-200 dark:hover:bg-blue-800/50
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            transition-all duration-200"
                     >
                         <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
                         <span wire:loading.remove wire:target="downloadCsv">Export CSV</span>
@@ -112,13 +111,12 @@
                         wire:click="downloadExcel"
                         wire:loading.attr="disabled"
                         wire:target="downloadExcel"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-green-100 text-green-800 border-green-300
-                            hover:bg-green-200 hover:border-green-400
-                            dark:bg-green-800 dark:text-green-200 dark:border-green-700
-                            dark:hover:bg-green-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                            border border-green-500 dark:border-green-400
+                            hover:bg-green-200 dark:hover:bg-green-800/50
+                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                            transition-all duration-200"
                     >
                         <x-heroicon-o-arrow-down-tray class="w-4 h-4" />
                         <span wire:loading.remove wire:target="downloadExcel">Export Excel</span>
@@ -129,13 +127,12 @@
                         wire:click="exportActivityLogsPDF"
                         wire:loading.attr="disabled"
                         wire:target="exportActivityLogsPDF"
-                        class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                            bg-red-100 text-red-800 border-red-300
-                            hover:bg-red-200 hover:border-red-400
-                            dark:bg-red-800 dark:text-red-300 dark:border-red-700
-                            dark:hover:bg-red-700
-                            whitespace-nowrap
-                            transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200"
                     >
                         <x-heroicon-o-document-arrow-down class="w-4 h-4" />
 
@@ -214,25 +211,67 @@
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Timestamp:</span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
                                                     {{ \Carbon\Carbon::parse($log->timestamp)->format('F j, Y – g:i A') ?? 'N/A' }}
                                                 </span>
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Location:</span>
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Description:</span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ $log->location ?? 'Unknown' }}
+                                                    {{ $log->description ?? 'Unknown' }}
                                                 </span>
                                             </div>
 
-                                        </div>
+                                            @if($log->changes && is_array($log->changes))
+                                                <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+                                                    @foreach($log->changes as $field => $value)
+                                                        @continue($field === 'user_id')
 
+                                                        @php
+                                                            if (is_array($value) && isset($value['old'])) {
+                                                                $value['old'] = is_array($value['old']) ? implode(', ', $value['old']) : $value['old'];
+                                                            }
+
+                                                            if (is_array($value) && isset($value['new'])) {
+                                                                $value['new'] = is_array($value['new']) ? implode(', ', $value['new']) : $value['new'];
+                                                            }
+                                                        @endphp
+
+                                                        <div class="flex flex-col gap-1 px-3 py-2 border-l-2 border-blue-500 dark:border-blue-400">
+                                                            <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 tracking-wide">
+                                                                {{ strtoupper(str_replace('_', ' ', $field)) }}
+                                                            </span>
+
+                                                            <div class="ml-2 text-[11px] text-gray-800 dark:text-gray-200 leading-relaxed space-y-1">
+                                                                @if(is_array($value))
+                                                                    @if(isset($value['old']))
+                                                                        <div class="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded text-[10px]">
+                                                                            <span class="font-semibold text-gray-600 dark:text-gray-400">OLD:</span>
+                                                                            <span class="font-bold">{{ $value['old'] ?? '—' }}</span>
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(isset($value['new']))
+                                                                        <div class="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded text-[10px]">
+                                                                            <span class="font-semibold text-gray-600 dark:text-gray-400">NEW:</span>
+                                                                            <span class="font-bold">{{ $value['new'] ?? '—' }}</span>
+                                                                        </div>
+                                                                    @endif
+                                                                @else
+                                                                    <div class="text-[11px] font-medium">{{ $value }}</div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">No changes recorded.</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </li>
                 @endforeach

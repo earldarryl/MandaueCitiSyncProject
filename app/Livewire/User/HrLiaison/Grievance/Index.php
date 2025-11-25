@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Grievance;
 use App\Models\GrievanceAttachment;
 use App\Models\HistoryLog;
+use App\Models\HrLiaisonDepartment;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -64,8 +65,7 @@ class Index extends Component
     public $resolvedCount;
     public $unresolvedCount;
     public $closedCount;
-
-
+    public $overdueCount;
     protected $updatesQueryString = [
         'search' => ['except' => ''],
         'filterPriority' => ['except' => ''],
@@ -73,6 +73,7 @@ class Index extends Component
         'filterType' => ['except' => ''],
         'filterDate' => ['except' => ''],
         'filterCategory' => ['except' => ''],
+        'page'           => ['except' => 1],
     ];
 
     protected $listeners = [
@@ -97,78 +98,24 @@ class Index extends Component
         $liaisonDepartments = $currentHrLiaison->departments->pluck('department_name')->toArray();
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
-            ->whereIn('department_name', $liaisonDepartments)
+            ->whereNotIn('department_name', $liaisonDepartments)
+            ->where('is_active', 1)
+            ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
 
-        $allCategoryOptions = [
-            'Business Permit and Licensing Office' => [
-                'Complaint' => [
-                    'Delayed Business Permit Processing',
-                    'Unclear Requirements or Procedures',
-                    'Unfair Treatment by Personnel',
-                ],
-                'Inquiry' => [
-                    'Business Permit Requirements Inquiry',
-                    'Renewal Process Clarification',
-                    'Schedule or Fee Inquiry',
-                ],
-                'Request' => [
-                    'Document Correction or Update Request',
-                    'Business Record Verification Request',
-                    'Appointment or Processing Schedule Request',
-                ],
-            ],
-            'Traffic Enforcement Agency of Mandaue' => [
-                'Complaint' => [
-                    'Traffic Enforcer Misconduct',
-                    'Unjust Ticketing or Penalty',
-                    'Inefficient Traffic Management',
-                ],
-                'Inquiry' => [
-                    'Traffic Rules Clarification',
-                    'Citation or Violation Inquiry',
-                    'Inquiry About Traffic Assistance',
-                ],
-                'Request' => [
-                    'Request for Traffic Assistance',
-                    'Request for Event Traffic Coordination',
-                    'Request for Violation Review',
-                ],
-            ],
-            'City Social Welfare Services' => [
-                'Complaint' => [
-                    'Discrimination or Neglect in Assistance',
-                    'Delayed Social Service Response',
-                    'Unprofessional Staff Behavior',
-                ],
-                'Inquiry' => [
-                    'Assistance Program Inquiry',
-                    'Eligibility or Requirements Clarification',
-                    'Social Service Schedule Inquiry',
-                ],
-                'Request' => [
-                    'Request for Social Assistance',
-                    'Financial Aid or Program Enrollment Request',
-                    'Home Visit or Consultation Request',
-                ],
-            ],
-        ];
+        $grievanceCategories = Grievance::distinct()
+                    ->pluck('grievance_category')
+                    ->filter()
+                    ->toArray();
 
-        $flattened = [];
-        foreach ($liaisonDepartments as $department) {
-            if (isset($allCategoryOptions[$department])) {
-                foreach ($allCategoryOptions[$department] as $type => $categories) {
-                    foreach ($categories as $category) {
-                        $flattened[$category] = $category;
-                    }
-                }
-            }
+        $this->categoryOptions = [];
+
+        foreach ($grievanceCategories as $category) {
+            $this->categoryOptions[$category] = $category;
         }
 
-        $this->categoryOptions = $flattened;
     }
-
 
     public function sortBy(string $field): void
     {
@@ -197,6 +144,7 @@ class Index extends Component
                     'Resolved' => 'resolved',
                     'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
+                    'Overdue' => 'overdue'
                 ];
                 if (isset($map[$this->filterStatus])) {
                     $q->where('grievance_status', $map[$this->filterStatus]);
@@ -212,7 +160,7 @@ class Index extends Component
                         ->orWhere('priority_level', 'like', "%{$term}%")
                         ->orWhere('grievance_type', 'like', "%{$term}%")
                         ->orWhere('is_anonymous', 'like', "%{$term}%")
-                        ->orWhereRaw('CAST(grievance_id AS CHAR) like ?', ["%{$term}%"])
+                        ->orWhereRaw('CAST(grievance_ticket_id AS CHAR) like ?', ["%{$term}%"])
                         ->orWhere('grievance_status', 'like', "%{$term}%")
                         ->orWhere('grievance_status', 'like', "%{$normalized}%");
                 });
@@ -240,8 +188,8 @@ class Index extends Component
 
     protected function resetSelection()
     {
-        $this->selectAll = false;
-        $this->selected = [];
+        // $this->selectAll = false;
+        // $this->selected = [];
     }
 
     public function exportSelectedGrievancesExcel()
@@ -393,7 +341,6 @@ class Index extends Component
 
         return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
     }
-
 
     public function importGrievancesExcel()
     {
@@ -607,7 +554,7 @@ class Index extends Component
         $callback = function () use ($grievances) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Grievance ID',
+                'Grievance Ticket ID',
                 'Grievance Title',
                 'Grievance Type',
                 'Grievance Category',
@@ -630,7 +577,7 @@ class Index extends Component
                 $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
 
                 fputcsv($handle, [
-                    $grievance->grievance_id,
+                    $grievance->grievance_ticket_id,
                     $grievance->grievance_title,
                     $grievance->grievance_type,
                     $grievance->grievance_category,
@@ -658,30 +605,84 @@ class Index extends Component
             'category'   => 'required|string',
         ]);
 
-        DB::transaction(function () {
+        $user = auth()->user();
+
+        DB::transaction(function () use ($user) {
             $department = Department::where('department_name', $this->department)->firstOrFail();
 
-            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
-                ->get();
-
             foreach ($this->selected as $grievanceId) {
-                Assignment::where('grievance_id', $grievanceId)->delete();
+                $grievance = Grievance::findOrFail($grievanceId);
 
-                Grievance::where('grievance_id', $grievanceId)->update([
+                $oldStatus      = $grievance->grievance_status;
+                $oldCategory    = $grievance->grievance_category;
+                $oldDepartments = $grievance->departments()->pluck('department_name')->toArray();
+
+                $grievance->assignments()->delete();
+
+                $hrLiaisons = HrLiaisonDepartment::where('department_id', $department->department_id)
+                    ->pluck('hr_liaison_id')
+                    ->toArray();
+
+                if (empty($hrLiaisons)) {
+                    Notification::make()
+                        ->title('No HR Liaisons Found')
+                        ->body("Department {$department->department_name} has no HR Liaisons assigned for grievance #{$grievance->grievance_ticket_id}.")
+                        ->danger()
+                        ->send();
+
+                    continue;
+                }
+
+                $grievance->update([
+                    'grievance_status'   => 'pending',
                     'grievance_category' => $this->category,
-                    'grievance_status'   => 'pending', // Set status to pending
                     'updated_at'         => now(),
                 ]);
 
-                foreach ($hrLiaisons as $hr) {
+                foreach ($hrLiaisons as $liaisonId) {
                     Assignment::create([
-                        'grievance_id'  => $grievanceId,
+                        'grievance_id'  => $grievance->grievance_id,
                         'department_id' => $department->department_id,
+                        'hr_liaison_id' => $liaisonId,
                         'assigned_at'   => now(),
-                        'hr_liaison_id' => $hr->id,
                     ]);
                 }
+
+                $changes = [
+                    'grievance_status' => [
+                        'old' => ucfirst($oldStatus),
+                        'new' => 'Pending',
+                    ],
+                    'grievance_category' => [
+                        'old' => $oldCategory,
+                        'new' => $this->category,
+                    ],
+                    'departments' => [
+                        'old' => implode(', ', $oldDepartments),
+                        'new' => $department->department_name,
+                    ],
+                    'assigned_hr_liaisons' => [
+                        'new' => implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
+                    ],
+                ];
+
+                ActivityLog::create([
+                    'user_id'      => $user->id,
+                    'role_id'      => $user->roles->first()?->id,
+                    'module'       => 'Report Management',
+                    'action'       => "Rerouted report #{$grievance->grievance_ticket_id} to {$department->department_name}",
+                    'action_type'  => 'reroute',
+                    'model_type'   => 'App\\Models\\Grievance',
+                    'model_id'     => $grievance->grievance_id,
+                    'description'  => "Assigned HR Liaisons: " . implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
+                    'changes'      => $changes,
+                    'status'       => 'success',
+                    'ip_address'   => request()->ip(),
+                    'device_info'  => request()->header('User-Agent'),
+                    'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                    'platform'     => php_uname('s'),
+                    'timestamp'    => now(),
+                ]);
             }
         });
 
@@ -911,7 +912,7 @@ class Index extends Component
             $handle = fopen('php://output', 'w');
 
                 fputcsv($handle, [
-                    'Grievance ID',
+                    'Grievance Ticket ID',
                     'Grievance Title',
                     'Grievance Type',
                     'Priority Level',
@@ -932,7 +933,7 @@ class Index extends Component
             $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
 
             fputcsv($handle, [
-                $grievance->grievance_id,
+                $grievance->grievance_ticket_id,
                 $grievance->grievance_title,
                 $grievance->grievance_type,
                 $grievance->priority_level,
@@ -1117,6 +1118,7 @@ class Index extends Component
         $this->resolvedCount     = (clone $query)->where('grievance_status', 'resolved')->count();
         $this->unresolvedCount     = (clone $query)->where('grievance_status', 'unresolved')->count();
         $this->closedCount       = (clone $query)->where('grievance_status', 'closed')->count();
+        $this->overdueCount       = (clone $query)->where('grievance_status', 'overdue')->count();
 
     }
 
@@ -1136,6 +1138,7 @@ class Index extends Component
                     'Resolved' => 'resolved',
                     'Unresolved' => 'unresolved',
                     'Closed' => 'closed',
+                    'Overdue' => 'overdue',
                 ];
 
                 if ($this->filterStatus !== 'Show All' && isset($map[$this->filterStatus])) {

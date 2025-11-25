@@ -3,15 +3,17 @@
 namespace App\Livewire\User\HrLiaison\Grievance;
 
 use App\Models\ActivityLog;
+use App\Models\Assignment;
 use App\Models\Department;
 use App\Models\Grievance;
 use App\Models\EditRequest;
+use App\Models\HrLiaisonDepartment;
+use App\Models\User;
 use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Filament\Notifications\Notification;
-
 #[Layout('layouts.app')]
 #[Title('View Grievance')]
 class View extends Component
@@ -25,7 +27,8 @@ class View extends Component
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
-        $roleName = ucfirst($user->roles->first()?->name ?? 'User');
+
+        $departments = $user->departments->pluck('department_name')->join(', ');
 
         $this->grievance = $grievance->load(['attachments', 'assignments', 'departments', 'user.userInfo']);
 
@@ -38,15 +41,18 @@ class View extends Component
                                 ->orderBy('created_at', 'desc')
                                 ->get();
 
-
         $excludedDepartmentIds = $user->departments->pluck('department_id');
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
             ->whereNotIn('department_id', $excludedDepartmentIds)
+            ->where('is_active', 1)
+            ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
 
         if ($this->grievance->grievance_status === 'pending') {
+            $oldStatus = $this->grievance->grievance_status;
+
             $this->grievance->forceFill([
                 'grievance_status' => 'acknowledged',
             ])->save();
@@ -54,13 +60,18 @@ class View extends Component
             ActivityLog::create([
                 'user_id'      => $user->id,
                 'role_id'      => $user->roles->first()?->id,
-                'module'       => 'Grievance Management',
-                'action'       => "Acknowledged grievance #{$this->grievance->grievance_id}",
+                'module'       => 'Report Management',
+                'action'       => "Acknowledged report #{$this->grievance->grievance_ticket_id}",
                 'action_type'  => 'acknowledge',
                 'model_type'   => 'App\\Models\\Grievance',
                 'model_id'     => $this->grievance->grievance_id,
-                'description'  => "{$roleName} ({$user->email}) acknowledged grievance #{$this->grievance->grievance_id}.",
-                'changes'      => [],
+                'description'  => "HR Liaison ({$user->name}" . ($departments ? " - {$departments}" : "") . ") acknowledged report #{$this->grievance->grievance_ticket_id}.",
+                'changes'      => [
+                    'grievance_status' => [
+                        'old' => ucfirst($oldStatus),
+                        'new' => 'Acknowledged',
+                    ],
+                ],
                 'status'       => 'success',
                 'ip_address'   => request()->ip(),
                 'device_info'  => request()->header('User-Agent'),
@@ -69,7 +80,6 @@ class View extends Component
                 'location'     => geoip(request()->ip())?->city,
                 'timestamp'    => now(),
             ]);
-
         }
     }
 
@@ -91,14 +101,30 @@ class View extends Component
     {
         $this->validate([
             'department' => 'required|exists:departments,department_name',
-            'category'           => 'required|string',
+            'category'   => 'required|string',
         ]);
 
         $user = auth()->user();
 
         $department = Department::where('department_name', $this->department)->firstOrFail();
 
-        $this->grievance->departments()->sync([$department->department_id]);
+        $hrLiaisons = HrLiaisonDepartment::where('department_id', $department->department_id)
+                        ->pluck('hr_liaison_id')
+                        ->toArray();
+
+        if (empty($hrLiaisons)) {
+            Notification::make()
+                ->title('No HR Liaisons Found')
+                ->body("This department has no HR Liaisons assigned.")
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $oldStatus      = $this->grievance->grievance_status;
+        $oldCategory    = $this->grievance->grievance_category;
+        $oldDepartments = $this->grievance->departments()->pluck('department_name')->toArray();
 
         $this->grievance->update([
             'grievance_status'   => 'pending',
@@ -106,15 +132,45 @@ class View extends Component
             'updated_at'         => now(),
         ]);
 
+        $this->grievance->assignments()->delete();
+
+        foreach ($hrLiaisons as $liaisonId) {
+            Assignment::create([
+                'grievance_id'  => $this->grievance->grievance_id,
+                'department_id' => $department->department_id,
+                'hr_liaison_id' => $liaisonId,
+                'assigned_at'   => now(),
+            ]);
+        }
+
+        $changes = [
+            'grievance_status' => [
+                'old' => ucfirst($oldStatus),
+                'new' => 'Pending',
+            ],
+            'grievance_category' => [
+                'old' => $oldCategory,
+                'new' => $this->category,
+            ],
+            'departments' => [
+                'old' => implode(', ', $oldDepartments),
+                'new' => $department->department_name,
+            ],
+            'assigned_hr_liaisons' => [
+                'new' => implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
+            ],
+        ];
+
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
-            'module'       => 'Grievance Management',
-            'action'       => "Rerouted grievance #{$this->grievance->grievance_id} to {$department->department_name} with category '{$this->category}'",
+            'module'       => 'Report Management',
+            'action'       => "Rerouted report #{$this->grievance->grievance_ticket_id} to {$department->department_name}",
             'action_type'  => 'reroute',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) rerouted grievance #{$this->grievance->grievance_id} to {$department->department_name} and updated category to '{$this->category}'.",
+            'description'  => "Assigned HR Liaisons: " . implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
+            'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
             'device_info'  => request()->header('User-Agent'),
@@ -123,15 +179,15 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
+
         Notification::make()
-            ->title('Grievance Rerouted')
-            ->body("Grievance successfully rerouted to {$department->department_name} with category '{$this->category}'. Status set to pending.")
+            ->title('Report Rerouted')
+            ->body("Report rerouted to {$department->department_name}. HR Liaisons assigned.")
             ->success()
             ->send();
 
-        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+        return $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
     }
-
 
     private function formatStatus($value)
     {
@@ -152,15 +208,23 @@ class View extends Component
             'grievance_status' => $formattedStatus,
         ]);
 
+        $changes = [
+            'grievance_status' => [
+                'old' => ucfirst($oldStatus),
+                'new' => ucfirst($formattedStatus),
+            ],
+        ];
+
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
-            'module'       => 'Grievance Management',
-            'action'       => "Changed grievance #{$this->grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
+            'module'       => 'Report Management',
+            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} status from {$oldStatus} to {$formattedStatus}",
             'action_type'  => 'update_status',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) changed status of grievance #{$this->grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
+            'description'  => "HR Liaison ({$user->email}) changed status of report #{$this->grievance->grievance_ticket_id} from {$oldStatus} to {$formattedStatus}.",
+            'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
             'device_info'  => request()->header('User-Agent'),
@@ -194,11 +258,11 @@ class View extends Component
         $oldPriority = $this->grievance->priority_level;
         $oldProcessingDays = $this->grievance->processing_days;
 
-        $priorityProcessingDays = match (strtolower($formattedPriority)) {
-            'low'      => 7,
-            'normal'   => 5,
-            'high'     => 3,
-            'critical' => 1,
+        $priorityProcessingDays = match ($formattedPriority) {
+            'Low'      => 20,
+            'Normal'   => 7,
+            'High'     => 3,
+            'Critical' => 1,
             default    => 7,
         };
 
@@ -207,15 +271,27 @@ class View extends Component
             'processing_days' => $priorityProcessingDays,
         ]);
 
+        $changes = [
+            'priority_level' => [
+                'old' => ucfirst($oldPriority),
+                'new' => ucfirst($formattedPriority),
+            ],
+            'processing_days' => [
+                'old' => $oldProcessingDays,
+                'new' => $priorityProcessingDays,
+            ],
+        ];
+
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
-            'module'       => 'Grievance Management',
-            'action'       => "Changed grievance #{$this->grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+            'module'       => 'Report Management',
+            'action'       => "Changed report #{$this->grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
             'action_type'  => 'update_priority',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) changed priority of grievance #{$this->grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'description'  => "HR Liaison ({$user->email}) changed priority of report #{$this->grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
             'device_info'  => request()->header('User-Agent'),
@@ -226,7 +302,7 @@ class View extends Component
 
         Notification::make()
             ->title('Priority Updated')
-            ->body("Grievance priority successfully changed from {$oldPriority} to {$formattedPriority}. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.")
+            ->body("Report priority successfully changed from {$oldPriority} to {$formattedPriority}. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.")
             ->success()
             ->send();
 
@@ -246,7 +322,7 @@ class View extends Component
 
         $user->notify(new GeneralNotification(
             'Edit Request Approved',
-            "Your request to edit grievance '{$grievance->grievance_title}' has been approved.",
+            "Your request to edit report '{$grievance->grievance_title}' has been approved.",
             'success',
             [
                 'grievance_ticket_id' => $grievance->grievance_ticket_id,
@@ -256,7 +332,7 @@ class View extends Component
             true,
             [
                 [
-                    'label' => 'View Grievance',
+                    'label' => 'View Report',
                     'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
                     'open_new_tab' => true,
                 ]
@@ -264,8 +340,8 @@ class View extends Component
         ));
 
         $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
-                                        ->where('status', 'pending')
-                                        ->get();
+                                ->orderBy('created_at', 'desc')
+                                ->get();
 
         Notification::make()
             ->title('Edit Request Approved')
@@ -284,7 +360,7 @@ class View extends Component
 
         $user->notify(new GeneralNotification(
             'Edit Request Denied',
-            "Your request to edit grievance '{$grievance->grievance_title}' has been denied.",
+            "Your request to edit report '{$grievance->grievance_title}' has been denied.",
             'danger',
             [
                 'grievance_ticket_id' => $grievance->grievance_ticket_id,
@@ -294,7 +370,7 @@ class View extends Component
             true,
             [
                 [
-                    'label' => 'View Grievance',
+                    'label' => 'View Report',
                     'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
                     'open_new_tab' => true,
                 ]
@@ -302,8 +378,8 @@ class View extends Component
         ));
 
         $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
-                                        ->where('status', 'pending')
-                                        ->get();
+                                ->orderBy('created_at', 'desc')
+                                ->get();
 
         Notification::make()
             ->title('Edit Request Denied')

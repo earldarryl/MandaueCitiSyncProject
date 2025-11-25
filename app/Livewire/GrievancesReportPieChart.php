@@ -51,33 +51,28 @@ class GrievancesReportPieChart extends ChartWidget
 
     protected function getData(): array
     {
-        $now = now();
-
         $grievances = $this->baseQuery()->get(['grievance_status', 'processing_days', 'created_at']);
 
-        $delayedCount = 0;
+        $overdueCount = 0;
         $resolvedCount = 0;
         $pendingCount = 0;
 
         foreach ($grievances as $g) {
-            $daysPassed = $g->created_at->diffInDays($now);
+            $status = strtolower($g->grievance_status);
 
-            if ($daysPassed > ($g->processing_days ?? 0)) {
-                $delayedCount++;
-            } else {
-                $status = strtolower($g->grievance_status);
-                if ($status === 'resolved') {
-                    $resolvedCount++;
-                } elseif (in_array($status, ['pending', 'in_progress', 'acknowledged', 'escalated'])) {
-                    $pendingCount++;
-                }
+            if ($status === 'overdue') {
+                $overdueCount++;
+            } elseif ($status === 'resolved') {
+                $resolvedCount++;
+            } elseif (in_array($status, ['pending', 'in_progress', 'acknowledged', 'escalated'])) {
+                $pendingCount++;
             }
         }
 
-        $data = [$delayedCount, $resolvedCount, $pendingCount];
+        $data = [$overdueCount, $resolvedCount, $pendingCount];
         $total = array_sum($data);
 
-        $labels = ['Delayed', 'Resolved', 'Pending'];
+        $labels = ['Overdue', 'Resolved', 'Pending'];
         $labelsWithPercent = collect($labels)->map(function ($label, $i) use ($data, $total) {
             $count = $data[$i] ?? 0;
             $percentage = $total > 0 ? round(($count / $total) * 100, 1) : 0;
