@@ -11,6 +11,10 @@
 
   <style>
     @media print {
+        * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
 
         body {
             width: 100%;

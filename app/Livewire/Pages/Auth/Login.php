@@ -48,7 +48,7 @@ class Login extends Component
             'action_type'  => 'login',
             'model_type'   => null,
             'model_id'     => null,
-            'description'  => $roleName . ' (' . $user->email . ') logged in successfully.',
+            'description'  => $roleName . ' (' . $user->name . ') logged in successfully.',
             'changes'      => [],
             'status'       => 'success',
             'ip_address'   => request()->ip(),

@@ -34,7 +34,7 @@ class GrievanceStatusesPolarChart extends ChartWidget
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 6v6h4.5m4.5 0A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
                             </svg>
-                            <span>Grievance Status Overview (Dynamic Time Range)</span>
+                            <span>Report Status Overview (Dynamic Time Range)</span>
                         </h2>
                     </div>
                 </div>
@@ -55,12 +55,12 @@ class GrievanceStatusesPolarChart extends ChartWidget
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
                         This chart visualizes <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        all grievances assigned to you</span> within the selected date range,
+                        all reports assigned to you</span> within the selected date range,
                         grouped by their <span class="font-semibold text-gray-800 dark:text-gray-300">current status</span>.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
                         To help HR Liaisons quickly assess workload distribution, identify backlog areas,
-                        and monitor progress across different grievance statuses over time.
+                        and monitor progress across different report statuses over time.
                     </div>
                 </div>
             </div>
@@ -124,7 +124,7 @@ class GrievanceStatusesPolarChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Grievance Status Distribution',
+                    'label' => 'Report Status Distribution',
                     'data' => $data,
                     'backgroundColor' => $colors,
                     'borderColor' => $borders,

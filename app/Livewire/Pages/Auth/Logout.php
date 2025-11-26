@@ -17,7 +17,8 @@ class Logout extends Component
         $user = auth()->user();
 
         if ($user) {
-            $roleName = ucfirst($user->roles->first()?->name ?? 'user');
+            $role = $user->roles->first()?->name ?? 'user';
+            $roleName = $role === 'hr_liaison' ? 'HR Liaison' : ucfirst($role);
 
             ActivityLog::create([
                 'user_id'      => $user->id,
@@ -27,7 +28,7 @@ class Logout extends Component
                 'action_type'  => 'logout',
                 'model_type'   => null,
                 'model_id'     => null,
-                'description'  => "{$roleName} ({$user->email}) successfully logged out.",
+                'description'  => "{$roleName} ({$user->name}) successfully logged out.",
                 'changes'      => [],
                 'status'       => 'success',
                 'ip_address'   => request()->ip(),

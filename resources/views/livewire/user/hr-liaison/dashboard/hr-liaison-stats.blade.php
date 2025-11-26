@@ -2,7 +2,7 @@
 
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
-            Grievance Statistics
+            Reports Statistics
         </h2>
     </div>
 
@@ -68,7 +68,7 @@
                 <flux:icon.identification class="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
             </div>
 
-            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Latest Grievance Ticket ID</p>
+            <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Latest Report Ticket ID</p>
             <p class="relative text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">
                 {{ $latestGrievanceTicketId ?? '—' }}
             </p>

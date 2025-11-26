@@ -6,7 +6,6 @@ use Illuminate\Console\Scheduling\Schedule;
 use App\Models\Grievance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-// Existing commands...
 Artisan::command('inspire', function () {
     $this->comment(\Illuminate\Foundation\Inspiring::quote());
 })->purpose('Display an inspiring quote');
@@ -48,4 +47,6 @@ app()->booted(function () {
     $schedule->command('grievances:mark-overdue')->hourly();
 
     $schedule->command('activitylogs:clear-old')->monthlyOn(1, '00:00');
+
+    $schedule->command('sessions:clear-expired')->hourly();
 });

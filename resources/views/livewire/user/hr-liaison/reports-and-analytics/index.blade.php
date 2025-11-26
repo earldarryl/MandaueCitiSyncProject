@@ -78,6 +78,27 @@
                 <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
                     <div class="flex items-center gap-2 font-bold mb-1">
                         <x-heroicon-o-adjustments-horizontal class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
+                        <span>Sort By</span>
+                    </div>
+
+                    <x-filter-select
+                        name="sortOption"
+                        placeholder="Sort By"
+                        :options="[
+                            'Priority: Low → Critical',
+                            'Priority: Critical → Low',
+                            'Type: Complaint → Request',
+                            'Type: Request → Complaint',
+                            'Status: Ascending',
+                            'Status: Descending'
+                        ]"
+                        wire:model="sortOption"
+                    />
+                </div>
+
+                <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
+                    <div class="flex items-center gap-2 font-bold mb-1">
+                        <x-heroicon-o-adjustments-horizontal class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
                         <span>Type</span>
                     </div>
                     <x-filter-select
@@ -116,8 +137,7 @@
             </div>
 
             @if($filtersApplied)
-
-                <div class="flex flex-wrap justify-end gap-3 px-4 mb-4">
+                <div class="flex lg:flex-wrap lg:flex-row flex-col justify-end gap-3 px-4 mb-4">
                     <button
                         wire:click="printReport"
                         wire:loading.attr="disabled"
@@ -267,7 +287,7 @@
                 </table>
             </div>
 
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-200 dark:border-gray-700" wire:poll.10s>
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200 font-sans">
                     <thead class="text-xs uppercase tracking-wide bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                         <tr>
@@ -276,6 +296,7 @@
                             <th scope="col" class="px-6 py-3 text-center font-semibold">TYPE</th>
                             <th scope="col" class="px-6 py-3 text-center font-semibold">CATEGORY</th>
                             <th scope="col" class="px-6 py-3 text-center font-semibold">STATUS</th>
+                            <th scope="col" class="px-6 py-3 text-center font-semibold">PRIORITY LEVEL</th>
                             <th scope="col" class="px-6 py-3 text-center font-semibold">PROCESSING DAYS</th>
                             <th scope="col" class="px-6 py-3 text-center font-semibold">DATE</th>
                         </tr>
@@ -296,13 +317,13 @@
                                     {{ $item->grievance_category ?? '—' }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span
-                                        class="px-2 py-1 rounded-full text-xs font-semibold shadow-sm
-                                        @if($item->grievance_status === 'Resolved') bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300
-                                        @elseif($item->grievance_status === 'Pending') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300
-                                        @elseif($item->grievance_status === 'Delayed') bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300
-                                        @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 @endif">
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                         {{ strtoupper($item->grievance_status) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                        {{ strtoupper($item->priority_level) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center font-medium text-gray-800 dark:text-gray-200">

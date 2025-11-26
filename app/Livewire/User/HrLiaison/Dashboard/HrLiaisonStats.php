@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\HrLiaison\Dashboard;
 
+use App\Models\Assignment;
 use Filament\Widgets\Widget;
 use App\Models\Grievance;
 use App\Models\HrLiaisonDepartment;
@@ -79,9 +80,17 @@ class HrLiaisonStats extends Widget
 
             $totalReceived = (clone $baseQuery)->count();
 
-            $latestGrievanceTicketId = (clone $baseQuery)
-                ->orderBy('created_at', 'desc')
-                ->value('grievance_ticket_id');
+            $latestGrievanceTicketId = Assignment::where('hr_liaison_id', $userId)
+                ->whereHas('grievance', function ($q) use ($start, $end) {
+                    $q->whereBetween('created_at', [$start, $end]);
+                })
+                ->select('grievance_id')
+                ->distinct()
+                ->orderByDesc('assigned_at')
+                ->with(['grievance' => function ($q) {
+                    $q->select('grievance_id', 'grievance_ticket_id');
+                }])
+                ->first()?->grievance?->grievance_ticket_id;
 
             $citizenCount = (clone $baseQuery)
                 ->distinct('user_id')

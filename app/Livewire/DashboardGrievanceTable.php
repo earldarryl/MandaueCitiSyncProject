@@ -52,7 +52,7 @@ class DashboardGrievanceTable extends TableWidget
                             <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12h6m-3-3v6m9 3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3Z" />
                             </svg>
-                            <span>Grievance Records Overview</span>
+                            <span>Report Records Overview</span>
                         </h2>
                     </div>
                 </div>
@@ -72,13 +72,13 @@ class DashboardGrievanceTable extends TableWidget
                     <div x-show="open" x-collapse
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
-                        This table lists all <span class="font-semibold text-gray-800 dark:text-gray-300">grievances</span>
+                        This table lists all <span class="font-semibold text-gray-800 dark:text-gray-300">reports</span>
                         assigned to HR liaisons, including both
                         <span class="font-semibold text-gray-800 dark:text-gray-300">identified</span> and
                         <span class="font-semibold text-gray-800 dark:text-gray-300">anonymous</span> submissions.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To provide an overview of grievance records, their types, priorities, and identities —
+                        To provide an overview of report records, their types, priorities, and identities —
                         enabling HR Liaisons to track case progress, monitor communication transparency,
                         and support decision-making in case management.
                     </div>
@@ -222,7 +222,7 @@ class DashboardGrievanceTable extends TableWidget
                     ->label('Submitted By')
                     ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'N/A' : $state)
                     ->tooltip(fn ($record) => $record->is_anonymous
-                        ? 'Anonymous Grievance'
+                        ? 'Anonymous Report'
                         : $record->user?->email)
                     ->alignCenter()
                     ->sortable()
@@ -305,7 +305,7 @@ class DashboardGrievanceTable extends TableWidget
                             !transition-all !duration-200 !shadow-sm !cursor-pointer
                         ',
                     ])
-                    ->tooltip('View grievance details')
+                    ->tooltip('View report')
                     ->button(),
             ])
             ->searchable()

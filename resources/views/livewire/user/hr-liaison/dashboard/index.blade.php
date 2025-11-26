@@ -11,7 +11,7 @@
     </div>
 
     <div wire:loading.remove wire:target="applyDates">
-         <div class="w-full max-w-7xl mx-auto flex flex-col gap-6">
+         <div class="w-full mx-auto flex flex-col gap-6">
 
             <div class="w-full flex flex-col bg-gray-50 dark:bg-gray-900 relative p-3 rounded-lg shadow-sm"
                 x-data="{ start: '{{ $startDate }}', end: '{{ $endDate }}' }"
@@ -72,6 +72,24 @@
                     </div>
             </section>
 
+            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
+                <livewire:dashboard-grievance-table
+                    :start-date="$startDate"
+                    :end-date="$endDate"
+                    wire:key="grievances-table-{{ $startDate }}-{{ $endDate }}" />
+            </section>
+
+            <section class="w-full h-full p-4 flex justify-center items-center gap-6">
+                <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
+                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full max-w-full">
+                        <livewire:grievance-line-chart
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="grievance-line-{{ $startDate }}-{{ $endDate }}" />
+                    </div>
+                </div>
+            </section>
+
             <section class="w-full h-full p-4 flex justify-center items-center gap-6">
                 <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
                     <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
@@ -93,13 +111,6 @@
             <section class="w-full h-full p-4 flex justify-center items-center gap-6">
                 <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
                     <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
-                        <livewire:grievance-line-chart
-                            :start-date="$startDate"
-                            :end-date="$endDate"
-                            wire:key="grievance-line-{{ $startDate }}-{{ $endDate }}" />
-                    </div>
-
-                    <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
                         <livewire:hr-liaison-user-grievance-chart
                             :start-date="$startDate"
                             :end-date="$endDate"
@@ -113,13 +124,6 @@
                             wire:key="grievance-priority-chart-{{ $startDate }}-{{ $endDate }}" />
                     </div>
                 </div>
-            </section>
-
-            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
-                <livewire:dashboard-grievance-table
-                    :start-date="$startDate"
-                    :end-date="$endDate"
-                    wire:key="grievances-table-{{ $startDate }}-{{ $endDate }}" />
             </section>
         </div>
     </div>
