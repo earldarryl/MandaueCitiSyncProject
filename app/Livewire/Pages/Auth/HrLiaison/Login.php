@@ -32,7 +32,7 @@ class Login extends Component
         $result = $this->form->authenticate('hr_liaison');
 
         $user = auth()->user();
-        $roleName = ucfirst($user->roles->first()?->name ?? 'HR Liaison');
+        $roleName = 'HR Liaison';
 
         Session::regenerate();
         Session::forget('password_reset_done');
@@ -46,7 +46,7 @@ class Login extends Component
             'action_type'  => 'login',
             'model_type'   => null,
             'model_id'     => null,
-            'description'  => $roleName . ' (' . $user->email . ') logged in successfully.',
+            'description'  => $roleName . ' (' . $user->name . ') logged in successfully.',
             'changes'      => [],
             'status'       => 'success',
             'ip_address'   => request()->ip(),

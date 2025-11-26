@@ -69,11 +69,12 @@
                         <span>Verify Code</span>
                     </span>
                 </flux:button>
-
-                <div wire:loading wire:target="confirm" class="flex justify-center gap-2 mt-2">
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                <div wire:loading wire:target="confirm">
+                    <div class="flex justify-center gap-2 mt-2">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
                 </div>
             </div>
         </form>

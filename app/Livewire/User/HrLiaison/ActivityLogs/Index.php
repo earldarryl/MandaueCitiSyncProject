@@ -25,19 +25,27 @@ class Index extends Component
     use WithPagination;
 
     public int $limit = 10;
-    public ?string $filter = null;
+    public ?string $moduleFilter = null;
+    public ?string $actionFilter = null;
     public ?string $roleFilter = null;
     public ?string $selectedDate = null;
-    public $options = [];
+    public $moduleOptions = [];
+    public $actionTypeOptions = [];
 
     public function mount()
     {
-        $this->options = ActivityLog::query()
-            ->where('module', 'Report Management')
+        $this->moduleOptions = ActivityLog::query()
+            ->distinct()
+            ->pluck('module')
+            ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
+            ->toArray();
+
+        $this->actionTypeOptions = ActivityLog::query()
             ->distinct()
             ->pluck('action_type')
             ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
             ->toArray();
+
     }
 
     public function applyFilter(): void
@@ -52,11 +60,12 @@ class Index extends Component
 
     public function dynamicLogsTitle(): string
     {
-        $filter = $this->filter ?: 'All Modules';
+        $moduleFilter = $this->moduleFilter ?: 'All Modules';
+        $actionFilter = $this->actionFilter ?: 'All Action';
         $role = $this->roleFilter ?: 'All Roles';
         $date = $this->selectedDate ?: 'All Dates';
 
-        return "Activity Logs for {$filter} | {$role} | {$date}";
+        return "Activity Logs for {$moduleFilter} | {$actionFilter} | {$role} | {$date}";
     }
 
     protected function getFilteredQuery()
@@ -90,7 +99,8 @@ class Index extends Component
         return ActivityLog::query()
             ->with('user', 'role')
             ->whereIn('user_id', $userIds)
-            ->when($this->filter, fn($q) => $q->where('action_type', $this->filter))
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
@@ -107,9 +117,11 @@ class Index extends Component
         $html = view('pdf.activity-logs-report', [
             'logs' => $logs,
             'user' => Auth::user(),
-            'filter' => $this->filter,
+            'moduleFilter' => $this->moduleFilter,
+            'actionFilter' => $this->actionFilter,
             'roleFilter' => $this->roleFilter,
             'selectedDate' => $this->selectedDate,
+            'isAdmin' => false,
             'dynamicTitle' => $this->dynamicLogsTitle(),
         ])->render();
 

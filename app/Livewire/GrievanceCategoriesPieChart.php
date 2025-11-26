@@ -38,7 +38,7 @@ class GrievanceCategoriesPieChart extends ChartWidget
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
                             </svg>
-                            <span>Grievance Categories Distribution</span>
+                            <span>Report Categories Distribution</span>
                         </h2>
                     </div>
 
@@ -83,11 +83,11 @@ class GrievanceCategoriesPieChart extends ChartWidget
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
                         This chart visualizes <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        all grievances</span> within the selected date range, grouped by
+                        all reports</span> within the selected date range, grouped by
                         their <span class="font-semibold text-gray-800 dark:text-gray-300">category</span> and type.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To help HR Liaisons quickly identify which grievance categories
+                        To help HR Liaisons quickly identify which report categories
                         have higher workload and prioritize actions accordingly.
                     </div>
                 </div>
@@ -152,7 +152,7 @@ class GrievanceCategoriesPieChart extends ChartWidget
             'labels' => $labelsWithPercent,
             'datasets' => [
                 [
-                    'label' => 'Grievances per Category',
+                    'label' => 'Reports per Category',
                     'data' => $data,
                     'backgroundColor' => $colors,
                     'borderColor' => $borderColors,

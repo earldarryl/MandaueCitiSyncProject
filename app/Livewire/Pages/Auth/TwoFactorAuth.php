@@ -45,6 +45,11 @@ class TwoFactorAuth extends Component
             return;
         }
 
+        if (empty($this->code)) {
+            $this->addError('two_factor', 'Please enter your authentication code.');
+            return;
+        }
+
         $google2fa = new Google2FA();
         $valid = $google2fa->verifyKey(decrypt($user->two_factor_secret), $this->code);
 

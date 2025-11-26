@@ -82,7 +82,7 @@ class GrievancesReportPieChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Grievance Status Breakdown',
+                    'label' => 'Report Status Breakdown',
                     'data' => $data,
                     'backgroundColor' => [
                         'rgba(239, 68, 68, 0.85)',

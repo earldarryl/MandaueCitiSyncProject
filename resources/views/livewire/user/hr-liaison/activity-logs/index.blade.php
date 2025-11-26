@@ -19,10 +19,17 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2">
 
                 <x-filter-select
-                    name="filter"
+                    name="moduleFilter"
+                    placeholder="Filter by module"
+                    :options="$moduleOptions"
+                    wire:model="moduleFilter"
+                />
+
+                <x-filter-select
+                    name="actionFilter"
                     placeholder="Filter by action"
-                    :options="$options"
-                    wire:model="filter"
+                    :options="$actionTypeOptions"
+                    wire:model="actionFilter"
                 />
 
                 <x-filter-select

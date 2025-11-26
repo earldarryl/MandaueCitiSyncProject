@@ -58,18 +58,26 @@
 
         .header-right {
             width: 70%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
+            line-height: 1.4;
         }
 
         .header-right .span-1 {
+            color: #000000;
             font-size: 12px;
-            color: #000;
+            text-align: center;
         }
 
         .header-right .span-2 {
-            font-size: 20px;
-            font-weight: 500;
-            color: #000;
+            font-family: 'Poppins', sans-serif;
+            font-size: 21px;
+            font-weight: 300;
+            color: #000000;
+            text-align: center;
         }
 
         .report-header {
@@ -102,7 +110,6 @@
             border: 1px solid #D1D5DB;
             border-radius: 0.5rem;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            padding: 12px;
             box-sizing: border-box;
         }
 
@@ -114,7 +121,7 @@
 
         th {
             border: 1px solid #D1D5DB;
-            padding: 8px;
+            padding: 3px;
             background-color: #F3F4F6;
             color: #374151;
             text-transform: uppercase;
@@ -132,56 +139,100 @@
             text-align: center;
         }
 
-        .noted {
+         .description-cell {
+            max-width: 150px;
+            word-wrap: break-word;
+        }
+
+        .changes-cell {
+            max-width: 250px;
+            word-wrap: break-word;
+        }
+
+        .change-field {
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .status-footer {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             gap: 6px;
             margin-top: 50px;
             margin-left: 20px;
+            font-family: 'Poppins', sans-serif;
             font-size: 13px;
             width: fit-content;
+            color: #1f2937;
         }
 
-        .noted .name-with-role{
+        .status-footer .footer-row {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            align-content: center;
-            align-items: center;
+            align-items: flex-end;
+            gap: 6px;
         }
-        .noted .noted-text{
-            display: flex;
-            flex-direction: column;
-            font-size:15px;
-            align-content: center;
-            align-items: center;
+
+        .status-footer .footer-label {
+            font-weight: 600;
+            color: #374151;
         }
-        .noted .name {
-            font-weight:600;
-            font-size:15px;
-            border-bottom:1.8px solid #374151;
-            padding-bottom:2px;
-            padding-left: 10px;
-            padding-right: 10px;
+
+        .status-footer .footer-value {
+            font-weight: 600;
+            font-size: 15px;
+            border-bottom: 1.8px solid #374151;
+            padding-bottom: 2px;
+            letter-spacing: 0.3px;
+            color: #111827;
         }
-        .noted .position {
-            text-align:center;
-            font-size:12px;
-            color:#6B7280;
-            font-weight:500;
-            margin-top:2px;
+
+        .status-footer .footer-subtext {
+            text-align: center;
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-top: 2px;
+            letter-spacing: 0.2px;
         }
     </style>
 </head>
 <body>
     <div class="page">
         <div class="header">
-            <div class="header-left">
-                <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
-            </div>
-            <div class="header-right">
-                <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
-            </div>
+
+            @if ($isAdmin)
+                <div class="header-left">
+                    <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
+                </div>
+                <div class="header-right">
+                    <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
+                </div>
+            @else
+                @php
+                    $department = $user->departments->first();
+                    $departmentName = $department->department_name ?? 'N/A';
+                    $departmentProfile = $department->department_profile ?? null;
+
+                    $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                    $index = crc32($departmentName) % count($palette);
+                    $bgColor = $palette[$index];
+
+                    if ($departmentProfile) {
+                        $departmentLogo = Storage::url($departmentProfile);
+                    } else {
+                        $departmentLogo = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+                    }
+                @endphp
+                <div class="header-left">
+                    <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
+                    <img src="{{ $departmentLogo }}" alt="Department Logo">
+                </div>
+                <div class="header-right">
+                    <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
+                    <span class="span-2">{{ strtoupper($departmentName) }}</span>
+                </div>
+            @endif
+
         </div>
 
         <div class="report-header">
@@ -208,10 +259,12 @@
                         <th>Action</th>
                         <th class="center">Executed At</th>
                         <th>Platform</th>
-                        <th>Location</th>
+                        <th>Description</th>
+                        <th>Changes</th>
                         @if($isAdmin)
                             <th>User</th>
                             <th>Role</th>
+                            <th>Location</th>
                         @endif
                     </tr>
                 </thead>
@@ -224,31 +277,58 @@
                             <td>{{ str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))) }}</td>
                             <td class="center">{{ \Carbon\Carbon::parse($log->timestamp ?? $log->created_at)->format('M d, Y h:i A') }}</td>
                             <td>{{ $log->platform ?? 'N/A' }}</td>
-                            <td>{{ $log->location ?? 'Unknown' }}</td>
+                            <td class="description-cell">{{ $log->description ?? 'N/A' }}</td>
+                            <td class="changes-cell">
+                                @if($log->changes && is_array($log->changes))
+                                    @foreach($log->changes as $field => $value)
+                                        @continue($field === 'user_id')
+                                        @php
+                                            if (is_array($value) && isset($value['old'])) {
+                                                $value['old'] = is_array($value['old']) ? implode(', ', $value['old']) : $value['old'];
+                                            }
+                                            if (is_array($value) && isset($value['new'])) {
+                                                $value['new'] = is_array($value['new']) ? implode(', ', $value['new']) : $value['new'];
+                                            }
+                                        @endphp
+                                        <div class="change-field">
+                                            <strong>{{ strtoupper(str_replace('_', ' ', $field)) }}:</strong>
+                                            @if(is_array($value))
+                                                <span>OLD: {{ $value['old'] ?? '—' }}</span> |
+                                                <span>NEW: {{ $value['new'] ?? '—' }}</span>
+                                            @else
+                                                <span>{{ $value }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <span>N/A</span>
+                                @endif
+                            </td>
                             @if($isAdmin)
                                 <td>{{ $log->user?->name ?? 'N/A' }}</td>
                                 <td>{{ $log->role?->name ? strtoupper(str_replace('_', ' ', $log->role->name)) : 'N/A' }}</td>
+                                <td>{{ $log->location ?? 'Unknown' }}</td>
                             @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isAdmin ? 9 : 7 }}" style="text-align:center; font-style:italic; color:#6B7280;">No activity logs found.</td>
+                            <td colspan="{{ $isAdmin ? 11 : 9 }}" style="text-align:center; font-style:italic; color:#6B7280;">No activity logs found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="noted">
-            <div class="noted-text">Noted:</div>
-            <div class="name-with-role">
-                <div class="name">{{ $user->name ?? 'N/A' }}</div>
-                <div class="position">
-                    {{ $user->getRoleNames()->first()
+        <div class="status-footer">
+            <div class="footer-row">
+                <div class="footer-label">Noted by:</div>
+                <div class="footer-value">{{ $user->name ?? 'N/A' }}</div>
+            </div>
+            <div class="footer-subtext">
+                {{ $user->getRoleNames()->first()
                         ? ucwords(str_replace('_', ' ', $user->getRoleNames()->first()))
                         : 'N/A'
                     }}
-                </div>
             </div>
         </div>
     </div>

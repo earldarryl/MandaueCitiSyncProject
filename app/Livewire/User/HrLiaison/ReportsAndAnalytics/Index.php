@@ -23,6 +23,7 @@ class Index extends Component
     public $filterType = null;
     public $filterCategory = null;
     public $filtersApplied = false;
+    public $sortOption = '';
     public $categoryOptions;
     public $category = 'all';
     public $categories = [];
@@ -65,6 +66,7 @@ class Index extends Component
                     'Appointment or Processing Schedule Request',
                 ],
             ],
+
             'Traffic Enforcement Agency of Mandaue' => [
                 'Complaint' => [
                     'Traffic Enforcer Misconduct',
@@ -82,6 +84,7 @@ class Index extends Component
                     'Request for Violation Review',
                 ],
             ],
+
             'City Social Welfare Services' => [
                 'Complaint' => [
                     'Discrimination or Neglect in Assistance',
@@ -106,11 +109,25 @@ class Index extends Component
         $flattened = [];
         foreach ($departmentCategories as $type => $categories) {
             foreach ($categories as $category) {
-                $flattened[$category] = $category;
+                $flattened[] = $category;
             }
         }
 
-        $this->categoryOptions = $flattened;
+        $customCategories = Grievance::whereHas('assignments', function ($q) use ($user) {
+                $departmentId = $user->departments->first()->department_id ?? null;
+                $q->where('department_id', $departmentId);
+            })
+            ->whereNotNull('grievance_category')
+            ->pluck('grievance_category')
+            ->toArray();
+
+        $allCategories = collect($flattened)
+            ->merge($customCategories)
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $this->categoryOptions = array_combine($allCategories, $allCategories);
 
         $this->filterType = null;
         $this->filterCategory = null;
@@ -165,6 +182,43 @@ class Index extends Component
             $query->where('grievance_category', $this->category);
         }
 
+        switch ($this->sortOption) {
+
+            case 'Priority: Low → Critical':
+                $query->orderByRaw("
+                    FIELD(priority_level, 'Low', 'Normal', 'High', 'Critical')
+                ");
+                break;
+
+            case 'Priority: Critical → Low':
+                $query->orderByRaw("
+                    FIELD(priority_level, 'Critical', 'High', 'Normal', 'Low')
+                ");
+                break;
+
+
+            case 'Type: Complaint → Request':
+                $query->orderByRaw("
+                    FIELD(grievance_type, 'Complaint', 'Inquiry', 'Request')
+                ");
+                break;
+
+            case 'Type: Request → Complaint':
+                $query->orderByRaw("
+                    FIELD(grievance_type, 'Request', 'Inquiry', 'Complaint')
+                ");
+                break;
+
+
+            case 'Status: Ascending':
+                $query->orderBy('grievance_status', 'asc');
+                break;
+
+            case 'Status: Descending':
+                $query->orderBy('grievance_status', 'desc');
+                break;
+        }
+
         $this->data = $query->orderBy($this->sortField, $this->sortDirection)->get();
 
         $grievances = Grievance::query()
@@ -177,26 +231,17 @@ class Index extends Component
 
         $statuses = [
             'Pending' => 0,
-            'Delayed' => 0,
+            'Overdue' => 0,
             'Resolved' => 0,
         ];
-
-        $now = now();
 
         foreach ($grievances as $grievance) {
             $status = strtolower($grievance->grievance_status ?? '');
 
-            $daysPassed = $grievance->created_at ? $grievance->created_at->diffInDays($now) : 0;
-            $processingDays = $grievance->processing_days ?? 0;
-
             if ($status === 'resolved') {
                 $statuses['Resolved']++;
-            } elseif ($status === 'pending' || $status === '') {
-                if ($processingDays > 0 && $daysPassed > $processingDays) {
-                    $statuses['Delayed']++;
-                } else {
-                    $statuses['Pending']++;
-                }
+            } elseif ($status === 'overdue') {
+                $statuses['Overdue']++;
             } else {
                 $statuses['Pending']++;
             }
@@ -215,19 +260,19 @@ class Index extends Component
         $category = ucwords($category);
 
         if ($type === 'All Types' && $category === 'All Categories') {
-            return 'Grievances based on All Types in relation to All Categories';
+            return 'Reports based on All Types in relation to All Categories';
         } elseif ($type !== 'All Types' && $category === 'All Categories') {
-            return "Grievances about {$type} in relation to All Categories";
+            return "Reports about {$type} in relation to All Categories";
         } elseif ($type !== 'All Types' && $category !== 'All Categories') {
-            return "Grievances about {$type} in relation to {$category}";
+            return "Reports about {$type} in relation to {$category}";
         } else {
-            return "Grievances based on All Types in relation to {$category}";
+            return "Reports based on All Types in relation to {$category}";
         }
     }
 
     public function exportPDF()
     {
-        $html = view('pdf.grievance-report', [
+        $html = view('pdf.mandauecitisync-report', [
             'data' => $this->data,
             'user' => Auth::user(),
             'statuses' => $this->statuses,
@@ -239,7 +284,7 @@ class Index extends Component
             'dynamicTitle' => $this->getDynamicTitle(),
         ])->render();
 
-        $pdfPath = storage_path('app/public/grievance-report.pdf');
+        $pdfPath = storage_path('app/public/mandauecitisync-report.pdf');
 
 
         Browsershot::html($html)
@@ -252,12 +297,12 @@ class Index extends Component
             ->format('A4')
             ->save($pdfPath);
 
-        return response()->download($pdfPath, 'grievance-report.pdf');
+        return response()->download($pdfPath, 'mandauecitisync-report.pdf');
     }
 
     public function exportCSV()
     {
-        $filename = 'grievance-report-' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'mandauecitisync-report-' . now()->format('Y-m-d_His') . '.csv';
         $handle = fopen('php://temp', 'r+');
 
         $user = Auth::user();
@@ -272,16 +317,16 @@ class Index extends Component
         $category = $capitalize($category);
 
         if($type === 'All Types' && $category === 'All Categories'){
-            $dynamicTitle = 'Grievances based on All Types in relation to All Categories';
+            $dynamicTitle = 'Reports based on All Types in relation to All Categories';
         } elseif($type !== 'All Types' && $category === 'All Categories'){
-            $dynamicTitle = "Grievances about $type in relation to All Categories";
+            $dynamicTitle = "Reports about $type in relation to All Categories";
         } elseif($type !== 'All Types' && $category !== 'All Categories'){
-            $dynamicTitle = "Grievances about $type in relation to $category";
+            $dynamicTitle = "Reports about $type in relation to $category";
         } else {
-            $dynamicTitle = "Grievances based on All Types in relation to $category";
+            $dynamicTitle = "Reports based on All Types in relation to $category";
         }
 
-        fputcsv($handle, ["Grievance Report"]);
+        fputcsv($handle, ["MandaueCitiSync Reports"]);
         fputcsv($handle, ["Report Generated By:", $user->name]);
         fputcsv($handle, ["Department:", $user->departments->pluck('department_name')->join(', ')]);
         fputcsv($handle, ["Role:", str_replace('Hr','HR',ucwords(str_replace('_',' ', $user->getRoleNames()->first() ?? 'N/A')))]);
@@ -327,20 +372,20 @@ class Index extends Component
         $category = $capitalize($category);
 
         if ($type === 'All Types' && $category === 'All Categories') {
-            $dynamicTitle = 'Grievances based on All Types in relation to All Categories';
+            $dynamicTitle = 'Reports based on All Types in relation to All Categories';
         } elseif ($type !== 'All Types' && $category === 'All Categories') {
-            $dynamicTitle = "Grievances about $type in relation to All Categories";
+            $dynamicTitle = "Reports about $type in relation to All Categories";
         } elseif ($type !== 'All Types' && $category !== 'All Categories') {
-            $dynamicTitle = "Grievances about $type in relation to $category";
+            $dynamicTitle = "Reports about $type in relation to $category";
         } else {
-            $dynamicTitle = "Grievances based on All Types in relation to $category";
+            $dynamicTitle = "Reports based on All Types in relation to $category";
         }
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
         $sheet->fromArray([
-            ["Grievance Report"],
+            ["MandaueCitiSync Reports"],
             ["Report Generated By:", $user->name],
             ["Department:", $user->departments->pluck('department_name')->join(', ')],
             ["Role:", str_replace('Hr','HR',ucwords(str_replace('_',' ', $user->getRoleNames()->first() ?? 'N/A')))],
@@ -371,7 +416,7 @@ class Index extends Component
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        $filename = 'grievance-report-' . now()->format('Y-m-d_His') . '.xlsx';
+        $filename = 'mandauecitisync-report-' . now()->format('Y-m-d_His') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), $filename);
 
         $writer = new Xlsx($spreadsheet);
@@ -379,6 +424,28 @@ class Index extends Component
 
         return response()->download($tempFile, $filename)->deleteFileAfterSend(true);
     }
+
+    public function printReport()
+    {
+        $this->loadData();
+
+        $cacheKey = 'hr-liaison-report-' . auth()->id() . '-' . now()->timestamp;
+
+        cache()->put($cacheKey, [
+            'data' => $this->data,
+            'user' => Auth::user(),
+            'statuses' => $this->statuses,
+            'filterType' => $this->filterType ?? 'All Types',
+            'filterCategory' => $this->filterCategory ?? 'All Categories',
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'hrName' => auth()->user()->name,
+            'dynamicTitle' => $this->getDynamicTitle(),
+        ], now()->addMinutes(10));
+
+        return redirect()->route('print-hr-liaison-reports', ['key' => $cacheKey]);
+    }
+
 
     public function render()
     {
