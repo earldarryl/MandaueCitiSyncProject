@@ -11,7 +11,7 @@ class AdminFeedbackChartDashboard extends ChartWidget
 {
     public ?string $startDate = null;
     public ?string $endDate = null;
-    public ?string $selectedFilter = null; // single dropdown for all
+    public ?string $selectedFilter = null;
 
     public function mount($startDate = null, $endDate = null): void
     {

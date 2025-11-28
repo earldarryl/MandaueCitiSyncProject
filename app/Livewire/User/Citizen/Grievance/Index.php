@@ -16,7 +16,7 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
-#[Title('Grievance Reports')]
+#[Title('My Reports')]
 class Index extends Component
 {
     use WithPagination;
@@ -127,7 +127,7 @@ class Index extends Component
         if ($existing) {
             Notification::make()
                 ->title('Request Not Allowed')
-                ->body('You already have submitted an edit request for this grievance.')
+                ->body('You already have submitted an edit request for this report.')
                 ->warning()
                 ->send();
             return;
@@ -149,7 +149,7 @@ class Index extends Component
         foreach ($hrLiaisons as $hr) {
             $hr->notify(new GeneralNotification(
                 'Edit Request Pending',
-                "{$requesterName} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                "{$requesterName} requested permission to edit report '{$grievance->grievance_title}'.",
                 'info',
                 [
                     'grievance_ticket_id' => $grievance->grievance_ticket_id,
@@ -183,7 +183,7 @@ class Index extends Component
         foreach ($admins as $admin) {
             $admin->notify(new GeneralNotification(
                 'Edit Request Submitted',
-                "{$requesterName} requested permission to edit grievance '{$grievance->grievance_title}'.",
+                "{$requesterName} requested permission to edit report '{$grievance->grievance_title}'.",
                 'warning',
                 [
                     'grievance_ticket_id' => $grievance->grievance_ticket_id,
@@ -210,12 +210,12 @@ class Index extends Component
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
-            'module'       => 'Grievance Edit Request',
+            'module'       => 'Report Edit Request',
             'action'       => 'create',
             'action_type'  => 'request_edit',
             'model_type'   => EditRequest::class,
             'model_id'     => $editRequest->id,
-            'description'  => "{$requesterName} requested edit permission for grievance '{$grievance->grievance_ticket_id}'.",
+            'description'  => "{$requesterName} requested edit permission for report '{$grievance->grievance_ticket_id}'.",
             'changes'      => null,
             'status'      => 'success',
             'ip_address'  => request()->ip(),
@@ -255,7 +255,7 @@ class Index extends Component
         if (! $grievance) {
             Notification::make()
                 ->title('Error')
-                ->body('Grievance not found or already deleted.')
+                ->body('Report not found or already deleted.')
                 ->danger()
                 ->send();
             return;
@@ -265,7 +265,7 @@ class Index extends Component
             'grievance' => $grievance,
         ])->setPaper('A4', 'portrait');
 
-        $filename = 'grievance-' . $grievance->grievance_id . '.pdf';
+        $filename = 'report-' . $grievance->grievance_id . '.pdf';
 
         return response()->streamDownload(
             fn () => print($pdf->output()),
@@ -279,17 +279,17 @@ class Index extends Component
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="grievance_' . $grievance->grievance_id . '.csv"',
+            'Content-Disposition' => 'attachment; filename="report_' . $grievance->grievance_id . '.csv"',
         ];
 
         $callback = function () use ($grievance) {
             $handle = fopen('php://output', 'w');
 
                 fputcsv($handle, [
-                    'Grievance Ticket ID',
-                    'Grievance Title',
-                    'Grievance Type',
-                    'Grievance Category',
+                    'Report Ticket ID',
+                    'Report Title',
+                    'Report Type',
+                    'Report Category',
                     'Priority Level',
                     'Status',
                     'Submitted By',
@@ -353,7 +353,7 @@ class Index extends Component
         if (! $grievance) {
             auth()->user()->notify(new GeneralNotification(
                 'Error',
-                'Grievance not found or already deleted.',
+                'Report not found or already deleted.',
                 'danger'
             ));
             return;
@@ -364,7 +364,7 @@ class Index extends Component
         $grievance->delete();
 
         auth()->user()->notify(new GeneralNotification(
-            'Grievance Deleted',
+            'Report Deleted',
             "{$title} was removed successfully.",
             'warning',
             ['grievance_id' => $grievanceId],
@@ -458,7 +458,7 @@ class Index extends Component
 
         Notification::make()
             ->title('Bulk Remove')
-            ->body('Selected grievances were removed successfully.')
+            ->body('Selected reports were removed successfully.')
             ->success()
             ->send();
     }
@@ -476,7 +476,7 @@ class Index extends Component
 
         Notification::make()
             ->title('Bulk Update')
-            ->body('Selected grievances were marked as High Priority.')
+            ->body('Selected reports were marked as High Priority.')
             ->success()
             ->send();
     }

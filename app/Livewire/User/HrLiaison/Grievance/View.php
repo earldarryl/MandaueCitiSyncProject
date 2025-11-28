@@ -15,7 +15,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Filament\Notifications\Notification;
 #[Layout('layouts.app')]
-#[Title('View Grievance')]
+#[Title('View Report')]
 class View extends Component
 {
     public Grievance $grievance;
@@ -65,7 +65,7 @@ class View extends Component
                 'action_type'  => 'acknowledge',
                 'model_type'   => 'App\\Models\\Grievance',
                 'model_id'     => $this->grievance->grievance_id,
-                'description'  => "HR Liaison ({$user->name}" . ($departments ? " - {$departments}" : "") . ") acknowledged report #{$this->grievance->grievance_ticket_id}.",
+                'description'  => "Administrator ({$user->name}) acknowledged report #{$this->grievance->grievance_ticket_id}.",
                 'changes'      => [
                     'grievance_status' => [
                         'old' => ucfirst($oldStatus),
@@ -80,6 +80,7 @@ class View extends Component
                 'location'     => geoip(request()->ip())?->city,
                 'timestamp'    => now(),
             ]);
+
         }
     }
 
@@ -87,7 +88,11 @@ class View extends Component
     {
         $this->dispatch('$refresh');
         $this->grievance->refresh();
-
+         Notification::make()
+            ->title('Data Refreshed')
+            ->body('The report page has been successfully refreshed.')
+            ->success()
+            ->send();
     }
 
     public function getEditRequestsProperty()
@@ -235,8 +240,8 @@ class View extends Component
 
         if ($oldStatus !== $formattedStatus) {
             Notification::make()
-                ->title('Grievance Updated')
-                ->body("Grievance status successfully changed from {$oldStatus} to {$formattedStatus}.")
+                ->title('Report Updated')
+                ->body("Report status successfully changed from {$oldStatus} to {$formattedStatus}.")
                 ->success()
                 ->send();
         }

@@ -373,11 +373,8 @@
                                         </span>
                                     </td>
 
-                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
-                                            bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500">
-                                            {{ $citizen->userInfo?->phone_number ?? '—' }}
-                                        </span>
+                                    <td class="px-6 py-4 text-xs font-medium">
+                                        {{ $citizen->userInfo?->phone_number ?? '—' }}
                                     </td>
 
                                     <td class="px-6 py-4 text-sm text-center">

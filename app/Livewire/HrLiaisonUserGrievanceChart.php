@@ -90,7 +90,7 @@ class HrLiaisonUserGrievanceChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Grievances Submitted',
+                    'label' => 'Reports Submitted',
                     'data' => $data,
                     'backgroundColor' => [
                         'rgba(37, 99, 235, 0.2)',

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Grievance;
 use App\Models\Assignment;
 use App\Models\Feedback;
+use App\Models\ActivityLog;
 use Carbon\Carbon;
 use App\Models\Department;
 use Filament\Forms;
@@ -115,6 +116,19 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         ];
     }
 
+    public function confirmDeleteAllActivityLogs()
+    {
+        ActivityLog::query()->delete();
+
+        Notification::make()
+            ->title('Activity Logs Deleted')
+            ->body('All activity logs have been successfully deleted.')
+            ->success()
+            ->send();
+
+        $this->dispatch('refresh');
+    }
+
     public function createHrLiaison()
     {
         $this->validate([
@@ -145,8 +159,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->dispatch('refresh');
 
         Notification::make()
-            ->title('HR Liaison Added')
-            ->body("{$user->name} has been successfully added as HR Liaison.")
+            ->title('HR Liaison Created')
+            ->body("{$user->name} has been successfully created as HR Liaison.")
             ->success()
             ->send();
         $sender = auth()->user();
@@ -154,8 +168,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $hrLiaisons = User::role('hr_liaison')->get();
         foreach ($hrLiaisons as $hr) {
             $hr->notify(new GeneralNotification(
-                'New HR Liaison Added',
-                "{$user->name} has been added as an HR Liaison.",
+                'New HR Liaison Created',
+                "{$user->name} has been created as an HR Liaison.",
                 'info',
                 ['user_id' => $user->id],
                 [],
@@ -165,8 +179,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         }
 
          $sender?->notify(new GeneralNotification(
-            'HR Liaison Added Successfully',
-            "You have added {$user->name} as HR Liaison.",
+            'HR Liaison Created Successfully',
+            "You have created {$user->name} as HR Liaison.",
             'success',
             ['user_id' => $user->id],
             [],

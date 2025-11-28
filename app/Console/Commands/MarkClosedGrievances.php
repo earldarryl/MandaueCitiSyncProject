@@ -7,20 +7,22 @@ use App\Models\User;
 use App\Notifications\GeneralNotification;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
-class MarkOverdueGrievances extends Command
+class MarkClosedGrievances extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'grievances:mark-overdue';
+    protected $signature = 'grievances:mark-closed';
+
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Automatically mark grievances as overdue if processing days have passed';
+    protected $description = 'Automatically close grievances after resolution or inactivity';
+
     /**
      * Execute the console command.
      */
@@ -30,25 +32,24 @@ class MarkOverdueGrievances extends Command
 
         $now = Carbon::now();
 
-        $grievances = Grievance::whereIn('grievance_status', ['pending','acknowledged','in_progress','escalated'])
-            ->whereNotNull('processing_days')
-            ->get();
+        $grievances = Grievance::whereIn('grievance_status', ['resolved', 'unresolved'])->get();
 
         $updatedCount = 0;
 
         foreach ($grievances as $grievance) {
-            $deadline = $grievance->created_at->copy()->addDays((int)$grievance->processing_days);
 
-            if ($deadline->lte($now)) {
+            $autoCloseDate = $grievance->updated_at->copy()->addDays(7);
 
-                $grievance->update(['grievance_status' => 'overdue']);
+            if ($autoCloseDate->lte($now)) {
+
+                $grievance->update(['grievance_status' => 'closed']);
                 $updatedCount++;
 
                 if ($grievance->user) {
                     $grievance->user->notify(new GeneralNotification(
-                        'Grievance Marked as Overdue',
-                        "Your grievance titled '{$grievance->grievance_title}' (Ticket: {$grievance->grievance_ticket_id}) is now overdue.",
-                        'warning',
+                        'Grievance Closed',
+                        "Your grievance titled '{$grievance->grievance_title}' has been automatically closed.",
+                        'success',
                         ['grievance_ticket_id' => $grievance->grievance_ticket_id],
                         [],
                         true,
@@ -64,9 +65,9 @@ class MarkOverdueGrievances extends Command
 
                 foreach ($grievance->assignedHrLiaisons() as $hr) {
                     $hr->notify(new GeneralNotification(
-                        'Grievance Overdue',
-                        "A grievance titled '{$grievance->grievance_title}' has become overdue.",
-                        'warning',
+                        'Grievance Closed',
+                        "A grievance titled '{$grievance->grievance_title}' assigned to your department has been auto-closed.",
+                        'info',
                         ['grievance_ticket_id' => $grievance->grievance_ticket_id],
                         [],
                         true,
@@ -82,9 +83,9 @@ class MarkOverdueGrievances extends Command
 
                 foreach (User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get() as $admin) {
                     $admin->notify(new GeneralNotification(
-                        'Overdue Grievance',
-                        "The grievance '{$grievance->grievance_title}' (Ticket: {$grievance->grievance_ticket_id}) is now overdue.",
-                        'danger',
+                        'Grievance Closed Automatically',
+                        "The grievance titled '{$grievance->grievance_title}' has been automatically closed.",
+                        'info',
                         ['grievance_ticket_id' => $grievance->grievance_ticket_id],
                         [],
                         true,
@@ -97,10 +98,11 @@ class MarkOverdueGrievances extends Command
                         ]
                     ));
                 }
+
             }
         }
 
-        $this->info("{$updatedCount} grievances marked as overdue.");
+        $this->info("{$updatedCount} grievances automatically closed.");
     }
 
 }

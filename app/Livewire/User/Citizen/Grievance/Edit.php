@@ -21,7 +21,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Storage;
 #[Layout('layouts.app')]
-#[Title('Edit Grievance')]
+#[Title('Edit Report')]
 class Edit extends Component implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms;
@@ -266,12 +266,12 @@ class Edit extends Component implements Forms\Contracts\HasForms
             ActivityLog::create([
                 'user_id'     => auth()->id(),
                 'role_id'     => auth()->user()->roles->first()?->id,
-                'module'      => 'Grievance Management',
-                'action'      => "Updated grievance #{$this->grievance->grievance_ticket_id} ({$this->grievance_title})",
+                'module'      => 'Report Management',
+                'action'      => "Updated report #{$this->grievance->grievance_ticket_id} ({$this->grievance_title})",
                 'action_type' => 'update',
                 'model_type'  => Grievance::class,
                 'model_id'    => $this->grievance->grievance_id,
-                'description' => auth()->user()->name . " updated grievance #{$this->grievance->grievance_ticket_id}",
+                'description' => auth()->user()->name . " updated report #{$this->grievance->grievance_ticket_id}",
                 'changes'     => $this->grievance->getChanges(),
                 'status'      => 'success',
                 'ip_address'  => request()->ip(),

@@ -39,20 +39,6 @@ class Logout extends Component
                 'timestamp'    => now(),
             ]);
 
-            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
-
-            foreach ($admins as $admin) {
-                $admin->notify(new GeneralNotification(
-                    'User Logged Out',
-                    "{$roleName} ({$user->email}) has logged out.",
-                    'info',
-                    ['user_id' => $user->id],
-                    [],
-                    true
-                ));
-
-            }
-
             $user->markOffline();
         }
 

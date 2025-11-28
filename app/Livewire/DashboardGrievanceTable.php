@@ -210,7 +210,7 @@ class DashboardGrievanceTable extends TableWidget
                     ->colors(fn ($record) => $record->is_anonymous ? ['gray'] : ['success'])
                     ->tooltip(fn ($record) => $record->is_anonymous
                         ? 'Submitted Anonymously'
-                        : $record->user?->email)
+                        : $record->user?->name)
                     ->extraAttributes([
                         'class' => 'text-[12px] font-bold text-center',
                     ])
@@ -223,7 +223,7 @@ class DashboardGrievanceTable extends TableWidget
                     ->formatStateUsing(fn ($state, $record) => $record->is_anonymous ? 'N/A' : $state)
                     ->tooltip(fn ($record) => $record->is_anonymous
                         ? 'Anonymous Report'
-                        : $record->user?->email)
+                        : $record->user?->name)
                     ->alignCenter()
                     ->sortable()
                     ->extraAttributes([

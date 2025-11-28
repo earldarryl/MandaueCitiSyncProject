@@ -152,8 +152,8 @@
                                                 $file = $doc['file'];
                                                 $name = $doc['name'];
                                                 $ext = $doc['ext'];
-                                                $size = Storage::exists($file)
-                                                    ? number_format(Storage::size($file) / 1024, 1) . ' KB'
+                                                $size = Storage::disk('public')->exists($file)
+                                                    ? number_format(Storage::disk('public')->size($file) / 1024, 1) . ' KB'
                                                     : 'Unavailable';
                                             @endphp
 
@@ -166,8 +166,8 @@
                                                     <span class="text-gray-500 dark:text-gray-300">{{ $ext }} · {{ $size ?? '' }}</span>
                                                 </div>
                                                 <a href="{{ Storage::url($file) }}" download="{{ $name }}"
-                                                class="p-2 rounded-lg bg-gray-200 dark:bg-gray-500 hover:bg-gray-300 dark:hover:bg-gray-400 transition">
-                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-gray-800 dark:text-white" />
+                                                class="p-2 rounded-lg bg-white hover:bg-gray-300 transition">
+                                                    <x-heroicon-o-arrow-down-tray class="w-4 h-4 text-black" />
                                                 </a>
                                             </div>
                                         @endforeach
@@ -195,7 +195,7 @@
                         @endphp
 
                         <span class="block text-[10px] mt-2 {{ $isSender ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300' }}">
-                            {{ $senderName }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
+                            {{ \Carbon\Carbon::parse($msg['created_at'])->format('M d, Y h:i A') }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
                         </span>
                     </div>
                 </div>

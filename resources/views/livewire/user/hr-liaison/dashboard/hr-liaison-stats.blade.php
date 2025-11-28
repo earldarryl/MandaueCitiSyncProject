@@ -42,17 +42,17 @@
         </div>
 
         <div
-            class="group relative bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-zinc-800 dark:to-zinc-900
-                border border-indigo-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
+            class="group relative bg-gradient-to-br from-green-50 to-green-100 dark:from-zinc-800 dark:to-zinc-900
+                border border-green-200/50 dark:border-zinc-700 rounded-2xl shadow-sm hover:shadow-lg
                 transition-all duration-300 p-6 flex flex-col items-center justify-center gap-2">
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-200/20 to-transparent opacity-0
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-200/20 to-transparent opacity-0
                         group-hover:opacity-100 blur-xl transition-all duration-500"></div>
-            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-indigo-200/50
+            <div class="relative bg-white dark:bg-zinc-800 p-3 rounded-full shadow-sm border border-green-200/50
                         dark:border-zinc-700 group-hover:scale-105 transition-transform duration-300">
-                <flux:icon.inbox class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                <flux:icon.inbox class="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <p class="relative text-base font-semibold text-gray-700 dark:text-gray-300 mt-2">Total Assignments Received</p>
-            <p class="relative text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $totalReceived }}</p>
+            <p class="relative text-3xl font-bold text-green-600 dark:text-green-400 tracking-tight">{{ $totalReceived }}</p>
         </div>
 
         <div

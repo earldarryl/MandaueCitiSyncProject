@@ -43,10 +43,9 @@ Artisan::command('grievances:mark-overdue', function () {
 
 app()->booted(function () {
     $schedule = app(Schedule::class);
-
     $schedule->command('grievances:mark-overdue')->hourly();
-
+    $schedule->command('grievances:mark-closed')->hourly();
     $schedule->command('activitylogs:clear-old')->monthlyOn(1, '00:00');
-
     $schedule->command('sessions:clear-expired')->hourly();
 });
+

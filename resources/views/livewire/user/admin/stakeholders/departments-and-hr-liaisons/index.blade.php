@@ -261,7 +261,7 @@
                 </button>
             </div>
 
-            <div wire:poll.15s wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
+            <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -407,7 +407,7 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-center space-x-1" x-data="{ open: false, openAdd: false, openRemove: false, openEdit: false, openDelete: false }">
-                                    <div class="relative">
+                                    <div>
                                         <button @click="open = !open"
                                             class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                             <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
@@ -461,14 +461,19 @@
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Add HR Liaison</h3>
 
+                                         @php
+                                            $availableLiaisons = \App\Models\User::role('hr_liaison')
+                                                ->whereDoesntHave('departments', function ($query) use ($department) {
+                                                    $query->where('hr_liaison_departments.department_id', $department->department_id);
+                                                })
+                                                ->pluck('name', 'id')
+                                                ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
+                                                ->toArray();
+                                        @endphp
+
                                             <x-multiple-select
                                                 name="selectedLiaisonsToAdd"
-                                                :options="$available = \App\Models\User::role('hr_liaison')
-                                                    ->whereDoesntHave('departments', function ($query) use ($department) {
-                                                        $query->where('hr_liaison_departments.department_id', $department->department_id);
-                                                    })
-                                                    ->pluck('name','id')
-                                                    ->toArray()"
+                                                :options="$availableLiaisons"
                                                 placeholder="Select HR Liaisons"
                                             />
 
@@ -503,11 +508,16 @@
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Remove HR Liaison</h3>
 
+                                            @php
+                                                $removeLiaisons = $department->hrLiaisons
+                                                    ->pluck('name', 'id')
+                                                    ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
+                                                    ->toArray();
+                                            @endphp
+
                                             <x-multiple-select
                                                 name="selectedLiaisonsToRemove"
-                                                :options="$department->hrLiaisons
-                                                    ->pluck('name','id')
-                                                    ->toArray()"
+                                                :options="$removeLiaisons"
                                                 placeholder="Select HR Liaisons to Remove"
                                             />
 

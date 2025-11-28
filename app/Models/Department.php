@@ -29,7 +29,7 @@ class Department extends Model
             'hr_liaison_id',
             'department_id',
             'id'
-        );
+        )->withTimestamps();
     }
 
     public function getHrLiaisonsStatusAttribute(): string

@@ -34,6 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'terms_version',
         'agreed_at',
         'last_seen_at',
+        'first_online_at',
     ];
 
     /**
@@ -59,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'agreed_terms' => 'boolean',
             'agreed_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'first_online_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
     }
@@ -95,7 +97,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function markOffline(): void
     {
-        $this->forceFill(['last_seen_at' => null])->saveQuietly();
+        $this->forceFill([
+            'last_seen_at' => null,
+            'first_online_at' => null
+        ])->saveQuietly();
     }
 
     public function departments()
