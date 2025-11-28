@@ -12,7 +12,6 @@
         </div>
     </div>
 
-    <!-- Date Summary -->
     @php
         $start = $startDate ? \Carbon\Carbon::parse($startDate) : \Carbon\Carbon::now();
         $end = $endDate ? \Carbon\Carbon::parse($endDate) : \Carbon\Carbon::now();
@@ -24,7 +23,6 @@
         @endif
     </div>
 
-    <!-- Stats Grid -->
     @if(!empty($stats))
         <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5 mb-5">
             @foreach($stats as $stat)
@@ -40,12 +38,11 @@
         </div>
     @endif
 
-    <!-- Table -->
     <div class="overflow-x-auto rounded-lg border border-gray-300 bg-white">
         <table class="w-full text-xs border-collapse text-gray-800">
             <thead class="bg-gray-100 uppercase font-semibold text-gray-700 text-xs">
                 <tr>
-                    @if($filterType === 'Grievances')
+                    @if($filterType === 'Reports')
                         <th class="px-3 py-2 border">TICKET ID</th>
                         <th class="px-3 py-2 border">TITLE</th>
                         <th class="px-3 py-2 border">TYPE</th>
@@ -99,7 +96,7 @@
             <tbody class="bg-white">
                 @forelse($data as $index => $item)
                     <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }}">
-                        @if($filterType === 'Grievances')
+                        @if($filterType === 'Reports')
                             <td class="px-2 py-1 border text-center">{{ $item->grievance_ticket_id }}</td>
                             <td class="px-2 py-1 border">{{ ucwords($item->grievance_title) }}</td>
                             <td class="px-2 py-1 border text-center">{{ $item->grievance_type ?? '—' }}</td>

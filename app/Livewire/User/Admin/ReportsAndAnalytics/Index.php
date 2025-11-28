@@ -55,7 +55,7 @@ class Index extends Component
         'Average Age of Citizens' => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
         'Oldest Citizen'          => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
         'Youngest Citizen'        => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
-        'Barangay with Most Grievances' => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
+        'Barangay with Most Reports' => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
         'Most Registered Barangay' => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
         'Gender Distribution' => ['bg' => 'from-pink-50 to-pink-100 dark:from-pink-900 dark:to-pink-800', 'text' => 'text-pink-600 dark:text-pink-400'],
         'Total Registered Citizens' => ['bg' => 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800', 'text' => 'text-blue-600 dark:text-blue-400'],
@@ -104,6 +104,7 @@ class Index extends Component
         'Resolved' => ['bg' => 'from-green-50 to-green-100 dark:from-green-900 dark:to-green-800', 'text' => 'text-green-600 dark:text-green-400'],
         'Unresolved' => ['bg' => 'from-pink-50 to-pink-100 dark:from-pink-900 dark:to-pink-800', 'text' => 'text-pink-600 dark:text-pink-400'],
         'Closed' => ['bg' => 'from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800', 'text' => 'text-gray-600 dark:text-gray-300'],
+        'Overdue' => ['bg' => 'from-rose-50 to-rose-100 dark:from-rose-900 dark:to-rose-800', 'text' => 'text-rose-600 dark:text-rose-300'],
     ];
 
     public function getDynamicTitle(): string
@@ -156,12 +157,18 @@ class Index extends Component
     {
         return collect($stats)->map(function ($stat) {
             return [
-                'label' => $stat->label ?? $stat->department_name ?? $stat->grievance_type ?? $stat->priority_level ?? '-',
+                'label' => $stat->label
+                        ?? $stat->department_name
+                        ?? $stat->grievance_type
+                        ?? $stat->priority_level
+                        ?? $stat->grievance_status
+                        ?? '-',
                 'total' => $stat->total ?? '-',
                 'extra' => $stat->total_online_time ?? ($stat->percentage ?? '-') ?? '-',
             ];
         });
     }
+
 
     public function mount()
     {
@@ -198,7 +205,7 @@ class Index extends Component
             'Average Age of Citizens' => 'Average Age of Citizens',
             'Oldest Citizen' => 'Oldest Citizen',
             'Youngest Citizen' => 'Youngest Citizen',
-            'Barangay with Most Grievances' => 'Barangay with Most Grievances',
+            'Barangay with Most Reports' => 'Barangay with Most Reports',
             'Most Registered Barangay' => 'Most Registered Barangay',
             'Gender Distribution' => 'Gender Distribution',
             'Total Registered Citizens' => 'Total Registered Citizens',
@@ -222,7 +229,7 @@ class Index extends Component
             $this->dynamicGrievanceStats));
 
         switch ($this->filterType) {
-            case 'Grievances':
+            case 'Reports':
                 $this->data = Grievance::with(['user', 'departments'])
                     ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
                     ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
@@ -244,7 +251,7 @@ class Index extends Component
                     }
 
                     if ($this->dynamicGrievanceFilter === 'Status Counts') {
-                        $statusOrder = ['pending', 'delayed', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed'];
+                        $statusOrder = ['pending', 'delayed', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed', 'overdue'];
                         $this->data = $this->data->sortBy(fn($item) => array_search($item->grievance_status, $statusOrder))->values();
                     }
                 }
@@ -341,7 +348,7 @@ class Index extends Component
                         })->values();
                     }
 
-                    if ($this->dynamicUserFilter === 'Barangay with Most Grievances') {
+                    if ($this->dynamicUserFilter === 'Barangay with Most Reports') {
                         $this->data = $this->data->sort(function ($a, $b) {
                             $countA = $a['userInfo']->grievances_count ?? 0;
                             $countB = $b['userInfo']->grievances_count ?? 0;
@@ -412,7 +419,12 @@ class Index extends Component
 
         $mappedStats = collect($stats)->map(function ($stat) {
             return (object)[
-                'label' => $stat->label ?? $stat->department_name ?? $stat->grievance_type ?? $stat->priority_level ?? 'N/A',
+                'label' => $stat->label
+                        ?? $stat->department_name
+                        ?? $stat->grievance_type
+                        ?? $stat->priority_level
+                        ?? $stat->grievance_status
+                        ?? 'N/A',
                 'total' => $stat->total ?? 0,
                 'extra' => $stat->extra ?? $stat->percentage ?? 0,
             ];
@@ -421,7 +433,7 @@ class Index extends Component
         $mappedStats = $this->applyColorMap($mappedStats);
 
         switch ($this->filterType) {
-            case 'Grievances':
+            case 'Reports':
                 $data = Grievance::with(['user', 'departments'])
                     ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
                     ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
@@ -436,12 +448,12 @@ class Index extends Component
                         $priorityOrder = ['Critical', 'High', 'Normal', 'Low'];
                         $data = $data->sortBy(fn($item) => array_search($item->priority_level, $priorityOrder))->values();
                     }
-                    if ($this->dynamicGrievanceFilter === 'Most Submitted Grievance Type') {
+                    if ($this->dynamicGrievanceFilter === 'Most Submitted Report Type') {
                         $typeOrder = ['Complaint', 'Request', 'Inquiry'];
                         $data = $data->sortBy(fn($item) => array_search($item->grievance_type, $typeOrder))->values();
                     }
                     if ($this->dynamicGrievanceFilter === 'Status Counts') {
-                        $statusOrder = ['pending', 'delayed', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed'];
+                        $statusOrder = ['pending', 'delayed', 'acknowledged', 'in_progress', 'escalated', 'resolved', 'unresolved', 'closed', 'overdue'];
                         $data = $data->sortBy(fn($item) => array_search($item->grievance_status, $statusOrder))->values();
                     }
                 }
@@ -618,7 +630,7 @@ class Index extends Component
         fputcsv($handle, []);
 
         switch ($this->filterType) {
-            case 'Grievances':
+            case 'Reports':
                 fputcsv($handle, ['Ticket ID', 'Title', 'Type', 'Category', 'Status', 'Priority Level', 'Processing Days', 'Date & Time']);
                 foreach ($this->data as $item) {
                     fputcsv($handle, [
@@ -759,7 +771,7 @@ class Index extends Component
         $rowNum += 2;
 
         switch ($this->filterType) {
-            case 'Grievances':
+            case 'Reports':
                 $headers = ['Ticket ID', 'Title', 'Type', 'Category', 'Status', 'Priority Level', 'Processing Days', 'Date & Time'];
                 break;
             case 'Departments':
@@ -792,7 +804,7 @@ class Index extends Component
         foreach ($this->data as $item) {
 
             switch ($this->filterType) {
-                case 'Grievances':
+                case 'Reports':
                     $row = [
                         $val($item->grievance_ticket_id),
                         $val($item->grievance_title),
@@ -883,7 +895,7 @@ class Index extends Component
         $this->data = collect();
 
         switch ($this->filterType) {
-            case 'Grievances':
+            case 'Reports':
                 $this->data = Grievance::with(['user', 'departments'])
                     ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
                     ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
@@ -962,7 +974,7 @@ class Index extends Component
 
         $this->dynamicGrievanceStats = [];
 
-        if ($this->filterType === 'Grievances' && $this->dynamicGrievanceFilter) {
+        if ($this->filterType === 'Reports' && $this->dynamicGrievanceFilter) {
 
             $baseQuery = Grievance::query()
                 ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
@@ -1022,6 +1034,7 @@ class Index extends Component
                     'Resolved' => 0,
                     'Unresolved' => 0,
                     'Closed' => 0,
+                    'Overdue' => 0,
                 ];
 
                 $grievances = $baseQuery->get();
@@ -1050,7 +1063,10 @@ class Index extends Component
                         $statuses['Unresolved']++;
                     } elseif ($status === 'closed') {
                         $statuses['Closed']++;
-                    } else {
+                    } elseif ($status === 'overdue') {
+                        $statuses['Overdue']++;
+                    }
+                    else {
                         $statuses['Pending']++;
                     }
                 }
@@ -1214,7 +1230,7 @@ class Index extends Component
                 ]);
             }
 
-            if ($this->dynamicUserFilter === 'Barangay with Most Grievances') {
+            if ($this->dynamicUserFilter === 'Barangay with Most Reports') {
 
                 $barangay = Grievance::query()
                     ->join('users', 'users.id', '=', 'grievances.user_id')
@@ -1298,7 +1314,7 @@ class Index extends Component
 
         }
 
-        if ($this->filterType === 'Grievances' && $this->dynamicGrievanceFilter) {
+        if ($this->filterType === 'Reports' && $this->dynamicGrievanceFilter) {
 
             if ($this->dynamicGrievanceFilter === 'Critical → Low Priority') {
                 $priorityOrder = ['Critical', 'High', 'Normal', 'Low'];
@@ -1326,6 +1342,7 @@ class Index extends Component
                     'resolved',
                     'unresolved',
                     'closed',
+                    'overdue',
                 ];
 
                 $this->data = $this->data->sortBy(function ($item) use ($statusOrder) {
@@ -1389,7 +1406,7 @@ class Index extends Component
                     ->values();
             }
 
-            if ($this->dynamicUserFilter === 'Barangay with Most Grievances') {
+            if ($this->dynamicUserFilter === 'Barangay with Most Reports') {
                 $this->data = $this->data
                     ->sortByDesc(fn($u) => $u['userInfo']->grievances_count ?? 0)
                     ->values();

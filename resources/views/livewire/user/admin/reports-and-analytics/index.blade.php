@@ -82,7 +82,7 @@
                     <x-filter-select
                         name="filterType"
                         placeholder="Type"
-                        :options="['Grievances', 'Departments','Feedbacks', 'Users']"
+                        :options="['Reports', 'Departments','Feedbacks', 'Users']"
                         x-model="filterType"
                     />
                 </div>
@@ -90,15 +90,15 @@
             </div>
 
             <div class="flex flex-col md:flex-row md:items-center md:justify-center gap-2 mb-4 w-full px-4">
-                @if($filterType === 'Grievances')
+                @if($filterType === 'Reports')
                     <div class="flex flex-col gap-2 w-full md:w-1/4 cursor-pointer">
                         <div class="flex items-center gap-2 font-bold mb-1">
                             <x-heroicon-o-rectangle-stack class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
-                            <span>Grievance Type</span>
+                            <span>Report Type</span>
                         </div>
                         <x-filter-select
                             name="grievanceType"
-                            placeholder="Select Grievance Type"
+                            placeholder="Select Report Type"
                             :options="['Complaint', 'Request', 'Inquiry']"
                         />
                     </div>
@@ -123,7 +123,7 @@
                         <x-filter-select
                             name="grievanceStatus"
                             placeholder="Select Status"
-                            :options="['Pending','Acknowledged','In Progress','Escalated','Resolved','Unresolved','Closed']"
+                            :options="['Pending','Acknowledged','In Progress','Escalated','Resolved','Unresolved','Closed','Overdue']"
                         />
                     </div>
 
@@ -386,7 +386,7 @@
 
     @endif
 
-    @if($filterType === 'Grievances' && $dynamicGrievanceFilter)
+    @if($filterType === 'Reports' && $dynamicGrievanceFilter)
         <div class="grid gap-6 mt-6 justify-center"
             style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
 
@@ -520,7 +520,7 @@
             <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200 font-sans">
                 <thead class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 uppercase text-xs">
                     <tr>
-                        @if($filterType === 'Grievances')
+                        @if($filterType === 'Reports')
                             <th class="px-6 py-3 text-center">TICKET ID</th>
                             <th class="px-6 py-3">TITLE</th>
                             <th class="px-6 py-3 text-center">TYPE</th>
@@ -579,7 +579,7 @@
                     @forelse($data as $item)
                         <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition">
 
-                            @if($filterType === 'Grievances')
+                            @if($filterType === 'Reports')
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_ticket_id }}</td>
                                 <td class="px-6 py-3">{{ ucwords($item->grievance_title) }}</td>
                                 <td class="px-6 py-3 text-center">{{ $item->grievance_type ?? '—' }}</td>
