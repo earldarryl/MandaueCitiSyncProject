@@ -438,15 +438,16 @@
                                 <flux:error name="message" />
 
                                 <flux:button
-                                    wire:click="addRemark"
                                     variant="primary"
+                                    icon="check-circle"
                                     color="blue"
-                                    icon="plus-circle"
+                                    type="button"
+                                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                                     wire:loading.attr="disabled"
+                                    wire:target="addRemark"
                                 >
-                                    <x-heroicon-o-check-circle class="w-4 h-4" />
-                                    <span wire:loading.remove wire:target="addRemark">Add Log</span>
-                                    <span wire:loading wire:target="addRemark">Sending...</span>
+                                    <span wire:loading.remove wire:target="addRemark">Add Remark</span>
+                                    <span wire:loading wire:target="addRemark">Sending..</span>
                                 </flux:button>
                             </div>
                         @else
