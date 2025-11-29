@@ -22,7 +22,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Storage;
 #[Layout('layouts.app')]
-#[Title('Grievance Form Submission')]
+#[Title('Report Form Submission')]
 class Create extends Component implements Forms\Contracts\HasForms
 {
     use WithFileUploads, InteractsWithForms, InteractsWithActions;

@@ -132,85 +132,133 @@
                             class="px-6 py-5 w-full bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-700/80 rounded-2xl
                                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-in-out backdrop-blur-sm">
 
-                            <div
-                                class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
+                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm hover:shadow-md transition p-4 mb-4 border border-gray-200 dark:border-zinc-700">
 
                                 <div class="flex items-start gap-4">
                                     <div class="flex-shrink-0">
-                                        <div
-                                            class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
+                                        <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full p-2">
                                             <x-heroicon-o-clipboard-document-check class="h-6 w-6" />
                                         </div>
                                     </div>
 
-                                    <div class="flex-1 flex flex-col gap-1">
-                                        <span
-                                            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                            Submission
-                                        </span>
+                                    <div class="flex-1 flex flex-col gap-3">
 
-                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
-                                            {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
-                                        </h3>
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                                Submission
+                                            </span>
 
-                                        <div class="flex flex-col gap-2 mt-2">
+                                            <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug tracking-tight">
+                                                {{ ucwords(str_replace('_', ' ', $log->action_type)) }}
+                                            </h3>
 
-                                            @if ($grievance)
-                                                <p class="text-sm text-gray-600 dark:text-gray-300">
-                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Grievance Ticket ID:</span>
-                                                    <span class="font-bold text-blue-600">{{ $grievance->grievance_ticket_id }}</span>
-                                                </p>
-                                            @endif
-
-
-                                            <div class="flex items-center gap-2">
-                                                <span
-                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">CC
-                                                    Summary:</span>
-                                                <span
-                                                    class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
-                                                    {{ $log->cc_summary ?? 'N/A' }}
-                                                </span>
-                                            </div>
-
-                                            <div class="flex items-center gap-2">
-                                                <span
-                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">SQD
-                                                    Summary:</span>
-                                                <span
-                                                    class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
-                                                    {{ $log->sqd_summary ?? 'N/A' }}
-                                                </span>
-                                            </div>
-
-                                            <div class="flex items-center gap-2">
-                                                <span
-                                                    class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">When:</span>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Submitted:</span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y – g:i A') }}
+                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y — g:i A') }}
                                                 </span>
                                             </div>
-
                                         </div>
 
-                                        <div class="mt-4 flex justify-end">
+                                        @if ($grievance)
+                                        <div class="mt-2">
+                                            <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Grievance Details</h4>
 
-                                            @if ($grievance)
+                                            <div class="mt-2 space-y-2">
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Ticket ID:</span>
+                                                    <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                        {{ $grievance->grievance_ticket_id }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Title:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $grievance->grievance_title }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Category:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $grievance->grievance_category }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Priority:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $grievance->priority_level }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Type:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $grievance->grievance_type }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 flex justify-end">
                                                 <a href="{{ route('citizen.grievance.view', $grievance) }}"
-                                                wire:navigate
-                                                class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">
+                                                    wire:navigate
+                                                    class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">
                                                     View
                                                 </a>
-                                            @endif
-
+                                            </div>
                                         </div>
+                                        @endif
+
+                                        @if ($feedback)
+                                        <div class="mt-2">
+                                            <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Feedback Details</h4>
+
+                                            <div class="mt-2 space-y-2">
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Service:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $feedback->service }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Region:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $feedback->region }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Gender:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ ucfirst($feedback->gender) }}</span>
+                                                </div>
+
+                                                <div class="flex items-start gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Suggestions:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $feedback->suggestions ?? 'None' }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Email:</span>
+                                                    <span class="text-xs text-gray-700 dark:text-gray-300">{{ $feedback->email ?? 'Not Provided' }}</span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">CC Summary:</span>
+                                                    <span class="bg-blue-100 dark:bg-blue-800/40 text-blue-700 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                        {{ $feedback->cc_summary }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">SQD Summary:</span>
+                                                    <span class="bg-gray-100 dark:bg-zinc-700/40 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                                        {{ $feedback->sqd_summary }}
+                                                    </span>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        @endif
 
                                     </div>
                                 </div>
 
                             </div>
-
                         </div>
+
                     </li>
                 @endforeach
 
@@ -226,12 +274,10 @@
     @if ($hasMore)
         <div class="flex justify-center items-center mt-6">
             <div wire:target="loadMore" wire:loading.remove>
-                <button wire:click="loadMore"
-                    class="px-6 py-2.5 text-sm font-semibold rounded-md bg-blue-100 text-blue-800 border border-blue-300
-                        hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700
-                        dark:hover:bg-blue-800/60 transition-all duration-200">
-                    Load More
-                </button>
+                <flux:button wire:click="loadMore" wire:loading.attr="disabled" variant="subtle">
+                    <span wire:loading.remove wire:target="loadMore">Load More</span>
+                    <span wire:loading wire:target="loadMore">Loading...</span>
+                </flux:button>
             </div>
 
             <div wire:target="loadMore" wire:loading>

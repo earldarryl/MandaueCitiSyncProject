@@ -16,11 +16,19 @@ class UpdateLastSeen
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-            Auth::user()->forceFill([
-                'last_seen_at' => now(),
-            ])->saveQuietly();
+            $user = Auth::user();
+
+            if ($user->first_online_at === null) {
+                $user->first_online_at = now();
+            }
+
+            $user->last_seen_at = now();
+
+            $user->saveQuietly();
         }
 
         return $next($request);
+
     }
+
 }

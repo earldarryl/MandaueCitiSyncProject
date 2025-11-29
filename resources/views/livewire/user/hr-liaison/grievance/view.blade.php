@@ -59,6 +59,19 @@
             <span>Update Priority</span>
         </button>
 
+        <button
+            wire:click="refreshGrievance"
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                border border-blue-500 dark:border-blue-400
+                hover:bg-blue-200 dark:hover:bg-blue-800/50
+                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                transition-all duration-200">
+            <x-heroicon-o-arrow-path class="w-5 h-5" />
+            <span wire:loading.remove wire:target="refreshGrievance">Refresh</span>
+            <span wire:loading wire:target="refreshGrievance">Processing...</span>
+        </button>
+
     </div>
 
     @if($this->editRequests->isNotEmpty())
@@ -613,7 +626,7 @@
             <p>Discuss updates or feedback regarding this grievance below.</p>
         </div>
 
-        <livewire:grievance.chat :grievance="$grievance" />
+        <livewire:partials.chat :grievance="$grievance"/>
     </div>
 
 

@@ -24,7 +24,7 @@
         .page {
             width: 794px;
             min-height: 1122px;
-            padding: 40px;
+            padding: 20px;
             box-sizing: border-box;
             page-break-after: always;
         }
@@ -103,6 +103,63 @@
             color: #4b5563;
         }
 
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .stats-card {
+            position: relative;
+            background: linear-gradient(to bottom right, #f0f5ff, #dbeafe);
+            border: 1px solid #bfdbfe;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .stats-icon {
+            display: inline-block;
+            background: #fff;
+            border-radius: 50%;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .stats-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1d4ed8;
+        }
+
+        .stats-subtext {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .stats-card.green { background: linear-gradient(to bottom right, #ecfdf5, #bbf7d0); border-color: #86efac; }
+        .stats-card.green .stats-value { color: #059669; }
+        .stats-card.purple { background: linear-gradient(to bottom right, #f5f3ff, #ddd6fe); border-color: #c4b5fd; }
+        .stats-card.purple .stats-value { color: #7c3aed; }
+
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -111,41 +168,37 @@
             border-radius: 0.5rem;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             box-sizing: border-box;
+            overflow-x: visible;
         }
+
+        table, th, td {
+            font-size: 10px;
+        }
+
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            table-layout: fixed;
         }
 
-        th {
+        th, td {
             border: 1px solid #D1D5DB;
-            padding: 3px;
-            background-color: #F3F4F6;
-            color: #374151;
-            text-transform: uppercase;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        td {
-            border: 1px solid #D1D5DB;
-            padding: 6px;
-            font-size: 12px;
+            padding: 4px;
+            word-wrap: break-word;
         }
 
         td.center {
             text-align: center;
         }
 
-         .description-cell {
-            max-width: 150px;
+        .description-cell {
+            max-width: 100px;
             word-wrap: break-word;
         }
 
         .changes-cell {
-            max-width: 250px;
+            max-width: 150px;
             word-wrap: break-word;
         }
 
@@ -206,6 +259,7 @@
                 </div>
                 <div class="header-right">
                     <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
+                    <span class="span-2">ADMINISTRATION</span>
                 </div>
             @else
                 @php
@@ -248,6 +302,36 @@
                 <div></div>
             @endif
         </div>
+
+        @if ($isAdmin)
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <span style="font-size:24px;">👥</span>
+                    </div>
+                    <div class="stats-title">Total Users</div>
+                    <div class="stats-value">{{ $totalUsers }}</div>
+                </div>
+
+                <div class="stats-card green">
+                    <div class="stats-icon">
+                        <span style="font-size:24px;">📶</span>
+                    </div>
+                    <div class="stats-title">Active Users</div>
+                    <div class="stats-value">{{ $activeUsers }}</div>
+                    <div class="stats-subtext">Online now (last 5 min)</div>
+                </div>
+
+                <div class="stats-card purple">
+                    <div class="stats-icon">
+                        <span style="font-size:24px;">⏱️</span>
+                    </div>
+                    <div class="stats-title">Total Online Time</div>
+                    <div class="stats-value">{{ $totalOnlineTimeFormatted }}</div>
+                    <div class="stats-subtext">Sum of all active users</div>
+                </div>
+            </div>
+        @endif
 
         <div class="table-container">
             <table>

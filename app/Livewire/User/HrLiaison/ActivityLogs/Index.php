@@ -45,7 +45,6 @@ class Index extends Component
             ->pluck('action_type')
             ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
             ->toArray();
-
     }
 
     public function applyFilter(): void

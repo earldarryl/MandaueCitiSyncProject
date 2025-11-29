@@ -26,7 +26,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
-#[Title('Grievance Reports')]
+#[Title('Assignment Reports')]
 class Index extends Component
 {
     use WithPagination, WithFileUploads;
@@ -515,21 +515,21 @@ class Index extends Component
                 HistoryLog::create([
                     'user_id' => $currentUser->id,
                     'action_type' => 'grievance_import',
-                    'description' => "Imported grievance titled '{$title}' from Excel.",
+                    'description' => "Imported report titled '{$title}' from Excel.",
                     'reference_id' => $grievance->grievance_id,
-                    'reference_table' => 'grievances',
+                    'reference_table' => 'reports',
                     'ip_address' => request()->ip(),
                 ]);
 
                 ActivityLog::create([
                     'user_id' => $currentUser->id,
                     'role_id' => $currentUser->roles->first()?->id,
-                    'module' => 'Grievance Management',
-                    'action' => "Imported grievance #{$grievance->grievance_ticket_id}",
+                    'module' => 'Report Management',
+                    'action' => "Imported report #{$grievance->grievance_ticket_id}",
                     'action_type' => 'import',
                     'model_type' => Grievance::class,
                     'model_id' => $grievance->grievance_id,
-                    'description' => "{$currentUser->email} imported grievance #{$grievance->grievance_ticket_id} from Excel.",
+                    'description' => "{$currentUser->email} imported report #{$grievance->grievance_ticket_id} from Excel.",
                     'status' => 'success',
                     'ip_address' => request()->ip(),
                     'device_info' => request()->header('User-Agent'),
@@ -542,7 +542,7 @@ class Index extends Component
 
             Notification::make()
                 ->title('Import Successful')
-                ->body('Grievances have been successfully imported from the Excel file.')
+                ->body('Reports have been successfully imported from the Excel file.')
                 ->success()
                 ->send();
 
@@ -551,7 +551,7 @@ class Index extends Component
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Import Failed')
-                ->body("Something went wrong while importing grievances. Error: {$e->getMessage()}")
+                ->body("Something went wrong while importing reports. Error: {$e->getMessage()}")
                 ->danger()
                 ->send();
         }
@@ -561,7 +561,7 @@ class Index extends Component
     {
         if (empty($this->selected)) {
             Notification::make()
-                ->title('No Grievances Selected')
+                ->title('No Reports Selected')
                 ->body('Please select at least one grievance to print.')
                 ->warning()
                 ->send();
@@ -577,8 +577,8 @@ class Index extends Component
 
         if ($grievances->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('The selected grievances were not found or are not assigned to you.')
+                ->title('No Reports Found')
+                ->body('The selected reports were not found or are not assigned to you.')
                 ->warning()
                 ->send();
             return;
@@ -593,8 +593,8 @@ class Index extends Component
     {
         if (empty($this->selected)) {
             Notification::make()
-                ->title('No Grievances Selected')
-                ->body('Please select at least one grievance to export.')
+                ->title('No Reports Selected')
+                ->body('Please select at least one report to export.')
                 ->warning()
                 ->send();
             return;
@@ -610,8 +610,8 @@ class Index extends Component
 
         if ($grievances->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('The selected grievances were not found or are not assigned to you.')
+                ->title('No Reports Found')
+                ->body('The selected reports were not found or are not assigned to you.')
                 ->warning()
                 ->send();
             return;
@@ -626,10 +626,10 @@ class Index extends Component
         $callback = function () use ($grievances) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Grievance Ticket ID',
-                'Grievance Title',
-                'Grievance Type',
-                'Grievance Category',
+                'Report Ticket ID',
+                'Report Title',
+                'Report Type',
+                'Report Category',
                 'Priority Level',
                 'Status',
                 'Submitted By',
@@ -698,7 +698,7 @@ class Index extends Component
                 if (empty($hrLiaisons)) {
                     Notification::make()
                         ->title('No HR Liaisons Found')
-                        ->body("Department {$department->department_name} has no HR Liaisons assigned for grievance #{$grievance->grievance_ticket_id}.")
+                        ->body("Department {$department->department_name} has no HR Liaisons assigned for report #{$grievance->grievance_ticket_id}.")
                         ->danger()
                         ->send();
 
@@ -759,8 +759,8 @@ class Index extends Component
         });
 
         Notification::make()
-            ->title('Grievances Rerouted')
-            ->body('Selected grievances have been rerouted, category updated, and status set to pending successfully.')
+            ->title('Reports Rerouted')
+            ->body('Selected reports have been rerouted, category updated, and status set to pending successfully.')
             ->success()
             ->send();
 
@@ -802,12 +802,12 @@ class Index extends Component
                     ActivityLog::create([
                         'user_id'      => $user->id,
                         'role_id'      => $user->roles->first()?->id,
-                        'module'       => 'Grievance Management',
-                        'action'       => "Changed grievance #{$grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
+                        'module'       => 'Report Management',
+                        'action'       => "Changed report #{$grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
                         'action_type'  => 'update_status',
                         'model_type'   => 'App\\Models\\Grievance',
                         'model_id'     => $grievance->grievance_id,
-                        'description'  => "HR Liaison ({$user->email}) changed status of grievance #{$grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
+                        'description'  => "HR Liaison ({$user->email}) changed status of report #{$grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
                         'status'       => 'success',
                         'ip_address'   => request()->ip(),
                         'device_info'  => request()->header('User-Agent'),
@@ -823,9 +823,9 @@ class Index extends Component
             $this->dispatch('status-update-success');
 
             Notification::make()
-                ->title('Grievance Status Updated')
+                ->title('Report Status Updated')
                 ->body(
-                    'The selected grievances have been updated to "' .
+                    'The selected reports have been updated to "' .
                     ucwords(str_replace('_', ' ', $formattedStatus)) . '".'
                 )
                 ->success()
@@ -838,7 +838,7 @@ class Index extends Component
 
             Notification::make()
                 ->title('Status Update Failed')
-                ->body('An error occurred while updating grievance statuses: ' . $e->getMessage())
+                ->body('An error occurred while updating report statuses: ' . $e->getMessage())
                 ->danger()
                 ->send();
         }
@@ -851,7 +851,7 @@ class Index extends Component
             'selected' => 'required|array|min:1',
             'priorityUpdate' => 'required|string',
         ], [
-            'selected.required' => 'Please select at least one grievance to update.',
+            'selected.required' => 'Please select at least one report to update.',
             'priorityUpdate.required' => 'Please choose a priority level.',
         ]);
 
@@ -885,12 +885,12 @@ class Index extends Component
                     ActivityLog::create([
                         'user_id'      => $user->id,
                         'role_id'      => $user->roles->first()?->id,
-                        'module'       => 'Grievance Management',
-                        'action'       => "Changed grievance #{$grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+                        'module'       => 'Report Management',
+                        'action'       => "Changed report #{$grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
                         'action_type'  => 'update_priority',
                         'model_type'   => 'App\\Models\\Grievance',
                         'model_id'     => $grievance->grievance_id,
-                        'description'  => "HR Liaison ({$user->email}) changed priority of grievance #{$grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+                        'description'  => "HR Liaison ({$user->email}) changed priority of report #{$grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
                         'status'       => 'success',
                         'ip_address'   => request()->ip(),
                         'device_info'  => request()->header('User-Agent'),
@@ -907,7 +907,7 @@ class Index extends Component
 
             Notification::make()
                 ->title('Priority Updated')
-                ->body('The selected grievances have been updated to "' . ucfirst($formattedPriority) . '" with updated processing days.')
+                ->body('The selected reports have been updated to "' . ucfirst($formattedPriority) . '" with updated processing days.')
                 ->success()
                 ->send();
 
@@ -918,7 +918,7 @@ class Index extends Component
 
             Notification::make()
                 ->title('Priority Update Failed')
-                ->body('An error occurred while updating grievance priorities: ' . $e->getMessage())
+                ->body('An error occurred while updating report priorities: ' . $e->getMessage())
                 ->danger()
                 ->send();
         }
@@ -931,7 +931,7 @@ class Index extends Component
         if (! $grievance) {
             Notification::make()
                 ->title('Error')
-                ->body('Grievance not found or already deleted.')
+                ->body('Report not found or already deleted.')
                 ->danger()
                 ->send();
             return;
@@ -941,7 +941,7 @@ class Index extends Component
             'grievance' => $grievance,
         ])->setPaper('A4', 'portrait');
 
-        $filename = 'grievance-' . $grievance->grievance_id . '.pdf';
+        $filename = 'report-' . $grievance->grievance_id . '.pdf';
 
         return response()->streamDownload(
             fn () => print($pdf->output()),
@@ -960,7 +960,7 @@ class Index extends Component
 
         if ($grievances->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
+                ->title('No Reports Found')
                 ->body('There are no grievances assigned to you to print.')
                 ->warning()
                 ->send();
@@ -1034,8 +1034,8 @@ class Index extends Component
 
         if ($grievances->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('There are no grievances assigned to you to export.')
+                ->title('No Reports Found')
+                ->body('There are no reports assigned to you to export.')
                 ->warning()
                 ->send();
             return;
@@ -1043,7 +1043,7 @@ class Index extends Component
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="grievances_assigned_to_' . $user->id . '_' . now()->format('Y_m_d_His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="reports_assigned_to_' . $user->id . '_' . now()->format('Y_m_d_His') . '.csv"',
         ];
 
         $callback = function () use ($grievances) {

@@ -38,7 +38,7 @@ class AdminGrievanceChartDashboard extends ChartWidget
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
                             </svg>
-                            <span>Admin Grievance Type Overview</span>
+                            <span>Report Type Overview</span>
                         </h2>
                     </div>
 
@@ -78,11 +78,11 @@ class AdminGrievanceChartDashboard extends ChartWidget
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
                         This pie chart shows the distribution of <span class="font-semibold text-gray-800 dark:text-gray-300">
-                        grievances by type</span> (Complaint, Inquiry, Request) within the selected date range
+                        reports by type</span> (Complaint, Inquiry, Request) within the selected date range
                         (<strong>{$this->startDate}</strong> to <strong>{$this->endDate}</strong>).
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To help admins understand the proportion of each grievance type,
+                        To help admins understand the proportion of each report type,
                         monitor trends, and prioritize handling accordingly.
                     </div>
                 </div>

@@ -100,4 +100,11 @@ class Grievance extends Model
         return $this->hasMany(EditRequest::class, 'grievance_id', 'grievance_id');
     }
 
+    public function assignedHrLiaisons()
+    {
+        return User::whereHas('hrLiaisonDepartments', function ($q) {
+            $q->whereIn('department_id', $this->departments->pluck('department_id'));
+        })->get();
+    }
+
 }

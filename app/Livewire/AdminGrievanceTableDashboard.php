@@ -30,7 +30,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12h6m-3-3v6m9 3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3Z" />
                             </svg>
-                            <span>Grievance Records Overview</span>
+                            <span>Report Records Overview</span>
                         </h2>
                     </div>
                 </div>
@@ -50,7 +50,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                     <div x-show="open" x-collapse
                         class="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800
                             rounded-lg p-3 border border-gray-200 dark:border-zinc-700">
-                        This table lists all <span class="font-semibold text-gray-800 dark:text-gray-300">grievances</span>
+                        This table lists all <span class="font-semibold text-gray-800 dark:text-gray-300">reports</span>
                         submitted by employees or citizens. It includes details such as the
                         <span class="font-semibold text-gray-800 dark:text-gray-300">status</span>,
                         <span class="font-semibold text-gray-800 dark:text-gray-300">type</span>,
@@ -58,7 +58,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                         <span class="font-semibold text-gray-800 dark:text-gray-300">assigned department</span>.
                         <br><br>
                         <span class="text-gray-800 dark:text-gray-300 font-medium">Purpose:</span>
-                        To enable HR liaisons and administrators to monitor grievances,
+                        To enable HR liaisons and administrators to monitor reports,
                         assess workflow progress, and support transparency and accountability in case management.
                     </div>
                 </div>
@@ -205,7 +205,7 @@ class AdminGrievanceTableDashboard extends TableWidget
                     )
                     ->tooltip(fn ($record) =>
                         $record->is_anonymous
-                            ? 'Anonymous Grievance'
+                            ? 'Anonymous Report'
                             : ($record->user?->info
                                 ? trim(
                                     $record->user->info->first_name
@@ -281,8 +281,8 @@ class AdminGrievanceTableDashboard extends TableWidget
             ->paginated([5, 10, 25, 50, 'all'])
             ->searchable()
 
-            ->emptyStateHeading('No Grievance Records Found')
-            ->emptyStateDescription('There are currently no grievance submissions within the selected date range or applied filters.')
+            ->emptyStateHeading('No Report Records Found')
+            ->emptyStateDescription('There are currently no report submissions within the selected date range or applied filters.')
             ->emptyStateIcon('heroicon-o-folder-open');
     }
 }

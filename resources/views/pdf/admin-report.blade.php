@@ -316,7 +316,7 @@
     <table style="width:100%; border-collapse:collapse; font-size:12px; font-family:Arial, sans-serif;">
         <thead style="background:#F3F4F6; color:#374151; text-transform:uppercase; font-weight:600; border-bottom:1px solid #D1D5DB;">
             <tr>
-                @if($filterType === 'Grievances')
+                @if($filterType === 'Reports')
                     <th style="padding:8px; border:1px solid #E5E7EB;">TICKET ID</th>
                     <th style="padding:8px; border:1px solid #E5E7EB;">TITLE</th>
                     <th style="padding:8px; border:1px solid #E5E7EB;">TYPE</th>
@@ -374,7 +374,7 @@
         <tbody>
             @forelse($data as $index => $item)
                 <tr style="background: {{ $index % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }};">
-                    @if($filterType === 'Grievances')
+                    @if($filterType === 'Reports')
                         <td style="padding:6px; border:1px solid #E5E7EB; text-align:center;">{{ $item->grievance_ticket_id }}</td>
                         <td style="padding:6px; border:1px solid #E5E7EB;">{{ $item->grievance_title }}</td>
                         <td style="padding:6px; border:1px solid #E5E7EB; text-align:center;">{{ $item->grievance_type ?? '—' }}</td>

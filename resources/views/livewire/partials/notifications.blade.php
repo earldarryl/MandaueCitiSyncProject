@@ -103,29 +103,45 @@
                                 <div class="flex-1 pr-3 break-words text-sm text-gray-800 dark:text-gray-200">
                                     <div class="flex flex-col gap-2 justify-start">
                                         <span class="font-bold">{{ $notification['title'] }}</span>
-                                        <span>{{ $notification['body'] ?: 'No message' }}</span>
+                                        <span class="font-medium">{{ $notification['body'] ?: 'No message' }}</span>
                                     </div>
                                     <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                                        {{ $notification['diff'] }}
+                                        {{ \Carbon\Carbon::parse($notification['created_at'])->format('F j, Y — g:i A') }}
+                                        · {{ \Carbon\Carbon::parse($notification['created_at'])->diffForHumans() }}
                                     </span>
+
                                 </div>
 
                                 <div class="flex-shrink-0">
-                                    <div class="relative flex-shrink-0" x-data="{ open: false, showActions: false }">
-                                        <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                    <div class="relative flex-shrink-0"
+                                        x-data="{ open: false, showActions: false, flip: false }"
+                                        x-init="
+                                            const updateFlip = () => {
+                                                const rect = $refs.dropdown.getBoundingClientRect();
+                                                flip = (rect.bottom > window.innerHeight);
+                                            };
+                                            window.addEventListener('resize', updateFlip);
+                                            $watch('open', value => { if(value) setTimeout(updateFlip, 0); });
+                                        "
+                                    >
+                                        <button @click="open = !open"
+                                                class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                             <x-heroicon-o-ellipsis-horizontal class="w-8 h-8 text-black dark:text-white"/>
                                         </button>
 
-                                        <div x-show="open" @click.away="open = false" x-transition
-                                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                        <div x-ref="dropdown"
+                                            x-show="open"
+                                            @click.away="open = false"
+                                            x-transition
+                                            :class="flip ? 'bottom-full mb-2' : 'top-full mt-2'"
+                                            class="absolute right-0 w-56 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50"
+                                        >
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
                                                 @if(is_null($notification['read_at']))
-                                                    <button
-                                                        wire:click="markNotificationAsRead('{{ $notification['id'] }}')"
-                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
-                                                        wire:loading.attr="disabled"
-                                                    >
+                                                    <button wire:click="markNotificationAsRead('{{ $notification['id'] }}')"
+                                                            class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
+                                                            wire:loading.attr="disabled">
                                                         <x-heroicon-o-check-circle class="w-5 h-5 text-green-500" />
                                                         <span wire:loading.remove wire:target="markNotificationAsRead('{{ $notification['id'] }}')">
                                                             Mark as Read
@@ -135,11 +151,9 @@
                                                         </span>
                                                     </button>
                                                 @else
-                                                    <button
-                                                        wire:click="markNotificationAsUnread('{{ $notification['id'] }}')"
-                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
-                                                        wire:loading.attr="disabled"
-                                                    >
+                                                    <button wire:click="markNotificationAsUnread('{{ $notification['id'] }}')"
+                                                            class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
+                                                            wire:loading.attr="disabled">
                                                         <x-heroicon-o-arrow-uturn-left class="w-5 h-5 text-yellow-500" />
                                                         <span wire:loading.remove wire:target="markNotificationAsUnread('{{ $notification['id'] }}')">
                                                             Mark as Unread
@@ -163,16 +177,13 @@
                                                         </button>
 
                                                         <div x-show="showActions" @click.away="showActions = false" x-transition
-                                                            class="absolute right-0 mt-1 w-full bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 space-y-1">
-
+                                                            class="absolute right-0 mt-1 w-full font-medium bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 space-y-1">
                                                             @foreach($notification['actions'] as $action)
                                                                 @if(isset($action['action']))
-                                                                    <button
-                                                                        class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
-                                                                        wire:click="handleNotificationAction('{{ $notification['id'] }}', '{{ $action['action'] }}', '{{ $notification['extra']['edit_request_id'] ?? '' }}')"
-                                                                        wire:loading.attr="disabled"
-                                                                        style="color: {{ $action['color'] ?? 'inherit' }}"
-                                                                    >
+                                                                    <button class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
+                                                                            wire:click="handleNotificationAction('{{ $notification['id'] }}', '{{ $action['action'] }}', '{{ $notification['extra']['edit_request_id'] ?? '' }}')"
+                                                                            wire:loading.attr="disabled"
+                                                                            style="color: {{ $action['color'] ?? 'inherit' }}">
                                                                         <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
                                                                         <span wire:loading.remove wire:target="{{ $action['action'] ?? '' }}">
                                                                             {{ $action['label'] }}
@@ -182,11 +193,9 @@
                                                                         </span>
                                                                     </button>
                                                                 @elseif(isset($action['url']))
-                                                                    <button
-                                                                        class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
-                                                                        wire:click="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
-                                                                        style="color: {{ $action['color'] ?? 'inherit' }}"
-                                                                    >
+                                                                    <button class="w-full text-left px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 relative"
+                                                                            wire:click="openNotificationAction('{{ $notification['id'] }}', '{{ $action['url'] ?? '' }}')"
+                                                                            style="color: {{ $action['color'] ?? 'inherit' }}">
                                                                         <x-dynamic-component :component="$action['icon'] ?? 'heroicon-o-link'" class="w-4 h-4" />
                                                                         <span>{{ $action['label'] }}</span>
                                                                     </button>
@@ -196,12 +205,9 @@
                                                     </div>
                                                 @endif
 
-
-                                                <button
-                                                    wire:click="deleteNotification('{{ $notification['id'] }}')"
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500 relative"
-                                                    wire:loading.attr="disabled"
-                                                >
+                                                <button wire:click="deleteNotification('{{ $notification['id'] }}')"
+                                                        class="px-4 py-2 text-left font-medium hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500 relative"
+                                                        wire:loading.attr="disabled">
                                                     <x-heroicon-o-trash class="w-5 h-5" />
                                                     <span wire:loading.remove wire:target="deleteNotification('{{ $notification['id'] }}')">
                                                         Delete
@@ -210,7 +216,6 @@
                                                         Processing...
                                                     </span>
                                                 </button>
-
                                             </div>
                                         </div>
                                     </div>

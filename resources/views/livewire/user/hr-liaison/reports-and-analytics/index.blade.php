@@ -261,88 +261,61 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto relative rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
-            <div wire:loading.flex wire:target="applyFilters" class="absolute inset-0 items-center justify-center bg-white/70 dark:bg-gray-900/70 z-10">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                    <thead class="bg-gray-100 dark:bg-gray-800">
-                        <tr>
-                            @for ($i = 0; $i < 5; $i++)
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
-                                </th>
-                            @endfor
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200 font-sans">
+                <thead class="text-xs uppercase tracking-wide bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">TICKET ID</th>
+                        <th scope="col" class="px-6 py-3 font-semibold">TITLE</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">TYPE</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">CATEGORY</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">STATUS</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">PRIORITY LEVEL</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">PROCESSING DAYS</th>
+                        <th scope="col" class="px-6 py-3 text-center font-semibold">DATE</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-900">
+                    @forelse($data as $item)
+                        <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors duration-200">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white text-center">
+                                {{ $item->grievance_ticket_id }}
+                            </th>
+                            <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">
+                                {{ $item->grievance_title }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
+                                {{ $item->grievance_type ?? '—' }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
+                                {{ $item->grievance_category ?? '—' }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    {{ strtoupper($item->grievance_status) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    {{ strtoupper($item->priority_level) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-medium text-gray-800 dark:text-gray-200">
+                                {{ $item->processing_days ?? '—' }}
+                            </td>
+                            <td class="px-6 py-4 text-center font-medium text-gray-700 dark:text-gray-300">
+                                {{ $item->created_at->format('Y-m-d h:i A') }}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
-                        @for ($row = 0; $row < 5; $row++)
-                            <tr>
-                                @for ($col = 0; $col < 5; $col++)
-                                    <td class="px-4 py-3 align-middle">
-                                        <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
-                                    </td>
-                                @endfor
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-200 dark:border-gray-700">
-                <table class="w-full text-sm text-left text-gray-800 dark:text-gray-200 font-sans">
-                    <thead class="text-xs uppercase tracking-wide bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                    @empty
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">TICKET ID</th>
-                            <th scope="col" class="px-6 py-3 font-semibold">TITLE</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">TYPE</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">CATEGORY</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">STATUS</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">PRIORITY LEVEL</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">PROCESSING DAYS</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">DATE</th>
+                            <td colspan="7" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
+                                No data available for the selected filters.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-900">
-                        @forelse($data as $item)
-                            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors duration-200">
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white text-center">
-                                    {{ $item->grievance_ticket_id }}
-                                </th>
-                                <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">
-                                    {{ $item->grievance_title }}
-                                </td>
-                                <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
-                                    {{ $item->grievance_type ?? '—' }}
-                                </td>
-                                <td class="px-6 py-4 font-medium text-gray-700 dark:text-gray-300 text-center capitalize">
-                                    {{ $item->grievance_category ?? '—' }}
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                        {{ strtoupper($item->grievance_status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold border border-gray-300 dark:border-zinc-800 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                        {{ strtoupper($item->priority_level) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-center font-medium text-gray-800 dark:text-gray-200">
-                                    {{ $item->processing_days ?? '—' }}
-                                </td>
-                                <td class="px-6 py-4 text-center font-medium text-gray-700 dark:text-gray-300">
-                                    {{ $item->created_at->format('Y-m-d h:i A') }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-6 text-gray-500 dark:text-gray-400 italic">
-                                    No data available for the selected filters.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @endforelse
+                </tbody>
+            </table>
 
         </div>
     @else

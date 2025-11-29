@@ -1,12 +1,10 @@
-<div class="flex-1 flex flex-col w-full min-h-screen bg-gray-50 dark:bg-zinc-900 relative p-4 md:p-6 lg:p-8"
+<div class="relative flex-1 flex flex-col w-full h-full bg-gray-50 dark:bg-zinc-900"
      x-data>
 
     <div wire:loading wire:target="applyDates">
-        <div class="relative flex items-center justify-center bg-gray-50 dark:bg-gray-900/90">
-            <div class="flex flex-col items-center">
-                <flux:icon.loading class="h-12 w-12 text-blue-600"/>
-                <span class="mt-3 text-gray-700 dark:text-gray-300 text-sm">Refreshing dashboard…</span>
-            </div>
+        <div class="absolute w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/90">
+            <flux:icon.loading class="h-16 w-16 text-blue-600"/>
+            <span class="mt-3 font-bold text-gray-700 dark:text-gray-300 text-md">Refreshing dashboard…</span>
         </div>
     </div>
 

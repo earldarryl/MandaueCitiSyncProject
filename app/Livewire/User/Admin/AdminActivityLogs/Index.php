@@ -21,26 +21,86 @@ class Index extends Component
     use WithPagination;
 
     public int $limit = 10;
-    public ?string $filter = null;
+    public ?string $moduleFilter = null;
+    public ?string $actionFilter = null;
     public ?string $roleFilter = null;
     public ?string $selectedDate = null;
     public $totalUsers = 0;
     public $activeUsers = 0;
     public $totalOnlineTimeFormatted = '0m';
-    public array $modules = [];
+    public $moduleOptions = [];
+    public $actionTypeOptions = [];
+
+    public function mount()
+    {
+        $this->moduleOptions = ActivityLog::query()
+            ->distinct()
+            ->pluck('module')
+            ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
+            ->toArray();
+
+        $this->actionTypeOptions = ActivityLog::query()
+            ->distinct()
+            ->pluck('action_type')
+            ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
+            ->toArray();
+    }
+
+    private function updateOnlineStats()
+    {
+        $query = ActivityLog::query()
+            ->with('user', 'role')
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
+            ->when($this->roleFilter, function ($q) {
+                if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
+                elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
+                elseif ($this->roleFilter === 'Citizen') $q->where('role_id', 3);
+            })
+            ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate));
+
+        $userIds = $query->pluck('user_id')->unique();
+
+        $this->totalUsers = $userIds->count();
+
+        $onlineUsers = User::whereNotNull('last_seen_at')
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->get();
+
+        $this->activeUsers = $onlineUsers->count();
+
+        $totalSeconds = 0;
+
+        foreach ($onlineUsers as $user) {
+            if ($user->first_online_at) {
+                $totalSeconds += $user->first_online_at->diffInSeconds(now());
+            }
+        }
+
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+
+        $this->totalOnlineTimeFormatted = $hours > 0
+            ? "{$hours}h {$minutes}m"
+            : "{$minutes}m";
+
+    }
 
     public function applyFilter(): void
     {
         $this->resetPage();
+        $this->updateOnlineStats();
     }
+
 
     public function dynamicLogsTitle(): string
     {
-        $filter = $this->filter ?: 'All Modules';
+        $moduleFilter = $this->moduleFilter ?: 'All Modules';
+        $actionFilter = $this->actionFilter ?: 'All Action';
         $role = $this->roleFilter ?: 'All Roles';
         $date = $this->selectedDate ?: 'All Dates';
 
-        return "Activity Logs for {$filter} | {$role} | {$date}";
+        return "Activity Logs for {$moduleFilter} | {$actionFilter} | {$role} | {$date}";
     }
 
     public function exportActivityLogsPDF()
@@ -49,7 +109,8 @@ class Index extends Component
 
         $query = ActivityLog::query()
             ->with('user', 'role')
-            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
@@ -64,14 +125,19 @@ class Index extends Component
 
         $logs = $query->get();
 
+
         $html = view('pdf.activity-logs-report', [
             'logs' => $logs,
-            'user' => $user,
-            'filter' => $this->filter,
+            'user' => Auth::user(),
+            'moduleFilter' => $this->moduleFilter,
+            'actionFilter' => $this->actionFilter,
             'roleFilter' => $this->roleFilter,
             'selectedDate' => $this->selectedDate,
+            'isAdmin' => true,
             'dynamicTitle' => $this->dynamicLogsTitle(),
-            'isAdmin' => $user->hasRole('admin'),
+            'totalUsers' => $this->totalUsers,
+            'activeUsers' => $this->activeUsers,
+            'totalOnlineTimeFormatted' => $this->totalOnlineTimeFormatted,
         ])->render();
 
         $pdfPath = storage_path('app/public/activity-logs-report.pdf');
@@ -89,12 +155,12 @@ class Index extends Component
         return response()->download($pdfPath, 'activity-logs-report.pdf');
     }
 
-
     public function downloadExcel()
     {
         $logs = ActivityLog::query()
             ->with('user', 'role')
-            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
@@ -103,42 +169,41 @@ class Index extends Component
             ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
             ->latest('timestamp')
             ->get();
+        $currentUserName = auth()->user()->name ?? 'N/A';
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $sheet->mergeCells('A1:I1');
+        $sheet->mergeCells('A1:J1');
         $sheet->setCellValue('A1', $this->dynamicLogsTitle());
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1')->getFont()->setBold(true);
 
-        $sheet->mergeCells('A2:I2');
-        $downloadedBy = Auth::user()->name ?? 'Unknown';
-        $downloadedRole = ucwords(Auth::user()?->getRoleNames()->first()) ?? 'N/A';
-        $sheet->setCellValue('A2', "Downloaded by: {$downloadedBy} ({$downloadedRole}) | Time: " . now()->format('F j, Y – g:i A'));
-        $sheet->getStyle('A2')->getFont()->setItalic(true);
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValue('A2', "Total Users: {$this->totalUsers}");
+        $sheet->setCellValue('B2', "Active Users: {$this->activeUsers}");
+        $sheet->setCellValue('C2', "Total Online Time: {$this->totalOnlineTimeFormatted}");
 
         $sheet->fromArray([
-            [
-                'ID',
-                'Action Type',
-                'Action',
-                'Module',
-                'Platform',
-                'User',
-                'Role',
-                'Timestamp',
-                'Location',
-            ]
-        ], null, 'A3');
+            ['ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Changes']
+        ], null, 'A4');
 
-        $row = 4;
+        $row = 5;
 
         foreach ($logs as $log) {
-            $userName = $log->user?->name ?? 'N/A';
             $roleName = $log->role?->name ?? 'N/A';
             $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+            $changes = [];
+            if (is_array($log->changes)) {
+                foreach ($log->changes as $field => $value) {
+                    if (is_array($value)) {
+                        $old = isset($value['old']) ? (is_array($value['old']) ? implode(', ', $value['old']) : $value['old']) : null;
+                        $new = isset($value['new']) ? (is_array($value['new']) ? implode(', ', $value['new']) : $value['new']) : null;
+                        $changes[] = $old !== null ? "$field (OLD: $old, NEW: $new)" : "$field (NEW: $new)";
+                    } else {
+                        $changes[] = "$field: $value";
+                    }
+                }
+            }
 
             $sheet->fromArray([
                 [
@@ -147,22 +212,23 @@ class Index extends Component
                     str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
                     $log->module ?? 'N/A',
                     $log->platform ?? 'N/A',
-                    $userName,
+                    $currentUserName,
                     $roleNameFormatted,
                     $log->timestamp,
-                    $log->location ?? 'N/A',
+                    implode('; ', $changes)
                 ]
             ], null, "A{$row}");
 
             $row++;
         }
 
-        foreach (range('A', 'I') as $column) {
+        foreach (range('A', 'J') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
-        $fileName = 'activity_logs_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $fileName = $this->dynamicLogsTitle() . '_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $fileName = str_replace([' ', '|'], ['_', ''], $fileName);
         $tempFile = storage_path($fileName);
         $writer->save($tempFile);
 
@@ -173,7 +239,8 @@ class Index extends Component
     {
         $logs = ActivityLog::query()
             ->with('user', 'role')
-            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);
@@ -182,38 +249,39 @@ class Index extends Component
             ->when($this->selectedDate, fn($q) => $q->whereDate('timestamp', $this->selectedDate))
             ->latest('timestamp')
             ->get();
+        $currentUserName = auth()->user()->name ?? 'N/A';
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="activity_logs_' . now()->format('Y-m-d_H-i-s') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="' . str_replace([' ', '|'], ['_', ''], $this->dynamicLogsTitle()) . '_' . now()->format('Y-m-d_H-i-s') . '.csv"',
         ];
 
-        $callback = function () use ($logs) {
+        $callback = function () use ($logs, $currentUserName) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, [$this->dynamicLogsTitle()]);
-            $downloadedBy = Auth::user()->name ?? 'Unknown';
-            $downloadedRole = ucwords(Auth::user()?->getRoleNames()->first()) ?? 'N/A';
-            fputcsv($handle, ["Downloaded by: {$downloadedBy} ({$downloadedRole}) | Time: " . now()->format('F j, Y – g:i A')]);
-
+            fputcsv($handle, ["Total Users", $this->totalUsers]);
+            fputcsv($handle, ["Active Users", $this->activeUsers]);
+            fputcsv($handle, ["Total Online Time", $this->totalOnlineTimeFormatted]);
             fputcsv($handle, []);
 
-            fputcsv($handle, [
-                'ID',
-                'Action Type',
-                'Action',
-                'Module',
-                'Platform',
-                'User',
-                'Role',
-                'Timestamp',
-                'Location',
-            ]);
+            fputcsv($handle, ['ID', 'Action Type', 'Action', 'Module', 'Platform', 'User', 'Role', 'Timestamp', 'Changes']);
 
             foreach ($logs as $log) {
-                $userName = $log->user?->name ?? 'N/A';
                 $roleName = $log->role?->name ?? 'N/A';
                 $roleNameFormatted = str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $roleName)));
+
+                $changes = [];
+                if (is_array($log->changes)) {
+                    foreach ($log->changes as $field => $value) {
+                        if (is_array($value)) {
+                            $old = isset($value['old']) ? (is_array($value['old']) ? implode(', ', $value['old']) : $value['old']) : null;
+                            $new = isset($value['new']) ? (is_array($value['new']) ? implode(', ', $value['new']) : $value['new']) : null;
+                            $changes[] = $old !== null ? "$field (OLD: $old, NEW: $new)" : "$field (NEW: $new)";
+                        } else {
+                            $changes[] = "$field: $value";
+                        }
+                    }
+                }
 
                 fputcsv($handle, [
                     $log->activity_log_id,
@@ -221,10 +289,10 @@ class Index extends Component
                     str_replace('Hr', 'HR', ucwords(str_replace('_', ' ', $log->action))),
                     $log->module ?? 'N/A',
                     $log->platform ?? 'N/A',
-                    $userName,
+                    $currentUserName,
                     $roleNameFormatted,
                     $log->timestamp,
-                    $log->location ?? 'N/A',
+                    implode('; ', $changes),
                 ]);
             }
 
@@ -245,33 +313,27 @@ class Index extends Component
             ->where('last_seen_at', '>=', now()->subMinutes(5))
             ->get();
 
-        $totalMinutes = 0;
+        $this->activeUsers = $onlineUsers->count();
+
+        $totalSeconds = 0;
 
         foreach ($onlineUsers as $user) {
-            $minutes = Carbon::parse($user->last_seen_at)->diffInMinutes(now());
-            $totalMinutes += $minutes;
+            if ($user->first_online_at) {
+                $totalSeconds += $user->first_online_at->diffInSeconds(now());
+            }
         }
 
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
 
-        if ($hours > 0) {
-            $this->totalOnlineTimeFormatted = "{$hours}h {$minutes}m";
-        } else {
-            $this->totalOnlineTimeFormatted = "{$minutes}m";
-        }
-
-
-        $this->modules = ActivityLog::query()
-            ->whereNotNull('module')
-            ->select('module')
-            ->distinct()
-            ->pluck('module')
-            ->toArray();
+        $this->totalOnlineTimeFormatted = $hours > 0
+            ? "{$hours}h {$minutes}m"
+            : "{$minutes}m";
 
         $query = ActivityLog::query()
             ->with('user', 'role')
-            ->when($this->filter, fn($q) => $q->where('module', $this->filter))
+            ->when($this->moduleFilter, fn($q) => $q->where('module', $this->moduleFilter))
+            ->when($this->actionFilter, fn($q) => $q->where('action_type', $this->actionFilter))
             ->when($this->roleFilter, function ($q) {
                 if ($this->roleFilter === 'Admin') $q->where('role_id', 1);
                 elseif ($this->roleFilter === 'HR Liaison') $q->where('role_id', 2);

@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <div class="flex-1 px-4 w-full" wire:poll.10s>
+        <div class="flex-1 px-4 w-full">
             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">HR Liaisons</h3>
             @if($hrLiaisons->isEmpty())
                 <p class="text-sm text-gray-500 dark:text-gray-400">No HR Liaisons assigned.</p>

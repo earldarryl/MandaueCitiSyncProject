@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Livewire\Grievance;
+namespace App\Livewire\Partials;
+
+use Livewire\Component;
 
 use App\Events\MessageSent;
 use App\Models\Message;
@@ -8,7 +10,6 @@ use App\Models\Grievance;
 use App\Notifications\GeneralNotification;
 use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\WithFileUploads;
 class Chat extends Component implements Forms\Contracts\HasForms
 {
@@ -220,6 +221,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
 
     public function render()
     {
-        return view('livewire.grievance.chat');
+        return view('livewire.partials.chat');
     }
 }

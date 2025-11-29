@@ -12,14 +12,14 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
-#[Title('Client Satisfaction Measurement')]
+#[Title('Feedback Form')]
 class FeedbackForm extends Component
 {
     public $showConfirmModal = false;
     public $date;
     public $gender;
     public $region = "Region VII - Central Visayas";
-    public $service = "Grievance Management System";
+    public $service = "Report Management System";
     public $cc1;
     public $cc2;
     public $cc3;

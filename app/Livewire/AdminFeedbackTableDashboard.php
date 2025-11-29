@@ -23,8 +23,6 @@ class AdminFeedbackTableDashboard extends TableWidget
     public ?string $endDate = null;
     protected static ?string $pollingInterval = '10s';
 
-    // ... (summarizeCC and summarizeSQD methods remain the same)
-
     public function summarizeCC(Feedback $feedback): string
     {
         $ccFields = ['cc1', 'cc2', 'cc3'];
@@ -268,7 +266,7 @@ class AdminFeedbackTableDashboard extends TableWidget
                             !transition-all !duration-200 !shadow-sm !cursor-pointer
                         ',
                     ])
-                    ->tooltip('View grievance details')
+                    ->tooltip('View feedback details')
                     ->button(),
             ])
             ->defaultSort('created_at', 'desc')

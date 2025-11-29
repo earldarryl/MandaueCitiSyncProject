@@ -166,7 +166,7 @@
             <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
                 @foreach ($logs as $log)
                     @php
-                        $bgColor = $log->module === 'Grievance Management'
+                        $bgColor = $log->module === 'Report Management'
                             ? 'bg-green-500 dark:bg-green-700'
                             : 'bg-blue-500 dark:bg-blue-700';
                         $svgColor = 'text-white';

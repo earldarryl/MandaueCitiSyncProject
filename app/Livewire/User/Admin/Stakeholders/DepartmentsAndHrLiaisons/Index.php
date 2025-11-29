@@ -460,6 +460,7 @@ class Index extends Component implements Forms\Contracts\HasForms
         }
 
         $department->hrLiaisons()->attach($this->selectedLiaisonsToAdd);
+        $this->department->refresh();
         $this->reset('selectedLiaisonsToAdd');
 
         Notification::make()
@@ -485,6 +486,7 @@ class Index extends Component implements Forms\Contracts\HasForms
         }
 
         $department->hrLiaisons()->detach($this->selectedLiaisonsToRemove);
+        $this->department->refresh();
         $this->reset('selectedLiaisonsToRemove');
 
         Notification::make()

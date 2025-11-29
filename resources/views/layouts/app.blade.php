@@ -86,6 +86,7 @@
             'citizen-grievance-index': 'applyFilters',
             'citizen-grievance-view': 'refreshGrievance',
             'admin-grievance-index': 'applyFilters',
+            'admin-grievance-view': 'refreshGrievance',
             'admin-feedback-index': 'applyFilters',
             'admin-activity-logs-index': 'applyFilter',
             'admin-departments-and-hr-liaisons-index': 'applyFilters',

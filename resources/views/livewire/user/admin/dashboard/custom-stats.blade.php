@@ -1,4 +1,4 @@
-<div x-data="{ openCreate: false, openCreateLiaison: false }">
+<div x-data="{ openCreate: false, openCreateLiaison: false, confirmDeleteAllActivityLogs: false }">
 
     <div class="flex flex-col w-full space-y-6">
 
@@ -70,7 +70,7 @@
                 <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
                     {{ $totalAssignments }}
                 </p>
-                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">All assignments processed</p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">All assignment reports processed</p>
 
                 <div x-data="{ open: false }" class="mt-3 w-full">
                     <button @click="open = !open"
@@ -119,7 +119,7 @@
                 <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
                     {{ $totalGrievances + $totalFeedbacks }}
                 </p>
-                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Total grievances and feedback</p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 -mt-1">Total reports and feedbacks</p>
 
                 <div class="grid grid-cols-2 gap-3 mt-3 w-full">
                     <div class="flex flex-col items-center justify-center bg-white/70 dark:bg-zinc-800/50
@@ -127,7 +127,7 @@
                                 transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
                         <div class="flex items-center gap-2">
                             <x-heroicon-o-clipboard-document-list class="w-5 h-5 text-blue-600 dark:text-blue-400"/>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Grievances</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Reports</span>
                         </div>
                         <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
                             {{ $totalGrievances }}
@@ -139,7 +139,7 @@
                                 transition hover:shadow-md hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
                         <div class="flex items-center gap-2">
                             <x-heroicon-o-chat-bubble-oval-left class="w-5 h-5 text-blue-600 dark:text-blue-400"/>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Feedback</span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Feedbacks</span>
                         </div>
                         <span class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-1">
                             {{ $totalFeedbacks }}
@@ -201,6 +201,21 @@
                         Processing...
                     </span>
                 </button>
+
+                <button
+                    @click="confirmDeleteAllActivityLogs = true"
+                    wire:loading.attr="disabled"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700
+                        text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-300">
+                    <x-heroicon-o-trash class="w-5 h-5" />
+                    <span wire:loading.remove wire:target="confirmDeleteAllActivityLogs">
+                        Delete All Activity Logs
+                    </span>
+                    <span wire:loading wire:target="confirmDeleteAllActivityLogs">
+                        Processing...
+                    </span>
+                </button>
+
             </div>
         </div>
 
@@ -298,4 +313,36 @@
             </footer>
         </div>
     </div>
+
+    <div x-show="confirmDeleteAllActivityLogs" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+    <div x-show="confirmDeleteAllActivityLogs" x-transition.scale
+        class="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete all activity logs? This action cannot be undone.</p>
+
+            <div wire:loading.remove wire:target="confirmDeleteAllActivityLogs" class="flex justify-center gap-3 mt-4">
+                <button type="button" @click="confirmDeleteAllActivityLogs = false"
+                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                    Cancel
+                </button>
+                <flux:button variant="danger" icon="trash" wire:click="confirmDeleteAllActivityLogs" @click="confirmDeleteAllActivityLogs = false">
+                    Yes, Delete
+                </flux:button>
+            </div>
+
+            <div wire:loading wire:target="confirmDeleteAllActivityLogs">
+                <div class="flex items-center justify-center gap-2 w-full">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+

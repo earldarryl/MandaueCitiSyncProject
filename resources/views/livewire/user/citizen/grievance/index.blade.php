@@ -1,7 +1,7 @@
 <div class="flex-col w-full h-full"
      data-component="citizen-grievance-index"
      data-wire-id="{{ $this->id() }}"
-     x-data
+     x-data="{ showSeletectedDeleteModal: false }"
      x-on:close-all-modals.window="
         document.querySelectorAll('[x-data][x-show]').forEach(el => {
             el.__x.$data.open = false
@@ -12,7 +12,7 @@
         $highlight = fn($text, $search) => $search
             ? preg_replace(
                 '/(' . preg_quote($search, '/') . ')/i',
-                '<mark class="bg-blue-400 text-white dark:bg-blue-500 dark:text-black">$1</mark>',
+                '<mark class="bg-blue-400 text-white dark:bg-blue-500 text-white">$1</mark>',
                 $text
             )
             : $text;
@@ -359,7 +359,7 @@
         @if(count($selected) > 0)
             <div class="flex flex-wrap gap-2">
                 <button
-                    wire:click="deleteSelected"
+                    @click="showSeletectedDeleteModal = true"
                     class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
                         bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
                         border border-red-500 dark:border-red-400
@@ -368,20 +368,8 @@
                         transition-all duration-200 w-full sm:w-auto"
                 >
                     <flux:icon.trash class="w-5 h-5 text-red-600 dark:text-red-400" />
-                    <span>Delete Selected</span>
-                </button>
-
-                <button
-                    wire:click="markSelectedHighPriority"
-                    class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                        bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300
-                        border border-amber-500 dark:border-amber-400
-                        hover:bg-amber-200 dark:hover:bg-amber-800/50
-                        focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-700
-                        transition-all duration-200 w-full sm:w-auto"
-                >
-                    <flux:icon.document-check class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    <span>Mark as High Priority</span>
+                    <span wire:loading.remove wire:target="deleteSelected">Delete Selected</span>
+                    <span wire:loading wire:target="deleteSelected">Processing...</span>
                 </button>
             </div>
         @endif
@@ -709,7 +697,7 @@
                                                                     <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                                                                 </div>
                                                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                                                                <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this grievance? This action cannot be undone.</p>
+                                                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this grievance? This action cannot be undone.</p>
 
                                                                 <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
                                                                     <button type="button" @click="showDeleteModal = false"
@@ -781,6 +769,37 @@
                         @endfor
                     </tbody>
                 </table>
+            </div>
+
+            <div x-show="showSeletectedDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+            <div x-show="showSeletectedDeleteModal" x-transition.scale
+                class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+                    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                        <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this selected report/s? This action cannot be undone.</p>
+
+                    <div wire:loading.remove wire:target="deleteSelected" class="flex justify-center gap-3 mt-4">
+                        <button type="button" @click="showSeletectedDeleteModal = false"
+                            class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                            Cancel
+                        </button>
+                        <flux:button variant="danger" icon="trash" wire:click="deleteSelected">
+                            Yes, Delete
+                        </flux:button>
+                    </div>
+
+                    <div wire:loading wire:target="deleteSelected">
+                        <div class="flex items-center justify-center gap-2 w-full">
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div x-data="{ showFeedbackModal: @entangle('showFeedbackModal') }">

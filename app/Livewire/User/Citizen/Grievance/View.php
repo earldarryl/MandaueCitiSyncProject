@@ -4,11 +4,12 @@ namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\ActivityLog;
 use App\Models\Grievance;
+use Filament\Notifications\Notification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
-#[Title('View Grievance')]
+#[Title('View Report')]
 
 class View extends Component
 {
@@ -21,18 +22,18 @@ class View extends Component
         $this->grievance = $grievance->load(['attachments', 'assignments', 'departments', 'user.userInfo']);
 
         if ($this->grievance->user_id !== $user->id) {
-            abort(403, 'You are not authorized to view this grievance.');
+            abort(403, 'You are not authorized to view this report.');
         }
 
         ActivityLog::create([
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
-            'module'       => 'Grievance Management',
-            'action'       => "Viewed grievance #{$this->grievance->grievance_ticket_id}",
+            'module'       => 'Report Management',
+            'action'       => "Viewed report #{$this->grievance->grievance_ticket_id}",
             'action_type'  => 'view',
             'model_type'   => Grievance::class,
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "{$roleName} ({$user->email}) viewed grievance #{$this->grievance->grievance_ticket_id} ({$this->grievance->grievance_title}).",
+            'description'  => "{$roleName} ({$user->name}) viewed report #{$this->grievance->grievance_ticket_id} ({$this->grievance->grievance_title}).",
             'changes'      => [],
             'status'       => 'success',
             'ip_address'   => request()->ip(),
@@ -47,7 +48,13 @@ class View extends Component
 
     public function refreshGrievance()
     {
+        $this->dispatch('$refresh');
         $this->grievance->refresh();
+         Notification::make()
+            ->title('Data Refreshed')
+            ->body('The report page has been successfully refreshed.')
+            ->success()
+            ->send();
     }
 
     public function render()
