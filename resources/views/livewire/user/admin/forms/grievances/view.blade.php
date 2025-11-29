@@ -445,6 +445,7 @@
                                     class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                                     wire:loading.attr="disabled"
                                     wire:target="addRemark"
+                                    wire:click="addRemark"
                                 >
                                     <span wire:loading.remove wire:target="addRemark">Add Remark</span>
                                     <span wire:loading wire:target="addRemark">Sending..</span>
