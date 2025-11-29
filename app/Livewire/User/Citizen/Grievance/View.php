@@ -49,12 +49,8 @@ class View extends Component
     public function refreshGrievance()
     {
         $this->dispatch('$refresh');
+        $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
-         Notification::make()
-            ->title('Data Refreshed')
-            ->body('The report page has been successfully refreshed.')
-            ->success()
-            ->send();
     }
 
     public function render()

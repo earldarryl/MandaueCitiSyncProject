@@ -421,10 +421,103 @@
                             <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
                         @endforelse
                     </div>
+                    <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4 mt-6">
+                        <h4 class="flex items-center gap-2 mb-3">
+                            <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                                Add Progress Log
+                            </span>
+                        </h4>
+
+                        @if(auth()->user()->hasRole(['hr_liaison', 'admin']))
+                            <div class="flex flex-col gap-3">
+                                <flux:input
+                                    placeholder="Enter update or progress..."
+                                    wire:model.defer="message"
+                                />
+                                <flux:error name="message" />
+
+                                <flux:button
+                                    wire:click="addRemark"
+                                    variant="primary"
+                                    color="blue"
+                                    icon="plus-circle"
+                                    wire:loading.attr="disabled"
+                                >
+                                    <x-heroicon-o-check-circle class="w-4 h-4" />
+                                    <span wire:loading.remove wire:target="addRemark">Add Log</span>
+                                    <span wire:loading wire:target="addRemark">Sending...</span>
+                                </flux:button>
+                            </div>
+                        @else
+                            <p class="text-gray-600 dark:text-gray-400 italic">
+                                Only HR Liaison or Admin can add progress updates.
+                            </p>
+                        @endif
+                    </div>
+
+                    <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4 mt-4">
+                        <h4 class="flex items-center gap-2 mb-3">
+                            <x-heroicon-o-clock class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                                Progress Logs / Handling History
+                            </span>
+                        </h4>
+
+                        @php
+                            $remarks = $grievance->grievance_remarks ?? [];
+                        @endphp
+
+                        @if (count($remarks) > 0)
+                            <div class="flex flex-col gap-4 max-h-80 overflow-y-auto pr-2">
+                                @foreach ($remarks as $remark)
+                                    <div class="relative border-l-4 pl-4 ml-2 py-2
+                                        @if($remark['type'] === 'update') border-blue-500
+                                        @elseif($remark['type'] === 'note') border-gray-400
+                                        @elseif($remark['type'] === 'escalation') border-red-500
+                                        @else border-blue-500 @endif
+                                    ">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-sm font-semibold
+                                                    @if($remark['type'] === 'update') text-blue-700 dark:text-blue-300
+                                                    @elseif($remark['type'] === 'note') text-gray-600 dark:text-gray-400
+                                                    @elseif($remark['type'] === 'escalation') text-red-600 dark:text-red-400
+                                                    @else text-blue-700 dark:text-blue-300 @endif
+                                                ">
+                                                    {{ $remark['user_name'] }} ({{ $remark['role'] }})
+                                                </span>
+
+                                                <div class="text-xs mt-0.5
+                                                    @if($remark['type'] === 'update') text-blue-500 dark:text-blue-400
+                                                    @elseif($remark['type'] === 'note') text-gray-500 dark:text-gray-400
+                                                    @elseif($remark['type'] === 'escalation') text-red-500 dark:text-red-400
+                                                    @else text-blue-500 dark:text-blue-400 @endif
+                                                ">
+                                                    {{ strtoupper($remark['type']) }} - {{ strtoupper(str_replace('_', ' ', $remark['status'])) }}
+                                                </div>
+                                            </div>
+
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ Carbon::parse($remark['timestamp'])->format('M d, Y h:i A') }}
+                                            </span>
+                                        </div>
+
+                                        <p class="text-[14px] text-gray-800 dark:text-gray-200 mt-1 leading-relaxed">
+                                            {{ $remark['message'] }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-gray-600 dark:text-gray-400 italic">
+                                No progress logs yet. Logs will appear here when HR Liaison or Admin adds updates.
+                            </p>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <div class="flex flex-col gap-3 p-3 rounded-sm" x-data="{ showMore: false, zoomSrc: null }">

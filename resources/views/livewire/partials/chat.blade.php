@@ -195,7 +195,7 @@
                         @endphp
 
                         <span class="block text-[10px] mt-2 {{ $isSender ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300' }}">
-                            {{ \Carbon\Carbon::parse($msg['created_at'])->format('M d, Y h:i A') }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
+                        {{ $senderName }} · {{ \Carbon\Carbon::parse($msg['created_at'])->timezone(config('app.timezone'))->format('M d, Y h:i A') }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
                         </span>
                     </div>
                 </div>

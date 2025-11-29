@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Partials;
 
+use Filament\Notifications\Notification;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 use App\Events\MessageSent;
@@ -40,6 +42,21 @@ class Chat extends Component implements Forms\Contracts\HasForms
         }
 
         $this->form->fill();
+    }
+
+    #[On('refreshChat')]
+    public function refreshChat($grievanceId)
+    {
+        if ($grievanceId == $this->grievance->grievance_id) {
+            $this->loadMessages();
+        }
+
+        Notification::make()
+            ->title('Data Refreshed')
+            ->body('The report page has been successfully refreshed.')
+            ->success()
+            ->send();
+
     }
 
     public function getListeners()

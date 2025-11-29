@@ -24,6 +24,7 @@ class View extends Component
     public $priorityUpdate;
     public $category;
     public $departmentOptions;
+    public $message;
 
     public function mount(Grievance $grievance)
     {
@@ -78,12 +79,8 @@ class View extends Component
     public function refreshGrievance()
     {
         $this->dispatch('$refresh');
+        $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
-         Notification::make()
-            ->title('Data Refreshed')
-            ->body('The report page has been successfully refreshed.')
-            ->success()
-            ->send();
     }
 
     public function getEditRequestsProperty()
@@ -381,6 +378,33 @@ class View extends Component
             ->title('Edit Request Denied')
             ->body("You denied the edit request for '{$grievance->grievance_title}'.")
             ->warning()
+            ->send();
+    }
+
+    public function addRemark()
+    {
+        $this->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $this->grievance->addRemark([
+            'message' => $this->message,
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name,
+            'role' => auth()->user()->getRoleNames()->first(),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status' => $this->grievance->grievance_status,
+            'type' => 'note',
+        ]);
+
+        $this->message = '';
+
+        $this->grievance->refresh();
+
+        Notification::make()
+            ->title('Progress Log Added')
+            ->body('Your note has been recorded.')
+            ->success()
             ->send();
     }
 
