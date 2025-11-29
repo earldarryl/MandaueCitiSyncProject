@@ -1,7 +1,7 @@
 <div class="relative w-full"
      data-component="admin-hr-liaisons-list-view"
      data-wire-id="{{ $this->id() }}"
->
+
     <div class="flex flex-col gap-6">
        <div class="flex-1">
             @php
@@ -85,11 +85,11 @@
                             </div>
                         </th>
 
-                        <th wire:click="sortBy('is_active')" class="px-6 py-3 cursor-pointer">
+                        <th wire:click="sortBy('status')" class="px-6 py-3 cursor-pointer">
                             <div class="flex items-center justify-between">
                                 <span>Status</span>
                                 <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                    @if($sortField === 'is_active')
+                                    @if($sortField === 'status')
                                         @if($sortDirection === 'asc')
                                             <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
                                         @else
@@ -140,11 +140,18 @@
                             </td>
 
                             <td class="px-6 py-4 text-sm">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
-                                    {{ $liaison->is_active
-                                        ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
-                                        : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
-                                    {{ $liaison->is_active ? 'Active' : 'Inactive' }}
+                                @php
+                                    $status = $liaison->status;
+
+                                    $classes = match ($status) {
+                                        'online' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                        'away' => 'bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-500',
+                                        default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                    };
+                                @endphp
+
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm {{ $classes }}">
+                                    {{ ucfirst($status) }}
                                 </span>
                             </td>
 
@@ -185,7 +192,7 @@
                                             </h3>
                                         </header>
 
-                                        <div wire:target="editHrLiaisonModal({{ $liaison->id }})" wire:loading>
+                                        <div wire:loading wire:target="editHrLiaisonModal({{ $liaison->id }})">
                                             <div class="w-full flex items-center justify-center gap-2 py-6">
                                                 <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                                                 <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
@@ -193,7 +200,7 @@
                                             </div>
                                         </div>
 
-                                        <div wire:target="editHrLiaisonModal({{ $liaison->id }})" wire:loading.remove>
+                                        <div wire:loading.remove wire:target="editHrLiaisonModal({{ $liaison->id }})">
                                             <div class="space-y-3 w-full p-6">
                                                 <flux:input type="text" wire:model.defer="editLiaison.name" placeholder="Full Name" clearable/>
                                                 <flux:error name="editLiaison.name" />

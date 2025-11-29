@@ -56,7 +56,18 @@ class HrLiaisonsListView extends Component
                     $q->where('hr_liaison_departments.department_id', $this->departmentId)
                 )
             )
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->when($this->sortField === 'status', function ($query) {
+                $query->orderByRaw("
+                    CASE
+                        WHEN last_seen_at IS NULL THEN 3
+                        WHEN last_seen_at > NOW() - INTERVAL 5 MINUTE THEN 1
+                        ELSE 2
+                    END " . ($this->sortDirection === 'asc' ? 'ASC' : 'DESC')
+                );
+            })
+            ->when($this->sortField !== 'status', function ($query) {
+                $query->orderBy($this->sortField, $this->sortDirection);
+            })
             ->get();
     }
 
