@@ -111,7 +111,7 @@ class SubmissionHistory extends Component
     {
         $query = HistoryLog::where('user_id', auth()->id());
 
-        $query->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
+        $query->when($this->filter === 'Reports', fn($q) => $q->where('reference_table', 'grievances'))
               ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'));
 
         $query->when($this->selectedDate, fn($q) =>
@@ -134,7 +134,6 @@ class SubmissionHistory extends Component
             };
         });
     }
-
 
     public function render()
     {

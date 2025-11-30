@@ -14,6 +14,11 @@ use Livewire\Attributes\Title;
 class View extends Component
 {
     public Grievance $grievance;
+    public $limit = 10;
+    public $totalRemarksCount;
+    protected $listeners = [
+        'loadMore' => 'loadMore',
+    ];
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -24,6 +29,8 @@ class View extends Component
         if ($this->grievance->user_id !== $user->id) {
             abort(403, 'You are not authorized to view this report.');
         }
+
+        $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
 
         ActivityLog::create([
             'user_id'      => $user->id,
@@ -51,6 +58,27 @@ class View extends Component
         $this->dispatch('$refresh');
         $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
+    }
+
+    public function loadMore()
+    {
+        if ($this->limit < $this->totalRemarksCount) {
+            $this->limit += 10;
+        }
+
+        $this->dispatch('remarks-updated', canLoadMore: $this->canLoadMore);
+    }
+
+    public function getRemarksProperty()
+    {
+        $remarks = $this->grievance->grievance_remarks ?? [];
+
+        return array_slice($remarks, -$this->limit);
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalRemarksCount;
     }
 
     public function render()

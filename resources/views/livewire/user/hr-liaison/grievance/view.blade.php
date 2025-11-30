@@ -423,10 +423,122 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-3 mt-6">
+        <h4 class="flex items-center gap-2 mb-3">
+            <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                Add Progress Log
+            </span>
+        </h4>
+
+        <div
+            x-data="progressLogs(@js($this->canLoadMore))"
+            x-init="scrollToBottom()"
+            x-on:new-log.window="scrollToBottom()"
+            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 mt-3 border border-gray-300 dark:border-zinc-800"
+            x-ref="logContainer"
+            @scroll.passive="checkScroll()"
+        >
+
+            @if(count($this->remarks) === 0)
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 italic">
+                    No progress logs yet. Logs will appear here when HR Liaison or Admin adds updates.
+                </div>
+            @else
+
+            <template x-if="loadingMore">
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2">
+                    Loading older logs, please wait...
+                </div>
+            </template>
+
+            <template x-if="!canLoadMore && !loadingMore">
+                <div class="text-center text-xs text-gray-400 dark:text-gray-500 py-2 italic">
+                    — No older remarks to load —
+                </div>
+            </template>
+
+            <ul class="max-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                @foreach($this->remarks as $remark)
+                    <li class="@if($remark['type'] === 'update') bg-blue-50 dark:bg-blue-900/30
+                            @elseif($remark['type'] === 'note') bg-gray-50 dark:bg-gray-800/30
+                            @elseif($remark['type'] === 'escalation') bg-red-50 dark:bg-red-900/30
+                            @else bg-gray-50 dark:bg-gray-800/30 @endif">
+                        <div class="flex items-start space-x-4 rtl:space-x-reverse p-3
+                        ">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium truncate
+                                    @if($remark['type'] === 'update') text-blue-700 dark:text-blue-300
+                                    @elseif($remark['type'] === 'note') text-gray-600 dark:text-gray-400
+                                    @elseif($remark['type'] === 'escalation') text-red-600 dark:text-red-400
+                                    @else text-gray-700 dark:text-gray-300 @endif
+                                ">
+                                    {{ $remark['user_name'] }}
+                                    <span class="text-xs font-semibold text-gray-400 dark:text-gray-500">({{ $remark['role'] }})</span>
+                                </p>
+
+                                <p class="text-xs truncate mt-0.5 font-semibold
+                                    @if($remark['type'] === 'update') text-blue-500 dark:text-blue-400
+                                    @elseif($remark['type'] === 'note') text-gray-500 dark:text-gray-400
+                                    @elseif($remark['type'] === 'escalation') text-red-500 dark:text-red-400
+                                    @else text-gray-500 dark:text-gray-400 @endif
+                                ">
+                                    {{ strtoupper($remark['type']) }} - {{ strtoupper(str_replace('_', ' ', $remark['status'])) }}
+                                </p>
+
+                                <p class="text-sm mt-1 leading-relaxed font-medium
+                                    @if($remark['type'] === 'update') text-blue-800 dark:text-blue-200
+                                    @elseif($remark['type'] === 'note') text-gray-800 dark:text-gray-200
+                                    @elseif($remark['type'] === 'escalation') text-red-700 dark:text-red-300
+                                    @else text-gray-800 dark:text-gray-200 @endif
+                                ">
+                                    {{ $remark['message'] }}
+                                </p>
+                            </div>
+
+                            <div class="inline-flex items-start text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {{ Carbon::parse($remark['timestamp'])->format('M d, Y h:i A') }}
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+            @endif
+        </div>
+
+        @if(auth()->user()->hasRole(['hr_liaison', 'admin']))
+            <div class="flex flex-col gap-3 mt-5">
+                <flux:input
+                    placeholder="Enter update or progress..."
+                    wire:model.defer="message"
+                />
+                <flux:error name="message" />
+
+                <flux:button
+                    variant="primary"
+                    icon="check-circle"
+                    color="blue"
+                    type="button"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                    wire:loading.attr="disabled"
+                    wire:target="addRemark"
+                    wire:click="addRemark"
+                >
+                    <span wire:loading.remove wire:target="addRemark">Add Remark</span>
+                    <span wire:loading wire:target="addRemark">Sending..</span>
+                </flux:button>
+            </div>
+        @else
+            <p class="text-gray-600 dark:text-gray-400 italic">
+                Only HR Liaison or Admin can add progress updates.
+            </p>
+        @endif
 
     </div>
 
-    <div class="flex flex-col gap-3 p-3 rounded-sm" x-data="{ showMore: false, zoomSrc: null }">
+    <div class="flex flex-col gap-3 p-3 border border-gray-300 dark:border-zinc-700 rounded-xl" x-data="{ showMore: false, zoomSrc: null }">
         <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
             <x-heroicon-o-paper-clip class="w-5 h-5 text-gray-500 dark:text-gray-400" /> Attachments
         </h4>
@@ -616,7 +728,7 @@
         @endif
     </div>
 
-    <div class="flex flex-col gap-3 mt-8 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
+    <div class="flex flex-col gap-3 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
         <h4 class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
             <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Conversation
@@ -986,3 +1098,84 @@
     </div>
 
 </div>
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('progressLogs', (initialCanLoadMore) => ({
+        loadingMore: false,
+        canLoadMore: initialCanLoadMore,
+
+    emitToLivewire(eventName, payload = null) {
+      if (window.Livewire && typeof window.Livewire.emit === 'function') {
+        return window.Livewire.emit(eventName, payload);
+      }
+      if (window.livewire && typeof window.livewire.emit === 'function') {
+        return window.livewire.emit(eventName, payload);
+      }
+
+      return new Promise(resolve => {
+        const onLoad = () => {
+          if (window.Livewire && typeof window.Livewire.emit === 'function') {
+            window.Livewire.emit(eventName, payload);
+          } else if (window.livewire && typeof window.livewire.emit === 'function') {
+            window.livewire.emit(eventName, payload);
+          } else {
+            window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
+          }
+          resolve();
+        };
+
+        window.addEventListener('livewire:load', onLoad, { once: true });
+
+        setTimeout(() => {
+          if (window.Livewire || window.livewire) onLoad();
+        }, 2000);
+      });
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const el = this.$refs.logContainer;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight;
+      });
+    },
+
+    checkScroll() {
+            const el = this.$refs.logContainer;
+            if (!el) return;
+
+            if (el.scrollTop <= 5 && !this.loadingMore && this.canLoadMore) {
+                this.loadingMore = true;
+
+                const prevScrollTop = el.scrollTop;
+                const prevScrollHeight = el.scrollHeight;
+
+                const onUpdated = (event) => {
+                    this.$nextTick(() => {
+                        const newScrollHeight = el.scrollHeight;
+                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+                        this.loadingMore = false;
+
+                        const newCanLoadMore = event.detail.canLoadMore !== undefined
+                            ? event.detail.canLoadMore
+                            : (event.detail[0] && event.detail[0].canLoadMore);
+
+                        if (newCanLoadMore !== undefined) {
+                            this.canLoadMore = newCanLoadMore;
+                        }
+
+                    });
+                    window.removeEventListener('remarks-updated', onUpdated);
+                };
+
+                window.addEventListener('remarks-updated', onUpdated);
+
+                this.emitToLivewire('loadMore').catch(() => {
+                    this.loadingMore = false;
+                    window.removeEventListener('remarks-updated', onUpdated);
+                });
+            }
+        }
+  }));
+});
+</script>

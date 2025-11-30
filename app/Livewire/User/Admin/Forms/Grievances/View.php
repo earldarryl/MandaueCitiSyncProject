@@ -25,7 +25,11 @@ class View extends Component
     public $category;
     public $departmentOptions;
     public $message;
-
+    public $limit = 10;
+    public $totalRemarksCount;
+    protected $listeners = [
+        'loadMore' => 'loadMore',
+    ];
     public function mount(Grievance $grievance)
     {
         $this->grievance = $grievance->load([
@@ -56,6 +60,8 @@ class View extends Component
             ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
+
+        $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
 
         ActivityLog::create([
             'user_id'      => $user->id,
@@ -401,11 +407,34 @@ class View extends Component
 
         $this->grievance->refresh();
 
+        $this->dispatch('new-log');
+
         Notification::make()
             ->title('Progress Log Added')
             ->body('Your note has been recorded.')
             ->success()
             ->send();
+    }
+
+    public function loadMore()
+    {
+        if ($this->limit < $this->totalRemarksCount) {
+            $this->limit += 10;
+        }
+
+        $this->dispatch('remarks-updated', canLoadMore: $this->canLoadMore);
+    }
+
+    public function getRemarksProperty()
+    {
+        $remarks = $this->grievance->grievance_remarks ?? [];
+
+        return array_slice($remarks, -$this->limit);
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalRemarksCount;
     }
 
     public function render()

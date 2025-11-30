@@ -24,6 +24,12 @@ class View extends Component
     public $priorityUpdate;
     public $category;
     public $departmentOptions;
+    public $message;
+    public $limit = 10;
+    public $totalRemarksCount;
+    protected $listeners = [
+        'loadMore' => 'loadMore',
+    ];
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -49,6 +55,8 @@ class View extends Component
             ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
+
+        $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
 
         if ($this->grievance->grievance_status === 'pending') {
             $oldStatus = $this->grievance->grievance_status;
@@ -387,6 +395,56 @@ class View extends Component
             ->body("You denied the edit request for '{$grievance->grievance_title}'.")
             ->warning()
             ->send();
+    }
+
+    public function addRemark()
+    {
+        $this->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $this->grievance->addRemark([
+            'message' => $this->message,
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name,
+            'role' => auth()->user()->getRoleNames()->first(),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status' => $this->grievance->grievance_status,
+            'type' => 'note',
+        ]);
+
+        $this->message = '';
+
+        $this->grievance->refresh();
+
+        $this->dispatch('new-log');
+
+        Notification::make()
+            ->title('Progress Log Added')
+            ->body('Your note has been recorded.')
+            ->success()
+            ->send();
+    }
+
+    public function loadMore()
+    {
+        if ($this->limit < $this->totalRemarksCount) {
+            $this->limit += 10;
+        }
+
+        $this->dispatch('remarks-updated', canLoadMore: $this->canLoadMore);
+    }
+
+    public function getRemarksProperty()
+    {
+        $remarks = $this->grievance->grievance_remarks ?? [];
+
+        return array_slice($remarks, -$this->limit);
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalRemarksCount;
     }
 
     public function render()

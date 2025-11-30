@@ -6,49 +6,14 @@
             <x-filter-select
                 name="filter"
                 placeholder="Filter by type"
-                :options="['Grievances', 'Feedbacks']"
+                :options="['Reports', 'Feedbacks']"
             />
 
-            <div class="flex flex-col gap-1 w-full"
-                x-data="{ selected: @entangle('selectedDate') }"
-                x-init="$nextTick(() => {
-                    flatpickr($refs.dateInput, {
-                        dateFormat: 'Y-m-d',
-                        defaultDate: selected,
-                        onChange: (selectedDates, dateStr) => {
-                            selected = dateStr
-                        }
-                    });
-                })"
-            >
-                <div class="relative w-full">
-                    <div
-                        class="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 cursor-pointer"
-                        @click="$refs.dateInput._flatpickr.open()"
-                    >
-                        <input
-                            type="text"
-                            x-ref="dateInput"
-                            x-model="selected"
-                            readonly
-                            placeholder="Select date"
-                            class="w-full bg-transparent text-[12px] focus:outline-none cursor-pointer"
-                        />
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                x-show="selected"
-                                @click.stop="selected = null; $wire.set('selectedDate', null); $refs.dateInput._flatpickr.clear()"
-                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-1 rounded"
-                            >
-                                <x-heroicon-o-x-mark class="w-4 h-4"/>
-                            </button>
-                            <x-heroicon-o-calendar class="w-4 h-4 text-gray-500" />
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            <x-date-picker
+                name="selectedDate"
+                placeholder="Pick a date"
+                :model="'selectedDate'"
+            />
 
         </div>
 
@@ -104,7 +69,7 @@
                 @foreach ($logs as $log)
                     @php
                         $bgColor = $log->reference_table === 'grievances'
-                            ? 'bg-green-500 dark:bg-green-700'
+                            ? 'bg-blue-500 dark:bg-blue-700'
                             : 'bg-purple-500 dark:bg-purple-700';
 
                         $svgColor = 'text-white';
@@ -155,14 +120,14 @@
                                             <div class="flex items-center gap-2 mt-2">
                                                 <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Submitted:</span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($log->date_submitted)->format('F j, Y — g:i A') }}
+                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('F j, Y — g:i A') }}
                                                 </span>
                                             </div>
                                         </div>
 
                                         @if ($grievance)
                                         <div class="mt-2">
-                                            <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Grievance Details</h4>
+                                            <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Report Details</h4>
 
                                             <div class="mt-2 space-y-2">
 
