@@ -518,23 +518,7 @@ class Index extends Component
         }
 
         if ($this->filterDate) {
-            switch ($this->filterDate) {
-                case 'Today':
-                    $query->whereDate('created_at', now()->toDateString());
-                    break;
-                case 'Yesterday':
-                    $query->whereDate('created_at', now()->subDay()->toDateString());
-                    break;
-                case 'This Week':
-                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                    break;
-                case 'This Month':
-                    $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-                    break;
-                case 'This Year':
-                    $query->whereYear('created_at', now()->year);
-                    break;
-            }
+            $query->whereDate('created_at', $this->filterDate);
         }
 
         $this->totalGrievances     = $query->count();
@@ -612,24 +596,8 @@ class Index extends Component
                         });
                 });
             })
-            ->when($this->filterDate, function($q){
-                switch($this->filterDate){
-                    case 'Today':
-                        $q->whereDate('created_at', now()->toDateString());
-                        break;
-                    case 'Yesterday':
-                        $q->whereDate('created_at', now()->subDay()->toDateString());
-                        break;
-                    case 'This Week':
-                        $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                        break;
-                    case 'This Month':
-                        $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-                        break;
-                    case 'This Year':
-                        $q->whereYear('created_at', now()->year);
-                        break;
-                }
+            ->when($this->filterDate, function ($q) {
+                $q->whereDate('created_at', $this->filterDate);
             })
             ->when($this->sortField === 'departments.department_name', function ($q) {
                 $q->select('grievances.*')

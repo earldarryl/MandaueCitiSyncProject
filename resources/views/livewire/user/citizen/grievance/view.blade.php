@@ -2,7 +2,6 @@
      data-component="citizen-grievance-view"
      data-wire-id="{{ $this->id() }}"
 >
-
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
 
         <x-responsive-nav-link
@@ -77,6 +76,15 @@
         <div class="flex-1 flex flex-col gap-2">
             @php
                 use Carbon\Carbon;
+
+                function readableSize($bytes)
+                {
+                    if ($bytes < 1024) return $bytes . ' B';
+                    if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+                    if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+
+                    return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
+                }
 
                 $status = strtolower($grievance->grievance_status);
 
@@ -295,6 +303,10 @@
                             $url = Storage::url($attachment->file_path);
                             $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                            $file = $attachment->file_path;
+                            $size = Storage::disk('public')->exists($file)
+                                ? readableSize(Storage::disk('public')->size($file))
+                                : 'Unavailable';
                         @endphp
 
                         @if ($loop->iteration < 4 && $grievance->attachments->count() > 4)
@@ -307,11 +319,30 @@
                                         @click="zoomSrc = '{{ $url }}'"
                                     />
                                 @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
+                                    <a
+                                        href="{{ $url }}"
+                                        download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                        class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                            text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                            hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                    >
+                                        Download
+                                    </a>
+                                    <a
+                                        href="{{ $url }}"
+                                        target="_blank"
+                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                    >
                                         <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                        <span class="flex flex-col gap-1">
+                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                            </span>
+
+                                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                ({{ $size }})
+                                            </span>
                                         </span>
                                     </a>
                                 @endif
@@ -345,11 +376,30 @@
                                         @click="zoomSrc = '{{ $url }}'"
                                     />
                                 @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
+                                    <a
+                                        href="{{ $url }}"
+                                        download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                        class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                            text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                            hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                    >
+                                        Download
+                                    </a>
+                                    <a
+                                        href="{{ $url }}"
+                                        target="_blank"
+                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                    >
                                         <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                        <span class="flex flex-col gap-1">
+                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                            </span>
+
+                                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                ({{ $size }})
+                                            </span>
                                         </span>
                                     </a>
                                 @endif
@@ -399,6 +449,10 @@
                                             $url = Storage::url($attachment->file_path);
                                             $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
                                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                                            $file = $attachment->file_path;
+                                            $size = Storage::disk('public')->exists($file)
+                                                ? readableSize(Storage::disk('public')->size($file))
+                                                : 'Unavailable';
                                         @endphp
 
                                         <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
@@ -412,12 +466,28 @@
                                             @else
                                                 <a
                                                     href="{{ $url }}"
+                                                    download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                                    class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                                        text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                                        hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                                >
+                                                    Download
+                                                </a>
+                                                <a
+                                                    href="{{ $url }}"
                                                     target="_blank"
                                                     class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
                                                 >
                                                     <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                                    <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
-                                                        {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                                    <span class="flex flex-col gap-1">
+                                                        <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                                        </span>
+
+                                                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                            ({{ $size }})
+                                                        </span>
                                                     </span>
                                                 </a>
                                             @endif

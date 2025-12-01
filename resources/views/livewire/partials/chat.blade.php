@@ -151,9 +151,10 @@
                                             @php
                                                 $file = $doc['file'];
                                                 $name = $doc['name'];
-                                                $ext = $doc['ext'];
+                                                $ext  = $doc['ext'];
+
                                                 $size = Storage::disk('public')->exists($file)
-                                                    ? number_format(Storage::disk('public')->size($file) / 1024, 1) . ' KB'
+                                                    ? readableSize(Storage::disk('public')->size($file))
                                                     : 'Unavailable';
                                             @endphp
 

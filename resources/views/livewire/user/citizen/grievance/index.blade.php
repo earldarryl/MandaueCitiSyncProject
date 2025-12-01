@@ -235,12 +235,6 @@
                 />
 
                 <x-filter-select
-                    name="filterDate"
-                    placeholder="Date"
-                    :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-                />
-
-                <x-filter-select
                     name="filterDepartment"
                     placeholder="Department"
                     :options="$departmentOptions"
@@ -266,6 +260,12 @@
                     placeholder="Editable/Not Editable"
                     :options="['Editable', 'Not Editable']"
                     x-model="filterEditable"
+                />
+
+                <x-date-picker
+                    name="filterDate"
+                    placeholder="Pick a date"
+                    :model="'filterDate'"
                 />
             </div>
 

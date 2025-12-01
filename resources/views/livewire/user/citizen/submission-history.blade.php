@@ -5,8 +5,14 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
             <x-filter-select
                 name="filter"
-                placeholder="Filter by type"
+                placeholder="Filter by Type"
                 :options="['Reports', 'Feedbacks']"
+            />
+
+            <x-filter-select
+                name="filter"
+                placeholder="Filter by Action Type"
+                :options="$this->actionTypeOptions"
             />
 
             <x-date-picker
@@ -118,9 +124,13 @@
                                             </h3>
 
                                             <div class="flex items-center gap-2 mt-2">
-                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">Submitted:</span>
+                                                <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                                                    {{ strtolower($log->action_type) === 'update' ? 'Updated:' : 'Submitted:' }}
+                                                </span>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($log->created_at)->format('F j, Y — g:i A') }}
+                                                    {{ \Carbon\Carbon::parse(
+                                                        strtolower($log->action_type) === 'update' ? $log->updated_at : $log->created_at
+                                                    )->format('F j, Y — g:i A') }}
                                                 </span>
                                             </div>
                                         </div>
@@ -252,6 +262,12 @@
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                 </div>
             </div>
+        </div>
+    @else
+        <div class="flex justify-center items-center mt-6">
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+                No more records to load.
+            </span>
         </div>
     @endif
 </div>
