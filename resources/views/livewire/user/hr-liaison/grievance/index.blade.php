@@ -316,12 +316,6 @@
                 />
 
                 <x-filter-select
-                    name="filterDate"
-                    placeholder="Date"
-                    :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-                />
-
-                <x-filter-select
                     name="filterType"
                     placeholder="Type"
                     :options="['Complaint', 'Inquiry', 'Request']"
@@ -332,6 +326,12 @@
                     name="filterCategory"
                     placeholder="Category"
                     :options="$categoryOptions"
+                />
+
+                <x-date-picker
+                    name="filterDate"
+                    placeholder="Pick a date"
+                    :model="'filterDate'"
                 />
             </div>
 

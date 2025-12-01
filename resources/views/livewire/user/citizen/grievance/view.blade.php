@@ -77,15 +77,6 @@
             @php
                 use Carbon\Carbon;
 
-                function readableSize($bytes)
-                {
-                    if ($bytes < 1024) return $bytes . ' B';
-                    if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
-                    if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
-
-                    return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
-                }
-
                 $status = strtolower($grievance->grievance_status);
 
                 $isCompleted = in_array($status, ['resolved', 'unresolved', 'closed']);
@@ -305,7 +296,7 @@
                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
                             $file = $attachment->file_path;
                             $size = Storage::disk('public')->exists($file)
-                                ? readableSize(Storage::disk('public')->size($file))
+                                ? $this->readableSize(Storage::disk('public')->size($file))
                                 : 'Unavailable';
                         @endphp
 

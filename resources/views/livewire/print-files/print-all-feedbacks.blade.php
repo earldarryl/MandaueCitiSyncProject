@@ -70,9 +70,7 @@
 
     <div class="noted flex gap-3 mt-10 ml-5">
         <div class="noted-text text-base">Noted:</div>
-
         <div class="name-with-role flex flex-col items-center gap-1">
-
             <div class="name font-semibold border-b-2 border-gray-800 px-3">
                 @if(isset($admin))
                     {{ $admin->name }}
@@ -80,7 +78,6 @@
                     N/A
                 @endif
             </div>
-
             <div class="position text-gray-500 text-sm font-medium text-center">
                 @if(isset($admin))
                     Admin
@@ -90,5 +87,4 @@
             </div>
         </div>
     </div>
-
 </div>

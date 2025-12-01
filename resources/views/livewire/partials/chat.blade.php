@@ -154,9 +154,10 @@
                                                 $ext  = $doc['ext'];
 
                                                 $size = Storage::disk('public')->exists($file)
-                                                    ? readableSize(Storage::disk('public')->size($file))
+                                                    ? $this->readableSize(Storage::disk('public')->size($file))
                                                     : 'Unavailable';
                                             @endphp
+
 
                                             <div class="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-2">
                                                 <div class="flex flex-col text-xs">

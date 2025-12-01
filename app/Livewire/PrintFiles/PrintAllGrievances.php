@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.prints')]
-#[Title('Print All Grievances')]
+#[Title('Print All Reports')]
 class PrintAllGrievances extends Component
 {
     public $grievances;

@@ -81,6 +81,14 @@ class View extends Component
         return $this->limit < $this->totalRemarksCount;
     }
 
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
+    }
+
     public function render()
     {
         return view('livewire.user.citizen.grievance.view');

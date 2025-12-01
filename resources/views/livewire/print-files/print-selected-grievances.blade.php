@@ -1,13 +1,28 @@
 <div class="page w-full relative p-5 print:mx-0 print:p-5">
+    @php
+        $department = auth()->user()->departments->first();
+        $departmentName = $department->department_name ?? 'N/A';
+        $departmentProfile = $department->department_profile ?? null;
 
+        $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+        $index = crc32($departmentName) % count($palette);
+        $bgColor = $palette[$index];
+
+        if ($departmentProfile) {
+            $departmentLogo = Storage::url($departmentProfile);
+        } else {
+            $departmentLogo = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+        }
+    @endphp
     <div class="header flex justify-center items-center border-b-4 border-blue-700 pb-2 mb-4">
         <div class="header-left flex items-center gap-3 border-r-2 border-gray-800 pr-3">
             <img src="{{ asset('images/mandaue-logo.png') }}" alt="Mandaue Logo"
                  class="w-16 h-16 rounded-full object-cover bg-white">
+            <img src="{{ $departmentLogo }}" alt="Department Logo" class="w-16 h-16 rounded-full object-cover bg-white">
         </div>
         <div class="header-right flex flex-col justify-center items-center text-center ml-3">
             <span class="text-sm text-black">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
-            <span class="text-2xl font-light uppercase text-black">GRIEVANCE REPORTS</span>
+            <span class="text-2xl font-light uppercase text-black">{{ strtoupper($departmentName) }}</span>
         </div>
     </div>
 
@@ -15,19 +30,24 @@
         {{ now()->format('F d, Y') }}
     </div>
 
+    <div class="text-center font-semibold mt-5 mb-3 text-2xl">
+        LIST OF REPORTS
+    </div>
+
     <div class="overflow-x-auto rounded-lg border border-gray-300 bg-white">
         <table class="w-full text-xs border-collapse text-gray-800">
             <thead class="bg-gray-100 uppercase font-semibold text-gray-700 text-xs">
                 <tr>
                     <th class="px-3 py-2 border">TICKET ID</th>
-                    <th class="px-3 py-2 border">CITIZEN</th>
-                    <th class="px-3 py-2 border">DEPARTMENTS</th>
+                    <th class="px-3 py-2 border">TITLE</th>
+                    <th class="px-3 py-2 border">TYPE</th>
                     <th class="px-3 py-2 border">CATEGORY</th>
                     <th class="px-3 py-2 border">PRIORITY</th>
                     <th class="px-3 py-2 border">STATUS</th>
                     <th class="px-3 py-2 border">DATE FILED</th>
                     <th class="px-3 py-2 border">DETAILS</th>
                     <th class="px-3 py-2 border">ATTACHMENTS</th>
+                    <th class="px-3 py-2 border">REMARKS</th>
                 </tr>
             </thead>
 
@@ -39,15 +59,11 @@
                         </td>
 
                         <td class="px-3 py-2 border">
-                            @if ($grievance->is_anonymous)
-                                <span class="italic text-gray-500 flex justify-center w-full">Anonymous</span>
-                            @else
-                                {{ $grievance->user->name }}
-                            @endif
+                            {{ $grievance->grievance_title }}
                         </td>
 
                         <td class="px-3 py-2 border text-center">
-                            {{ $grievance->departments->pluck('department_name')->join(', ') ?? '—' }}
+                            {{ $grievance->grievance_type}}
                         </td>
 
                         <td class="px-3 py-2 border text-center">
@@ -79,6 +95,27 @@
                                 <span class="text-gray-500">None</span>
                             @endif
                         </td>
+                        <td class="px-3 py-2 border text-left align-top grievance-remark-td">
+                            @php
+                                $rawRemarks = $grievance->grievance_remarks ?? [];
+                                $remarks = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+                            @endphp
+
+                            @if (!empty($remarks))
+                                <div class="space-y-1">
+                                    @foreach ($remarks as $remark)
+                                        <div>
+                                            <strong>[{{ date('Y-m-d H:i', strtotime($remark['timestamp'])) }}]</strong>
+                                            {{ $remark['user_name'] ?? '—' }}
+                                            ({{ $remark['role'] ?? '—' }}):
+                                            {{ $remark['message'] ?? '' }}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-500">—</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
@@ -91,13 +128,10 @@
         </table>
     </div>
 
-    <div class="noted flex gap-3 mt-10 ml-5">
-        <div class="noted-text text-base">Noted:</div>
-
-        <div class="name-with-role flex flex-col items-center gap-1">
-
-            {{-- Name Line --}}
-            <div class="name font-semibold border-b-2 border-gray-800 px-3">
+    <div class="status-footer">
+        <div class="footer-row">
+            <div class="footer-label">Noted by:</div>
+            <div class="footer-value">
                 @if(isset($hr_liaison))
                     {{ $hr_liaison->name }}
                 @elseif(isset($admin))
@@ -106,16 +140,15 @@
                     N/A
                 @endif
             </div>
-
-            <div class="position text-gray-500 text-sm font-medium text-center">
-                @if(isset($hr_liaison))
-                    HR Liaison
-                @elseif(isset($admin))
-                    Admin
-                @else
-                    —
-                @endif
-            </div>
+        </div>
+        <div class="footer-subtext">
+            @if(isset($hr_liaison))
+                HR Liaison
+            @elseif(isset($admin))
+                Admin
+            @else
+                —
+            @endif
         </div>
     </div>
 

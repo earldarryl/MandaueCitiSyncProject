@@ -1148,32 +1148,7 @@ class Index extends Component
         }
 
         if ($this->filterDate) {
-            switch ($this->filterDate) {
-                case 'Today':
-                    $query->whereDate('created_at', now()->toDateString());
-                    break;
-                case 'Yesterday':
-                    $query->whereDate('created_at', now()->subDay()->toDateString());
-                    break;
-                case 'This Week':
-                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                    break;
-                case 'This Month':
-                    $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-                    break;
-                case 'This Year':
-                    $query->whereYear('created_at', now()->year);
-                    break;
-            }
-
-        if ($this->filterIdentity) {
-                if ($this->filterIdentity === 'Anonymous') {
-                    $query->where('is_anonymous', true);
-                } elseif ($this->filterIdentity === 'Not Anonymous') {
-                    $query->where('is_anonymous', false);
-                }
-            }
-
+            $query->whereDate('created_at', $this->filterDate);
         }
 
         $this->totalGrievances     = $query->count();
@@ -1181,7 +1156,6 @@ class Index extends Component
         $this->highPriorityCount     = (clone $query)->where('priority_level', 'High')->count();
         $this->normalPriorityCount   = (clone $query)->where('priority_level', 'Normal')->count();
         $this->lowPriorityCount      = (clone $query)->where('priority_level', 'Low')->count();
-
 
         $this->pendingCount      = (clone $query)->where('grievance_status', 'pending')->count();
         $this->acknowledgedCount = (clone $query)->where('grievance_status', 'acknowledged')->count();
@@ -1236,31 +1210,8 @@ class Index extends Component
                         ->orWhere('grievance_status', 'like', "%{$normalized}%");
                 });
             })
-            ->when($this->filterDate, function($q){
-                switch($this->filterDate){
-                    case 'Today':
-                        $q->whereDate('created_at', now()->toDateString());
-                        break;
-                    case 'Yesterday':
-                        $q->whereDate('created_at', now()->subDay()->toDateString());
-                        break;
-                    case 'This Week':
-                        $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                        break;
-                    case 'This Month':
-                        $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-                        break;
-                    case 'This Year':
-                        $q->whereYear('created_at', now()->year);
-                        break;
-                }
-            })
-            ->when($this->filterIdentity, function($q) {
-                if ($this->filterIdentity === 'Anonymous') {
-                    $q->where('is_anonymous', true);
-                } elseif ($this->filterIdentity === 'Not Anonymous') {
-                    $q->where('is_anonymous', false);
-                }
+            ->when($this->filterDate, function ($q) {
+                $q->whereDate('created_at', $this->filterDate);
             })
             ->when($this->sortField, function($query) {
                 $query->orderBy($this->sortField, $this->sortDirection);
