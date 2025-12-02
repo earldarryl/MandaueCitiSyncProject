@@ -411,7 +411,7 @@
 
         <div class="flex items-center justify-end gap-2 mb-2 px-3">
             <button
-                wire:click="downloadGrievancesCsv"
+                wire:click="downloadReportsCsv"
                 wire:loading.attr="disabled"
                 class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
@@ -420,12 +420,26 @@
                     focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
                     transition-all duration-200">
                 <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="downloadGrievancesCsv">Export All in CSV</span>
-                <span wire:loading wire:target="downloadGrievancesCsv">Processing...</span>
+                <span wire:loading.remove wire:target="downloadReportsCsv">Export All in CSV</span>
+                <span wire:loading wire:target="downloadReportsCsv">Processing...</span>
             </button>
 
             <button
-                wire:click="downloadGrievancesExcel"
+                wire:click="downloadAllGrievancesPdf"
+                wire:loading.attr="disabled"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                    border border-red-500 dark:border-red-400
+                    hover:bg-red-200 dark:hover:bg-red-800/50
+                    focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span wire:loading.remove wire:target="downloadAllGrievancesPdf">Export All in PDF</span>
+                <span wire:loading wire:target="downloadAllGrievancesPdf">Processing...</span>
+            </button>
+
+            <button
+                wire:click="downloadReportsExcel"
                 wire:loading.attr="disabled"
                 class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
@@ -434,8 +448,8 @@
                     focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                     transition-all duration-200">
                 <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="downloadGrievancesExcel">Export All in Excel</span>
-                <span wire:loading wire:target="downloadGrievancesExcel">Processing...</span>
+                <span wire:loading.remove wire:target="downloadReportsExcel">Export All in Excel</span>
+                <span wire:loading wire:target="downloadReportsExcel">Processing...</span>
             </button>
 
             <button
@@ -448,8 +462,8 @@
                     transition-all duration-200"
             >
                 <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="importGrievancesExcel">Import Grievances</span>
-                <span wire:loading wire:target="importGrievancesExcel">Processing...</span>
+                <span wire:loading.remove wire:target="importReportsExcel">Import Grievances</span>
+                <span wire:loading wire:target="importReportsExcel">Processing...</span>
             </button>
 
             <button
@@ -533,7 +547,7 @@
                         </button>
 
                         <button
-                            wire:click="importGrievancesExcel"
+                            wire:click="importReportsExcel"
                             @click="openImportModal = false"
                             wire:loading.attr="disabled"
                             wire:target="importFile"
@@ -553,7 +567,7 @@
 
             @if(count($selected) > 0)
                 <div class="flex flex-wrap gap-2">
-                     <button wire:click="exportSelectedGrievancesCsv"
+                     <button wire:click="exportSelectedReportsCsv"
                         wire:loading.attr="disabled"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                             bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
@@ -562,11 +576,24 @@
                             focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span wire:loading.remove wire:target="exportSelectedGrievancesCsv">Export Selected in CSV</span>
-                        <span wire:loading wire:target="exportSelectedGrievancesCsv">Processing...</span>
+                        <span wire:loading.remove wire:target="exportSelectedReportsCsv">Export Selected in CSV</span>
+                        <span wire:loading wire:target="exportSelectedReportsCsv">Processing...</span>
                     </button>
 
-                    <button wire:click="exportSelectedGrievancesExcel"
+                    <button wire:click="downloadSelectedGrievancesPdf"
+                        wire:loading.attr="disabled"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span wire:loading.remove wire:target="downloadSelectedGrievancesPdf">Export Selected in PDF</span>
+                        <span wire:loading wire:target="downloadSelectedGrievancesPdf">Processing...</span>
+                    </button>
+
+                    <button wire:click="exportSelectedReportsExcel"
                         wire:loading.attr="disabled"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                             bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
@@ -575,8 +602,8 @@
                             focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span wire:loading.remove wire:target="exportSelectedGrievancesExcel">Export Selected in Excel</span>
-                        <span wire:loading wire:target="exportSelectedGrievancesExcel">Processing...</span>
+                        <span wire:loading.remove wire:target="exportSelectedReportsExcel">Export Selected in Excel</span>
+                        <span wire:loading wire:target="exportSelectedReportsExcel">Processing...</span>
                     </button>
 
                     <button wire:click="printSelectedGrievances"

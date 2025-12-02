@@ -32,7 +32,9 @@
                             <x-heroicon-o-calendar class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
                             <span>Start Date</span>
                         </div>
-                        <flux:input type="text" x-ref="startInput" readonly x-model="start" class="w-full cursor-pointer font-bold" />
+                        <div class="cursor-pointer">
+                            <flux:input type="text" x-ref="startInput" readonly x-model="start" class:input="w-full cursor-pointer font-bold" />
+                        </div>
                     </div>
 
                     <div class="flex flex-col gap-2 w-full md:w-1/2 cursor-pointer">
@@ -40,7 +42,10 @@
                             <x-heroicon-o-calendar class="w-5 h-5 text-gray-500 dark:text-gray-300"/>
                             <span>End Date</span>
                         </div>
-                        <flux:input type="text" x-ref="endInput" readonly x-model="end" class="w-full cursor-pointer font-bold" />
+
+                        <div class="cursor-pointer">
+                            <flux:input type="text" x-ref="endInput" readonly x-model="end" class:input="w-full cursor-pointer font-bold" />
+                        </div>
                     </div>
                 </div>
 

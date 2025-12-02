@@ -282,7 +282,7 @@
                 <td class="text-center">{{ ucfirst($grievance->priority_level) }}</td>
                 <td class="text-center">{{ ucwords(str_replace('_',' ', $grievance->grievance_status ?? '—')) }}</td>
                 <td class="text-center">{{ $grievance->created_at->format('Y-m-d h:i A') }}</td>
-
+                
                 <td class="text-center">{{ $submittedBy }}</td>
 
                 <td>{!! \Illuminate\Support\Str::limit(strip_tags($grievance->grievance_details), 120, '...') !!}</td>

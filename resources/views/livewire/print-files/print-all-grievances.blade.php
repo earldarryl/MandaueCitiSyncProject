@@ -34,6 +34,10 @@
         LIST OF REPORTS
     </div>
 
+    <div class="text-center font-bold mb-2">
+        Total Reports: {{ $grievances->count() }}
+    </div>
+
     <div class="overflow-x-auto rounded-lg border border-gray-300 bg-white">
         <table class="w-full text-xs border-collapse text-gray-800">
             <thead class="bg-gray-100 uppercase font-semibold text-gray-700 text-xs">
@@ -45,6 +49,7 @@
                     <th class="px-3 py-2 border">PRIORITY</th>
                     <th class="px-3 py-2 border">STATUS</th>
                     <th class="px-3 py-2 border">DATE FILED</th>
+                    <th class="px-3 py-2 border">SUBMITTED BY</th>
                     <th class="px-3 py-2 border">DETAILS</th>
                     <th class="px-3 py-2 border">ATTACHMENTS</th>
                     <th class="px-3 py-2 border">REMARKS</th>
@@ -53,6 +58,18 @@
 
             <tbody class="bg-white">
                 @forelse ($grievances as $index => $grievance)
+                    @php
+                        $rawRemarks = $grievance->grievance_remarks ?? [];
+                        $remarks = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+
+                        $submittedBy = $grievance->is_anonymous
+                            ? 'Anonymous'
+                            : ($grievance->user
+                                ? ($grievance->user->info
+                                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
+                                    : $grievance->user->name)
+                                : '—');
+                    @endphp
                     <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }}">
                         <td class="px-3 py-2 border text-center font-bold">
                             {{ $grievance->grievance_ticket_id }}
@@ -63,7 +80,7 @@
                         </td>
 
                         <td class="px-3 py-2 border text-center">
-                            {{ $grievance->grievance_type}}
+                            {{ $grievance->grievance_type }}
                         </td>
 
                         <td class="px-3 py-2 border text-center">
@@ -82,6 +99,10 @@
                             {{ $grievance->created_at->format('Y-m-d h:i A') }}
                         </td>
 
+                        <td class="px-3 py-2 border text-center">
+                            {{ $submittedBy }}
+                        </td>
+
                         <td class="px-3 py-2 border">
                             {!! Str::limit(strip_tags($grievance->grievance_details), 120, '...') !!}
                         </td>
@@ -95,12 +116,8 @@
                                 <span class="text-gray-500">None</span>
                             @endif
                         </td>
-                        <td class="px-3 py-2 border text-left align-top grievance-remark-td">
-                            @php
-                                $rawRemarks = $grievance->grievance_remarks ?? [];
-                                $remarks = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
-                            @endphp
 
+                        <td class="px-3 py-2 border text-left align-top grievance-remark-td">
                             @if (!empty($remarks))
                                 <div class="space-y-1">
                                     @foreach ($remarks as $remark)
@@ -119,7 +136,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center italic text-gray-500 py-3">
+                        <td colspan="11" class="text-center italic text-gray-500 py-3">
                             No grievances available.
                         </td>
                     </tr>

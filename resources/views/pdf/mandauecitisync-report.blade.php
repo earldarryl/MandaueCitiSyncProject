@@ -6,35 +6,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500&display=swap" rel="stylesheet">
 
-    @php
-        $bgImagePath = public_path('images/grievance-report-template-bg.jpg');
-        $bgImageBase64 = '';
-        if(file_exists($bgImagePath)) {
-            $ext = pathinfo($bgImagePath, PATHINFO_EXTENSION);
-            $bgImageBase64 = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($bgImagePath));
-        }
-    @endphp
-
     <style>
         @page {
             size: A4;
-            margin: 20px;
         }
 
-        body {
-            margin: 0;
+       body {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             padding: 0;
+            margin: 0;
+            opacity: 1 !important;
+            animation: none !important;
             font-family: 'Poppins', sans-serif;
-            color: #1F2937;
-            background-color: #fff;
         }
 
         .page {
-            width: 794px;
-            margin: 0 auto;
-            position: relative;
-            padding: 20px;
-            page-break-after: always;
+            width: 100%;
         }
 
         .content {
@@ -122,6 +112,14 @@
             font-size:13px;
         }
 
+        .total-reports-stat {
+            text-align:center;
+            font-weight:600;
+            margin-bottom:12px;
+            font-family:sans-serif;
+            font-size:13px;
+        }
+
         .status-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -138,6 +136,7 @@
             justify-content: center;
             transition: transform 0.2s, box-shadow 0.2s;
             font-family: sans-serif;
+            margin: 5px;
         }
 
         .status-card:hover {
@@ -172,6 +171,55 @@
             font-size: 14px;
             border: 1px solid #D1D5DB;
             border-radius: 8px;
+        }
+
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+            background: white !important;
+            font-size: 11px !important;
+            color: #1f2937 !important;
+        }
+
+        .grievance-remark-td {
+            width: 30% !important;
+            max-width: 30% !important;
+            white-space: normal !important;
+        }
+
+        table thead {
+            background: #f3f4f6 !important;
+            text-transform: uppercase !important;
+            font-weight: bold !important;
+            color: #374151 !important;
+        }
+
+        table th {
+            border: 1px solid #d1d5db !important;
+            padding: 6px !important;
+        }
+
+        table td {
+            border: 1px solid #d1d5db !important;
+            padding: 6px !important;
+            word-wrap: break-word !important;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f9fafb !important;
+        }
+
+        table tbody tr:nth-child(odd) {
+            background: #ffffff !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-bold {
+            font-weight: bold;
         }
 
         .status-footer {
@@ -270,6 +318,10 @@
             @if($startDate !== $endDate) – {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }} @endif
         </div>
 
+        <div class="total-reports-stat">
+            Total Reports: {{ $data->count() }}
+        </div>
+
         <div class="status-cards">
             @foreach($statuses as $label => $count)
                 @php
@@ -303,49 +355,84 @@
             @endforeach
         </div>
 
+            <table>
+                <thead>
+                    <tr>
+                        <th>TICKET ID</th>
+                        <th>TITLE</th>
+                        <th>TYPE</th>
+                        <th>CATEGORY</th>
+                        <th>PRIORITY</th>
+                        <th>STATUS</th>
+                        <th>DATE FILED</th>
+                        <th>SUBMITTED BY</th>
+                        <th>DETAILS</th>
+                        <th>ATTACHMENTS</th>
+                        <th>REMARKS</th>
+                    </tr>
+                </thead>
 
-            <div style="margin:20px; border:1px solid #D1D5DB; background-color: rgba(255,255,255,0.85); overflow-x:auto; border-radius:0.5rem; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
-                <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:13px;">
-                    <thead style="background-color:#F3F4F6; color:#374151; text-transform:uppercase; font-weight:600;">
-                        <tr>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">TICKET ID</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px;">TITLE</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">TYPE</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">CATEGORY</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">STATUS</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">PRIORITY LEVEL</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">PROCESSING DAYS</th>
-                            <th style="border:1px solid #D1D5DB; padding:8px; text-align:center;">DATE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($data as $item)
-                            <tr style="transition: background-color 0.2s; cursor:default;">
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->grievance_ticket_id }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:6px;">{{ $item->grievance_title }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center; text-transform:capitalize;">{{ $item->grievance_type ?? '—' }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center; text-transform:capitalize;">{{ $item->grievance_category ?? '—' }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">
-                                    <span style="display:inline-block; padding:2px 6px; border-radius:9999px; font-size:11px; font-weight:600;">
-                                        {{ strtoupper($item->grievance_status) }}
-                                    </span>
-                                </td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">
-                                    <span style="display:inline-block; padding:2px 6px; border-radius:9999px; font-size:11px; font-weight:600;">
-                                        {{ strtoupper($item->priority_level) }}
-                                    </span>
-                                </td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->processing_days ?? '—' }}</td>
-                                <td style="border:1px solid #D1D5DB; padding:6px; text-align:center;">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" style="text-align:center; padding:10px; font-style:italic; color:#6B7280;">No data available for the selected dates.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                <tbody>
+                @forelse ($data as $item)
+                    @php
+                        $rawRemarks = $item->grievance_remarks ?? [];
+                        $remarks = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+
+                        $submittedBy = $item->is_anonymous
+                            ? 'Anonymous'
+                            : ($item->user
+                                ? ($item->user->info
+                                    ? "{$item->user->info->first_name} {$item->user->info->last_name}"
+                                    : $item->user->name)
+                                : '—');
+                    @endphp
+
+                    <tr>
+                        <td class="text-center text-bold">{{ $item->grievance_ticket_id }}</td>
+                        <td>{{ $item->grievance_title }}</td>
+                        <td class="text-center">{{ $item->grievance_type }}</td>
+                        <td class="text-center">{{ ucfirst($item->grievance_category) }}</td>
+                        <td class="text-center">{{ ucfirst($item->priority_level) }}</td>
+                        <td class="text-center">{{ ucwords(str_replace('_',' ', $item->grievance_status ?? '—')) }}</td>
+                        <td class="text-center">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+
+                        <td class="text-center">{{ $submittedBy }}</td>
+
+                        <td>{!! \Illuminate\Support\Str::limit(strip_tags($item->grievance_details), 120, '...') !!}</td>
+
+                        <td class="text-center">
+                            @if ($item->attachments->count() > 0)
+                                <strong>{{ $item->attachments->count() }} file(s)</strong>
+                            @else
+                                <span style="color:#666;">None</span>
+                            @endif
+                        </td>
+
+                        <td class="grievance-remark-td">
+                            @if (!empty($remarks))
+                                @foreach ($remarks as $remark)
+                                    <div>
+                                        <strong>[{{ date('Y-m-d H:i', strtotime($remark['timestamp'])) }}]</strong>
+                                        {{ $submittedBy }}
+                                        ({{ $remark['role'] ?? '—' }}):
+                                        {{ $remark['message'] ?? '' }}
+                                    </div>
+                                @endforeach
+                            @else
+                                <span style="color:#666;">—</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="11" class="text-center" style="font-style: italic; color: #777;">
+                            No reports available.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+
             <div class="status-footer">
                 <div class="footer-row">
                     <div class="footer-label">Noted by:</div>

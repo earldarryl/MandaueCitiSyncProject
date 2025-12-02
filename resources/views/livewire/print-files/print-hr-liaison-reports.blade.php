@@ -32,6 +32,10 @@
         @if($startDate !== $endDate) – {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }} @endif
     </div>
 
+    <div class="text-center font-bold mb-2">
+        Total Reports: {{ $data->count() }}
+    </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         @php
             $total = $statuses->sum();
@@ -81,27 +85,58 @@
                     <th class="border px-3 py-2 text-center">PRIORITY LEVEL</th>
                     <th class="border px-3 py-2 text-center">PROCESSING DAYS</th>
                     <th class="border px-3 py-2 text-center">DATE</th>
+                    <th class="border px-3 py-2 text-center">SUBMITTED BY</th>
+                    <th class="border px-3 py-2 text-center">DETAILS</th>
+                    <th class="border px-3 py-2 text-center">REMARKS</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($data as $item)
+                    @php
+                        $submittedBy = $item->is_anonymous
+                            ? 'Anonymous'
+                            : ($item->user
+                                ? ($item->user->info
+                                    ? "{$item->user->info->first_name} {$item->user->info->last_name}"
+                                    : $item->user->name)
+                                : '—');
+
+                        $rawRemarks = $item->grievance_remarks ?? [];
+                        $remarks = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+                    @endphp
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="border px-2 py-1 text-center">{{ $item->grievance_ticket_id }}</td>
                         <td class="border px-2 py-1">{{ $item->grievance_title }}</td>
                         <td class="border px-2 py-1 text-center capitalize">{{ $item->grievance_type ?? '—' }}</td>
                         <td class="border px-2 py-1 text-center capitalize">{{ $item->grievance_category ?? '—' }}</td>
-                        <td class="border px-2 py-1 text-center uppercase">
-                            {{ strtoupper($item->grievance_status) }}
-                        </td>
-                        <td class="border px-2 py-1 text-center uppercase">
-                            {{ strtoupper($item->priority_level) }}
-                        </td>
+                        <td class="border px-2 py-1 text-center uppercase">{{ strtoupper($item->grievance_status) }}</td>
+                        <td class="border px-2 py-1 text-center uppercase">{{ strtoupper($item->priority_level) }}</td>
                         <td class="border px-2 py-1 text-center">{{ $item->processing_days ?? '—' }}</td>
                         <td class="border px-2 py-1 text-center">{{ $item->created_at->format('Y-m-d h:i A') }}</td>
+                        <td class="border px-2 py-1 text-center">{{ $submittedBy }}</td>
+                        <td class="border px-2 py-1">
+                            {!! \Illuminate\Support\Str::limit(strip_tags($item->grievance_details), 120, '...') !!}
+                        </td>
+                        <td class="border px-2 py-1 text-left align-top">
+                            @if (!empty($remarks))
+                                <div class="space-y-1">
+                                    @foreach ($remarks as $remark)
+                                        <div>
+                                            <strong>[{{ date('Y-m-d H:i', strtotime($remark['timestamp'])) }}]</strong>
+                                            {{ $remark['user_name'] ?? '—' }}
+                                            ({{ $remark['role'] ?? '—' }}):
+                                            {{ $remark['message'] ?? '' }}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-500">—</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center py-4 text-gray-500 italic">No data available for the selected dates.</td>
+                        <td colspan="11" class="text-center py-4 text-gray-500 italic">No data available for the selected dates.</td>
                     </tr>
                 @endforelse
             </tbody>
