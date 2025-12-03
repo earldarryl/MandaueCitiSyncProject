@@ -280,6 +280,13 @@ class View extends Component
             'processing_days' => $priorityProcessingDays,
         ]);
 
+        $dueDate = $this->grievance->created_at->addDays($priorityProcessingDays);
+        if (now()->greaterThan($dueDate)) {
+            $this->grievance->update([
+                'grievance_status' => 'overdue',
+            ]);
+        }
+
         $changes = [
             'priority_level' => [
                 'old' => ucfirst($oldPriority),
@@ -288,6 +295,10 @@ class View extends Component
             'processing_days' => [
                 'old' => $oldProcessingDays,
                 'new' => $priorityProcessingDays,
+            ],
+            'grievance_status' => [
+                'old' => $this->grievance->grievance_status,
+                'new' => $this->grievance->grievance_status,
             ],
         ];
 
@@ -445,6 +456,14 @@ class View extends Component
     public function getCanLoadMoreProperty()
     {
         return $this->limit < $this->totalRemarksCount;
+    }
+
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
     }
 
     public function render()

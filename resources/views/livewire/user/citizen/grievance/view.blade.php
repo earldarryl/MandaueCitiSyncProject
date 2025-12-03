@@ -98,18 +98,18 @@
                 };
 
                 $priorityClass = match (strtolower($grievance->priority_level)) {
-                    'low'      => 'text-blue-600 font-semibold',
-                    'normal'   => 'text-gray-600 font-semibold',
-                    'medium'   => 'text-yellow-600 font-semibold',
-                    'high'     => 'text-orange-600 font-semibold',
-                    'critical' => 'text-red-700 font-extrabold',
-                    default    => 'text-gray-600 font-semibold',
+                    'low'      => 'text-blue-600 dark:text-blue-400 font-semibold',
+                    'normal'   => 'text-gray-600 dark:text-gray-400 font-semibold',
+                    'medium'   => 'text-yellow-600 dark:text-yellow-400 font-semibold',
+                    'high'     => 'text-red-600 dark:text-red-400 font-semibold',
+                    'critical' => 'text-red-700 dark:text-red-600 font-extrabold',
+                    default    => 'text-gray-600 dark:text-gray-400 font-semibold',
                 };
 
                 $class = match (true) {
-                    $isCompleted => 'text-green-600 font-semibold',
-                    $isEscalated => 'text-amber-600 font-semibold',
-                    $isOverdue   => 'text-red-600 font-semibold',
+                    $isCompleted => 'text-green-600 dark:text-green-400 font-semibold',
+                    $isEscalated => 'text-amber-600 dark:text-amber-400 font-semibold',
+                    $isOverdue   => 'text-red-600 dark:text-red-400 font-semibold',
                     default      => '',
                 };
 
@@ -168,26 +168,66 @@
                 </div>
             </div>
 
-            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
+            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4 w-full">
                 <h4 class="flex items-center gap-2 mb-2">
                     <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Departments</span>
                 </h4>
-                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
+
+                <ul class="mt-3 divide-y divide-gray-200 dark:divide-zinc-700 w-full">
                     @forelse ($grievance->departments->unique('department_id') as $department)
-                        <span
-                            class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
-                                border border-blue-400 dark:border-blue-600
-                                text-blue-700 dark:text-blue-300 font-medium text-sm
-                                px-3 py-1.5 rounded-full shadow-sm
-                                hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
-                        >
-                            {{ $department->department_name }}
-                        </span>
+                        @php
+                            $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                            $index = crc32($department->department_name) % count($palette);
+                            $bgColor = $palette[$index];
+
+                            $hasBg = !empty($department->department_bg);
+
+                            $bgUrl = $hasBg
+                                ? Storage::url($department->department_bg)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) .
+                                '&background=' . $bgColor . '&color=fff&size=512';
+
+                            $profileUrl = $department->department_profile
+                                ? Storage::url($department->department_profile)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) .
+                                '&background=' . $bgColor . '&color=fff&size=128';
+
+                            $textColor = $hasBg
+                                ? 'text-gray-900 dark:text-gray-200'
+                                : 'text-[#' . $bgColor . '] dark:text-[#' . $bgColor . ']';
+                        @endphp
+
+                        <li class="py-4 w-full relative rounded-xl overflow-hidden shadow-lg">
+                            <div class="absolute inset-0">
+                                <img src="{{ $bgUrl }}" alt="Department BG"
+                                    class="w-full h-full object-cover opacity-80">
+                                <div class="absolute inset-0 bg-black/20"></div>
+                            </div>
+
+                            <div class="relative flex items-center space-x-4 rtl:space-x-reverse w-full px-4">
+                                <div class="shrink-0">
+                                    <img class="w-16 h-16 rounded-full border-2 border-white dark:border-zinc-700 object-cover"
+                                        src="{{ $profileUrl }}" alt="{{ $department->department_name }}">
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold truncate {{ $textColor }}">
+                                        {{ $department->department_name }}
+                                    </p>
+
+                                    <p class="text-sm font-semibold truncate {{ $textColor }} opacity-90">
+                                        HR Liaisons: {{ $department->hr_liaisons_status }}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
                     @empty
-                        <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
+                        <li class="py-4 w-full">
+                            <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
+                        </li>
                     @endforelse
-                </div>
+                </ul>
             </div>
         </div>
     </div>
@@ -204,7 +244,7 @@
             x-data="progressLogs(@js($this->canLoadMore))"
             x-init="scrollToBottom()"
             x-on:new-log.window="scrollToBottom()"
-            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 mt-3 border border-gray-300 dark:border-zinc-800"
+            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800"
             x-ref="logContainer"
             @scroll.passive="checkScroll()"
         >
@@ -221,11 +261,13 @@
                 </div>
             </template>
 
-            <template x-if="!canLoadMore && !loadingMore">
-                <div class="text-center text-xs text-gray-400 dark:text-gray-500 py-2 italic">
-                    — No older remarks to load —
-                </div>
-            </template>
+            @if(count($this->remarks) > 10)
+                <template x-if="!canLoadMore && !loadingMore">
+                    <div class="text-center text-xs text-gray-400 dark:text-gray-500 py-2 italic">
+                        — No older remarks to load —
+                    </div>
+                </template>
+            @endif
 
             <ul class="max-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 @foreach($this->remarks as $remark)
@@ -442,7 +484,7 @@
                                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
                                             $file = $attachment->file_path;
                                             $size = Storage::disk('public')->exists($file)
-                                                ? readableSize(Storage::disk('public')->size($file))
+                                                ? $this->readableSize(Storage::disk('public')->size($file))
                                                 : 'Unavailable';
                                         @endphp
 
@@ -535,7 +577,7 @@
         </h4>
 
         <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            <p>Discuss updates or feedback regarding this grievance below.</p>
+            <p>Discuss updates or feedback regarding this report below.</p>
         </div>
 
         <livewire:partials.chat :grievance="$grievance"/>

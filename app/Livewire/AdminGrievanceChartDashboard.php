@@ -24,6 +24,12 @@ class AdminGrievanceChartDashboard extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
+        $query = $this->baseQuery();
+
+        $totalComplaint = $query->where('grievance_type', 'Complaint')->count();
+        $totalInquiry   = $query->where('grievance_type', 'Inquiry')->count();
+        $totalRequest   = $query->where('grievance_type', 'Request')->count();
+
         return new HtmlString(<<<HTML
             <div class="flex flex-col gap-2 w-full">
                 <div class="flex items-center justify-between w-full">
@@ -54,7 +60,7 @@ class AdminGrievanceChartDashboard extends ChartWidget
                         </select>
                         <div class="absolute inset-y-0 right-3 flex items-center text-gray-500 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
+                                viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
@@ -86,9 +92,16 @@ class AdminGrievanceChartDashboard extends ChartWidget
                         monitor trends, and prioritize handling accordingly.
                     </div>
                 </div>
+
+                <div class="mt-2 flex gap-4 text-gray-700 dark:text-gray-200 text-sm font-medium">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span> Complaint ({$totalComplaint})</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 bg-blue-500 rounded-full"></span> Inquiry ({$totalInquiry})</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 bg-green-500 rounded-full"></span> Request ({$totalRequest})</span>
+                </div>
             </div>
         HTML);
     }
+
 
     protected function baseQuery()
     {

@@ -281,9 +281,9 @@
                     $bgColor = $palette[$index];
 
                     if ($departmentProfile) {
-                        $departmentLogo = Storage::url($departmentProfile);
+                        $departmentLogoPath = storage_path('app/public/' . $departmentProfile);
                     } else {
-                        $departmentLogo = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+                        $departmentLogoPath = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
                     }
 
                     function formatNumber($number) {
@@ -298,7 +298,7 @@
                 @endphp
 
                 <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
-                <img src="{{ $departmentLogo }}" alt="Department Logo">
+                <img src="{{ $departmentLogoPath }}" alt="Department Logo">
             </div>
 
             <div class="header-right">

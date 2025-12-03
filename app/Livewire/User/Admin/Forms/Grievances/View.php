@@ -32,6 +32,9 @@ class View extends Component
     ];
     public function mount(Grievance $grievance)
     {
+        $user = auth()->user();
+        $roleName = ucfirst($user->roles->first()?->name ?? 'Admin');
+
         $this->grievance = $grievance->load([
             'attachments',
             'assignments',
@@ -39,20 +42,9 @@ class View extends Component
             'user.userInfo'
         ]);
 
-        $user = auth()->user();
-        $roleName = ucfirst($user->roles->first()?->name ?? 'Admin');
-
         $userDepartmentIds = $user->departments->pluck('department_id');
-
         $grievanceDepartmentIds = $this->grievance->departments->pluck('department_id');
-
-        $excludedDepartmentIds = $userDepartmentIds
-            ->merge($grievanceDepartmentIds)
-            ->unique();
-
-        $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+        $excludedDepartmentIds = $userDepartmentIds->merge($grievanceDepartmentIds)->unique();
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
             ->whereNotIn('department_id', $excludedDepartmentIds)
@@ -61,7 +53,43 @@ class View extends Component
             ->pluck('department_name', 'department_name')
             ->toArray();
 
+        $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
         $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
+
+        if ($this->grievance->grievance_status === 'pending') {
+            $oldStatus = $this->grievance->grievance_status;
+
+            $this->grievance->forceFill([
+                'grievance_status' => 'acknowledged',
+            ])->save();
+
+            ActivityLog::create([
+                'user_id'      => $user->id,
+                'role_id'      => $user->roles->first()?->id,
+                'module'       => 'Report Management',
+                'action'       => "Acknowledged report #{$this->grievance->grievance_ticket_id}",
+                'action_type'  => 'acknowledge',
+                'model_type'   => 'App\\Models\\Grievance',
+                'model_id'     => $this->grievance->grievance_id,
+                'description'  => "{$roleName} ({$user->name}) acknowledged report #{$this->grievance->grievance_ticket_id}.",
+                'changes'      => [
+                    'grievance_status' => [
+                        'old' => ucfirst($oldStatus),
+                        'new' => 'Acknowledged',
+                    ],
+                ],
+                'status'       => 'success',
+                'ip_address'   => request()->ip(),
+                'device_info'  => request()->header('User-Agent'),
+                'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                'platform'     => php_uname('s'),
+                'location'     => geoip(request()->ip())?->city,
+                'timestamp'    => now(),
+            ]);
+        }
 
         ActivityLog::create([
             'user_id'      => $user->id,
@@ -77,7 +105,7 @@ class View extends Component
             'device_info'  => request()->header('User-Agent'),
             'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
             'platform'     => php_uname('s'),
-            'location'     => null,
+            'location'     => geoip(request()->ip())?->city,
             'timestamp'    => now(),
         ]);
     }
@@ -435,6 +463,14 @@ class View extends Component
     public function getCanLoadMoreProperty()
     {
         return $this->limit < $this->totalRemarksCount;
+    }
+
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
     }
 
     public function render()

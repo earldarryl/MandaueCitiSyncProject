@@ -56,9 +56,11 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->hiddenLabel(true)
                 ->required()
                 ->toolbarButtons([
-                    'bold','italic','underline','strike',
-                    'bulletList','orderedList','link',
-                    'blockquote','codeBlock'
+                    ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
+                    ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
+                    ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+                    ['table', 'attachFiles'],
+                    ['undo', 'redo'],
                 ])
                 ->allowHtmlValidationMessages()
                 ->placeholder('Edit report details...'),

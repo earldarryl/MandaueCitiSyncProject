@@ -207,18 +207,17 @@
         $bgColor = $palette[$index];
 
         if ($departmentProfile) {
-            $departmentLogo = Storage::url($departmentProfile);
+            $departmentLogoPath = storage_path('app/public/' . $departmentProfile);
         } else {
-            $departmentLogo = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+            $departmentLogoPath = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
         }
-
     @endphp
 
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
             <img src="{{ public_path('images/mandaue-logo.png') }}" alt="Mandaue Logo">
-            <img src="{{ $departmentProfile ? $departmentLogo : $departmentLogo }}" alt="Department Logo">
+            <img src="{{ $departmentLogoPath }}" alt="Department Logo">
         </div>
 
         <div class="header-right">
@@ -282,7 +281,7 @@
                 <td class="text-center">{{ ucfirst($grievance->priority_level) }}</td>
                 <td class="text-center">{{ ucwords(str_replace('_',' ', $grievance->grievance_status ?? '—')) }}</td>
                 <td class="text-center">{{ $grievance->created_at->format('Y-m-d h:i A') }}</td>
-                
+
                 <td class="text-center">{{ $submittedBy }}</td>
 
                 <td>{!! \Illuminate\Support\Str::limit(strip_tags($grievance->grievance_details), 120, '...') !!}</td>

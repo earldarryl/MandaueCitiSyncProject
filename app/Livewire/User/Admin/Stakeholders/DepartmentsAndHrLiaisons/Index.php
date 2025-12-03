@@ -3,6 +3,7 @@
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
 use Filament\Actions\Concerns\InteractsWithActions;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -14,7 +15,6 @@ use Filament\Notifications\Notification;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
-
 #[Layout('layouts.app')]
 #[Title('Departments & HR Liaisons')]
 class Index extends Component implements Forms\Contracts\HasForms
@@ -41,6 +41,8 @@ class Index extends Component implements Forms\Contracts\HasForms
     public $create_department_background;
     public $edit_department_profile;
     public $edit_department_background;
+    public $profilePreview;
+    public $backgroundPreview;
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
@@ -109,68 +111,6 @@ class Index extends Component implements Forms\Contracts\HasForms
             ->body("{$user->name} has been successfully added as HR Liaison.")
             ->success()
             ->send();
-    }
-
-    protected function getFormSchema(): array
-    {
-        return [
-            FileUpload::make('create_department_profile')
-                ->label('Department Profile Image')
-                ->image()
-                ->directory('departments/profile')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->avatar()
-                ->alignCenter(true)
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
-
-            FileUpload::make('create_department_background')
-                ->label('Department Background Image')
-                ->image()
-                ->directory('departments/backgrounds')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a background image (JPG, PNG, or WEBP, max 5MB).'),
-
-
-            FileUpload::make('edit_department_profile')
-                ->label('Department Profile Image')
-                ->image()
-                ->directory('departments/profile')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->avatar()
-                ->alignCenter(true)
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
-
-            FileUpload::make('edit_department_background')
-                ->label('Department Background Image')
-                ->image()
-                ->directory('departments/backgrounds')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a background image (JPG, PNG, or WEBP, max 5MB).'),
-        ];
     }
 
     public function calculateSummary()
@@ -280,6 +220,14 @@ class Index extends Component implements Forms\Contracts\HasForms
         $create_department_profile = $state['create_department_profile'] ?? null;
         $create_department_background = $state['create_department_background'] ?? null;
 
+        if ($create_department_profile instanceof \Livewire\TemporaryUploadedFile) {
+            $create_department_profile = $create_department_profile->store('departments/profile', 'public');
+        }
+
+        if ($create_department_background instanceof \Livewire\TemporaryUploadedFile) {
+            $create_department_background = $create_department_background->store('departments/backgrounds', 'public');
+        }
+
         $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
 
@@ -299,12 +247,9 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
-        ];
-
-        $this->form->fill([
             'create_department_profile' => null,
             'create_department_background' => null,
-        ]);
+        ];
 
         $this->calculateSummary();
         $this->dispatch('refresh');
@@ -331,13 +276,15 @@ class Index extends Component implements Forms\Contracts\HasForms
             'is_available' => $department->is_available ? 'Yes' : 'No',
         ];
 
-        $this->form->fill([
-            'edit_department_profile' => $department->department_profile,
-            'edit_department_background' => $department->department_bg,
-        ]);
+        $this->profilePreview = $department->department_profile
+            ? Storage::url($department->department_profile)
+            : null;
+
+        $this->backgroundPreview = $department->department_bg
+            ? Storage::url($department->department_bg)
+            : null;
 
     }
-
 
     public function updateDepartment()
     {
@@ -352,6 +299,14 @@ class Index extends Component implements Forms\Contracts\HasForms
         $state = $this->form->getState();
         $edit_department_profile = $state['edit_department_profile'] ?? null;
         $edit_department_background = $state['edit_department_background'] ?? null;
+
+        if ($edit_department_profile instanceof \Livewire\TemporaryUploadedFile) {
+            $edit_department_profile = $edit_department_profile->store('departments/profile', 'public');
+        }
+
+        if ($edit_department_background instanceof \Livewire\TemporaryUploadedFile) {
+            $edit_department_background = $edit_department_background->store('departments/backgrounds', 'public');
+        }
 
         $isActiveValue = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
@@ -385,12 +340,9 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
-        ];
-
-        $this->form->fill([
             'edit_department_profile' => null,
             'edit_department_background' => null,
-        ]);
+        ];
 
         $this->calculateSummary();
         $this->dispatch('refresh');
