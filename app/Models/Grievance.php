@@ -18,6 +18,7 @@ class Grievance extends Model
 
     protected $fillable = [
         'user_id',
+        'department_id',
         'is_anonymous',
         'grievance_status',
         'priority_level',
@@ -69,6 +70,11 @@ class Grievance extends Model
     public function assignments()
     {
         return $this->hasMany(Assignment::class, 'grievance_id', 'grievance_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id', 'department_id');
     }
 
     public function departments()

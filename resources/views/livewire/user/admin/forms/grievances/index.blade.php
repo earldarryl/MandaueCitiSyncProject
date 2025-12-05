@@ -301,12 +301,6 @@
                 />
 
                 <x-filter-select
-                    name="filterDate"
-                    placeholder="Date"
-                    :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-                />
-
-                <x-filter-select
                     name="filterDepartment"
                     placeholder="Department"
                     :options="$departmentOptions"
@@ -325,6 +319,12 @@
                     name="filterCategory"
                     placeholder="Category"
                     :options="$categoryOptions"
+                />
+
+                <x-date-picker
+                    name="filterDate"
+                    placeholder="Pick a date"
+                    :model="'filterDate'"
                 />
             </div>
 
@@ -415,6 +415,20 @@
                 <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                 <span wire:loading.remove wire:target="downloadGrievancesCsv">Export All in CSV</span>
                 <span wire:loading wire:target="downloadGrievancesCsv">Processing...</span>
+            </button>
+
+            <button
+                wire:click="downloadAllGrievancesPdf"
+                wire:loading.attr="disabled"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                    border border-red-500 dark:border-red-400
+                    hover:bg-red-200 dark:hover:bg-red-800/50
+                    focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span wire:loading.remove wire:target="downloadAllGrievancesPdf">Export All in PDF</span>
+                <span wire:loading wire:target="downloadAllGrievancesPdf">Processing...</span>
             </button>
 
             <button
@@ -555,6 +569,19 @@
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                         <span wire:loading.remove wire:target="exportSelectedGrievancesCsv">Export Selected in CSV</span>
                         <span wire:loading wire:target="exportSelectedGrievancesCsv">Processing...</span>
+                    </button>
+
+                    <button wire:click="downloadSelectedGrievancesPdf"
+                        wire:loading.attr="disabled"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span wire:loading.remove wire:target="downloadSelectedGrievancesPdf">Export Selected in PDF</span>
+                        <span wire:loading wire:target="downloadSelectedGrievancesPdf">Processing...</span>
                     </button>
 
                     <button wire:click="exportSelectedGrievancesExcel"

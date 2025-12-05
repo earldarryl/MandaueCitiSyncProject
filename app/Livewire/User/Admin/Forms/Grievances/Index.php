@@ -23,6 +23,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Browsershot\Browsershot;
 #[Layout('layouts.app')]
 #[Title('Reports')]
 class Index extends Component
@@ -85,6 +86,11 @@ class Index extends Component
                 ->{$notif['type']}()
                 ->send();
         }
+
+        $this->departmentOptions = Department::where('is_active', 1)
+            ->where('is_available', 1)
+            ->pluck('department_name', 'department_name')
+            ->toArray();
 
         $allCategoryOptions = [
             'Business Permit and Licensing Office' => [
@@ -373,23 +379,7 @@ class Index extends Component
         }
 
         if ($this->filterDate) {
-            switch ($this->filterDate) {
-                case 'Today':
-                    $query->whereDate('created_at', now()->toDateString());
-                    break;
-                case 'Yesterday':
-                    $query->whereDate('created_at', now()->subDay()->toDateString());
-                    break;
-                case 'This Week':
-                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                    break;
-                case 'This Month':
-                    $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
-                    break;
-                case 'This Year':
-                    $query->whereYear('created_at', now()->year);
-                    break;
-            }
+            $query->whereDate('created_at', $this->filterDate);
         }
 
         if ($this->filterIdentity) {
@@ -799,6 +789,88 @@ class Index extends Component
         }
     }
 
+    public function downloadSelectedGrievancesPdf()
+    {
+        if (empty($this->selected)) {
+            Notification::make()
+                ->title('No Reports Selected')
+                ->body('Please select at least one report to download.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $grievances = Grievance::with(['departments', 'user', 'attachments'])
+            ->whereIn('grievance_id', $this->selected)
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Reports Found')
+                ->body('The selected reports were not found.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $html = view('pdf.selected-grievances', [
+            'grievances' => $grievances,
+            'hr_liaison' => auth()->user(),
+        ])->render();
+
+        $filename = 'selected-reports-' . now()->format('Ymd-His') . '.pdf';
+        $pdfPath = storage_path("app/public/{$filename}");
+
+        Browsershot::html($html)
+            ->setNodeBinary('C:\Program Files\nodejs\node.exe')
+            ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
+            ->showBackground()
+            ->waitUntilNetworkIdle()
+            ->delay(1500)
+            ->timeout(120)
+            ->format('A4')
+            ->save($pdfPath);
+
+        return response()->download($pdfPath, $filename);
+    }
+
+    public function downloadAllGrievancesPdf()
+    {
+        $grievances = Grievance::with(['departments', 'user', 'attachments'])
+            ->latest()
+            ->get();
+
+        if ($grievances->isEmpty()) {
+            Notification::make()
+                ->title('No Reports Found')
+                ->body('There are no grievances available to download.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $html = view('pdf.all-grievances', [
+            'grievances' => $grievances,
+            'hr_liaison' => auth()->user(),
+        ])->render();
+
+        $filename = 'all-reports-' . now()->format('Ymd-His') . '.pdf';
+        $pdfPath = storage_path("app/public/{$filename}");
+
+        Browsershot::html($html)
+            ->setNodeBinary('C:\Program Files\nodejs\node.exe')
+            ->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe')
+            ->showBackground()
+            ->waitUntilNetworkIdle()
+            ->delay(1500)
+            ->timeout(120)
+            ->format('A4')
+            ->save($pdfPath);
+
+        return response()->download($pdfPath, $filename);
+    }
+
     public function exportSelectedGrievancesCsv()
     {
         if (empty($this->selected)) {
@@ -938,7 +1010,7 @@ class Index extends Component
             ->success()
             ->send();
 
-        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+        $this->redirectRoute('admin.forms.grievances.index', navigate: true);
     }
 
     public function updateSelectedPriority(): void
@@ -1061,13 +1133,7 @@ class Index extends Component
                 });
             })
             ->when($this->filterDate, function ($q) {
-                switch ($this->filterDate) {
-                    case 'Today': $q->whereDate('created_at', now()->toDateString()); break;
-                    case 'Yesterday': $q->whereDate('created_at', now()->subDay()->toDateString()); break;
-                    case 'This Week': $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]); break;
-                    case 'This Month': $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year); break;
-                    case 'This Year': $q->whereYear('created_at', now()->year); break;
-                }
+                $q->whereDate('created_at', $this->filterDate);
             })
             ->orderBy($this->sortField ?? 'created_at', $this->sortDirection ?? 'desc')
             ->paginate($this->perPage ?? 10);

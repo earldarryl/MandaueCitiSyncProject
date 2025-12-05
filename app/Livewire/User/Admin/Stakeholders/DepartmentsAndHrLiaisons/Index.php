@@ -2,6 +2,8 @@
 
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
+use App\Models\Assignment;
+use App\Models\Grievance;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -31,6 +33,7 @@ class Index extends Component implements Forms\Contracts\HasForms
     public $filterHRStatus = 'All';
     public $filterDate = 'Show All';
     public $nameStartsWith = 'All';
+    public int $perPage = 2;
     public $totalHrLiaisons = 0;
     public $totalLiaisonHours = 0;
     public $totalDepartments = 0;
@@ -198,7 +201,7 @@ class Index extends Component implements Forms\Contracts\HasForms
 
         $query->orderBy($this->sortField, $this->sortDirection);
 
-        return $query->paginate(10);
+        return $query->paginate($this->perPage);
     }
 
     public function applyFilters()
@@ -412,15 +415,34 @@ class Index extends Component implements Forms\Contracts\HasForms
         }
 
         $department->hrLiaisons()->attach($this->selectedLiaisonsToAdd);
+
+        $grievances = Grievance::whereHas('assignments', function ($q) use ($departmentId) {
+            $q->where('department_id', $departmentId);
+        })->get();
+
+
+        foreach ($this->selectedLiaisonsToAdd as $liaisonId) {
+            foreach ($grievances as $grievance) {
+                Assignment::firstOrCreate([
+                    'grievance_id'  => $grievance->grievance_id,
+                    'department_id' => $departmentId,
+                    'hr_liaison_id' => $liaisonId,
+                ], [
+                    'assigned_at' => now(),
+                ]);
+            }
+        }
+
         $this->reset('selectedLiaisonsToAdd');
 
         Notification::make()
-            ->title('HR Liaisons Added Successfully')
-            ->body("Selected HR Liaisons have been added to the {$department->department_name} department.")
+            ->title('HR Liaisons Added & Auto-Assigned')
+            ->body("Selected HR Liaisons have been added and automatically assigned to this department's grievances.")
             ->success()
             ->duration(4000)
             ->send();
     }
+
 
     public function removeLiaison($departmentId)
     {
@@ -437,11 +459,16 @@ class Index extends Component implements Forms\Contracts\HasForms
         }
 
         $department->hrLiaisons()->detach($this->selectedLiaisonsToRemove);
+
+        Assignment::where('department_id', $departmentId)
+            ->whereIn('hr_liaison_id', $this->selectedLiaisonsToRemove)
+            ->delete();
+
         $this->reset('selectedLiaisonsToRemove');
 
         Notification::make()
             ->title('HR Liaisons Removed Successfully')
-            ->body("Selected HR Liaisons have been removed from the {$department->department_name} department.")
+            ->body("Selected HR Liaisons have been removed from the {$department->department_name} department and unassigned from its grievances.")
             ->success()
             ->duration(4000)
             ->send();
@@ -477,7 +504,7 @@ class Index extends Component implements Forms\Contracts\HasForms
 
     public function render()
     {
-        $departments = $this->departments->map(function ($department) {
+        $departments = $this->departments->through(function ($department) {
             $department->availableLiaisons = $this->getAvailableLiaisons($department->id);
             $department->assignedLiaisons = $this->getAssignedLiaisons($department->id);
 

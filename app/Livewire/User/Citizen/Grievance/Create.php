@@ -168,6 +168,7 @@ class Create extends Component implements Forms\Contracts\HasForms
 
             $grievance = Grievance::create([
                 'user_id'          => auth()->id(),
+                'department_id'    => $department->department_id,
                 'grievance_type'   => $this->grievance_type,
                 'grievance_category'=> $this->grievance_category,
                 'priority_level'   => $this->priority_level,

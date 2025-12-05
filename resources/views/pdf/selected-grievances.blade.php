@@ -199,7 +199,7 @@
 
     @php
         $department = auth()->user()->departments->first();
-        $departmentName = $department->department_name ?? 'N/A';
+        $departmentName = $department->department_name ?? 'Administration';
         $departmentProfile = $department->department_profile ?? null;
 
         $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];

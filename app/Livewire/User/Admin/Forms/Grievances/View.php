@@ -213,7 +213,7 @@ class View extends Component
             ->success()
             ->send();
 
-        return $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+        return $this->redirectRoute('admin.forms.grievances.index', navigate: true);
     }
 
     private function formatStatus($value)
