@@ -2,24 +2,27 @@
 
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
+use App\Models\Assignment;
+use App\Models\Grievance;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
+use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\Department;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Hash;
-
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 #[Layout('layouts.app')]
-#[Title(content: 'HR Liaisons List View')]
+#[Title('HR Liaisons List View')]
 class HrLiaisonsListView extends Component
 {
-    public ?int $departmentId = null;
-    public string $sortField = 'name';
-    public string $sortDirection = 'asc';
+    use WithPagination;
 
-    public $hrLiaisons = [];
-    public $department;
+    public Department $department;
+    public int $departmentId;
+    public ?string $sortField = 'name';
+    public string $sortDirection = 'asc';
+    public int $perPage = 2;
 
     public $editLiaison = [
         'id' => null,
@@ -28,12 +31,18 @@ class HrLiaisonsListView extends Component
         'password' => '',
     ];
 
-    public function mount($department)
-    {
-        $this->departmentId = $department;
-        $this->department = Department::findOrFail($department);
+    protected $updatesQueryString = ['sortField', 'sortDirection', 'page'];
 
-        $this->loadHrLiaisons();
+
+    public function mount(Department $department)
+    {
+        $this->department = $department;
+        $this->departmentId = $department->department_id;
+    }
+
+    public function loadHrLiaisons()
+    {
+        $this->resetPage();
     }
 
     public function sortBy($field)
@@ -45,19 +54,7 @@ class HrLiaisonsListView extends Component
             $this->sortDirection = 'asc';
         }
 
-        $this->loadHrLiaisons();
-    }
-
-    public function loadHrLiaisons()
-    {
-        $this->hrLiaisons = User::role('hr_liaison')
-            ->when($this->departmentId, fn($query) =>
-                $query->whereHas('departments', fn($q) =>
-                    $q->where('hr_liaison_departments.department_id', $this->departmentId)
-                )
-            )
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->get();
+        $this->resetPage();
     }
 
     public function editHrLiaisonModal($userId)
@@ -70,7 +67,6 @@ class HrLiaisonsListView extends Component
             'email' => $user->email,
             'password' => '',
         ];
-
     }
 
     public function updateHrLiaison($hrLiaisonId)
@@ -87,12 +83,10 @@ class HrLiaisonsListView extends Component
         $user->email = $this->editLiaison['email'];
 
         if (!empty($this->editLiaison['password'])) {
-            $user->password = $this->editLiaison['password'];
+            $user->password = Hash::make($this->editLiaison['password']);
         }
 
         $user->save();
-
-        $this->loadHrLiaisons();
 
         Notification::make()
             ->title('HR Liaison Updated')
@@ -106,18 +100,14 @@ class HrLiaisonsListView extends Component
             'email' => '',
             'password' => '',
         ];
-
     }
 
     public function removeLiaison(int $userId)
     {
-        if (!$this->departmentId) return;
-
         $user = User::find($userId);
 
         if ($user) {
             $user->departments()->detach($this->departmentId);
-            $this->loadHrLiaisons();
 
             Notification::make()
                 ->title('HR Liaison Removed')
@@ -129,11 +119,38 @@ class HrLiaisonsListView extends Component
 
     public function render()
     {
+        $totalAssignments = Grievance::where('department_id', $this->departmentId)->count();
+
+        $hrLiaisons = User::role('hr_liaison')
+            ->whereHas('departments', fn($q) =>
+                $q->where('hr_liaison_departments.department_id', $this->departmentId)
+            )
+            ->when($this->sortField === 'status', function ($query) {
+                $query->orderByRaw("
+                    CASE
+                        WHEN last_seen_at IS NULL THEN 3
+                        WHEN last_seen_at > NOW() - INTERVAL 5 MINUTE THEN 1
+                        ELSE 2
+                    END " . ($this->sortDirection === 'asc' ? 'ASC' : 'DESC')
+                );
+            })
+            ->when($this->sortField !== 'status', fn($q) =>
+                $q->orderBy($this->sortField, $this->sortDirection)
+            )
+            ->withCount(['assignments as assigned_count' => fn($q) =>
+                $q->where('department_id', $this->departmentId)->distinct('grievance_id')
+            ])
+            ->paginate($this->perPage);
+
+        $hrLiaisons->getCollection()->transform(function ($liaison) use ($totalAssignments) {
+            $liaison->total_assignments = $totalAssignments;
+            return $liaison;
+        });
+
         return view('livewire.user.admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view', [
+            'hrLiaisons' => $hrLiaisons,
             'department' => $this->department,
-            'hrLiaisons' => $this->hrLiaisons,
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
         ]);
     }
+
 }

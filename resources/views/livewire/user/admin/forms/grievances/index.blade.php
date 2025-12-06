@@ -301,12 +301,6 @@
                 />
 
                 <x-filter-select
-                    name="filterDate"
-                    placeholder="Date"
-                    :options="['Today', 'Yesterday', 'This Week', 'This Month', 'This Year']"
-                />
-
-                <x-filter-select
                     name="filterDepartment"
                     placeholder="Department"
                     :options="$departmentOptions"
@@ -325,6 +319,12 @@
                     name="filterCategory"
                     placeholder="Category"
                     :options="$categoryOptions"
+                />
+
+                <x-date-picker
+                    name="filterDate"
+                    placeholder="Pick a date"
+                    :model="'filterDate'"
                 />
             </div>
 
@@ -418,7 +418,21 @@
             </button>
 
             <button
-                wire:click="downloadGrievancesExcel"
+                wire:click="downloadAllGrievancesPdf"
+                wire:loading.attr="disabled"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                    border border-red-500 dark:border-red-400
+                    hover:bg-red-200 dark:hover:bg-red-800/50
+                    focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                    transition-all duration-200">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span wire:loading.remove wire:target="downloadAllGrievancesPdf">Export All in PDF</span>
+                <span wire:loading wire:target="downloadAllGrievancesPdf">Processing...</span>
+            </button>
+
+            <button
+                wire:click="downloadReportsExcel"
                 wire:loading.attr="disabled"
                 class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                     bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
@@ -427,8 +441,8 @@
                     focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                     transition-all duration-200">
                 <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="downloadGrievancesExcel">Export All in Excel</span>
-                <span wire:loading wire:target="downloadGrievancesExcel">Processing...</span>
+                <span wire:loading.remove wire:target="downloadReportsExcel">Export All in Excel</span>
+                <span wire:loading wire:target="downloadReportsExcel">Processing...</span>
             </button>
 
             <button
@@ -441,8 +455,8 @@
                     transition-all duration-200"
             >
                 <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="importGrievancesExcel">Import Grievances</span>
-                <span wire:loading wire:target="importGrievancesExcel">Processing...</span>
+                <span wire:loading.remove wire:target="importReportsExcel">Import Grievances</span>
+                <span wire:loading wire:target="importReportsExcel">Processing...</span>
             </button>
 
             <button
@@ -475,7 +489,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                             <x-heroicon-o-arrow-up-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-                            Import Grievances
+                            Import Reports
                         </h2>
                         <button
                             @click="openImportModal = false"
@@ -487,7 +501,7 @@
                     </div>
 
                     <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        Upload an Excel file exported from the system. This will import grievances into the database.
+                        Upload an Excel file exported from the system. This will import reports into the database.
                     </p>
 
                     <flux:input
@@ -525,7 +539,7 @@
                         </button>
 
                         <button
-                            wire:click="importGrievancesExcel"
+                            wire:click="importReportsExcel"
                             @click="openImportModal = false"
                             wire:loading.attr="disabled"
                             wire:target="importFile"
@@ -557,7 +571,20 @@
                         <span wire:loading wire:target="exportSelectedGrievancesCsv">Processing...</span>
                     </button>
 
-                    <button wire:click="exportSelectedGrievancesExcel"
+                    <button wire:click="downloadSelectedGrievancesPdf"
+                        wire:loading.attr="disabled"
+                        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                            bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                            border border-red-500 dark:border-red-400
+                            hover:bg-red-200 dark:hover:bg-red-800/50
+                            focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                            transition-all duration-200">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span wire:loading.remove wire:target="downloadSelectedGrievancesPdf">Export Selected in PDF</span>
+                        <span wire:loading wire:target="downloadSelectedGrievancesPdf">Processing...</span>
+                    </button>
+
+                    <button wire:click="exportSelectedReportsExcel"
                         wire:loading.attr="disabled"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                             bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
@@ -566,8 +593,8 @@
                             focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span wire:loading.remove wire:target="exportSelectedGrievancesExcel">Export Selected in Excel</span>
-                        <span wire:loading wire:target="exportSelectedGrievancesExcel">Processing...</span>
+                        <span wire:loading.remove wire:target="exportSelectedReportsExcel">Export Selected in Excel</span>
+                        <span wire:loading wire:target="exportSelectedReportsExcel">Processing...</span>
                     </button>
 
                     <button wire:click="printSelectedGrievances"
@@ -634,7 +661,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-arrow-path class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        Reroute Selected Grievances
+                        Reroute Selected Reports
                     </h2>
                     <button
                         @click="openRerouteModal = false"
@@ -646,7 +673,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Please select a department and category to reroute all selected grievances.
+                    Please select a department and category to reroute all selected reports.
                 </p>
 
                 <div
@@ -711,7 +738,7 @@
                         <div class="flex flex-col gap-2">
                             <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
                                 <flux:icon.list-bullet />
-                                <span>Grievance Category</span>
+                                <span>Category</span>
                             </label>
 
                             <h3 class="text-sm text-gray-700 dark:text-gray-300">
@@ -810,7 +837,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-pencil-square class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                        Update Selected Grievance Status
+                        Update Selected Report Status
                     </h2>
                     <button
                         @click="openStatusModal = false"
@@ -822,7 +849,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Choose a new status to apply to all selected grievances.
+                    Choose a new status to apply to all selected reports.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -881,7 +908,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-exclamation-circle class="w-5 h-5 text-red-600 dark:text-red-400" />
-                        Update Selected Grievance Priority
+                        Update Selected Report Priority
                     </h2>
                     <button
                         @click="openPriorityModal = false"
@@ -893,7 +920,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Choose a new priority level to apply to all selected grievances.
+                    Choose a new priority level to apply to all selected reports.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -1214,7 +1241,7 @@
                                 <tr>
                                     <td colspan="11" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                                        No grievances found
+                                        No reports found
                                     </td>
                                 </tr>
                             @endforelse

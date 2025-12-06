@@ -151,11 +151,13 @@
                                             @php
                                                 $file = $doc['file'];
                                                 $name = $doc['name'];
-                                                $ext = $doc['ext'];
+                                                $ext  = $doc['ext'];
+
                                                 $size = Storage::disk('public')->exists($file)
-                                                    ? number_format(Storage::disk('public')->size($file) / 1024, 1) . ' KB'
+                                                    ? $this->readableSize(Storage::disk('public')->size($file))
                                                     : 'Unavailable';
                                             @endphp
+
 
                                             <div class="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-2">
                                                 <div class="flex flex-col text-xs">
@@ -195,7 +197,7 @@
                         @endphp
 
                         <span class="block text-[10px] mt-2 {{ $isSender ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300' }}">
-                            {{ \Carbon\Carbon::parse($msg['created_at'])->format('M d, Y h:i A') }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
+                        {{ $senderName }} · {{ \Carbon\Carbon::parse($msg['created_at'])->timezone(config('app.timezone'))->format('M d, Y h:i A') }} · {{ \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() }}
                         </span>
                     </div>
                 </div>

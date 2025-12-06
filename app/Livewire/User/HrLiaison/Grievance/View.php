@@ -24,6 +24,12 @@ class View extends Component
     public $priorityUpdate;
     public $category;
     public $departmentOptions;
+    public $message;
+    public $limit = 10;
+    public $totalRemarksCount;
+    protected $listeners = [
+        'loadMore' => 'loadMore',
+    ];
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -49,6 +55,8 @@ class View extends Component
             ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
+
+        $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
 
         if ($this->grievance->grievance_status === 'pending') {
             $oldStatus = $this->grievance->grievance_status;
@@ -87,12 +95,8 @@ class View extends Component
     public function refreshGrievance()
     {
         $this->dispatch('$refresh');
+        $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
-         Notification::make()
-            ->title('Data Refreshed')
-            ->body('The report page has been successfully refreshed.')
-            ->success()
-            ->send();
     }
 
     public function getEditRequestsProperty()
@@ -132,6 +136,7 @@ class View extends Component
         $oldDepartments = $this->grievance->departments()->pluck('department_name')->toArray();
 
         $this->grievance->update([
+            'department_id'      => $department->department_id,
             'grievance_status'   => 'pending',
             'grievance_category' => $this->category,
             'updated_at'         => now(),
@@ -264,10 +269,10 @@ class View extends Component
         $oldProcessingDays = $this->grievance->processing_days;
 
         $priorityProcessingDays = match ($formattedPriority) {
-            'Low'      => 20,
+            'Low'      => 3,
             'Normal'   => 7,
-            'High'     => 3,
-            'Critical' => 1,
+            'High'     => 20,
+            'Critical' => 7,
             default    => 7,
         };
 
@@ -275,6 +280,13 @@ class View extends Component
             'priority_level' => $formattedPriority,
             'processing_days' => $priorityProcessingDays,
         ]);
+
+        $dueDate = $this->grievance->created_at->addDays($priorityProcessingDays);
+        if (now()->greaterThan($dueDate)) {
+            $this->grievance->update([
+                'grievance_status' => 'overdue',
+            ]);
+        }
 
         $changes = [
             'priority_level' => [
@@ -284,6 +296,10 @@ class View extends Component
             'processing_days' => [
                 'old' => $oldProcessingDays,
                 'new' => $priorityProcessingDays,
+            ],
+            'grievance_status' => [
+                'old' => $this->grievance->grievance_status,
+                'new' => $this->grievance->grievance_status,
             ],
         ];
 
@@ -391,6 +407,64 @@ class View extends Component
             ->body("You denied the edit request for '{$grievance->grievance_title}'.")
             ->warning()
             ->send();
+    }
+
+    public function addRemark()
+    {
+        $this->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $this->grievance->addRemark([
+            'message' => $this->message,
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name,
+            'role' => auth()->user()->getRoleNames()->first(),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status' => $this->grievance->grievance_status,
+            'type' => 'note',
+        ]);
+
+        $this->message = '';
+
+        $this->grievance->refresh();
+
+        $this->dispatch('new-log');
+
+        Notification::make()
+            ->title('Progress Log Added')
+            ->body('Your note has been recorded.')
+            ->success()
+            ->send();
+    }
+
+    public function loadMore()
+    {
+        if ($this->limit < $this->totalRemarksCount) {
+            $this->limit += 10;
+        }
+
+        $this->dispatch('remarks-updated', canLoadMore: $this->canLoadMore);
+    }
+
+    public function getRemarksProperty()
+    {
+        $remarks = $this->grievance->grievance_remarks ?? [];
+
+        return array_slice($remarks, -$this->limit);
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalRemarksCount;
+    }
+
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
     }
 
     public function render()

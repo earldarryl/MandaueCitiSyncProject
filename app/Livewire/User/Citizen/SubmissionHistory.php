@@ -111,8 +111,12 @@ class SubmissionHistory extends Component
     {
         $query = HistoryLog::where('user_id', auth()->id());
 
-        $query->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
+        $query->when($this->filter === 'Reports', fn($q) => $q->where('reference_table', 'grievances'))
               ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'));
+
+        $query->when($this->filter && $this->filter !== 'Reports' && $this->filter !== 'Feedbacks', function ($q) {
+            $q->where('action_type', strtolower(preg_replace('/[\s-]+/', '_', $this->filter)));
+        });
 
         $query->when($this->selectedDate, fn($q) =>
             $q->whereDate('created_at', $this->selectedDate)
@@ -135,14 +139,27 @@ class SubmissionHistory extends Component
         });
     }
 
+    public function getActionTypeOptionsProperty()
+    {
+        return HistoryLog::where('user_id', auth()->id())
+            ->select('action_type')
+            ->distinct()
+            ->pluck('action_type')
+            ->map(fn($type) => ucwords(str_replace('_', ' ',$type)))
+            ->toArray();
+    }
+
 
     public function render()
     {
         $this->updateRestoreStatus();
 
         $totalCount = HistoryLog::where('user_id', auth()->id())
-            ->when($this->filter === 'Grievances', fn($q) => $q->where('reference_table', 'grievances'))
+            ->when($this->filter === 'Reports', fn($q) => $q->where('reference_table', 'grievances'))
             ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'))
+            ->when($this->filter && $this->filter !== 'Reports' && $this->filter !== 'Feedbacks', function ($q) {
+                $q->where('action_type', strtolower(preg_replace('/[\s-]+/', '_', $this->filter)));
+            })
             ->count();
 
         return view('livewire.user.citizen.submission-history', [

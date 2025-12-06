@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.prints')]
-#[Title('Print Selected Grievances')]
+#[Title('Print Selected Reports')]
 class PrintSelectedGrievances extends Component
 {
     public $selectedIds = [];

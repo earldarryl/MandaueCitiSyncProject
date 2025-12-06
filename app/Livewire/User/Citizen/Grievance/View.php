@@ -14,6 +14,11 @@ use Livewire\Attributes\Title;
 class View extends Component
 {
     public Grievance $grievance;
+    public $limit = 10;
+    public $totalRemarksCount;
+    protected $listeners = [
+        'loadMore' => 'loadMore',
+    ];
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -24,6 +29,8 @@ class View extends Component
         if ($this->grievance->user_id !== $user->id) {
             abort(403, 'You are not authorized to view this report.');
         }
+
+        $this->totalRemarksCount = count($this->grievance->grievance_remarks ?? []);
 
         ActivityLog::create([
             'user_id'      => $user->id,
@@ -49,12 +56,37 @@ class View extends Component
     public function refreshGrievance()
     {
         $this->dispatch('$refresh');
+        $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
-         Notification::make()
-            ->title('Data Refreshed')
-            ->body('The report page has been successfully refreshed.')
-            ->success()
-            ->send();
+    }
+
+    public function loadMore()
+    {
+        if ($this->limit < $this->totalRemarksCount) {
+            $this->limit += 10;
+        }
+
+        $this->dispatch('remarks-updated', canLoadMore: $this->canLoadMore);
+    }
+
+    public function getRemarksProperty()
+    {
+        $remarks = $this->grievance->grievance_remarks ?? [];
+
+        return array_slice($remarks, -$this->limit);
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalRemarksCount;
+    }
+
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
     }
 
     public function render()

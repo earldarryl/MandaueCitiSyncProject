@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
         Volt::route('admin/stakeholders/citizens/{id}', 'user.admin.stakeholders.citizens.view')->name('admin.stakeholders.citizens.view');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons', 'user.admin.stakeholders.departments-and-hr-liaisons.index')->name('admin.stakeholders.departments-and-hr-liaisons.index');
         Volt::route('admin/stakeholders/departments-and-hr-liaisons/hr-liaisons-list-view/{department}', 'user.admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view')->name('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view');
+        Volt::route('admin/stakeholders/departments-and-hr-liaisons/hr-liaisons-list-view/assignments/{department}/{hrLiaison}','user.admin.stakeholders.departments-and-hr-liaisons.assignments')->name('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-assignments');
         Volt::route('admin/forms/reports', 'user.admin.forms.grievances.index')->name('admin.forms.grievances.index');
         Volt::route('admin/forms/reports/view/{grievance}', 'user.admin.forms.grievances.view')->name('admin.forms.grievances.view');
         Volt::route('admin/forms/feedbacks', 'user.admin.forms.feedbacks.index')->name('admin.forms.feedbacks.index');

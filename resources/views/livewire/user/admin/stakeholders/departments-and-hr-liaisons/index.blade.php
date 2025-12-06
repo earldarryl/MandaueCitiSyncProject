@@ -263,7 +263,7 @@
 
             <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
                                 <th class="px-6 py-3 text-left font-semibold">Profile</th>
@@ -461,7 +461,7 @@
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Add HR Liaison</h3>
 
-                                         @php
+                                            @php
                                             $availableLiaisons = \App\Models\User::role('hr_liaison')
                                                 ->whereDoesntHave('departments', function ($query) use ($department) {
                                                     $query->where('hr_liaison_departments.department_id', $department->department_id);
@@ -591,7 +591,7 @@
                                                 </h3>
                                             </header>
 
-                                            <div wire:target="editDepartment({{ $department->department_id }})" wire:loading>
+                                            <div wire:loading wire:target="editDepartment({{ $department->department_id }})">
                                                 <div class="w-full flex items-center justify-center gap-2 py-6">
                                                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                                                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
@@ -599,7 +599,7 @@
                                                 </div>
                                             </div>
 
-                                            <div wire:target="editDepartment({{ $department->department_id }})" wire:loading.remove>
+                                            <div wire:loading.remove wire:target="editDepartment({{ $department->department_id }})">
                                                 <div class="flex-1 overflow-y-auto p-6 space-y-3">
                                                     <flux:input type="text" wire:model.defer="editingDepartment.department_name" placeholder="Department Name" clearable/>
                                                     <flux:error name="editingDepartment.department_name" />
@@ -624,22 +624,60 @@
                                                     />
                                                     <flux:error name="editingDepartment.is_available" />
 
-                                                    {{ $this->form->getComponent('edit_department_profile') }}
-                                                    {{ $this->form->getComponent('edit_department_background') }}
+                                                    <div class="flex flex-col items-center justify-center space-y-4 mt-4">
+                                                        @php
+                                                            $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                                                            $index = crc32($department->department_name) % count($palette);
+                                                            $bgColor = $palette[$index];
+                                                        @endphp
+
+                                                        <div class="relative">
+                                                            <input type="file" id="edit_profile_input" wire:model="edit_department_profile" class="hidden">
+                                                            <label for="edit_profile_input" class="cursor-pointer">
+                                                                <img
+                                                                    src="{{ $profilePreview
+                                                                            ? $profilePreview
+                                                                            : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=256' }}"
+                                                                    class="w-32 h-32 rounded-full object-cover border-4 border-gray-300 dark:border-zinc-700 hover:opacity-80 transition"
+                                                                    alt="Profile Preview"
+                                                                >
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="relative w-full">
+                                                            <input type="file" id="edit_background_input" wire:model="edit_department_background" class="hidden">
+                                                            <label for="edit_background_input" class="cursor-pointer w-full flex justify-center">
+                                                                <img
+                                                                    src="{{ $backgroundPreview
+                                                                            ? $backgroundPreview
+                                                                            : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=512' }}"
+                                                                    class="w-full max-w-md h-40 object-cover rounded border-4 border-gray-300 dark:border-zinc-700 hover:opacity-80 transition"
+                                                                    alt="Background Preview"
+                                                                >
+                                                            </label>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
                                                 <button @click="openEdit = false"
-                                                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                                                    class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                        dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
                                                     Cancel
                                                 </button>
-                                                <button wire:click="updateDepartment({{ $department->department_id }})" @click="openEdit = false"
-                                                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                                                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800">
+
+                                                <button
+                                                    wire:click="updateDepartment({{ $department->department_id }})"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="edit_department_profile, edit_department_background"
+                                                    @click="openEdit = false"
+                                                    class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                                        dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
+                                                        disabled:opacity-50 disabled:cursor-not-allowed">
                                                     Save
                                                 </button>
+
                                             </footer>
                                         </div>
                                     </div>
@@ -658,6 +696,10 @@
                         </tbody>
 
                     </table>
+
+                    <div class="px-6 py-4">
+                        {{ $departments->links() }}
+                    </div>
                 </div>
             </div>
 
@@ -666,7 +708,7 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">
                         <tr>
-                            @for ($i = 0; $i < 6; $i++)
+                            @for ($i = 0; $i < 7; $i++)
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
                                 </th>
@@ -696,60 +738,68 @@
         </div>
 
         <div x-show="openCreate" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreate = false">
-        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
 
-            <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
-                <x-heroicon-o-squares-plus class="w-6 h-6" />
-                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
-                    Create New Department
-                </h3>
-            </header>
+                <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                    <x-heroicon-o-squares-plus class="w-6 h-6" />
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                        Create New Department
+                    </h3>
+                </header>
 
-            <div class="space-y-3 w-full p-6">
-                <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
-                <flux:error name="newDepartment.department_name" />
+                <div class="space-y-3 w-full p-6">
+                    <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
+                    <flux:error name="newDepartment.department_name" />
 
-                <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
-                <flux:error name="newDepartment.department_code" />
+                    <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
+                    <flux:error name="newDepartment.department_code" />
 
-                <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
-                <flux:error name="newDepartment.department_description" />
+                    <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
+                    <flux:error name="newDepartment.department_description" />
 
-                <x-select
-                    name="newDepartment.is_active"
-                    wire:model.defer="newDepartment.is_active"
-                    placeholder="Select active status"
-                    :options="['Inactive','Active']"
-                />
-                <flux:error name="newDepartment.is_active" />
+                    <x-select
+                        name="newDepartment.is_active"
+                        wire:model.defer="newDepartment.is_active"
+                        placeholder="Select active status"
+                        :options="['Inactive','Active']"
+                    />
+                    <flux:error name="newDepartment.is_active" />
 
-                <x-select
-                    name="newDepartment.is_available"
-                    wire:model.defer="newDepartment.is_available"
-                    placeholder="Select availability status"
-                    :options="['Yes','No']"
-                />
-                <flux:error name="newDepartment.is_available" />
+                    <x-select
+                        name="newDepartment.is_available"
+                        wire:model.defer="newDepartment.is_available"
+                        placeholder="Select availability status"
+                        :options="['Yes','No']"
+                    />
+                    <flux:error name="newDepartment.is_available" />
 
-                {{ $this->form->getComponent('create_department_profile') }}
-                {{ $this->form->getComponent('create_department_background') }}
+                    <flux:input type="file" wire:model="create_department_profile" />
+                    <flux:error name="create_department_profile" />
+
+                    <flux:input type="file" wire:model="create_department_background" />
+                    <flux:error name="create_department_background" />
+                </div>
+
+                <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                    <button @click="openCreate = false"
+                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                        Cancel
+                    </button>
+                    <button wire:click="createDepartment"
+                            wire:loading.attr="disabled"
+                            wire:target="create_department_profile, create_department_background"
+                            @click="openCreate = false"
+                            class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
+                                disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="createDepartment">Save</span>
+                        <span wire:loading wire:target="createDepartment">Processing...</span>
+                    </button>
+                </footer>
             </div>
-
-            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
-                <button @click="openCreate = false"
-                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
-                    Cancel
-                </button>
-                <button wire:click="createDepartment" wire:loading.attr="disabled" @click="openCreate = false"
-                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span wire:loading.remove wire:target="createDepartment">Save</span>
-                    <span wire:loading wire:target="createDepartment">Processing...</span>
-                </button>
-            </footer>
         </div>
-    </div>
+
 
     <div x-show="openCreateLiaison" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openCreateLiaison = false">
         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">

@@ -115,6 +115,12 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class, 'hr_liaison_id');
+    }
+
+
     public function getProfilePicAttribute($value)
     {
         return $value ?: null;

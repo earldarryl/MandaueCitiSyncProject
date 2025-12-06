@@ -39,10 +39,16 @@
         table {
             width: 100% !important;
             border-collapse: collapse !important;
-            table-layout: fixed !important;
+            table-layout: auto !important;
             background: white !important;
             font-size: 11px !important;
             color: #1f2937 !important;
+        }
+
+        .grievance-remark-td {
+            width: 30% !important;
+            max-width: 30% !important;
+            white-space: normal !important;
         }
 
         table thead {
@@ -84,12 +90,94 @@
         .overflow-x-auto {
             overflow-x: visible !important;
         }
+
+        .status-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 50px;
+            margin-left: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: fit-content;
+            color: #1f2937;
+        }
+
+        .status-footer .footer-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .status-footer .footer-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .status-footer .footer-value {
+            font-weight: 600;
+            font-size: 15px;
+            border-bottom: 1.8px solid #374151;
+            padding-bottom: 2px;
+            letter-spacing: 0.3px;
+            color: #111827;
+        }
+
+        .status-footer .footer-subtext {
+            text-align: center;
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-top: 2px;
+            letter-spacing: 0.2px;
+        }
     }
 
     body {
         font-family: 'Inter', sans-serif;
         padding: 2rem;
     }
+
+    .status-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 50px;
+            margin-left: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: fit-content;
+            color: #1f2937;
+        }
+
+        .status-footer .footer-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .status-footer .footer-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .status-footer .footer-value {
+            font-weight: 600;
+            font-size: 15px;
+            border-bottom: 1.8px solid #374151;
+            padding-bottom: 2px;
+            letter-spacing: 0.3px;
+            color: #111827;
+        }
+
+        .status-footer .footer-subtext {
+            text-align: center;
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-top: 2px;
+            letter-spacing: 0.2px;
+        }
 </style>
 
     @livewireStyles

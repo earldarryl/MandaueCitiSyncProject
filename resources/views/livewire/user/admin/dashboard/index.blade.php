@@ -67,6 +67,28 @@
                 </div>
             </section>
 
+            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
+                <div class="flex flex-col lg:flex-row gap-6 w-full">
+                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                        <livewire:admin-grievance-table-dashboard
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-grievance-table-{{ $startDate }}-{{ $endDate }}" />
+                    </div>
+                </div>
+            </section>
+
+            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
+                <div class="flex flex-col lg:flex-row gap-6 w-full">
+                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
+                        <livewire:admin-feedback-table-dashboard
+                            :start-date="$startDate"
+                            :end-date="$endDate"
+                            wire:key="admin-feedback-table-dashboard-{{ $startDate }}-{{ $endDate }}" />
+                    </div>
+                </div>
+            </section>
+
             <section class="w-full h-full p-4 flex justify-center items-center gap-6">
                 <div class="flex gap-6 justify-center w-full flex-col lg:flex-row items-stretch">
                     <div class="bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4 w-full lg:w-2/4 max-w-full">
@@ -118,28 +140,6 @@
                         />
                     </div>
 
-                </div>
-            </section>
-
-            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
-                <div class="flex flex-col lg:flex-row gap-6 w-full">
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
-                        <livewire:admin-grievance-table-dashboard
-                            :start-date="$startDate"
-                            :end-date="$endDate"
-                            wire:key="admin-grievance-table-{{ $startDate }}-{{ $endDate }}" />
-                    </div>
-                </div>
-            </section>
-
-            <section class="w-full p-4 relative rounded-lg bg-white/70 dark:bg-zinc-800/40 shadow-sm">
-                <div class="flex flex-col lg:flex-row gap-6 w-full">
-                    <div class="flex-1 w-full bg-white/70 dark:bg-zinc-800/40 rounded-xl shadow-sm p-4">
-                        <livewire:admin-feedback-table-dashboard
-                            :start-date="$startDate"
-                            :end-date="$endDate"
-                            wire:key="admin-feedback-table-dashboard-{{ $startDate }}-{{ $endDate }}" />
-                    </div>
                 </div>
             </section>
 

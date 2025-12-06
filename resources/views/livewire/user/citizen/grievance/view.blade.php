@@ -2,7 +2,6 @@
      data-component="citizen-grievance-view"
      data-wire-id="{{ $this->id() }}"
 >
-
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
 
         <x-responsive-nav-link
@@ -99,18 +98,18 @@
                 };
 
                 $priorityClass = match (strtolower($grievance->priority_level)) {
-                    'low'      => 'text-blue-600 font-semibold',
-                    'normal'   => 'text-gray-600 font-semibold',
-                    'medium'   => 'text-yellow-600 font-semibold',
-                    'high'     => 'text-orange-600 font-semibold',
-                    'critical' => 'text-red-700 font-extrabold',
-                    default    => 'text-gray-600 font-semibold',
+                    'low'      => 'text-blue-600 dark:text-blue-400 font-semibold',
+                    'normal'   => 'text-gray-600 dark:text-gray-400 font-semibold',
+                    'medium'   => 'text-yellow-600 dark:text-yellow-400 font-semibold',
+                    'high'     => 'text-red-600 dark:text-red-400 font-semibold',
+                    'critical' => 'text-red-700 dark:text-red-600 font-extrabold',
+                    default    => 'text-gray-600 dark:text-gray-400 font-semibold',
                 };
 
                 $class = match (true) {
-                    $isCompleted => 'text-green-600 font-semibold',
-                    $isEscalated => 'text-amber-600 font-semibold',
-                    $isOverdue   => 'text-red-600 font-semibold',
+                    $isCompleted => 'text-green-600 dark:text-green-400 font-semibold',
+                    $isEscalated => 'text-amber-600 dark:text-amber-400 font-semibold',
+                    $isOverdue   => 'text-red-600 dark:text-red-400 font-semibold',
                     default      => '',
                 };
 
@@ -169,32 +168,157 @@
                 </div>
             </div>
 
-            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4">
+            <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-4 w-full">
                 <h4 class="flex items-center gap-2 mb-2">
                     <x-heroicon-o-building-office class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">Departments</span>
                 </h4>
-                <div class="text-[15px] text-gray-900 dark:text-gray-200 leading-relaxed">
-                    @forelse ($grievance->departments->unique('department_id') as $department)
-                        <span
-                            class="inline-block bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30
-                                border border-blue-400 dark:border-blue-600
-                                text-blue-700 dark:text-blue-300 font-medium text-sm
-                                px-3 py-1.5 rounded-full shadow-sm
-                                hover:shadow-md hover:brightness-105 transition-all duration-200 ease-in-out mr-1 mb-1"
-                        >
-                            {{ $department->department_name }}
-                        </span>
-                    @empty
-                        <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
-                    @endforelse
-                </div>
-            </div>
 
+                <ul class="mt-3 divide-y divide-gray-200 dark:divide-zinc-700 w-full">
+                    @forelse ($grievance->departments->unique('department_id') as $department)
+                        @php
+                            $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                            $index = crc32($department->department_name) % count($palette);
+                            $bgColor = $palette[$index];
+
+                            $hasBg = !empty($department->department_bg);
+
+                            $bgUrl = $hasBg
+                                ? Storage::url($department->department_bg)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) .
+                                '&background=' . $bgColor . '&color=fff&size=512';
+
+                            $profileUrl = $department->department_profile
+                                ? Storage::url($department->department_profile)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) .
+                                '&background=' . $bgColor . '&color=fff&size=128';
+
+                            $textColor = $hasBg
+                                ? 'text-gray-900 dark:text-gray-200'
+                                : 'text-[#' . $bgColor . '] dark:text-[#' . $bgColor . ']';
+                        @endphp
+
+                        <li class="py-4 w-full relative rounded-xl overflow-hidden shadow-lg">
+                            <div class="absolute inset-0">
+                                <img src="{{ $bgUrl }}" alt="Department BG"
+                                    class="w-full h-full object-cover opacity-80">
+                                <div class="absolute inset-0 bg-black/20"></div>
+                            </div>
+
+                            <div class="relative flex items-center space-x-4 rtl:space-x-reverse w-full px-4">
+                                <div class="shrink-0">
+                                    <img class="w-16 h-16 rounded-full border-2 border-white dark:border-zinc-700 object-cover"
+                                        src="{{ $profileUrl }}" alt="{{ $department->department_name }}">
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold truncate {{ $textColor }}">
+                                        {{ $department->department_name }}
+                                    </p>
+
+                                    <p class="text-sm font-semibold truncate {{ $textColor }} opacity-90">
+                                        HR Liaisons: {{ $department->hr_liaisons_status }}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                    @empty
+                        <li class="py-4 w-full">
+                            <span class="text-gray-600 dark:text-gray-400 italic">No department assigned</span>
+                        </li>
+                    @endforelse
+                </ul>
+            </div>
         </div>
     </div>
 
-   <div class="flex flex-col gap-3 p-3 rounded-sm" x-data="{ showMore: false, zoomSrc: null }">
+    <div class="border border-gray-300 dark:border-zinc-700 rounded-xl p-3 mt-6">
+        <h4 class="flex items-center gap-2 mb-3">
+            <x-heroicon-o-chat-bubble-left-right class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                Add Progress Log
+            </span>
+        </h4>
+
+        <div
+            x-data="progressLogs(@js($this->canLoadMore))"
+            x-init="scrollToBottom()"
+            x-on:new-log.window="scrollToBottom()"
+            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800"
+            x-ref="logContainer"
+            @scroll.passive="checkScroll()"
+        >
+
+            @if(count($this->remarks) === 0)
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 italic">
+                    No progress logs yet. Logs will appear here when HR Liaison or Admin adds updates.
+                </div>
+            @else
+
+            <template x-if="loadingMore">
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2">
+                    Loading older logs, please wait...
+                </div>
+            </template>
+
+            @if(count($this->remarks) > 10)
+                <template x-if="!canLoadMore && !loadingMore">
+                    <div class="text-center text-xs text-gray-400 dark:text-gray-500 py-2 italic">
+                        — No older remarks to load —
+                    </div>
+                </template>
+            @endif
+
+            <ul class="max-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                @foreach($this->remarks as $remark)
+                    <li class="@if($remark['type'] === 'update') bg-blue-50 dark:bg-blue-900/30
+                            @elseif($remark['type'] === 'note') bg-gray-50 dark:bg-gray-800/30
+                            @elseif($remark['type'] === 'escalation') bg-red-50 dark:bg-red-900/30
+                            @else bg-gray-50 dark:bg-gray-800/30 @endif">
+                        <div class="flex items-start space-x-4 rtl:space-x-reverse p-3
+                        ">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium truncate
+                                    @if($remark['type'] === 'update') text-blue-700 dark:text-blue-300
+                                    @elseif($remark['type'] === 'note') text-gray-600 dark:text-gray-400
+                                    @elseif($remark['type'] === 'escalation') text-red-600 dark:text-red-400
+                                    @else text-gray-700 dark:text-gray-300 @endif
+                                ">
+                                    {{ $remark['user_name'] }}
+                                    <span class="text-xs font-semibold text-gray-400 dark:text-gray-500">({{ $remark['role'] }})</span>
+                                </p>
+
+                                <p class="text-xs truncate mt-0.5 font-semibold
+                                    @if($remark['type'] === 'update') text-blue-500 dark:text-blue-400
+                                    @elseif($remark['type'] === 'note') text-gray-500 dark:text-gray-400
+                                    @elseif($remark['type'] === 'escalation') text-red-500 dark:text-red-400
+                                    @else text-gray-500 dark:text-gray-400 @endif
+                                ">
+                                    {{ strtoupper($remark['type']) }} - {{ strtoupper(str_replace('_', ' ', $remark['status'])) }}
+                                </p>
+
+                                <p class="text-sm mt-1 leading-relaxed font-medium
+                                    @if($remark['type'] === 'update') text-blue-800 dark:text-blue-200
+                                    @elseif($remark['type'] === 'note') text-gray-800 dark:text-gray-200
+                                    @elseif($remark['type'] === 'escalation') text-red-700 dark:text-red-300
+                                    @else text-gray-800 dark:text-gray-200 @endif
+                                ">
+                                    {{ $remark['message'] }}
+                                </p>
+                            </div>
+
+                            <div class="inline-flex items-start text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {{ Carbon::parse($remark['timestamp'])->format('M d, Y h:i A') }}
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+            @endif
+        </div>
+    </div>
+
+   <div class="flex flex-col gap-3 p-3 border border-gray-300 dark:border-zinc-700 rounded-xl" x-data="{ showMore: false, zoomSrc: null }">
         <h4 class="flex items-center gap-2 text-[14px] font-semibold text-gray-600 dark:text-gray-400 mb-2 tracking-wide">
             <x-heroicon-o-paper-clip class="w-5 h-5 text-gray-500 dark:text-gray-400" /> Attachments
         </h4>
@@ -212,6 +336,10 @@
                             $url = Storage::url($attachment->file_path);
                             $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                            $file = $attachment->file_path;
+                            $size = Storage::disk('public')->exists($file)
+                                ? $this->readableSize(Storage::disk('public')->size($file))
+                                : 'Unavailable';
                         @endphp
 
                         @if ($loop->iteration < 4 && $grievance->attachments->count() > 4)
@@ -224,11 +352,30 @@
                                         @click="zoomSrc = '{{ $url }}'"
                                     />
                                 @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
+                                    <a
+                                        href="{{ $url }}"
+                                        download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                        class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                            text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                            hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                    >
+                                        Download
+                                    </a>
+                                    <a
+                                        href="{{ $url }}"
+                                        target="_blank"
+                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                    >
                                         <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                        <span class="flex flex-col gap-1">
+                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                            </span>
+
+                                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                ({{ $size }})
+                                            </span>
                                         </span>
                                     </a>
                                 @endif
@@ -262,11 +409,30 @@
                                         @click="zoomSrc = '{{ $url }}'"
                                     />
                                 @else
-                                    <a href="{{ $url }}" target="_blank"
-                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center">
+                                    <a
+                                        href="{{ $url }}"
+                                        download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                        class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                            text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                            hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                    >
+                                        Download
+                                    </a>
+                                    <a
+                                        href="{{ $url }}"
+                                        target="_blank"
+                                        class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                    >
                                         <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                        <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                        <span class="flex flex-col gap-1">
+                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                            </span>
+
+                                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                ({{ $size }})
+                                            </span>
                                         </span>
                                     </a>
                                 @endif
@@ -316,6 +482,10 @@
                                             $url = Storage::url($attachment->file_path);
                                             $extension = pathinfo($attachment->file_name ?? $attachment->file_path, PATHINFO_EXTENSION);
                                             $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+                                            $file = $attachment->file_path;
+                                            $size = Storage::disk('public')->exists($file)
+                                                ? $this->readableSize(Storage::disk('public')->size($file))
+                                                : 'Unavailable';
                                         @endphp
 
                                         <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
@@ -329,12 +499,28 @@
                                             @else
                                                 <a
                                                     href="{{ $url }}"
+                                                    download="{{ $attachment->file_name ?? basename($attachment->file_path) }}"
+                                                    class="absolute top-2 right-2 z-20 bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700
+                                                        text-[11px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200
+                                                        hover:bg-gray-200 dark:hover:bg-zinc-700"
+                                                >
+                                                    Download
+                                                </a>
+                                                <a
+                                                    href="{{ $url }}"
                                                     target="_blank"
                                                     class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
                                                 >
                                                     <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                                    <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
-                                                        {{ $attachment->file_name ?? basename($attachment->file_path) }}
+
+                                                    <span class="flex flex-col gap-1">
+                                                        <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                            {{ $attachment->file_name ?? basename($attachment->file_path) }}
+                                                        </span>
+
+                                                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                            ({{ $size }})
+                                                        </span>
                                                     </span>
                                                 </a>
                                             @endif
@@ -391,11 +577,91 @@
         </h4>
 
         <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            <p>Discuss updates or feedback regarding this grievance below.</p>
+            <p>Discuss updates or feedback regarding this report below.</p>
         </div>
 
         <livewire:partials.chat :grievance="$grievance"/>
     </div>
 
 </div>
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('progressLogs', (initialCanLoadMore) => ({
+        loadingMore: false,
+        canLoadMore: initialCanLoadMore,
 
+    emitToLivewire(eventName, payload = null) {
+      if (window.Livewire && typeof window.Livewire.emit === 'function') {
+        return window.Livewire.emit(eventName, payload);
+      }
+      if (window.livewire && typeof window.livewire.emit === 'function') {
+        return window.livewire.emit(eventName, payload);
+      }
+
+      return new Promise(resolve => {
+        const onLoad = () => {
+          if (window.Livewire && typeof window.Livewire.emit === 'function') {
+            window.Livewire.emit(eventName, payload);
+          } else if (window.livewire && typeof window.livewire.emit === 'function') {
+            window.livewire.emit(eventName, payload);
+          } else {
+            window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
+          }
+          resolve();
+        };
+
+        window.addEventListener('livewire:load', onLoad, { once: true });
+
+        setTimeout(() => {
+          if (window.Livewire || window.livewire) onLoad();
+        }, 2000);
+      });
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const el = this.$refs.logContainer;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight;
+      });
+    },
+
+    checkScroll() {
+            const el = this.$refs.logContainer;
+            if (!el) return;
+
+            if (el.scrollTop <= 5 && !this.loadingMore && this.canLoadMore) {
+                this.loadingMore = true;
+
+                const prevScrollTop = el.scrollTop;
+                const prevScrollHeight = el.scrollHeight;
+
+                const onUpdated = (event) => {
+                    this.$nextTick(() => {
+                        const newScrollHeight = el.scrollHeight;
+                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+                        this.loadingMore = false;
+
+                        const newCanLoadMore = event.detail.canLoadMore !== undefined
+                            ? event.detail.canLoadMore
+                            : (event.detail[0] && event.detail[0].canLoadMore);
+
+                        if (newCanLoadMore !== undefined) {
+                            this.canLoadMore = newCanLoadMore;
+                        }
+
+                    });
+                    window.removeEventListener('remarks-updated', onUpdated);
+                };
+
+                window.addEventListener('remarks-updated', onUpdated);
+
+                this.emitToLivewire('loadMore').catch(() => {
+                    this.loadingMore = false;
+                    window.removeEventListener('remarks-updated', onUpdated);
+                });
+            }
+        }
+  }));
+});
+</script>

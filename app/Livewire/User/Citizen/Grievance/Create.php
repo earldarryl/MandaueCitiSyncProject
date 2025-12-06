@@ -56,9 +56,11 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ->hiddenLabel(true)
                 ->required()
                 ->toolbarButtons([
-                    'bold','italic','underline','strike',
-                    'bulletList','orderedList','link',
-                    'blockquote','codeBlock'
+                    ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
+                    ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
+                    ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+                    ['table', 'attachFiles'],
+                    ['undo', 'redo'],
                 ])
                 ->allowHtmlValidationMessages()
                 ->placeholder('Edit report details...'),
@@ -158,14 +160,15 @@ class Create extends Component implements Forms\Contracts\HasForms
 
         try {
             $processingDays = match ($this->priority_level) {
-                'High'   => 3,
+                'High'   => 20,
                 'Normal' => 7,
-                'Low'    => 20,
+                'Low'    => 3,
                 default  => 7,
             };
 
             $grievance = Grievance::create([
                 'user_id'          => auth()->id(),
+                'department_id'    => $department->department_id,
                 'grievance_type'   => $this->grievance_type,
                 'grievance_category'=> $this->grievance_category,
                 'priority_level'   => $this->priority_level,

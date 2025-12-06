@@ -192,6 +192,21 @@
                             $wire.set('grievance_category', '', true);
                         }
                     }"
+
+                     x-init="
+                        $watch('department', () => {
+                            grievanceType = '';
+                            grievanceCategory = '';
+                            $wire.set('grievance_type', '', true);
+                            $wire.set('grievance_category', '', true);
+                        });
+
+                        $watch('grievanceType', () => {
+                            grievanceCategory = '';
+                            $wire.set('grievance_category', '', true);
+                        });
+                    "
+
                     class="flex flex-col gap-6"
                 >
 
@@ -413,7 +428,10 @@
                                     this.search = '';
                                 }
                             }"
-                            x-init="selectedCategory = grievanceCategory"
+                           x-init="
+                                selectedCategory = grievanceCategory;
+                                $watch('grievanceCategory', value => selectedCategory = value);
+                            "
                         >
 
                             <!-- Label -->

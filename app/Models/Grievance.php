@@ -18,6 +18,7 @@ class Grievance extends Model
 
     protected $fillable = [
         'user_id',
+        'department_id',
         'is_anonymous',
         'grievance_status',
         'priority_level',
@@ -27,11 +28,13 @@ class Grievance extends Model
         'grievance_title',
         'grievance_details',
         'grievance_ticket_id',
+        'grievance_remarks',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'grievance_remarks' => 'array',
     ];
 
     protected $dates = ['deleted_at'];
@@ -67,6 +70,11 @@ class Grievance extends Model
     public function assignments()
     {
         return $this->hasMany(Assignment::class, 'grievance_id', 'grievance_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id', 'department_id');
     }
 
     public function departments()
@@ -105,6 +113,17 @@ class Grievance extends Model
         return User::whereHas('hrLiaisonDepartments', function ($q) {
             $q->whereIn('department_id', $this->departments->pluck('department_id'));
         })->get();
+    }
+
+    public function addRemark(array $remark)
+    {
+        $remarks = $this->grievance_remarks ?? [];
+
+        $remarks[] = $remark;
+
+        $this->update([
+            'grievance_remarks' => $remarks
+        ]);
     }
 
 }

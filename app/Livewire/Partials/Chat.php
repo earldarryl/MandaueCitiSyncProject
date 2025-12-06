@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Partials;
 
+use Filament\Notifications\Notification;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 use App\Events\MessageSent;
@@ -40,6 +42,21 @@ class Chat extends Component implements Forms\Contracts\HasForms
         }
 
         $this->form->fill();
+    }
+
+    #[On('refreshChat')]
+    public function refreshChat($grievanceId)
+    {
+        if ($grievanceId == $this->grievance->grievance_id) {
+            $this->loadMessages();
+        }
+
+        Notification::make()
+            ->title('Data Refreshed')
+            ->body('The report page has been successfully refreshed.')
+            ->success()
+            ->send();
+
     }
 
     public function getListeners()
@@ -217,6 +234,14 @@ class Chat extends Component implements Forms\Contracts\HasForms
             return $this->grievance->assignments->first()->hr_liaison_id ?? null;
         }
         return $this->grievance->user_id;
+    }
+
+    public function readableSize($bytes)
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024 * 1024 * 1024) return round($bytes / (1024 * 1024), 1) . ' MB';
+        return round($bytes / (1024 * 1024 * 1024), 1) . ' GB';
     }
 
     public function render()

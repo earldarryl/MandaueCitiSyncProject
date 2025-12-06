@@ -21,549 +21,6 @@
 
                 <flux:field>
                     <div class="flex flex-col gap-2">
-                        <flux:label class="flex gap-2 items-center">
-                            <flux:icon.question-mark-circle />
-                            <span>Is Anonymous</span>
-                        </flux:label>
-
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            Do you want to keep your identity hidden when submitting this report?
-                        </h3>
-
-                        <ul class="grid w-full gap-4 md:grid-cols-1">
-                            @foreach ([
-                                [
-                                    'id' => 'anonymous-yes',
-                                    'value' => 1,
-                                    'label' => 'Yes',
-                                    'desc' => 'Your identity will be hidden from HR Liaisons.',
-                                    'color' => 'blue',
-                                    'icon' => 'eye-slash',
-                                ],
-                                [
-                                    'id' => 'anonymous-no',
-                                    'value' => 0,
-                                    'label' => 'No',
-                                    'desc' => 'Your name will be visible to assigned HR Liaisons.',
-                                    'color' => 'amber',
-                                    'icon' => 'eye',
-                                ],
-                            ] as $option)
-                                @php $color = $option['color']; @endphp
-                                <li class="relative">
-                                    <label
-                                        for="{{ $option['id'] }}"
-                                        class="group relative inline-flex items-center justify-between w-full p-5
-                                            rounded-xl cursor-pointer shadow-sm transition-all duration-300 ease-in-out
-                                            text-gray-800 dark:text-gray-200 bg-white dark:bg-zinc-900
-                                            border border-gray-200 dark:border-zinc-700 hover:shadow-md overflow-hidden
-                                            hover:border-{{ $color }}-400 hover:bg-{{ $color }}-50/50 dark:hover:bg-{{ $color }}-900/20"
-                                    >
-                                        <input
-                                            type="radio"
-                                            id="{{ $option['id'] }}"
-                                            name="is_anonymous"
-                                            value="{{ $option['value'] }}"
-                                            wire:model="is_anonymous"
-                                            class="hidden peer"
-                                        />
-
-                                        <span
-                                            @class([
-                                                'absolute inset-0 rounded-xl z-0 opacity-0 transition-all duration-300 peer-checked:opacity-100',
-                                                'bg-blue-100 border-2 border-blue-500 dark:bg-blue-900/40 dark:border-blue-400' => $color === 'blue',
-                                                'bg-amber-100 border-2 border-amber-500 dark:bg-amber-900/40 dark:border-amber-400' => $color === 'amber',
-                                            ])>
-                                        </span>
-
-                                        <div class="relative z-10 flex flex-col gap-1">
-                                            <div class="text-base font-bold flex items-center gap-2">
-                                                @switch($option['icon'])
-                                                    @case('eye-slash')
-                                                        <flux:icon.eye-slash class="w-5 h-5" />
-                                                        @break
-
-                                                    @case('eye')
-                                                        <flux:icon.eye class="w-5 h-5" />
-                                                        @break
-                                                @endswitch
-
-                                                <span>{{ $option['label'] }}</span>
-                                            </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $option['desc'] }}</div>
-                                        </div>
-                                    </label>
-
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-
-                    <flux:error name="is_anonymous" />
-                </flux:field>
-
-                <div
-                    x-data="{
-                        department: @entangle('department'),
-                        grievanceType: @entangle('grievance_type'),
-                        grievanceCategory: @entangle('grievance_category'),
-
-                        categoriesMap: {
-                            'Business Permit and Licensing Office': {
-                                'Complaint': [
-                                    'Delayed Business Permit Processing',
-                                    'Unclear Requirements or Procedures',
-                                    'Unfair Treatment by Personnel'
-                                ],
-                                'Inquiry': [
-                                    'Business Permit Requirements Inquiry',
-                                    'Renewal Process Clarification',
-                                    'Schedule or Fee Inquiry'
-                                ],
-                                'Request': [
-                                    'Document Correction or Update Request',
-                                    'Business Record Verification Request',
-                                    'Appointment or Processing Schedule Request'
-                                ],
-                            },
-                            'Traffic Enforcement Agency of Mandaue': {
-                                'Complaint': [
-                                    'Traffic Enforcer Misconduct',
-                                    'Unjust Ticketing or Penalty',
-                                    'Inefficient Traffic Management'
-                                ],
-                                'Inquiry': [
-                                    'Traffic Rules Clarification',
-                                    'Citation or Violation Inquiry',
-                                    'Inquiry About Traffic Assistance'
-                                ],
-                                'Request': [
-                                    'Request for Traffic Assistance',
-                                    'Request for Event Traffic Coordination',
-                                    'Request for Violation Review'
-                                ],
-                            },
-                            'City Social Welfare Services': {
-                                'Complaint': [
-                                    'Discrimination or Neglect in Assistance',
-                                    'Delayed Social Service Response',
-                                    'Unprofessional Staff Behavior'
-                                ],
-                                'Inquiry': [
-                                    'Assistance Program Inquiry',
-                                    'Eligibility or Requirements Clarification',
-                                    'Social Service Schedule Inquiry'
-                                ],
-                                'Request': [
-                                    'Request for Social Assistance',
-                                    'Financial Aid or Program Enrollment Request',
-                                    'Home Visit or Consultation Request'
-                                ],
-                            }
-                        },
-
-                        get departmentOptions() {
-                            return Object.keys(this.categoriesMap);
-                        },
-
-                        get typeOptions() {
-                            return this.department
-                                ? Object.keys(this.categoriesMap[this.department])
-                                : [];
-                        },
-
-                        get categoryOptions() {
-                            if (this.department && this.grievanceType) {
-                                const base = this.categoriesMap[this.department][this.grievanceType] || [];
-                                return [...base, 'Other'];
-                            }
-                            return [];
-                        },
-
-                        resetType() {
-                            this.grievanceType = '';
-                            this.grievanceCategory = '';
-                            $wire.set('grievance_type', '', true);
-                            $wire.set('grievance_category', '', true);
-                        },
-
-                        resetCategory() {
-                            this.grievanceCategory = '';
-                            $wire.set('grievance_category', '', true);
-                        }
-                    }"
-                    class="flex flex-col gap-6"
-                >
-
-                    <!-- Department -->
-                    <flux:field>
-                        <div class="flex flex-col gap-2">
-
-                            <flux:label class="flex gap-2 items-center">
-                                <flux:icon.building-office />
-                                <span>Department</span>
-                            </flux:label>
-
-                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Which department is involved or related to your report?
-                            </h3>
-
-                            <div
-                                x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: @entangle('department'),
-                                    optionsMap: @js($departmentOptions),
-                                    highlightedIndex: -1,
-
-                                    get optionsList() { return Object.entries(this.optionsMap); },
-                                    get filteredOptions() {
-                                        if(!this.search) return this.optionsList;
-                                        const q = this.search.toLowerCase();
-                                        return this.optionsList.filter(([k,v]) => v.toLowerCase().includes(q));
-                                    },
-                                    selectOption(key) {
-                                        this.selected = key;
-                                        $wire.set('department', key, true);
-                                        this.open = false;
-                                        this.search = '';
-                                        this.highlightedIndex = -1;
-                                        $dispatch('department-selected', { value: key });
-                                    },
-                                    get displayValue() { return this.optionsMap[this.selected] ?? this.selected ?? ''; },
-                                }"
-                                x-init="
-                                    $watch('displayValue', val => $wire.set('department', val, true));
-                                    window.addEventListener('clear', () => { selected = ''; search=''; highlightedIndex=-1; $wire.set('department','',true); });
-                                "
-                                class="relative w-full"
-                            >
-                                <!-- Input -->
-                                <div
-                                    @click="open = !open; if(open) highlightedIndex=0"
-                                    tabindex="0"
-                                    class="relative !cursor-pointer"
-                                >
-                                    <flux:input
-                                        name="department"
-                                        readonly
-                                        placeholder="Select department"
-                                        class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                        x-bind:value="displayValue"
-                                    />
-
-                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-                                        <flux:button
-                                            x-show="!!selected"
-                                            size="sm"
-                                            variant="subtle"
-                                            icon="x-mark"
-                                            class="h-5 w-5"
-                                            @click.stop="selected = ''; search=''; highlightedIndex=-1; $wire.set('department','',true);"
-                                        />
-                                        <div class="h-5 w-5 flex items-center justify-center">
-                                            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'
-                                                stroke-width='2' stroke='currentColor'
-                                                class='h-5 w-5 text-gray-500 transition-transform duration-200'
-                                                :class='open ? `rotate-180` : ``'>
-                                                <path stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Dropdown -->
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false; highlightedIndex=-1"
-                                    x-transition
-                                    class="absolute z-50 mt-1 w-full dark:bg-zinc-900 bg-white ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-                                >
-                                    <!-- Search -->
-                                    <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
-                                        <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                                        <input
-                                            type="text"
-                                            x-model="search"
-                                            placeholder="Search..."
-                                            class="w-full border-none focus:outline-none focus:ring-0 bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
-                                            @keydown.arrow-down.prevent="if(highlightedIndex < filteredOptions.length-1) highlightedIndex++"
-                                            @keydown.arrow-up.prevent="if(highlightedIndex > 0) highlightedIndex--"
-                                            @keydown.enter.prevent="if(filteredOptions[highlightedIndex]) selectOption(filteredOptions[highlightedIndex][0])"
-                                        />
-                                    </div>
-
-                                    <!-- Options -->
-                                    <div class="max-h-48 overflow-y-auto">
-                                        <ul class="py-1" role="listbox">
-                                            <template x-for="[key,label], index in filteredOptions" :key="key">
-                                                <li>
-                                                    <button
-                                                        type="button"
-                                                        @click="selectOption(key)"
-                                                        class="w-full flex items-center justify-between text-left px-4 py-2 text-sm rounded-md"
-                                                        :class="selected === key
-                                                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
-                                                            : index === highlightedIndex
-                                                                ? 'bg-zinc-100 dark:bg-zinc-800'
-                                                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800' "
-                                                    >
-                                                        <span x-text="label"></span>
-                                                        <flux:icon.check x-show="selected === key" class="w-4 h-4" />
-                                                    </button>
-                                                </li>
-                                            </template>
-
-                                            <li
-                                                x-show="filteredOptions.length === 0"
-                                                class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-                                            >
-                                                No results found
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <flux:error name="department" />
-                    </flux:field>
-
-                    <!-- Grievance Type -->
-                    <flux:field x-show="department" x-cloak>
-                        <div class="flex flex-col gap-2" x-data="{ open: false, search: '' }">
-                            <flux:label class="flex gap-2 items-center">
-                                <flux:icon.squares-2x2 />
-                                <span>Grievance Type</span>
-                            </flux:label>
-                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                What kind of report would you like to file?
-                            </h3>
-
-                            <div class="relative !cursor-pointer">
-                                <flux:input
-                                    name="grievance_type"
-                                    readonly
-                                    x-model="grievanceType"
-                                    placeholder="Select grievance type"
-                                    @click="open = !open"
-                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                />
-
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false; search=''"
-                                    x-transition
-                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-                                >
-                                    <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
-                                        <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                                        <input
-                                            type="text"
-                                            x-model="search"
-                                            placeholder="Search..."
-                                            class="w-full border-none focus:outline-none focus:ring-0 bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
-                                        />
-                                    </div>
-
-                                    <ul class="py-1">
-                                        <template x-for="opt in typeOptions.filter(t => t.toLowerCase().includes(search.toLowerCase()))" :key="opt">
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                                    @click="
-                                                        grievanceType = opt;
-                                                        $wire.set('grievance_type', opt, true);
-                                                        resetCategory();
-                                                        open = false;
-                                                        search = '';
-                                                    "
-                                                    x-text="opt"
-                                                ></button>
-                                            </li>
-                                        </template>
-
-                                        <li x-show="typeOptions.filter(t => t.toLowerCase().includes(search.toLowerCase())).length === 0"
-                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                            No results found
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <flux:error name="grievance_type" />
-                    </flux:field>
-
-                    <flux:field x-show="grievanceType" x-cloak>
-                        <div
-                            class="flex flex-col gap-2"
-                            x-data="{
-                                open: false,
-                                search: '',
-                                selectedCategory: grievanceCategory,
-                                grievanceCategoryInput: '',
-
-                                confirmOther() {
-                                    if (this.grievanceCategoryInput.trim() === '') return;
-                                    this.selectedCategory = this.grievanceCategoryInput;
-                                    $wire.set('grievance_category', this.grievanceCategoryInput, true);
-                                    this.open = false;
-                                    this.search = '';
-                                }
-                            }"
-                            x-init="selectedCategory = grievanceCategory"
-                        >
-
-                            <!-- Label -->
-                            <flux:label class="flex gap-2 items-center">
-                                <flux:icon.list-bullet />
-                                <span>Category</span>
-                            </flux:label>
-
-                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                                Choose a category based on the selected department and type.
-                            </h3>
-
-                            <div class="relative !cursor-pointer">
-
-                                <!-- MAIN READONLY INPUT -->
-                                <flux:input
-                                    name="grievance_category"
-                                    readonly
-                                    x-bind:value="selectedCategory"
-                                    placeholder="Select grievance category"
-                                    @click="open = !open"
-                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                />
-
-                                <!-- DROPDOWN -->
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false; search=''; grievanceCategoryInput='';"
-                                    x-transition
-                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-                                >
-
-                                    <!-- Search -->
-                                    <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
-                                        <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                                        <input
-                                            type="text"
-                                            x-model="search"
-                                            placeholder="Search..."
-                                            class="w-full border-none focus:outline-none bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
-                                        />
-                                    </div>
-
-                                    <!-- CATEGORY OPTIONS -->
-                                    <ul class="py-1">
-                                        <template
-                                            x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))"
-                                            :key="opt"
-                                        >
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                                    x-text="opt"
-                                                    @click="
-                                                        if (opt === 'Other') {
-                                                            selectedCategory = '';       // main input shows blank
-                                                            grievanceCategoryInput = '';  // start typing empty
-                                                            open = true;
-                                                            $nextTick(() => {
-                                                                $refs.otherBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                                $refs.otherInput.focus();
-                                                            });
-                                                        } else {
-                                                            selectedCategory = opt;
-                                                            $wire.set('grievance_category', opt, true);
-                                                            open = false;
-                                                            search = '';
-                                                        }
-                                                    "
-                                                ></button>
-                                            </li>
-                                        </template>
-
-                                        <li
-                                            x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
-                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-                                        >
-                                            No results found
-                                        </li>
-                                    </ul>
-
-                                    <!-- OTHER INPUT -->
-                                    <div
-                                        x-show="selectedCategory === '' && categoryOptions.includes('Other') && open"
-                                        x-transition
-                                        x-ref="otherBox"
-                                        class="p-3 border-t border-gray-300 dark:border-zinc-700"
-                                    >
-                                        <flux:label>Specify Other Category</flux:label>
-
-                                        <div class="flex gap-2 mt-1">
-                                            <flux:input
-                                                type="text"
-                                                placeholder="Enter category"
-                                                x-ref="otherInput"
-                                                x-model="grievanceCategoryInput"
-                                                @keydown.enter.prevent="confirmOther()"
-                                                class="flex-1"
-                                            />
-
-                                            <flux:button
-                                                @click="confirmOther()"
-                                                size="sm"
-                                                variant="primary"
-                                            >
-                                                Select
-                                            </flux:button>
-                                        </div>
-
-                                        <flux:error name="grievance_category" />
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <flux:error name="grievance_category" />
-                    </flux:field>
-
-                </div>
-
-                <flux:field class="flex-1">
-                    <div class="flex flex-col gap-2">
-                        <flux:label class="flex gap-2 items-center">
-                            <flux:icon.clock />
-                            <span>Priority Level</span>
-                        </flux:label>
-
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            How urgent is this report?
-                        </h3>
-
-                        <x-searchable-select
-                            name="priority_level"
-                            wire:model="priority_level"
-                            placeholder="Select priority level"
-                            :options="[
-                                'Low' => 'Low',
-                                'Normal' => 'Normal',
-                                'High' => 'High',
-                            ]"
-                            :selected="$priority_level"
-                        />
-                    </div>
-                    <flux:error name="priority_level" />
-                </flux:field>
-
-                <flux:field>
-                    <div class="flex flex-col gap-2">
                         <flux:label class="flex gap-2">
                             <flux:icon.tag />
                             <span>Title</span>
@@ -663,9 +120,13 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 @foreach($visibleAttachments as $index => $attachment)
                     @php
+                        $url = Storage::url($attachment['file_path']);
                         $extension = pathinfo($attachment['file_name'], PATHINFO_EXTENSION);
                         $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
-                        $url = Storage::url($attachment['file_path']);
+
+                        $size = Storage::disk('public')->exists($attachment['file_path'])
+                            ? $this->readableSize(Storage::disk('public')->size($attachment['file_path']))
+                            : 'Unavailable';
                     @endphp
 
                     @if ($loop->iteration < 4 || $extraAttachments->isEmpty())
@@ -678,11 +139,20 @@
                                     @click.stop.prevent="zoomSrc = '{{ $url }}'"
                                 />
                             @else
-                                <a href="{{ $url }}" target="_blank"
-                                class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center hover:bg-gray-200/60 dark:hover:bg-gray-700/60 transition-all duration-200">
+                                <a
+                                    href="{{ $url }}"
+                                    target="_blank"
+                                    class="flex flex-col items-center justify-center gap-1 py-6 px-3 h-full text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                >
                                     <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                    <span class="text-sm font-semibold truncate w-full text-gray-800 dark:text-gray-200">
-                                        {{ $attachment['file_name'] }}
+
+                                    <span class="flex flex-col gap-1">
+                                        <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                            {{ $attachment['file_name'] ?? basename($attachment['file_path']) }}
+                                        </span>
+                                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                            ({{ $size }})
+                                        </span>
                                     </span>
                                 </a>
                             @endif
@@ -796,6 +266,10 @@
                                     $url = Storage::url($attachment['file_path']);
                                     $extension = pathinfo($attachment['file_name'], PATHINFO_EXTENSION);
                                     $isImage = in_array(strtolower($extension), ['jpg','jpeg','png','gif','webp']);
+
+                                    $size = Storage::disk('public')->exists($attachment['file_path'])
+                                        ? $this->readableSize(Storage::disk('public')->size($attachment['file_path']))
+                                        : 'Unavailable';
                                 @endphp
                                 <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden transition-all duration-200 hover:shadow-md">
                                     @if($isImage)
@@ -806,11 +280,20 @@
                                             @click="zoomSrc = '{{ $url }}'"
                                         />
                                     @else
-                                        <a href="{{ $url }}" target="_blank"
-                                            class="flex flex-col items-center justify-center gap-2 py-6 px-3 text-center hover:bg-gray-200/60 dark:hover:bg-gray-700/60 transition">
+                                        <a
+                                            href="{{ $url }}"
+                                            target="_blank"
+                                            class="flex flex-col items-center justify-center gap-1 py-6 px-3 h-full text-center transition-all duration-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60"
+                                        >
                                             <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-300" />
-                                            <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
-                                                {{ $attachment['file_name'] }}
+
+                                            <span class="flex flex-col gap-1">
+                                                <span class="text-sm font-medium truncate w-full text-gray-800 dark:text-gray-200">
+                                                    {{ $attachment['file_name'] ?? basename($attachment['file_path']) }}
+                                                </span>
+                                                <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                    ({{ $size }})
+                                                </span>
                                             </span>
                                         </a>
                                     @endif
@@ -873,7 +356,6 @@
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                             </div>
                                         </div>
@@ -888,7 +370,7 @@
             <div
                 x-show="zoomSrc"
                 x-cloak
-                class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
                 @click.self="zoomSrc = null">
                 <div class="relative max-w-5xl w-[90%] flex items-center justify-center">
                     <img :src="zoomSrc" class="w-full max-h-[85vh] object-contain rounded-lg shadow-lg" />
