@@ -497,7 +497,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                             <x-heroicon-o-arrow-up-tray class="w-5 h-5 text-green-600 dark:text-green-400" />
-                            Import Grievances
+                            Import Reports
                         </h2>
                         <button
                             @click="openImportModal = false"
@@ -509,7 +509,7 @@
                     </div>
 
                     <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        Upload an Excel file exported from the system. This will import grievances into the database.
+                        Upload an Excel file exported from the system. This will import reports into the database.
                     </p>
 
                     <flux:input
@@ -671,7 +671,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-arrow-path class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        Reroute Selected Grievances
+                        Reroute Selected Reports
                     </h2>
                     <button
                         @click="openRerouteModal = false"
@@ -683,7 +683,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Please select a department and category to reroute all selected grievances.
+                    Please select a department and category to reroute all selected reports.
                 </p>
 
                 <div
@@ -748,7 +748,7 @@
                         <div class="flex flex-col gap-2">
                             <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
                                 <flux:icon.list-bullet />
-                                <span>Grievance Category</span>
+                                <span>Category</span>
                             </label>
 
                             <h3 class="text-sm text-gray-700 dark:text-gray-300">
@@ -847,7 +847,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-pencil-square class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                        Update Selected Grievance Status
+                        Update Selected Report Status
                     </h2>
                     <button
                         @click="openStatusModal = false"
@@ -859,7 +859,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Choose a new status to apply to all selected grievances.
+                    Choose a new status to apply to all selected reports.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -918,7 +918,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                         <x-heroicon-o-exclamation-circle class="w-5 h-5 text-red-600 dark:text-red-400" />
-                        Update Selected Grievance Priority
+                        Update Selected Report Priority
                     </h2>
                     <button
                         @click="openPriorityModal = false"
@@ -930,7 +930,7 @@
                 </div>
 
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Choose a new priority level to apply to all selected grievances.
+                    Choose a new priority level to apply to all selected reports.
                 </p>
 
                 <div class="flex flex-col gap-2 mb-2">
@@ -1206,7 +1206,7 @@
                                 <tr>
                                     <td colspan="11" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                                        No grievances found
+                                        No reports found
                                     </td>
                                 </tr>
                             @endforelse

@@ -697,7 +697,7 @@
                                                                     <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                                                                 </div>
                                                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                                                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this grievance? This action cannot be undone.</p>
+                                                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this report? This action cannot be undone.</p>
 
                                                                 <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
                                                                     <button type="button" @click="showDeleteModal = false"
@@ -729,7 +729,7 @@
                                 <tr>
                                     <td colspan="11" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                                        No grievances found
+                                        No reports found
                                     </td>
                                 </tr>
                             @endforelse
@@ -822,7 +822,7 @@
 
                         <div class="p-6 space-y-6 text-center">
                             <p class="text-base text-gray-800 dark:text-gray-200 font-medium">
-                                Would you like to share your experience about the grievance process?
+                                Would you like to share your experience about the report process?
                             </p>
 
                             <div class="flex items-center justify-center gap-2">

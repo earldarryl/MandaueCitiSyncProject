@@ -316,7 +316,7 @@ class Index extends Component
                     : $report->user?->name);
 
             $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
-            $attachments = $report->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+            $attachments = $report->attachments->pluck('file_path')->join(', ') ?: 'N/A';
 
             $remarksArray = $report->grievance_remarks ?? [];
             $remarksStr = '';
@@ -400,7 +400,7 @@ class Index extends Component
                     : $report->user?->name);
 
             $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
-            $attachments = $report->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+            $attachments = $report->attachments->pluck('file_path')->join(', ') ?: 'N/A';
 
             $remarksArray = $report->grievance_remarks ?? [];
             $remarksStr = '';
@@ -494,10 +494,10 @@ class Index extends Component
                 $userId = $existingReport?->user_id ?? $currentUser->id;
 
                 $processingDays = match (strtolower($priority)) {
-                    'low'      => 20,
+                    'low'      => 3,
                     'normal'   => 7,
-                    'high'     => 3,
-                    'critical' => 1,
+                    'high'     => 20,
+                    'critical' => 7,
                     default    => 7,
                 };
 
@@ -520,6 +520,12 @@ class Index extends Component
                 foreach ($departmentNames as $deptName) {
                     $department = Department::where('department_name', trim($deptName))->first();
                     if ($department && $department->is_active && $department->is_available) {
+                        if (!$report->department_id) {
+                            $report->update([
+                                'department_id' => $department->department_id
+                            ]);
+                        }
+
                         $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
                             ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
                             ->get();
@@ -553,7 +559,7 @@ class Index extends Component
                                 'file_name' => $fileName,
                             ],
                             [
-                                'file_path' => 'grievance_files/' . $fileName,
+                                'file_path' => $fileName,
                             ]
                         );
                     }
@@ -576,6 +582,9 @@ class Index extends Component
                 if (!empty($remarksArray)) {
                     $report->update(['grievance_remarks' => $remarksArray]);
                 }
+
+                $this->resetPage();
+                $this->updateStats();
 
                 HistoryLog::create([
                     'user_id' => $currentUser->id,
@@ -621,7 +630,6 @@ class Index extends Component
                 ->send();
         }
     }
-
 
     public function printSelectedGrievances()
     {
@@ -791,6 +799,7 @@ class Index extends Component
                 }
 
                 $grievance->update([
+                    'department_id'      => $department->department_id,
                     'grievance_status'   => 'pending',
                     'grievance_category' => $this->category,
                     'updated_at'         => now(),

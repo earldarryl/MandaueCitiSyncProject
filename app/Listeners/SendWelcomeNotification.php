@@ -20,12 +20,17 @@ class SendWelcomeNotification
             return;
         }
 
-        Notification::make()
-            ->title('Welcome, ' . ($user->name ?? $user->email ?? 'User'))
-            ->body('Thanks for registering! Explore your dashboard!')
-            ->success()
-            ->send()
-            ->sendToDatabase($user);
+        $user->notify(new GeneralNotification(
+            'Welcome to the System!',
+            "Hello {$user->name}, thank you for registering. Explore your dashboard and start using the system.",
+             'success',
+             [
+                'user_id' => $user->id,
+            ],
+            [],
+             true,
+             []
+        ));
 
         $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
@@ -54,10 +59,11 @@ class SendWelcomeNotification
             $admin->notify(new GeneralNotification(
                 'New User Registration',
                 "A new user, {$user->name} ({$user->email}), has registered.",
-                'success',
+                'warning',
                 ['user_id' => $user->id],
                 [],
                 true,
+                []
             ));
         }
     }

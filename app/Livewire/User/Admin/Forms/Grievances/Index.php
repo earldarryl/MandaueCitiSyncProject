@@ -284,62 +284,87 @@ class Index extends Component
 
     public function downloadGrievancesCsv()
     {
-        $grievances = Grievance::with(['user.info', 'departments'])
+        $admin = auth()->user();
+        $adminSlug = str_replace(' ', '_', $admin->name);
+
+        $reports = Grievance::with(['user.info', 'departments'])
             ->latest()
             ->get();
 
-        if ($grievances->isEmpty()) {
+        if ($reports->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('There are no grievances available to export.')
+                ->title('No Reports Found')
+                ->body('There are no grievance reports to export.')
                 ->warning()
                 ->send();
             return;
         }
 
+        $filename = "admin-reports-{$adminSlug}-" . now()->format('Y_m_d_His') . ".csv";
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="all_grievances_' . now()->format('Y_m_d_His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function () use ($grievances) {
+        $callback = function () use ($reports) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, [
-                'Grievance Ticket ID',
-                'Grievance Title',
-                'Grievance Type',
+                'Report Ticket ID',
+                'Report Title',
+                'Report Type',
+                'Report Category',
                 'Priority Level',
                 'Status',
                 'Submitted By',
                 'Departments Involved',
                 'Details',
+                'Remarks',
                 'Created At',
                 'Updated At',
             ]);
 
-            foreach ($grievances as $grievance) {
-                $submittedBy = $grievance->is_anonymous
+            foreach ($reports as $report) {
+                $submittedBy = $report->is_anonymous
                     ? 'Anonymous'
-                    : ($grievance->user?->info
-                        ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
-                        : $grievance->user?->name);
+                    : ($report->user?->info
+                        ? "{$report->user->info->first_name} {$report->user->info->last_name}"
+                        : $report->user?->name);
 
-                $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
+                $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+                $rawRemarks = $report->grievance_remarks ?? [];
+                $remarksArray = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+                $remarksStr = '';
+                if (!empty($remarksArray)) {
+                    foreach ($remarksArray as $r) {
+                        $remarksStr .= '[' . ($r['timestamp'] ?? '') . '] '
+                            . ($r['user_name'] ?? '—') . ' ('
+                            . ($r['role'] ?? '—') . '): '
+                            . ($r['message'] ?? '') . "\n";
+                    }
+                } else {
+                    $remarksStr = '—';
+                }
 
                 fputcsv($handle, [
-                    $grievance->grievance_ticket_id,
-                    $grievance->grievance_title,
-                    $grievance->grievance_type,
-                    $grievance->priority_level,
-                    ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                    $report->grievance_ticket_id,
+                    $report->grievance_title,
+                    $report->grievance_type,
+                    $report->grievance_category,
+                    $report->priority_level,
+                    ucfirst(str_replace('_', ' ', $report->grievance_status)),
                     $submittedBy,
                     $departments,
-                    strip_tags($grievance->grievance_details),
-                    $grievance->created_at->format('Y-m-d H:i:s'),
-                    $grievance->updated_at->format('Y-m-d H:i:s'),
+                    strip_tags($report->grievance_details),
+                    $remarksStr,
+                    $report->created_at->format('Y-m-d H:i:s'),
+                    $report->updated_at->format('Y-m-d H:i:s'),
                 ]);
             }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['Total Reports', count($reports)]);
 
             fclose($handle);
         };
@@ -528,26 +553,29 @@ class Index extends Component
         $this->redirectRoute('admin.forms.grievances.index', navigate: true);
     }
 
-    public function exportSelectedGrievancesExcel()
+    public function exportSelectedReportsExcel()
     {
         if (empty($this->selected)) {
             Notification::make()
-                ->title('No Grievances Selected')
-                ->body('Please select at least one grievance to export.')
+                ->title('No Reports Selected')
+                ->body('Please select at least one report to export.')
                 ->warning()
                 ->send();
             return;
         }
 
-        $grievances = Grievance::with(['user.info', 'departments', 'attachments'])
+        $user = auth()->user();
+        $userNameSlug = str_replace(' ', '_', $user->name);
+
+        $reports = Grievance::with(['user.info', 'departments', 'attachments'])
             ->whereIn('grievance_id', $this->selected)
             ->latest()
             ->get();
 
-        if ($grievances->isEmpty()) {
+        if ($reports->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('The selected grievances were not found.')
+                ->title('No Reports Found')
+                ->body('No reports exist for the selected items.')
                 ->warning()
                 ->send();
             return;
@@ -555,11 +583,11 @@ class Index extends Component
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Grievances');
+        $sheet->setTitle('Reports');
 
         $headers = [
-            'Ticket ID', 'Title', 'Type', 'Category', 'Priority',
-            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments'
+            'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks'
         ];
 
         foreach ($headers as $col => $header) {
@@ -567,27 +595,40 @@ class Index extends Component
         }
 
         $rowNumber = 2;
-        foreach ($grievances as $grievance) {
-            $submittedBy = $grievance->is_anonymous
+        foreach ($reports as $report) {
+            $submittedBy = $report->is_anonymous
                 ? 'Anonymous'
-                : ($grievance->user?->info
-                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
-                    : $grievance->user?->name);
+                : ($report->user?->info
+                    ? "{$report->user->info->first_name} {$report->user->info->last_name}"
+                    : $report->user?->name);
 
-            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
-            $attachments = $grievance->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+            $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
+            $attachments = $report->attachments->pluck('file_path')->join(', ') ?: 'N/A';
+
+            $remarksArray = $report->grievance_remarks ?? [];
+            $remarksStr = '';
+            foreach ($remarksArray as $r) {
+                $remarksStr .= '[' . ($r['timestamp'] ?? '') . '] '
+                    . ($r['user_name'] ?? '—') . ' (' . ($r['role'] ?? '—') . '): '
+                    . ($r['message'] ?? '') . "\n";
+            }
+
+            if ($remarksStr === '') {
+                $remarksStr = '—';
+            }
 
             $values = [
-                $grievance->grievance_ticket_id,
-                $grievance->grievance_title,
-                $grievance->grievance_type,
-                $grievance->grievance_category,
-                $grievance->priority_level,
-                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                $report->grievance_ticket_id,
+                $report->grievance_title,
+                $report->grievance_type,
+                $report->grievance_category,
+                $report->priority_level,
+                ucfirst(str_replace('_', ' ', $report->grievance_status)),
                 $submittedBy,
                 $departments,
-                strip_tags($grievance->grievance_details),
+                strip_tags($report->grievance_details),
                 $attachments,
+                $remarksStr
             ];
 
             foreach ($values as $col => $value) {
@@ -597,7 +638,7 @@ class Index extends Component
             $rowNumber++;
         }
 
-        $filename = 'selected_grievances_admin_' . now()->format('Y_m_d_His') . '.xlsx';
+        $filename = "reports-{$userNameSlug}-" . now()->format('Y_m_d_His') . ".xlsx";
         $writer = new Xlsx($spreadsheet);
         $temp_file = tempnam(sys_get_temp_dir(), $filename);
         $writer->save($temp_file);
@@ -605,16 +646,20 @@ class Index extends Component
         return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
     }
 
-    public function downloadGrievancesExcel()
+
+    public function downloadReportsExcel()
     {
-        $grievances = Grievance::with(['user.info', 'departments', 'attachments'])
+        $user = auth()->user();
+        $userNameSlug = str_replace(' ', '_', $user->name);
+
+        $reports = Grievance::with(['user.info', 'departments', 'attachments'])
             ->latest()
             ->get();
 
-        if ($grievances->isEmpty()) {
+        if ($reports->isEmpty()) {
             Notification::make()
-                ->title('No Grievances Found')
-                ->body('There are no grievances to export.')
+                ->title('No Reports Found')
+                ->body('There are no reports in the system.')
                 ->warning()
                 ->send();
             return;
@@ -622,11 +667,11 @@ class Index extends Component
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Grievances');
+        $sheet->setTitle('Reports');
 
         $headers = [
-            'Ticket ID', 'Title', 'Type', 'Category', 'Priority',
-            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments'
+            'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks'
         ];
 
         foreach ($headers as $col => $header) {
@@ -634,27 +679,42 @@ class Index extends Component
         }
 
         $rowNumber = 2;
-        foreach ($grievances as $grievance) {
-            $submittedBy = $grievance->is_anonymous
-                ? 'Anonymous'
-                : ($grievance->user?->info
-                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
-                    : $grievance->user?->name);
+        foreach ($reports as $report) {
 
-            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
-            $attachments = $grievance->attachments->pluck('file_name')->join(', ') ?: 'N/A';
+            $submittedBy = $report->is_anonymous
+                ? 'Anonymous'
+                : ($report->user?->info
+                    ? "{$report->user->info->first_name} {$report->user->info->last_name}"
+                    : $report->user?->name);
+
+            $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
+            $attachments = $report->attachments->pluck('file_path')->join(', ') ?: 'N/A';
+
+            $remarksArray = $report->grievance_remarks ?? [];
+            $remarksStr = '';
+
+            foreach ($remarksArray as $r) {
+                $remarksStr .= '[' . ($r['timestamp'] ?? '') . '] '
+                    . ($r['user_name'] ?? '—') . ' (' . ($r['role'] ?? '—') . '): '
+                    . ($r['message'] ?? '') . "\n";
+            }
+
+            if ($remarksStr === '') {
+                $remarksStr = '—';
+            }
 
             $values = [
-                $grievance->grievance_ticket_id,
-                $grievance->grievance_title,
-                $grievance->grievance_type,
-                $grievance->grievance_category,
-                $grievance->priority_level,
-                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
+                $report->grievance_ticket_id,
+                $report->grievance_title,
+                $report->grievance_type,
+                $report->grievance_category,
+                $report->priority_level,
+                ucfirst(str_replace('_', ' ', $report->grievance_status)),
                 $submittedBy,
                 $departments,
-                strip_tags($grievance->grievance_details),
+                strip_tags($report->grievance_details),
                 $attachments,
+                $remarksStr
             ];
 
             foreach ($values as $col => $value) {
@@ -664,7 +724,7 @@ class Index extends Component
             $rowNumber++;
         }
 
-        $filename = 'all_grievances_admin_' . now()->format('Y_m_d_His') . '.xlsx';
+        $filename = "reports-{$userNameSlug}-" . now()->format('Y_m_d_His') . ".xlsx";
         $writer = new Xlsx($spreadsheet);
         $temp_file = tempnam(sys_get_temp_dir(), $filename);
         $writer->save($temp_file);
@@ -672,19 +732,21 @@ class Index extends Component
         return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
     }
 
-
-    public function importGrievancesExcel()
+    public function importReportsExcel()
     {
         if (!$this->importFile) {
             Notification::make()
                 ->title('No File Selected')
-                ->body('Please select a grievances Excel file to import.')
+                ->body('Please select a Reports Excel file to import.')
                 ->warning()
                 ->send();
             return;
         }
 
+        $currentUser = auth()->user();
+
         try {
+
             $path = $this->importFile->store('temp_import', 'public');
             $fullPath = Storage::disk('public')->path($path);
             $spreadsheet = IOFactory::load($fullPath);
@@ -694,7 +756,7 @@ class Index extends Component
             if (count($rows) <= 1) {
                 Notification::make()
                     ->title('Empty File')
-                    ->body('The uploaded Excel file contains no grievance records.')
+                    ->body('The uploaded Excel file contains no report records.')
                     ->warning()
                     ->send();
                 Storage::disk('public')->delete($path);
@@ -702,25 +764,29 @@ class Index extends Component
             }
 
             unset($rows[0]);
-            $currentUser = auth()->user();
+            $skippedCount = 0;
 
             foreach ($rows as $row) {
                 [
                     $ticketId, $title, $type, $category, $priority,
-                    $status, $submittedBy, $departments, $details, $attachmentsColumn
-                ] = array_pad($row, 10, null);
+                    $status, $submittedBy, $departments, $details, $attachmentsColumn, $remarksColumn
+                ] = array_pad($row, 11, null);
 
-                $existingGrievance = Grievance::withTrashed()->where('grievance_ticket_id', $ticketId)->first();
-                $userId = $existingGrievance?->user_id ?? $currentUser->id;
+                $existingReport = Grievance::withTrashed()
+                    ->where('grievance_ticket_id', $ticketId)
+                    ->first();
+
+                $userId = $existingReport?->user_id ?? $currentUser->id;
 
                 $processingDays = match (strtolower($priority)) {
-                    'high' => 3,
+                    'low' => 3,
                     'normal' => 7,
-                    'low' => 15,
+                    'high' => 20,
+                    'critical' => 7,
                     default => 7,
                 };
 
-                $grievance = Grievance::updateOrCreate(
+                $report = Grievance::updateOrCreate(
                     ['grievance_ticket_id' => $ticketId],
                     [
                         'user_id' => $userId,
@@ -729,8 +795,8 @@ class Index extends Component
                         'priority_level' => $priority,
                         'grievance_title' => $title,
                         'grievance_details' => $details,
-                        'is_anonymous' => strtolower($submittedBy) === 'anonymous' ? 1 : 0,
-                        'grievance_status' => strtolower($status) === 'pending' ? 'pending' : strtolower($status),
+                        'is_anonymous' => strtolower($submittedBy) === 'anonymous',
+                        'grievance_status' => strtolower($status),
                         'processing_days' => $processingDays,
                     ]
                 );
@@ -738,20 +804,26 @@ class Index extends Component
                 $departmentNames = explode(',', $departments);
                 foreach ($departmentNames as $deptName) {
                     $department = Department::where('department_name', trim($deptName))->first();
-                    if ($department && $department->is_active && $department->is_available) {
-                        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-                            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
-                            ->get();
+                    if (!$department) continue;
 
-                        foreach ($hrLiaisons as $hr) {
-                            Assignment::updateOrCreate([
-                                'grievance_id' => $grievance->grievance_id,
-                                'department_id' => $department->department_id,
-                                'hr_liaison_id' => $hr->id,
-                            ], [
-                                'assigned_at' => now(),
-                            ]);
-                        }
+                    if (!$report->department_id) {
+                        $report->update([
+                            'department_id' => $department->department_id
+                        ]);
+                    }
+
+                    $hrUsers = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                        ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+                        ->get();
+
+                    foreach ($hrUsers as $hr) {
+                        Assignment::updateOrCreate([
+                            'grievance_id' => $report->grievance_id,
+                            'department_id' => $department->department_id,
+                            'hr_liaison_id' => $hr->id,
+                        ], [
+                            'assigned_at' => now(),
+                        ]);
                     }
                 }
 
@@ -761,20 +833,43 @@ class Index extends Component
                     if ($fileName) {
                         GrievanceAttachment::updateOrCreate(
                             [
-                                'grievance_id' => $grievance->grievance_id,
+                                'grievance_id' => $report->grievance_id,
                                 'file_name' => $fileName,
                             ],
                             [
-                                'file_path' => 'grievance_files/' . $fileName,
+                                'file_path' => $fileName,
                             ]
                         );
                     }
                 }
+
+                $remarksArray = [];
+                if ($remarksColumn) {
+                    $lines = explode("\n", $remarksColumn);
+                    foreach ($lines as $line) {
+                        if (preg_match('/\[(.*?)\]\s*(.*?)\s*\((.*?)\):\s*(.*)/', $line, $matches)) {
+                            $remarksArray[] = [
+                                'timestamp' => $matches[1] ?? null,
+                                'user_name' => $matches[2] ?? null,
+                                'role' => $matches[3] ?? null,
+                                'message' => $matches[4] ?? null,
+                            ];
+                        }
+                    }
+                }
+
+                if (!empty($remarksArray)) {
+                    $report->update(['grievance_remarks' => $remarksArray]);
+                }
+
             }
 
+            $this->resetPage();
+            $this->updateStats();
+
             Notification::make()
-                ->title('Import Successful')
-                ->body('Grievances have been successfully imported from the Excel file.')
+                ->title('Import Completed')
+                ->body('Reports imported successfully.' . ($skippedCount ? " Skipped {$skippedCount} duplicates." : ""))
                 ->success()
                 ->send();
 
@@ -783,7 +878,7 @@ class Index extends Component
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Import Failed')
-                ->body("Something went wrong while importing grievances. Error: {$e->getMessage()}")
+                ->body("Error: {$e->getMessage()}")
                 ->danger()
                 ->send();
         }
@@ -874,46 +969,103 @@ class Index extends Component
     public function exportSelectedGrievancesCsv()
     {
         if (empty($this->selected)) {
-            Notification::make()->title('No Grievances Selected')->body('Please select at least one grievance.')->warning()->send();
+            Notification::make()
+                ->title('No Reports Selected')
+                ->body('Please select at least one report to export.')
+                ->warning()
+                ->send();
             return;
         }
 
-        $grievances = Grievance::with(['user.info', 'departments'])
-            ->whereIn('grievance_id', $this->selected)
-            ->latest()
-            ->get();
+        $admin = auth()->user();
+        $adminSlug = str_replace(' ', '_', $admin->name);
 
-        $filename = 'selected_grievances_' . now()->format('Y_m_d_His') . '.csv';
-        $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="' . $filename . '"'];
+    $reports = Grievance::with(['user.info', 'departments'])
+        ->whereIn('grievance_id', $this->selected)
+        ->latest()
+        ->get();
 
-        $callback = function () use ($grievances) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Title', 'Type', 'Category', 'Priority', 'Status', 'Submitted By', 'Departments', 'Details', 'Created At', 'Updated At']);
+    if ($reports->isEmpty()) {
+        Notification::make()
+            ->title('No Reports Found')
+            ->body('The selected reports were not found in the system.')
+            ->warning()
+            ->send();
+        return;
+    }
 
-            foreach ($grievances as $g) {
-                $submittedBy = $g->is_anonymous ? 'Anonymous' : ($g->user?->info ? "{$g->user->info->first_name} {$g->user->info->last_name}" : $g->user?->name);
-                $departments = $g->departments->pluck('department_name')->join(', ') ?: 'N/A';
+    $filename = "admin-selected-reports-{$adminSlug}-" . now()->format('Y_m_d_His') . ".csv";
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
 
-                fputcsv($handle, [
-                    $g->grievance_id,
-                    $g->grievance_title,
-                    $g->grievance_type,
-                    $g->grievance_category,
-                    $g->priority_level,
-                    ucfirst(str_replace('_', ' ', $g->grievance_status)),
-                    $submittedBy,
-                    $departments,
-                    strip_tags($g->grievance_details),
-                    $g->created_at->format('Y-m-d H:i:s'),
-                    $g->updated_at->format('Y-m-d H:i:s'),
-                ]);
+    $callback = function () use ($reports) {
+        $handle = fopen('php://output', 'w');
+
+        fputcsv($handle, [
+            'Report Ticket ID',
+            'Report Title',
+            'Report Type',
+            'Report Category',
+            'Priority Level',
+            'Status',
+            'Submitted By',
+            'Departments Involved',
+            'Details',
+            'Remarks',
+            'Created At',
+            'Updated At',
+        ]);
+
+        foreach ($reports as $report) {
+            $submittedBy = $report->is_anonymous
+                ? 'Anonymous'
+                : ($report->user?->info
+                    ? "{$report->user->info->first_name} {$report->user->info->last_name}"
+                    : $report->user?->name);
+
+            $departments = $report->departments->pluck('department_name')->join(', ') ?: 'N/A';
+
+            $rawRemarks = $report->grievance_remarks ?? [];
+            $remarksArray = is_array($rawRemarks) ? $rawRemarks : json_decode($rawRemarks, true);
+            $remarksStr = '';
+            if (!empty($remarksArray)) {
+                foreach ($remarksArray as $r) {
+                    $remarksStr .= '[' . ($r['timestamp'] ?? '') . '] '
+                        . ($r['user_name'] ?? '—') . ' ('
+                        . ($r['role'] ?? '—') . '): '
+                        . ($r['message'] ?? '') . "\n";
+                }
+            } else {
+                $remarksStr = '—';
             }
 
-            fclose($handle);
-        };
+            fputcsv($handle, [
+                $report->grievance_ticket_id,
+                $report->grievance_title,
+                $report->grievance_type,
+                $report->grievance_category,
+                $report->priority_level,
+                ucfirst(str_replace('_', ' ', $report->grievance_status)),
+                $submittedBy,
+                $departments,
+                strip_tags($report->grievance_details),
+                $remarksStr,
+                $report->created_at->format('Y-m-d H:i:s'),
+                $report->updated_at->format('Y-m-d H:i:s'),
+            ]);
+        }
 
-        return response()->stream($callback, 200, $headers);
-    }
+        fputcsv($handle, []);
+        fputcsv($handle, ['Total Reports', count($reports)]);
+
+        fclose($handle);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
 
     public function rerouteSelectedGrievances(): void
     {
@@ -952,6 +1104,7 @@ class Index extends Component
                 }
 
                 $grievance->update([
+                    'department_id'      => $department->department_id,
                     'grievance_status'   => 'pending',
                     'grievance_category' => $this->category,
                     'updated_at'         => now(),
@@ -1027,10 +1180,10 @@ class Index extends Component
         $formattedPriority = $this->priorityUpdate;
 
         $priorityProcessingDays = match (strtolower($formattedPriority)) {
-            'low'      => 7,
-            'normal'   => 5,
-            'high'     => 3,
-            'critical' => 1,
+            'low'      => 3,
+            'normal'   => 7,
+            'high'     => 20,
+            'critical' => 7,
             default    => 7,
         };
 

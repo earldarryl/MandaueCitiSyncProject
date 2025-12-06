@@ -136,6 +136,7 @@ class View extends Component
         $oldDepartments = $this->grievance->departments()->pluck('department_name')->toArray();
 
         $this->grievance->update([
+            'department_id'      => $department->department_id,
             'grievance_status'   => 'pending',
             'grievance_category' => $this->category,
             'updated_at'         => now(),
@@ -268,10 +269,10 @@ class View extends Component
         $oldProcessingDays = $this->grievance->processing_days;
 
         $priorityProcessingDays = match ($formattedPriority) {
-            'Low'      => 20,
+            'Low'      => 3,
             'Normal'   => 7,
-            'High'     => 3,
-            'Critical' => 1,
+            'High'     => 20,
+            'Critical' => 7,
             default    => 7,
         };
 

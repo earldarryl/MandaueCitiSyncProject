@@ -89,6 +89,7 @@ class Assignments extends Component
 
         $assignment = Assignment::where('grievance_id', $grievance->grievance_id)
             ->where('department_id', $this->departmentId)
+            ->whereNull('hr_liaison_id')
             ->first();
 
         if ($assignment) {

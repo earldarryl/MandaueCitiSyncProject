@@ -160,9 +160,9 @@ class Create extends Component implements Forms\Contracts\HasForms
 
         try {
             $processingDays = match ($this->priority_level) {
-                'High'   => 3,
+                'High'   => 20,
                 'Normal' => 7,
-                'Low'    => 20,
+                'Low'    => 3,
                 default  => 7,
             };
 
