@@ -1,7 +1,7 @@
 <div
     x-data="{ showModal: false }"
     x-cloak
-    class="max-w-full lg:max-w-5xl lg:mx-auto p-6 lg:p-10 lg:space-y-8 border border-gray-300 dark:border-zinc-700 rounded-md lg:m-4"
+    class="max-w-full lg:max-w-7xl lg:mx-auto p-6 lg:p-10 lg:space-y-8 border border-gray-300 dark:border-zinc-700 rounded-md lg:m-4"
 >
     <div class="relative w-full">
 
@@ -15,102 +15,90 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
             <div>
-            <flux:field>
-                <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.25 13.5V7.5a2.25 2.25 0 012.25-2.25h13.5a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25z" />
-                </svg>
-                <span>Date</span>
-                </flux:label>
+                <flux:field>
+                    <flux:label class="flex gap-2 items-center">
+                    <x-heroicon-o-calendar class="w-5 h-5 text-blue-500"/>
+                    <span>Date</span>
+                    </flux:label>
 
-                <flux:input.group>
-                    <div
-                        x-data="{ date: @entangle('date') }"
-                        x-init="
-                            flatpickr($refs.datepicker, {
-                                dateFormat: 'Y-m-d',
-                                defaultDate: date,
-                                onChange: function(selectedDates, dateStr) { date = dateStr; }
-                            })
-                        "
-                        class="relative w-full"
-                    >
-                        <flux:input
-                            x-ref="datepicker"
-                            type="text"
-                            placeholder="Select a date"
-                            class="cursor-pointer select-none"
-                            readonly
-                        />
-                    </div>
-                </flux:input.group>
+                    <flux:input.group>
+                        <div
+                            x-data="{ date: @entangle('date') }"
+                            x-init="
+                                flatpickr($refs.datepicker, {
+                                    dateFormat: 'Y-m-d',
+                                    defaultDate: date,
+                                    onChange: function(selectedDates, dateStr) { date = dateStr; }
+                                })
+                            "
+                            class="relative w-full"
+                        >
+                            <flux:input
+                                x-ref="datepicker"
+                                type="text"
+                                placeholder="Select a date"
+                                class="cursor-pointer select-none"
+                                readonly
+                            />
+                        </div>
+                    </flux:input.group>
 
-                <flux:error name="date" />
-            </flux:field>
+                    <flux:error name="date" />
+                </flux:field>
             </div>
 
             <div>
-            <flux:field>
-                <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.5 9.75V6a3 3 0 00-3-3h-9a3 3 0 00-3 3v3.75M19.5 9.75h-15M19.5 9.75V21a1.5 1.5 0 01-1.5 1.5H6a1.5 1.5 0 01-1.5-1.5V9.75" />
-                </svg>
-                <span>Gender</span>
-                </flux:label>
+                <flux:field>
+                    <flux:label class="flex gap-2 items-center">
+                    <x-heroicon-o-user class="w-5 h-5 text-blue-500"/>
+                    <span>Gender</span>
+                    </flux:label>
 
-                <flux:input.group>
-                <x-searchable-select
-                    name="gender"
-                    wire:model="gender"
-                    placeholder="Select gender"
-                    :options="['Male', 'Female', 'Prefer not to say']"
-                />
-                </flux:input.group>
+                    <flux:input.group>
+                    <x-searchable-select
+                        name="gender"
+                        wire:model="gender"
+                        placeholder="Select gender"
+                        :options="['Male', 'Female', 'Prefer not to say']"
+                    />
+                    </flux:input.group>
 
-                <flux:error name="gender" />
-            </flux:field>
+                    <flux:error name="gender" />
+                </flux:field>
             </div>
 
             <div>
-            <flux:field>
-                <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 20.25c4.97-4.97 7.5-8.25 7.5-12A7.5 7.5 0 005.25 8.25c0 3.75 2.53 7.03 7.5 12z" />
-                </svg>
-                <span>Region of Residence</span>
-                </flux:label>
+                <flux:field>
+                    <flux:label class="flex gap-2 items-center">
+                    <x-heroicon-o-map-pin class="w-5 h-5 text-blue-500"/>
+                    <span>Region of Residence</span>
+                    </flux:label>
 
-                <flux:input.group>
-                <flux:input wire:model="region" type="text" placeholder="Region / Province" readonly />
-                </flux:input.group>
+                    <flux:input.group>
+                    <flux:input wire:model="region" type="text" placeholder="Region / Province" readonly />
+                    </flux:input.group>
 
-                <flux:error name="region" />
-            </flux:field>
+                    <flux:error name="region" />
+                </flux:field>
             </div>
 
             <div>
-            <flux:field>
-                <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8.25 6.75h7.5M12 3v18m-6.75-9h13.5" />
-                </svg>
-                <span>Service Availed</span>
-                </flux:label>
+                <flux:field>
+                    <flux:label class="flex gap-2 items-center">
+                    <x-heroicon-o-briefcase class="w-5 h-5 text-blue-500"/>
+                    <span>Service Availed</span>
+                    </flux:label>
 
-                <flux:input.group>
-                <flux:input wire:model="service" type="text" placeholder="Name of the service" readonly />
-                </flux:input.group>
+                    <flux:input.group>
+                    <flux:input wire:model="service" type="text" placeholder="Name of the service" readonly />
+                    </flux:input.group>
 
-                <flux:error name="service" />
-            </flux:field>
+                    <flux:error name="service" />
+                </flux:field>
             </div>
         </div>
 
-        <div class="border border-gray-200 dark:border-zinc-700 rounded-lg p-6 bg-white dark:bg-zinc-900 shadow-sm">
+        <div class="space-y-8 w-full mx-auto bg-white dark:bg-zinc-900 p-8 border border-gray-300 dark:border-zinc-800 mt-5">
             <div class="flex flex-col gap-2 mb-3 border-b border-gray-200 dark:border-zinc-700">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Citizen's Charter (CC)</h3>
                 <p class="text-gray-600 dark:text-gray-400 text-sm text-justify text-body leading-relaxed">
@@ -178,6 +166,8 @@
             </div>
         </fieldset>
 
+    </div>
+
     <div
         x-data="{
             questions: [
@@ -198,7 +188,7 @@
                 }
             }
         }"
-        class="space-y-8 max-w-5xl mx-auto bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-gray-300 dark:border-zinc-800 mt-10"
+        class="space-y-8 w-full mx-auto bg-white dark:bg-zinc-900 p-8 border border-gray-300 dark:border-zinc-800 mt-5"
     >
         <div class="flex flex-col gap-2">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Service Quality & Delivery (SQD)</h3>
@@ -226,7 +216,7 @@
 
                         <template x-for="n in 6" :key="n">
                             <div
-                                class="flex justify-center items-center w-full h-full cursor-pointer border border-gray-200 dark:border-zinc-700 rounded-md transition-all duration-150 hover:bg-blue-50 dark:hover:bg-blue-950 hover:border-blue-300"
+                                class="flex justify-center items-center w-full h-full cursor-pointer border rounded-md transition-all duration-150 hover:bg-blue-50 dark:hover:bg-blue-950 hover:border-blue-300"
                                 :class="answers[index] == n ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 shadow-sm' : ''"
                                 @click="answers[index] = n"
                             >
@@ -245,15 +235,11 @@
         <flux:error name="answers.*" />
     </div>
 
-
-
-    <div class="flex flex-col gap-3 mt-3">
+    <div class="flex flex-col gap-3 mt-5">
         <div>
             <flux:field>
             <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6" />
-                </svg>
+                <x-heroicon-o-inbox  class="w-5 h-5 text-blue-500"/>
                 <span>Suggestions (optional)</span>
             </flux:label>
             <flux:textarea wire:model="suggestions" resize="vertical" placeholder="Your comments or suggestions..." />
@@ -263,9 +249,7 @@
         <div>
             <flux:field>
             <flux:label class="flex gap-2 items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6" />
-                </svg>
+                <x-heroicon-o-at-symbol class="w-5 h-5 text-blue-500"/>
                 <span>Email (optional)</span>
             </flux:label>
             <flux:input.group>
@@ -282,8 +266,9 @@
                 wire:click="resetForm"
                 wire:loading.attr="disabled"
                 wire:target="resetForm"
-                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
-                    bg-gray-600 text-white hover:bg-gray-700
+                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg
+                    border border-gray-200 dark:border-zinc-800
+                    hover:bg-gray-100 dark:hover:bg-zinc-700
                     transition-all duration-200
                     disabled:opacity-50 disabled:cursor-not-allowed">
                 <x-heroicon-o-x-mark class="w-4 h-4"/>
@@ -295,7 +280,7 @@
                 wire:loading.attr="disabled"
                 wire:target="submit"
                 @click="showModal = true"
-                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg border
+                class="flex gap-2 justify-center items-center px-5 py-2.5 text-sm font-semibold rounded-lg
                     bg-blue-600 text-white hover:bg-blue-700
                     transition-all duration-200
                     disabled:opacity-50 disabled:cursor-not-allowed">
@@ -305,8 +290,6 @@
             </button>
 
         </div>
-
-    </div>
 
     </div>
 
@@ -372,8 +355,9 @@
                 <button
                     type="button"
                     @click="showModal = false"
-                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                    class="px-4 py-2 font-semibold border border-gray-200 dark:border-zinc-800 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-2"
                 >
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
                     Cancel
                 </button>
 
@@ -383,10 +367,12 @@
                     @click="showModal = false"
                     wire:loading.attr="disabled"
                     wire:target="submit"
-                    class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                    class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition flex items-center gap-2"
                 >
+                    <x-heroicon-o-check class="w-4 h-4" />
                     Confirm & Submit
                 </button>
+
             </div>
 
             <div wire:loading wire:target="submit">

@@ -346,7 +346,7 @@
                     </flux:field>
 
                     <!-- Grievance Type -->
-                    <flux:field x-show="department" x-cloak>
+                    <flux:field x-cloak>
                         <div class="flex flex-col gap-2" x-data="{ open: false, search: '' }">
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.squares-2x2 />
@@ -411,7 +411,7 @@
                         <flux:error name="grievance_type" />
                     </flux:field>
 
-                    <flux:field x-show="grievanceType" x-cloak>
+                    <flux:field x-cloak>
                         <div
                             class="flex flex-col gap-2"
                             x-data="{
@@ -514,7 +514,6 @@
                                         </li>
                                     </ul>
 
-                                    <!-- OTHER INPUT -->
                                     <div
                                         x-show="selectedCategory === '' && categoryOptions.includes('Other') && open"
                                         x-transition
@@ -614,12 +613,78 @@
                             Please explain your report in detail for better understanding.
                         </h3>
 
-                        {{ $this->form->getComponent('grievance_details') }}
+                        <div wire:ignore>
+                            <textarea id="grievance_details" wire:model="grievance_details"></textarea>
+                        </div>
+
+                        <flux:error name="grievance_details" />
+
+                        <script>
+                            $(document).ready(function () {
+                                $('#grievance_details').summernote({
+                                    placeholder: 'Describe your report in detail...',
+                                    height: 250,
+                                    minHeight: 200,
+                                    maxHeight: 500,
+
+                                    callbacks: {
+                                        onChange: function(contents, $editable) {
+                                            @this.set('grievance_details', contents);
+                                        }
+                                    },
+
+                                    toolbar: [
+                                        ['style', ['style']],
+                                        ['font', ['bold', 'italic', 'underline', 'clear']],
+                                        ['font2', ['superscript', 'subscript']],
+                                        ['para', ['ul', 'ol', 'paragraph']],
+                                        ['insert', ['link', 'picture', 'video', 'table']],
+                                        ['view', ['fullscreen', 'codeview', 'help']]
+                                    ],
+
+                                    styleTags: [
+                                        'p', 'blockquote', 'pre',
+                                        { title: 'Heading 1', tag: 'h1', className: 'text-2xl font-bold' },
+                                        { title: 'Heading 2', tag: 'h2', className: 'text-xl font-bold' },
+                                        { title: 'Heading 3', tag: 'h3', className: 'text-lg font-semibold' }
+                                    ],
+
+                                    codemirror: {
+                                        theme: 'monokai'
+                                    }
+                                });
+
+                                const darkClass = 'dark';
+                                const summernoteContainer = $('#grievance_details').next('.note-editor');
+
+                                function applyDarkMode() {
+                                    if (document.documentElement.classList.contains(darkClass)) {
+                                        summernoteContainer.addClass('bg-zinc-900 text-white border-zinc-700');
+                                        summernoteContainer.find('.note-toolbar, .note-statusbar').addClass('bg-zinc-800 border-zinc-700');
+                                        summernoteContainer.find('.note-editable').addClass('bg-zinc-900 text-white');
+                                    } else {
+                                        summernoteContainer.removeClass('bg-zinc-900 text-white border-zinc-700');
+                                        summernoteContainer.find('.note-toolbar, .note-statusbar').removeClass('bg-zinc-800 border-zinc-700');
+                                        summernoteContainer.find('.note-editable').removeClass('bg-zinc-900 text-white');
+                                    }
+                                }
+
+                                applyDarkMode();
+
+                                const observer = new MutationObserver(applyDarkMode);
+                                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+                                 Livewire.on('resetGrievanceDetails', () => {
+                                    $('#grievance_details').summernote('reset');
+                                });
+                            });
+                        </script>
+
                     </div>
                 </flux:field>
 
                 <flux:field>
-                    <div class="flex flex-col gap-2 w-full">
+                    <div x-data="{ progress: 0 }" class="flex flex-col gap-2 w-full">
                         <flux:label class="flex gap-2">
                             <flux:icon.folder />
                             <span>Attachments</span>
@@ -633,7 +698,21 @@
                             type="file"
                             wire:model="attachments"
                             multiple
+                            x-on:livewire-upload-start="progress = 5"
+                            x-on:livewire-upload-finish="progress = 100"
+                            x-on:livewire-upload-error="progress = 0"
+                            x-on:livewire-upload-progress="progress = $event.detail.progress"
                         />
+
+                        <div x-show="progress > 0 && progress < 100" class="w-full mt-2">
+                            <div class="relative w-full bg-gray-200 dark:bg-zinc-700 h-2 rounded overflow-hidden">
+                                <div
+                                    class="absolute left-0 top-0 h-2 bg-blue-600 dark:bg-blue-400 rounded transition-all"
+                                    :style="'width: ' + progress + '%'">
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-700 dark:text-gray-300 mt-1" x-text="progress + '%'"></span>
+                        </div>
 
                         <flux:error name="attachments" />
                     </div>

@@ -2,16 +2,13 @@
 
     <div
         id="chat-box"
+        x-ref="chatBox"
         class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth"
-        x-data="chatScroll"
+        x-data="chatScroll({{ $canLoadMore ? 'true' : 'false' }})"
         x-init="init"
     >
-        <template x-if="$wire.loadingOlder">
-            <div class="text-center text-gray-400 text-xs py-2 flex justify-center items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l3 3-3 3v-4a8 8 0 01-8-8z"></path>
-                </svg>
+       <template x-if="loadingOlder && hasMore">
+            <div class="text-center text-gray-400 text-xs py-2">
                 Loading older messages...
             </div>
         </template>
@@ -23,7 +20,13 @@
                 <p class="text-xs">Start a conversation with your HR Liaison if needed.</p>
             </div>
         @else
-            @foreach($messages as $msg)
+            <div x-show="!hasMore" x-cloak>
+                <div class="text-center text-gray-400 text-xs py-2 italic">
+                    — No more messages —
+                </div>
+            </div>
+
+            @foreach($this->messages as $msg)
                 @php
                     $isSender = $msg['sender_id'] === auth()->id();
                     $files = $msg['file_path'] ? json_decode($msg['file_path'], true) : [];
@@ -71,8 +74,14 @@
 
                                                 @if($index < $maxVisible - 1 || count($imageFiles) <= $maxVisible)
                                                     <div class="group relative rounded-lg overflow-hidden aspect-[1/1]">
-                                                        <img src="{{ Storage::url($file) }}" alt="{{ $name }}" class="w-full h-full object-cover rounded-lg">
-                                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                        <img
+                                                            src="{{ Storage::url($file) }}"
+                                                            alt="{{ $name }}"
+                                                            class="w-full h-full object-cover rounded-lg"
+                                                            @click="$dispatch('zoom-image', { src: '{{ Storage::url($file) }}' })"
+                                                        />
+
+                                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-start justify-end pt-2 pr-2 cursor-pointer" @click="$dispatch('zoom-image', { src: '{{ Storage::url($file) }}' })">
                                                             <a href="{{ Storage::url($file) }}" download="{{ $name }}"
                                                             class="inline-flex items-center justify-center rounded-full h-9 w-9 bg-white/40 hover:bg-white/70">
                                                                 <x-heroicon-o-arrow-down-tray class="w-5 h-5 text-white" />
@@ -100,8 +109,8 @@
                                             x-cloak
                                             class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
                                         >
-                                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 max-w-3xl w-full overflow-y-auto max-h-[80vh] relative">
-                                                <div class="flex items-center justify-between p-2 border-b border-gray-300 dark:border-zinc-700 bg-white dark:bg-black">
+                                            <div class="bg-white dark:bg-gray-800 rounded-2xl px-4 max-w-3xl w-full overflow-y-auto max-h-[80vh] relative">
+                                                <div class="flex items-center justify-between border-b border-gray-300 dark:border-zinc-700 py-2">
                                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                                         <x-heroicon-o-photo class="w-5 h-5" />
                                                         Additional Images
@@ -114,7 +123,7 @@
 
                                                 </div>
 
-                                                <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 mt-6">
+                                                <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 my-6">
                                                     @foreach($imageFiles as $index => $img)
                                                         @if($index >= $maxVisible - 1)
                                                             @php
@@ -125,9 +134,10 @@
                                                                 <img
                                                                     src="{{ Storage::url($file) }}"
                                                                     alt="{{ $name }}"
-                                                                    class="w-full h-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
-                                                                >
-                                                                <div class="absolute inset-0 z-10 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                                                    class="w-full h-full object-cover rounded-lg"
+                                                                    @click="$dispatch('zoom-image', { src: '{{ Storage::url($file) }}' })"
+                                                                />
+                                                                <div class="absolute inset-0 z-10 bg-black/50 opacity-0 group-hover:opacity-100 flex items-start justify-end pt-2 pr-2 transition cursor-pointer" @click="$dispatch('zoom-image', { src: '{{ Storage::url($file) }}' })">
                                                                     <a
                                                                         href="{{ Storage::url($file) }}"
                                                                         download="{{ $name }}"
@@ -205,7 +215,7 @@
         @endif
     </div>
 
-    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-black p-3 flex-shrink-0">
+    <div class="border-t border-gray-300 dark:border-zinc-700 bg-white dark:bg-black p-3 flex-shrink-0" x-data="{ openModal: false }">
         <form wire:submit.prevent="sendMessage" class="flex items-center gap-3">
             <div class="flex flex-1 items-center border border-gray-300 dark:border-zinc-700 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">
                 <input
@@ -225,50 +235,152 @@
                 </flux:button>
             </div>
 
-            <flux:modal.trigger name="upload-file">
-                <flux:button
-                    type="button"
-                    variant="primary"
-                    color="blue"
-                    class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 rounded-full transition duration-300 ease-in-out"
-                    icon="plus"
-                />
-            </flux:modal.trigger>
+            <flux:button
+                type="button"
+                @click="openModal = true"
+                variant="primary"
+                color="blue"
+                class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 rounded-full transition duration-300 ease-in-out"
+                icon="plus"
+            />
+
         </form>
 
-     <flux:modal name="upload-file" :closable="false" class="w-full">
-        <header class="flex w-full justify-center items-center py-2">
-            <flux:button icon="chevron-down" variant="subtle" class="w-full" x-on:click="$flux.modal('upload-file').close()" />
-        </header>
-        <div class="max-h-72 overflow-y-auto border border-gray-200 dark:border-zinc-700 rounded-lg bg-white/60 dark:bg-zinc-800/60 p-2" style="scrollbar-gutter: stable;" >
-            <div class="min-h-[12rem]">
-                {{ $this->form }}
+        <div
+            x-show="openModal"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center"
+        >
+            <div
+                @click="openModal = false"
+                class="fixed inset-0 bg-black/50"
+            ></div>
+
+            <div
+                class="w-full max-w-md bg-white dark:bg-zinc-800 rounded-t-xl shadow-xl transform transition-all duration-300"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="translate-y-full opacity-0"
+                x-transition:enter-end="translate-y-0 opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="translate-y-0 opacity-100"
+                x-transition:leave-end="translate-y-full opacity-0"
+            >
+
+                <header class="flex w-full justify-center items-center py-2">
+                    <flux:button icon="chevron-down" variant="subtle" class="w-full" @click="openModal = false" />
+                </header>
+
+                <div
+                    class="max-h-72 w-full justify-center items-center overflow-y-auto border border-gray-200 dark:border-zinc-700
+                        rounded-lg bg-white/60 dark:bg-zinc-800/60 px-3 py-4"
+                    style="scrollbar-gutter: stable;"
+                >
+                    <div class="min-h-[12rem]">
+                        {{ $this->form }}
+                    </div>
+                </div>
             </div>
         </div>
-    </flux:modal>
 
     </div>
+
+    <div
+        x-data="imageZoom()"
+        x-cloak
+    >
+        <div
+            x-show="zoomSrc"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+        >
+            <div class="relative max-w-3xl w-full">
+                <button
+                    @click="close()"
+                    class="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-50"
+                >
+                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                </button>
+
+                <img
+                    :src="zoomSrc"
+                    class="rounded-lg max-h-[85vh] mx-auto object-contain shadow-xl"
+                />
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function imageZoom() {
+        return {
+            zoomSrc: null,
+            open(src) { this.zoomSrc = src },
+            close() { this.zoomSrc = null },
+            init() {
+                window.addEventListener('zoom-image', e => {
+                    this.zoomSrc = e.detail.src;
+                });
+            }
+        }
+    }
+    </script>
+
 </div>
 
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('chatScroll', () => ({
+    Alpine.data('chatScroll', (initialCanLoadMore) => ({
+        hasMore: initialCanLoadMore,
+        loadingOlder: false,
+
+        checkScroll() {
+            const el = this.$refs.chatBox;
+            if (!el || !this.hasMore || this.loadingOlder) return;
+
+            if (Math.ceil(el.scrollTop) === 0) {
+                this.loadingOlder = true;
+
+                const prevScrollTop = el.scrollTop;
+                const prevScrollHeight = el.scrollHeight;
+
+                const onUpdated = (event) => {
+                    this.hasMore = event.detail.canLoadMore;
+                    this.$nextTick(() => {
+                        const newScrollHeight = el.scrollHeight;
+
+                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+
+                        this.loadingOlder = false;
+                    });
+                    window.removeEventListener('messagesLoaded', onUpdated);
+                };
+
+                window.addEventListener('messagesLoaded', onUpdated);
+
+                this.$wire.loadOlderMessages();
+            }
+        },
+
         init() {
-            const chatBox = this.$el;
-            this.$nextTick(() => chatBox.scrollTop = chatBox.scrollHeight);
-            let loading = false;
-            chatBox.addEventListener('scroll', () => {
-                if (chatBox.scrollTop <= 0 && !loading) {
-                    loading = true;
-                    $wire.call('loadMore').then(() => {
-                        this.$nextTick(() => {
-                            chatBox.scrollTop = 50;
-                            loading = false;
-                        });
+            const el = this.$refs.chatBox;
+
+            this.hasMore = initialCanLoadMore;
+
+            el.addEventListener('scroll', () => this.checkScroll());
+
+            this.$nextTick(() => {
+                if (el.scrollHeight > el.clientHeight) {
+                    el.scrollTop = el.scrollHeight;
+                }
+            });
+
+            window.addEventListener('messageReceived', (event) => {
+                if ((el.scrollHeight - el.scrollTop - el.clientHeight) < 100) {
+                    this.$nextTick(() => {
+                        el.scrollTop = el.scrollHeight;
                     });
                 }
             });
-        },
+        }
     }));
 });
 </script>

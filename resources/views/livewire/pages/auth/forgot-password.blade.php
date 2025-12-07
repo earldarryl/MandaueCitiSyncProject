@@ -46,7 +46,8 @@
             </div>
             <flux:button
                 icon="x-mark"
-                variant="subtle"
+                variant="ghost"
+                class="border border-gray-300 dark:border-gray-500"
                 @click="open = false"
             >
                 Close

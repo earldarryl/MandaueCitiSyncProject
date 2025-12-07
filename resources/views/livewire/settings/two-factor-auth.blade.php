@@ -11,7 +11,7 @@
                     Two-Factor Authentication
                 </span>
             </h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400 text-md text-justify text-body">
+            <p class="mt-2 font-semibold text-md text-justify text-body">
                 Activate two-factor authentication to strengthen your account’s security.
             </p>
         </header>
@@ -40,7 +40,7 @@
             @endif
         </div>
 
-        <div class="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700">
+        <div class="p-6 border border-gray-200 dark:border-gray-700">
            @if (auth()->user()->two_factor_secret)
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Scan this QR code with your authenticator app:
@@ -71,83 +71,6 @@
                     </div>
                 </div>
 
-                {{-- <div class="mt-6">
-                    <div class="h-full flex items-center justify-center p-6">
-                        <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                                Two-Factor Authentication
-                            </h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                                Enter the 6-digit code from your authenticator app to confirm your identity.
-                            </p>
-
-                            @error('two_factor')
-                                <div class="mb-4 flex justify-center rounded-lg bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
-                                    <span class="pb-2">
-                                        <flux:error name="two_factor" />
-                                    </span>
-                                </div>
-                            @enderror
-
-                            <form wire:submit.prevent="confirm" class="space-y-4">
-                                <flux:field class="flex flex-col gap-2">
-                                    <div class="flex flex-col gap-2">
-                                        <flux:label class="flex gap-2">
-                                            <flux:icon.key class="text-mc_primary_color dark:text-white"/>
-                                            <span>Authentication Code</span>
-                                        </flux:label>
-
-                                        <flux:input.group>
-                                            <flux:input
-                                                wire:model="code"
-                                                id="code"
-                                                name="code"
-                                                type="text"
-                                                maxlength="6"
-                                                inputmode="numeric"
-                                                pattern="[0-9]*"
-                                                placeholder="123456"
-                                                clearable
-                                            />
-                                        </flux:input.group>
-
-
-                                    </div>
-                                </flux:field>
-
-                                <div class="flex justify-center items-center w-full">
-                                    <flux:button
-                                        variant="primary"
-                                        color="blue"
-                                        type="submit"
-                                        class="w-full bg-mc_primary_color dark:text-blue-500"
-                                        wire:target="confirm"
-                                        wire:loading.remove
-                                        >
-
-                                        <span class="flex items-center justify-center gap-2">
-                                            <span><flux:icon.check/></span>
-                                            <span>
-                                                Verify Code
-                                            </span>
-                                        </span>
-
-                                    </flux:button>
-
-                                    <div wire:loading wire:target="confirm">
-                                        <div class="w-full flex items-center justify-center gap-2">
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
-                </div> --}}
-
                 <form method="POST" action="/user/two-factor-authentication" class="mx-6">
                     @csrf
                     @method('DELETE')
@@ -162,10 +85,10 @@
                 </form>
 
             @else
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
                     Secure your account with 2FA
                 </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-6">
                     Click the button below to generate a QR code and enable two-factor authentication.
                 </p>
 
