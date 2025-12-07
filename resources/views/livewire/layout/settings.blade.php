@@ -35,13 +35,13 @@
 >
     <livewire:partials.mini-sidebar />
 
-    <div class="flex-1 flex flex-col overflow-hidden h-full">
+    <div class="relative flex-1 flex flex-col overflow-hidden h-full">
         <div
             x-show="loading"
             class="absolute inset-0 flex items-center h-full justify-center z-30 bg-white/70 dark:bg-black/70"
         >
             <div
-                class="bg-gray-200 dark:bg-zinc-800 shadow-md
+                class="shadow-md
                     flex flex-col items-center justify-center gap-3
                     px-6 py-4 w-full h-full"
             >

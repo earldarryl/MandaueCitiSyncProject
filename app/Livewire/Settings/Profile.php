@@ -80,7 +80,6 @@ class Profile extends Component implements HasSchemas
         };
     }
 
-
     public function isClean(string $field): bool
     {
         return !$this->isDirty($field);
@@ -153,6 +152,24 @@ class Profile extends Component implements HasSchemas
                     ->image()
                     ->imageEditor()
                     ->maxSize(2048)
+                    ->required()
+                    ->alignCenter()
+                    ->validationMessages([
+                        'required' => '<div class="flex items-center justify-start gap-2 mt-3 text-sm font-medium text-red-500 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            class="w-5 h-5 flex-shrink-0">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.75 1.335-.213 3.05-1.742 3.05H3.48c-1.53 0-2.492-1.715-1.741-3.05L8.257 3.1zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-4a.75.75 0 00-.75.75v2.5c0 .414.336.75.75.75s.75-.336.75-.75v-2.5A.75.75 0 0010 9z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        <span>Please select and upload a profile picture before saving.</span>
+                    </div>
+                    ',
+                    ])
+                    ->allowHtmlValidationMessages()
                     ->hiddenLabel(true)
             ])
             ->statePath('data');
@@ -186,7 +203,7 @@ class Profile extends Component implements HasSchemas
 
         $this->current_profile_pic = $path;
 
-        $this->form->fill(['profile_pic' => $path]);
+        $state['profile_pic'] = null;
 
         Notification::make()
             ->title('Profile picture updated!')

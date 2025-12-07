@@ -25,10 +25,14 @@ class Chat extends Component implements Forms\Contracts\HasForms
     public $userRole;
     public array $messages = [];
     public ?array $data = [];
-    public $messageLimit = 20;
+    public int $limit = 10;
+    public int $totalMessagesCount = 0;
+    public int $loadedMessageCount = 10;
+    public const MESSAGE_BATCH_SIZE = 10;
     public $hasMore = true;
-    public $loadingOlder = false;
+    public $canLoadMore = false;
     public array $files = [];
+    protected $listeners = ['loadMore' => 'loadOlderMessages'];
 
     public function mount(Grievance $grievance)
     {
@@ -39,6 +43,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
 
         if ($this->isAuthorized) {
             $this->loadMessages();
+            $this->totalMessagesCount = Message::where('grievance_id', $this->grievance->grievance_id)->count();
         }
 
         $this->form->fill();
@@ -49,6 +54,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
     {
         if ($grievanceId == $this->grievance->grievance_id) {
             $this->loadMessages();
+            $this->dispatch('messagesLoaded', canLoadMore: $this->canLoadMore);
         }
 
         Notification::make()
@@ -72,7 +78,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
     public function receiveMessage(array $message)
     {
         $this->loadMessages();
-
+        $this->dispatch('messagesLoaded', canLoadMore: $this->canLoadMore);
         $this->js('$nextTick(() => {
             const chatBox = document.getElementById("chat-box");
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
@@ -100,6 +106,7 @@ class Chat extends Component implements Forms\Contracts\HasForms
                 ->disk('public')
                 ->maxSize(10240)
                 ->multiple()
+                ->alignCenter()
                 ->imageEditor()
                 ->panelLayout('grid')
                 ->previewable(true)
@@ -111,32 +118,54 @@ class Chat extends Component implements Forms\Contracts\HasForms
                     'application/msword',
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 ])
-                ->helperText('Accepted: Images, PDF, DOCX — Max 10MB each.'),
+                ->helperText('Uploading... Please wait until upload is complete before sending.')
         ];
-    }
-
-    public function loadMessages()
-    {
-        $query = Message::where('grievance_id', $this->grievance->grievance_id)
-            ->with('sender')
-            ->orderBy('created_at', 'desc')
-            ->take($this->messageLimit);
-
-        $this->messages = $query->get()->reverse()->values()->toArray();
-
-        $this->hasMore = Message::where('grievance_id', $this->grievance->grievance_id)
-            ->count() > count($this->messages);
     }
 
     public function loadMore()
     {
-        if (!$this->hasMore) return;
+        if ($this->canLoadMore) {
+            $this->loadedMessageCount += self::MESSAGE_BATCH_SIZE;
+            $this->loadMessages();
+        }
 
-        $this->loadingOlder = true;
-        $this->messageLimit += 20;
-        $this->loadMessages();
-        $this->loadingOlder = false;
+        $this->dispatch('messagesLoaded', canLoadMore: $this->canLoadMore);
     }
+
+    public function loadOlderMessages()
+    {
+        $this->loadMore();
+    }
+
+    public function loadMessages()
+    {
+        $this->totalMessagesCount = Message::where('grievance_id', $this->grievance->grievance_id)->count();
+
+        $loadSize = min($this->loadedMessageCount, $this->totalMessagesCount);
+
+        $skip = max(0, $this->totalMessagesCount - $loadSize);
+
+        $this->canLoadMore = $this->loadedMessageCount < $this->totalMessagesCount;
+
+        $this->messages = $this->grievance->messages()
+            ->with('sender')
+            ->orderBy('created_at', 'asc')
+            ->skip($skip)
+            ->take($loadSize)
+            ->get()
+            ->toArray();
+    }
+
+    public function getMessagesProperty()
+    {
+        return $this->messages;
+    }
+
+    public function getCanLoadMoreProperty()
+    {
+        return $this->limit < $this->totalMessagesCount;
+    }
+
 
     public function sendMessage()
     {
@@ -174,7 +203,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
         ];
 
         $message = Message::create($messageData)->load('sender');
-
 
         $recipients = collect();
 

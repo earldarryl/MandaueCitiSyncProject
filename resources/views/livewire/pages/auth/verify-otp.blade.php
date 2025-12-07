@@ -15,99 +15,115 @@
              x-init="setTimeout(() => showStatus = false, 5000)"
              x-show="showStatus"
              x-transition:leave.duration.500ms
-             class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
              role="alert"
         >
+            <x-heroicon-o-check class="w-5 h-5" />
+            <span>
+                {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+            </span>
+        </div>
+    @endif
+
+    @if ($textSuccessMessage)
+        <div class="flex gap-3 mb-4 font-medium text-sm text-green-400">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                  stroke-width="1.5" stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="m4.5 12.75 6 6 9-13.5" />
             </svg>
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+            <x-heroicon-o-check class="w-5 h-5" />
+            <flux:text>{{ $textSuccessMessage }}</flux:text>
         </div>
     @endif
 
     <div class="flex flex-col w-full h-full gap-4 p-4">
-        <form wire:submit.prevent="verifyOtp" class="space-y-4 w-full">
-            @csrf
 
-            <flux:field class="flex flex-col gap-2">
-                <flux:label class="flex gap-2">
-                        <flux:icon.device-phone-mobile/>
-                        <span>Enter OTP</span>
-                    </flux:label>
-                <flux:input id="otp" name="otp" type="text" wire:model.defer="otp" class="mt-1 w-full" autofocus />
-                <flux:error name="otp" />
+        <flux:field class="flex flex-col gap-2">
+            <flux:label class="flex gap-2">
+                    <flux:icon.device-phone-mobile/>
+                    <span>Enter OTP</span>
+                </flux:label>
+            <flux:input id="otp" name="otp" type="text" wire:model.defer="otp" class="mt-1 w-full" autofocus x-on:keydown.enter.prevent="$wire.call('verifyOtp')" />
+            <flux:error name="otp" />
+        </flux:field>
 
-                @if (session('success'))
-                    <flux:text variant="success">{{ session('success') }}</flux:text>
-                @endif
-            </flux:field>
-
-            <div wire:target="verifyOtp" wire:loading.remove>
-                <div class="w-full flex justify-center items-center">
-                    <flux:button
-                        type="submit"
-                        variant="primary"
-                        color="blue"
-                        icon="check"
-                        class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                    >
-                        <span>{{ __('Verify OTP') }}</span>
-                    </flux:button>
-                </div>
+        <div wire:target="verifyOtp" wire:loading.remove>
+            <div class="w-full flex justify-center items-center">
+                <flux:button
+                    type="submit"
+                    wire:loading.attr="disabled"
+                    wire:target="verifyOtp"
+                    wire:click="verifyOtp"
+                    variant="primary"
+                    color="blue"
+                    icon="check"
+                    class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                >
+                    <span>{{ __('Verify OTP') }}</span>
+                </flux:button>
             </div>
+        </div>
 
-        </form>
-
-        <div>
-             <div class="w-full flex justify-end gap-2 mt-4">
+        <div wire:target="verifyOtp" wire:loading.remove>
+            <div class="w-full flex justify-end gap-2">
                 <div
                     x-data="{
-                        timeLeft: @js($cooldown),
-                        get label() {
-                            return this.timeLeft > 0
-                                ? 'Wait ' + this.timeLeft + 's'
-                                : 'Resend OTP';
-                        }
+                        timeLeft: @entangle('cooldown').live,
+                        label: ''
                     }"
+
+                    @if ($cooldown > 0)
+                        wire:poll.100ms="updateCooldown"
+                    @endif
+
                     x-init="
+                        $watch('timeLeft', value => {
+                            if (value > 0) {
+                                label = 'Wait ' + value + 's';
+                            } else {
+                                label = 'Resend OTP';
+                            }
+                        });
                         if (timeLeft > 0) {
-                            let interval = setInterval(() => {
-                                timeLeft--;
-                                if (timeLeft <= 0) clearInterval(interval);
-                            }, 1000);
+                            label = 'Wait ' + timeLeft + 's';
+                        } else {
+                            label = 'Resend OTP';
                         }
                     "
-                    class="w-full text-black"
+
+                    class="w-full"
                 >
                     <flux:button
                         type="button"
                         variant="primary"
                         color="blue"
                         icon="cursor-arrow-ripple"
-                        class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                        class="w-full group transition duration-300 ease-in-out
+                            disabled:cursor-not-allowed disabled:opacity-50
+                            bg-mc_primary_color dark:bg-blue-700"
                         wire:click="sendVerification"
-                        wire:loading.attr="disabled"
                         x-bind:disabled="timeLeft > 0"
-                        wire:target="verifyOtp" wire:loading.remove
+                        wire:loading.attr="disabled"
+                        wire:target="sendVerification"
                     >
-                        <span x-text="label"></span>
+                        <span wire:loading.remove wire:target="sendVerification" x-text="label"></span>
+                        <span wire:loading wire:target="sendVerification">Sending...</span>
                     </flux:button>
                 </div>
 
-                <form method="POST" action="{{ route('logout') }}" class="w-1/2">
-                    @csrf
-                    <flux:button
-                        type="submit"
-                        variant="danger"
-                        color="rose"
-                        icon="arrow-left-end-on-rectangle"
-                        class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                    >
-                        {{ __('Log Out') }}
-                    </flux:button>
-                </form>
+                <flux:button
+                    type="button"
+                    wire:click="logout"
+                    variant="danger"
+                    color="rose"
+                    wire:loading.attr="disabled"
+                    wire:target="logout"
+                    icon="arrow-left-end-on-rectangle"
+                    class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <span wire:loading.remove wire:target="logout">Log Out</span>
+                    <span wire:loading wire:target="logout">Logging Out...</span>
+                </flux:button>
             </div>
         </div>
 

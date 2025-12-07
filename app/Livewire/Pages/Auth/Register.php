@@ -168,7 +168,7 @@ class Register extends Component
             $validated['contact'] = '+63' . $validated['contact'];
 
             $user = User::create([
-                'name' => ucwords(strtolower(trim($validated['name']))),
+                'name' => trim($validated['name']),
                 'email' => strtolower(trim($validated['email'])),
                 'profile_pic' => null,
                 'password' => Hash::make($validated['password']),

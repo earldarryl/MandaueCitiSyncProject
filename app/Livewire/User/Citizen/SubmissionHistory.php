@@ -16,10 +16,18 @@ class SubmissionHistory extends Component
     public int $increment = 5;
     public ?string $selectedDate = null;
     public string $filter = '';
+    public array $actionTypeOptions = [];
 
     public function mount(): void
     {
         $this->updateRestoreStatus();
+
+        $this->actionTypeOptions = HistoryLog::where('user_id', auth()->id())
+            ->select('action_type')
+            ->distinct()
+            ->pluck('action_type')
+            ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
+            ->toArray();
     }
 
     private function updateRestoreStatus(): void
@@ -138,17 +146,6 @@ class SubmissionHistory extends Component
             };
         });
     }
-
-    public function getActionTypeOptionsProperty()
-    {
-        return HistoryLog::where('user_id', auth()->id())
-            ->select('action_type')
-            ->distinct()
-            ->pluck('action_type')
-            ->map(fn($type) => ucwords(str_replace('_', ' ',$type)))
-            ->toArray();
-    }
-
 
     public function render()
     {

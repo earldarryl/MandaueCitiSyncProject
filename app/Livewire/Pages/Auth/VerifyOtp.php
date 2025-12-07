@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Auth;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
@@ -20,9 +21,15 @@ class VerifyOtp extends Component
     public int $cooldown = 0;
     public string $otp = '';
     private string $limiterKey = '';
-
-   public function mount()
+    public string $textSuccessMessage;
+    public function mount()
     {
+        $this->cooldown = RateLimiter::availableIn($this->getLimiterKey());
+
+        if ($this->cooldown > 0) {
+            $this->startPolling();
+        }
+
         $trigger = request()->query('trigger');
 
         if ($trigger && session('email_verify_trigger') === $trigger) {
@@ -32,6 +39,24 @@ class VerifyOtp extends Component
         }
     }
 
+    public function updateCooldown()
+    {
+        $this->cooldown = RateLimiter::availableIn($this->getLimiterKey());
+
+        if ($this->cooldown <= 0) {
+            $this->stopPolling();
+        }
+    }
+
+    private function startPolling()
+    {
+        //
+    }
+
+    private function stopPolling()
+    {
+        //
+    }
 
     private function getLimiterKey(): string
     {
@@ -74,13 +99,20 @@ class VerifyOtp extends Component
 
         $this->cooldown = 60;
         $this->status = 'verification-link-sent';
+
+        $this->startPolling();
     }
 
     public function verifyOtp(): void
     {
         $this->validate([
             'otp' => 'required|numeric',
-        ]);
+            ],
+            [
+                'otp.required' => 'Please enter the OTP sent to your email.',
+                'otp.numeric'  => 'OTP must be numbers only.',
+            ]
+        );
 
         $user = Auth::user();
         $cachedOtp = Cache::get('email_otp_' . $user->email);
@@ -104,16 +136,32 @@ class VerifyOtp extends Component
                 'updated_by'   => $user->id,
             ]);
 
+            $this->textSuccessMessage = 'Email verified successfully.';
+
             $this->redirectIntended(
                 default: route('citizen.grievance.index', absolute: false),
                 navigate: true
             );
 
-            session()->flash('success', 'Email verified successfully.');
             return;
         }
 
         $this->addError('otp', 'Invalid or expired OTP.');
+    }
+
+    public function logout()
+    {
+        $user = auth()->user();
+
+        if ($user) {
+            $user->markOffline();
+        }
+
+        Auth::guard('web')->logout();
+        Session::invalidate();
+        Session::regenerateToken();
+
+        $this->redirectIntended(default: route('login', absolute: false), navigate: true);
     }
     public function render()
     {

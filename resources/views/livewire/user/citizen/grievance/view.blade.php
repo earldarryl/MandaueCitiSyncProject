@@ -572,7 +572,7 @@
 
     <div class="flex flex-col gap-3 mt-8 border border-gray-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 p-5">
         <h4 class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6" />
             Conversation
         </h4>
 

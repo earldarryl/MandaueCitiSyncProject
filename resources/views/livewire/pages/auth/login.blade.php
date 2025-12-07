@@ -14,15 +14,15 @@
                         <span>Email</span>
                     </flux:label>
                     <flux:input.group>
-                            <flux:input
-                                wire:model="form.email"
-                                id="email"
-                                type="text"
-                                placeholder="Enter your email"
-                                class:input="text-lg font-semibold"
-                                clearable
-                                x-on:keydown.enter.prevent="$wire.call('login')"
-                            />
+                        <flux:input
+                            wire:model="form.email"
+                            id="email"
+                            type="text"
+                            placeholder="Enter your email"
+                            class:input="text-lg font-semibold"
+                            clearable
+                            x-on:keydown.enter.prevent="$wire.call('login')"
+                        />
 
                     </flux:input.group>
                 </div>
@@ -198,7 +198,8 @@
             </div>
             <flux:button
                 icon="x-mark"
-                variant="subtle"
+                variant="ghost"
+                class="border border-gray-300 dark:border-gray-500"
                 @click="open = false"
             >
                 Close

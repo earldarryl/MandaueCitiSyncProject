@@ -89,7 +89,7 @@ class LoginForm extends Form
             $user->sendEmailVerificationNotification();
             return [
                 'user' => $user,
-                'redirect' => null,
+                'redirect' => route('verification.notice'),
             ];
         }
 

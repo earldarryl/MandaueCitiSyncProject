@@ -1,4 +1,4 @@
-<div class="sticky top-0 z-[32] h-[60px] shadow-md dark:bg-black w-full bg-white">
+<div class="sticky top-0 z-[32] h-[60px] border border-gray-300 dark:border-zinc-800 dark:bg-black w-full bg-white">
 <nav x-data="{ open: false }" class="w-full">
     <div class="w-full px-2">
         <div class="flex justify-between items-center h-16">

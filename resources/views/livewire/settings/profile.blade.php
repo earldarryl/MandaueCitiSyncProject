@@ -8,7 +8,7 @@
                     Profile
                 </span>
             </h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400 text-md text-justify text-body">
+            <p class="mt-2 text-md font-semibold text-justify text-body">
                 Manage your personal details by updating your profile information, securing your account through password changes, or deactivating your account if needed.
             </p>
         </header>
@@ -58,61 +58,76 @@
 
                         </div>
 
-                        <flux:modal
-                            wire:model="showProfileEditModal"
-                            class="w-96"
-                            :closable="false"
-                            :dismissible="false"
-                        >
-                            <div class="flex flex-col items-center justify-center w-full space-y-5">
-                                <div class="text-center space-y-1">
-                                    <span class="text-3xl font-bold text-mc_primary_color dark:text-blue-600">Edit Profile Picture</span>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400 block">
-                                        Choose or upload a new photo for your account.
-                                    </span>
-                                </div>
+                        <div x-data="{ open: @entangle('showProfileEditModal') }" x-cloak>
+                            <div
+                                x-show="open"
+                                x-transition.opacity
+                                class="fixed inset-0 bg-black/50 z-40"
+                                @click="open = false"
+                            ></div>
 
-                                <div class="w-full flex flex-col items-center justify-center">
-                                    {{ $this->form }}
-                                </div>
-
-                                <div class="flex items-center justify-center w-full gap-4">
-                                    <flux:button
-                                        variant="subtle"
-                                        wire:click="$set('showProfileEditModal', false)"
-                                        class="border"
-                                        wire:target="saveProfilePic"
-                                        wire:loading.attr="disabled"
-                                        wire:loading.remove
-                                    >
-                                        Cancel
-                                    </flux:button>
-                                    <flux:button
-                                        type="submit"
-                                        variant="primary"
-                                        color="blue"
-                                        class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
-                                        wire:target="saveProfilePic"
-                                        wire:loading.attr="disabled"
-                                        wire:loading.remove
-                                    >
-                                        <span>
-                                            <span class="flex items-center justify-center gap-2">
-                                                <span><flux:icon.check variant="micro"/></span>
-                                                <span>{{ __('Save') }}</span>
-                                            </span>
+                            <div
+                                x-show="open"
+                                x-transition.scale.origin.top
+                                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                            >
+                                <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-lg w-full max-w-3xl p-6 flex flex-col space-y-4">
+                                    <div class="flex flex-col gap-3">
+                                        <span class="text-center text-4xl font-bold text-mc_primary_color dark:text-blue-500">Edit Profile Picture</span>
+                                        <span class="text-start text-md text-gray-500 dark:text-gray-400 block">
+                                            Choose or upload a new photo for your account.
                                         </span>
-                                    </flux:button>
-                                    <div wire:loading wire:target="saveProfilePic">
-                                        <div class="w-full flex items-center justify-center gap-2">
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                            <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                    </div>
+
+                                    <div class="w-full flex items-center justify-center">
+                                        {{ $this->form }}
+                                    </div>
+
+                                    <div class="flex flex-col items-center justify-center w-full gap-2">
+                                        <flux:button
+                                            type="submit"
+                                            variant="primary"
+                                            color="blue"
+                                            class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer"
+                                            wire:target="saveProfilePic"
+                                            wire:loading.attr="disabled"
+                                            wire:loading.remove
+                                        >
+                                            <span>
+                                                <span class="flex items-center justify-center gap-2">
+                                                    <span><flux:icon.check variant="micro"/></span>
+                                                    <span>{{ __('Save') }}</span>
+                                                </span>
+                                            </span>
+                                        </flux:button>
+
+                                        <flux:button
+                                            variant="ghost"
+                                            wire:click="$set('showProfileEditModal', false)"
+                                            class="w-full border border-gray-600"
+                                            wire:target="saveProfilePic"
+                                            wire:loading.attr="disabled"
+                                            wire:loading.remove
+                                        >
+                                            <span>
+                                                <span class="flex items-center justify-center gap-2">
+                                                    <span><flux:icon.x-mark variant="micro"/></span>
+                                                    <span>{{ __('Cancel') }}</span>
+                                                </span>
+                                            </span>
+                                        </flux:button>
+
+                                        <div wire:loading wire:target="saveProfilePic">
+                                            <div class="w-full flex items-center justify-center gap-2">
+                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </flux:modal>
+                        </div>
                     </div>
                 </form>
 

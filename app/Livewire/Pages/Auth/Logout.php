@@ -42,6 +42,7 @@ class Logout extends Component
             $user->markOffline();
         }
 
+        $this->dispatch('close-logout-modal');
         Auth::guard('web')->logout();
         Session::invalidate();
         Session::regenerateToken();
