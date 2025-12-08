@@ -7,6 +7,8 @@ use App\Models\Department;
 use App\Models\Grievance;
 use App\Models\EditRequest;
 use App\Models\User;
+use App\Models\HistoryLog;
+use Illuminate\Support\Facades\Request;
 use App\Notifications\GeneralNotification;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -346,6 +348,83 @@ class Index extends Component
         $this->resetPage();
     }
 
+
+    public function deleteSelected()
+    {
+        if (empty($this->selected)) return;
+
+        $grievances = Grievance::whereIn('grievance_id', $this->selected)->get();
+
+        foreach ($grievances as $grievance) {
+
+            $department = $grievance->department;
+
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) =>
+                    $q->where('hr_liaison_departments.department_id', $department->department_id)
+                )->get();
+
+            foreach ($hrLiaisons as $hr) {
+                $hr->notify(new GeneralNotification(
+                    'Grievance Deleted',
+                    "A grievance titled '{$grievance->grievance_title}' has been deleted.",
+                    'danger',
+                    ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+                ));
+            }
+
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'Grievance Deleted',
+                    "A grievance titled '{$grievance->grievance_title}' has been deleted from the system.",
+                    'warning',
+                    ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+                ));
+            }
+
+            ActivityLog::create([
+                'user_id'      => auth()->id(),
+                'role_id'      => auth()->user()->roles->first()->id ?? null,
+                'module'       => 'Grievances',
+                'action'       => 'delete',
+                'action_type'  => 'bulk_delete',
+                'model_type'   => Grievance::class,
+                'model_id'     => $grievance->grievance_id,
+                'description'  => "Grievance '{$grievance->grievance_title}' deleted by user.",
+                'changes'      => null,
+                'status'       => 'success',
+                'ip_address'   => Request::ip(),
+                'device_info'  => request()->header('User-Agent'),
+                'user_agent'   => request()->userAgent(),
+                'platform'     => php_uname(),
+                'location'     => null,
+                'timestamp'    => now(),
+            ]);
+
+            HistoryLog::create([
+                'user_id'        => auth()->id(),
+                'action_type'    => 'delete',
+                'description'    => "Deleted grievance '{$grievance->grievance_title}'",
+                'reference_table'=> 'grievances',
+                'reference_id'   => $grievance->grievance_id,
+                'ip_address'     => Request::ip(),
+            ]);
+
+            $grievance->delete();
+        }
+
+        $this->selected = [];
+        $this->selectAll = false;
+        $this->updateStats();
+
+        Notification::make()
+            ->title('Bulk Remove')
+            ->body('Selected reports were removed successfully.')
+            ->success()
+            ->send();
+    }
+
     public function deleteGrievance($grievanceId)
     {
         $grievance = Grievance::find($grievanceId);
@@ -361,27 +440,68 @@ class Index extends Component
 
         $title = $grievance->grievance_title;
 
+        $department = $grievance->department;
+
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) =>
+                $q->where('hr_liaison_departments.department_id', $department->department_id)
+            )->get();
+
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'Grievance Deleted',
+                "A grievance titled '{$title}' has been deleted.",
+                'danger',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Grievance Deleted',
+                "A grievance titled '{$title}' has been deleted from the system.",
+                'warning',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+            ));
+        }
+
+        ActivityLog::create([
+            'user_id'      => auth()->id(),
+            'role_id'      => auth()->user()->roles->first()->id ?? null,
+            'module'       => 'Grievances',
+            'action'       => 'delete',
+            'action_type'  => 'single_delete',
+            'model_type'   => Grievance::class,
+            'model_id'     => $grievance->grievance_id,
+            'description'  => "Grievance '{$title}' deleted by user.",
+            'changes'      => null,
+            'status'       => 'success',
+            'ip_address'   => Request::ip(),
+            'device_info'  => request()->header('User-Agent'),
+            'user_agent'   => request()->userAgent(),
+            'platform'     => php_uname(),
+            'location'     => null,
+            'timestamp'    => now(),
+        ]);
+
+        HistoryLog::create([
+            'user_id'        => auth()->id(),
+            'action_type'    => 'delete',
+            'description'    => "Deleted grievance '{$title}'",
+            'reference_table'=> 'grievances',
+            'reference_id'   => $grievance->grievance_id,
+            'ip_address'     => Request::ip(),
+        ]);
+
         $grievance->delete();
 
-        auth()->user()->notify(new GeneralNotification(
-            'Report Deleted',
-            "{$title} was removed successfully.",
-            'warning',
-            ['grievance_id' => $grievanceId],
-            [],
-            true,
-            [
-                [
-                    'label'    => 'Undo Delete',
-                    'color'    => 'gray',
-                    'dispatch' => 'undoLatestGrievance',
-                    'wireClick' => "undoGrievance('{$grievance->grievance_id}')",
-                    'close'    => true,
-                ]
-            ]
-        ));
+        Notification::make()
+            ->title('Report Removed')
+            ->body("Grievance '{$title}' has been deleted successfully.")
+            ->success()
+            ->send();
     }
-
 
     private function sendMessage($message, $type = 'info')
     {
@@ -440,27 +560,6 @@ class Index extends Component
     {
         // $this->selectAll = false;
         // $this->selected = [];
-    }
-
-    public function deleteSelected()
-    {
-        if (empty($this->selected)) return;
-
-        $grievances = Grievance::whereIn('grievance_id', $this->selected)->get();
-
-        foreach ($grievances as $grievance) {
-            $grievance->delete();
-        }
-
-        $this->selected = [];
-        $this->selectAll = false;
-        $this->updateStats();
-
-        Notification::make()
-            ->title('Bulk Remove')
-            ->body('Selected reports were removed successfully.')
-            ->success()
-            ->send();
     }
 
     public function markSelectedHighPriority()

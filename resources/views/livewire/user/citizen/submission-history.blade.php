@@ -125,12 +125,6 @@
             <ol class="relative border-s border-gray-200 dark:border-gray-700 mb-8">
                 @foreach ($logs as $log)
                     @php
-                        $bgColor = $log->reference_table === 'grievances'
-                            ? 'bg-blue-500 dark:bg-blue-700'
-                            : 'bg-purple-500 dark:bg-purple-700';
-
-                        $svgColor = 'text-white';
-
                         $grievance = $log->reference_table === 'grievances'
                             ? \App\Models\Grievance::find($log->reference_id)
                             : null;
@@ -138,6 +132,16 @@
                         $feedback = $log->reference_table === 'feedback'
                             ? \App\Models\Feedback::find($log->reference_id)
                             : null;
+
+                        if (!$grievance && !$feedback) {
+                            continue;
+                        }
+
+                        $bgColor = $log->reference_table === 'grievances'
+                            ? 'bg-blue-500 dark:bg-blue-700'
+                            : 'bg-purple-500 dark:bg-purple-700';
+
+                        $svgColor = 'text-white';
                     @endphp
 
                     <li class="mb-10 ms-5 group w-full" wire:key="log-{{ $log->id }}">

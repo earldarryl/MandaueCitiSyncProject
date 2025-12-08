@@ -361,7 +361,7 @@
                                     name="grievance_type"
                                     readonly
                                     x-model="grievanceType"
-                                    placeholder="Select grievance type"
+                                    placeholder="Select report type"
                                     @click="open = !open"
                                     class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
                                 />
@@ -451,7 +451,7 @@
                                     name="grievance_category"
                                     readonly
                                     x-bind:value="selectedCategory"
-                                    placeholder="Select grievance category"
+                                    placeholder="Select report category"
                                     @click="open = !open"
                                     class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
                                 />
@@ -561,7 +561,7 @@
                         </flux:label>
 
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                            How urgent is this grievance?
+                            How urgent is this report?
                         </h3>
 
                         <x-searchable-select

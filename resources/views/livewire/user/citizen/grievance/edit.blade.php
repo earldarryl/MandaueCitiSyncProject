@@ -35,7 +35,7 @@
                                 wire:model="grievance_title"
                                 type="text"
                                 name="grievance_title"
-                                placeholder="Enter your grievance title"
+                                placeholder="Enter your report title"
                                 clearable
                             />
                         </flux:input.group>
