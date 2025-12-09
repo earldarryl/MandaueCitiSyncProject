@@ -100,7 +100,7 @@
                     updateLabel() {
                         this.label = this.cooldown > 0
                             ? 'Please try again in ' + this.cooldown + 's.'
-                            : '';
+                            : 'Login';
                     }
                 }"
                 x-init="
