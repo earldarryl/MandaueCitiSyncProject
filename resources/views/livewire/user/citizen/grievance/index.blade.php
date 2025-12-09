@@ -2,6 +2,7 @@
      data-component="citizen-grievance-index"
      data-wire-id="{{ $this->id() }}"
      x-data="{ showSeletectedDeleteModal: false }"
+     @close-modal-delete.window="showSeletectedDeleteModal = false"
      x-on:close-all-modals.window="
         document.querySelectorAll('[x-data][x-show]').forEach(el => {
             el.__x.$data.open = false
@@ -378,7 +379,7 @@
    <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, deleteSelected, markSelectedHighPriority, clearSearch">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, markSelectedHighPriority, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -697,19 +698,19 @@
                                                                     <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                                                                 </div>
                                                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                                                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this report? This action cannot be undone.</p>
+                                                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this report?</p>
 
-                                                                <div wire:loading.remove wire:target="deleteGrievance({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
+                                                                <div wire:loading.remove wire:target="deleteReport({{ $grievance->grievance_id }})" class="flex justify-center gap-3 mt-4">
                                                                     <button type="button" @click="showDeleteModal = false"
                                                                         class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                                                                         Cancel
                                                                     </button>
-                                                                    <flux:button variant="danger" icon="trash" wire:click="deleteGrievance({{ $grievance->grievance_id }})">
+                                                                    <flux:button variant="danger" icon="trash" wire:click="deleteReport({{ $grievance->grievance_id }})">
                                                                         Yes, Delete
                                                                     </flux:button>
                                                                 </div>
 
-                                                                <div wire:loading wire:target="deleteGrievance({{ $grievance->grievance_id }})">
+                                                                <div wire:loading wire:target="deleteReport({{ $grievance->grievance_id }})">
                                                                     <div class="flex items-center justify-center gap-2 w-full">
                                                                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                                                                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
@@ -740,7 +741,7 @@
             </div>
 
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, deleteSelected, markSelectedHighPriority, clearSearch"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, filterPriority, filterStatus, filterType, filterDate, filterCategory, filterDepartment, filterEditable, markSelectedHighPriority, clearSearch"
                  class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">
@@ -771,7 +772,7 @@
                 </table>
             </div>
 
-            <div x-show="showSeletectedDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+            <div x-show="showSeletectedDeleteModal"  x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
 
             <div x-show="showSeletectedDeleteModal" x-transition.scale
                 class="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -780,7 +781,7 @@
                         <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                     </div>
                     <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this selected report/s? This action cannot be undone.</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this selected report/s?</p>
 
                     <div wire:loading.remove wire:target="deleteSelected" class="flex justify-center gap-3 mt-4">
                         <button type="button" @click="showSeletectedDeleteModal = false"

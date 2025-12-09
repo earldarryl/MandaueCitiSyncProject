@@ -250,85 +250,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function downloadPdf($id)
-    {
-        $grievance = Grievance::with(['departments', 'attachments', 'user'])->find($id);
-
-        if (! $grievance) {
-            Notification::make()
-                ->title('Error')
-                ->body('Report not found or already deleted.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $pdf = Pdf::loadView('pdf.grievance', [
-            'grievance' => $grievance,
-        ])->setPaper('A4', 'portrait');
-
-        $filename = 'report-' . $grievance->grievance_id . '.pdf';
-
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename
-        );
-    }
-
-    public function downloadCsv($id)
-    {
-        $grievance = Grievance::with(['user.info', 'departments'])->findOrFail($id);
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="report_' . $grievance->grievance_id . '.csv"',
-        ];
-
-        $callback = function () use ($grievance) {
-            $handle = fopen('php://output', 'w');
-
-                fputcsv($handle, [
-                    'Report Ticket ID',
-                    'Report Title',
-                    'Report Type',
-                    'Report Category',
-                    'Priority Level',
-                    'Status',
-                    'Submitted By',
-                    'Departments Involved',
-                    'Details',
-                    'Created At',
-                    'Updated At',
-                ]);
-
-            $submittedBy = $grievance->is_anonymous
-                ? 'Anonymous'
-                : ($grievance->user?->info
-                    ? "{$grievance->user->info->first_name} {$grievance->user->info->last_name}"
-                    : $grievance->user?->name);
-
-            $departments = $grievance->departments->pluck('department_name')->join(', ') ?: 'N/A';
-
-            fputcsv($handle, [
-                $grievance->grievance_ticket_id,
-                $grievance->grievance_title,
-                $grievance->grievance_type,
-                $grievance->grievance_category,
-                $grievance->priority_level,
-                ucfirst(str_replace('_', ' ', $grievance->grievance_status)),
-                $submittedBy,
-                $departments,
-                strip_tags($grievance->grievance_details),
-                $grievance->formatted_created_at,
-                $grievance->formatted_updated_at,
-            ]);
-
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
     public function applySearch()
     {
         $this->search = $this->searchInput;
@@ -348,7 +269,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-
     public function deleteSelected()
     {
         if (empty($this->selected)) return;
@@ -366,8 +286,8 @@ class Index extends Component
 
             foreach ($hrLiaisons as $hr) {
                 $hr->notify(new GeneralNotification(
-                    'Grievance Deleted',
-                    "A grievance titled '{$grievance->grievance_title}' has been deleted.",
+                    'Report Deleted',
+                    "A report titled '{$grievance->grievance_title}' has been deleted.",
                     'danger',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id]
                 ));
@@ -376,8 +296,8 @@ class Index extends Component
             $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
             foreach ($admins as $admin) {
                 $admin->notify(new GeneralNotification(
-                    'Grievance Deleted',
-                    "A grievance titled '{$grievance->grievance_title}' has been deleted from the system.",
+                    'Report Deleted',
+                    "A report titled '{$grievance->grievance_title}' has been deleted from the system.",
                     'warning',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id]
                 ));
@@ -386,7 +306,7 @@ class Index extends Component
             ActivityLog::create([
                 'user_id'      => auth()->id(),
                 'role_id'      => auth()->user()->roles->first()->id ?? null,
-                'module'       => 'Grievances',
+                'module'       => 'Reports',
                 'action'       => 'delete',
                 'action_type'  => 'bulk_delete',
                 'model_type'   => Grievance::class,
@@ -405,7 +325,7 @@ class Index extends Component
             HistoryLog::create([
                 'user_id'        => auth()->id(),
                 'action_type'    => 'delete',
-                'description'    => "Deleted grievance '{$grievance->grievance_title}'",
+                'description'    => "Deleted report '{$grievance->grievance_title}'",
                 'reference_table'=> 'grievances',
                 'reference_id'   => $grievance->grievance_id,
                 'ip_address'     => Request::ip(),
@@ -417,6 +337,7 @@ class Index extends Component
         $this->selected = [];
         $this->selectAll = false;
         $this->updateStats();
+        $this->dispatch('close-modal-delete');
 
         Notification::make()
             ->title('Bulk Remove')
@@ -425,7 +346,7 @@ class Index extends Component
             ->send();
     }
 
-    public function deleteGrievance($grievanceId)
+    public function deleteReport($grievanceId)
     {
         $grievance = Grievance::find($grievanceId);
 
@@ -449,8 +370,8 @@ class Index extends Component
 
         foreach ($hrLiaisons as $hr) {
             $hr->notify(new GeneralNotification(
-                'Grievance Deleted',
-                "A grievance titled '{$title}' has been deleted.",
+                'Report Deleted',
+                "A report titled '{$title}' has been deleted.",
                 'danger',
                 ['grievance_ticket_id' => $grievance->grievance_ticket_id]
             ));
@@ -459,7 +380,7 @@ class Index extends Component
         $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
         foreach ($admins as $admin) {
             $admin->notify(new GeneralNotification(
-                'Grievance Deleted',
+                'Report Deleted',
                 "A grievance titled '{$title}' has been deleted from the system.",
                 'warning',
                 ['grievance_ticket_id' => $grievance->grievance_ticket_id]
@@ -469,12 +390,12 @@ class Index extends Component
         ActivityLog::create([
             'user_id'      => auth()->id(),
             'role_id'      => auth()->user()->roles->first()->id ?? null,
-            'module'       => 'Grievances',
+            'module'       => 'Reports',
             'action'       => 'delete',
             'action_type'  => 'single_delete',
             'model_type'   => Grievance::class,
             'model_id'     => $grievance->grievance_id,
-            'description'  => "Grievance '{$title}' deleted by user.",
+            'description'  => "Report '{$title}' deleted by user.",
             'changes'      => null,
             'status'       => 'success',
             'ip_address'   => Request::ip(),
@@ -488,7 +409,7 @@ class Index extends Component
         HistoryLog::create([
             'user_id'        => auth()->id(),
             'action_type'    => 'delete',
-            'description'    => "Deleted grievance '{$title}'",
+            'description'    => "Deleted report '{$title}'",
             'reference_table'=> 'grievances',
             'reference_id'   => $grievance->grievance_id,
             'ip_address'     => Request::ip(),
@@ -498,7 +419,7 @@ class Index extends Component
 
         Notification::make()
             ->title('Report Removed')
-            ->body("Grievance '{$title}' has been deleted successfully.")
+            ->body("Report '{$title}' has been deleted successfully.")
             ->success()
             ->send();
     }
@@ -560,24 +481,6 @@ class Index extends Component
     {
         // $this->selectAll = false;
         // $this->selected = [];
-    }
-
-    public function markSelectedHighPriority()
-    {
-        if (empty($this->selected)) return;
-
-        Grievance::whereIn('grievance_id', $this->selected)
-            ->update(['priority_level' => 'High']);
-
-        $this->selected = [];
-        $this->selectAll = false;
-        $this->updateStats();
-
-        Notification::make()
-            ->title('Bulk Update')
-            ->body('Selected reports were marked as High Priority.')
-            ->success()
-            ->send();
     }
 
     public function updateStats()

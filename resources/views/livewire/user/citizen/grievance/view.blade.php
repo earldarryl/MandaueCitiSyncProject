@@ -1,5 +1,7 @@
 <div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
      data-component="citizen-grievance-view"
+     x-data="{ showDeleteModal: false }"
+     @close-modal-delete.window="showDeleteModal = false"
      data-wire-id="{{ $this->id() }}"
 >
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
@@ -29,6 +31,82 @@
             <span wire:loading.remove wire:target="refreshGrievance">Refresh</span>
             <span wire:loading wire:target="refreshGrievance">Processing...</span>
         </button>
+
+        <button
+            @click="showDeleteModal = true"
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
+                border border-red-500 dark:border-red-400
+                hover:bg-red-200 dark:hover:bg-red-800/50
+                focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
+                transition-all duration-200">
+            <x-heroicon-o-trash class="w-5 h-5" />
+            <span wire:loading.remove wire:target="deleteReport">Delete Report</span>
+            <span wire:loading wire:target="deleteReport">Processing...</span>
+        </button>
+
+        @php
+            $hasPermission = $grievance->editRequests()
+                ->where('user_id', auth()->id())
+                ->where('status', 'approved')
+                ->exists();
+
+            $pending = $grievance->editRequests()
+                ->where('user_id', auth()->id())
+                ->where('status', 'pending')
+                ->exists();
+        @endphp
+
+        @if($hasPermission)
+            <a href="{{ route('citizen.grievance.edit', $grievance) }}" wire:navigate
+            class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    hover:bg-green-200 dark:hover:bg-green-800/50
+                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                    transition-all duration-200">
+                <x-heroicon-o-pencil class="w-5 h-5 text-green-500" />
+                <span>Permission Granted</span>
+            </a>
+        @elseif($pending)
+            <button
+                wire:click="editRequest"
+                wire:loading.attr="disabled"
+                wire:target="editRequest"
+                disabled
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    cursor-not-allowed
+                    transition-all duration-200"
+            >
+                <x-heroicon-o-lock-open class="w-5 h-5" />
+                <span class="flex items-center gap-2">
+                    <span>Request Pending</span>
+                    <span class="flex space-x-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-0"></span>
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-150"></span>
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-300"></span>
+                    </span>
+                </span>
+            </button>
+        @else
+            <button
+                wire:click="editRequest"
+                wire:loading.attr="disabled"
+                wire:target="editRequest"
+                class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                    bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                    border border-green-500 dark:border-green-400
+                    hover:bg-green-200 dark:hover:bg-green-800/50
+                    focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                    transition-all duration-200"
+            >
+                <x-heroicon-o-lock-open class="w-5 h-5" />
+                <span wire:loading.remove wire:target="editRequest">Send Edit Request</span>
+                <span wire:loading wire:target="editRequest">Processing...</span>
+            </button>
+        @endif
 
     </div>
 
@@ -581,6 +659,37 @@
         </div>
 
         <livewire:partials.chat :grievance="$grievance"/>
+    </div>
+
+    <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
+
+    <div x-show="showDeleteModal" x-transition.scale
+        class="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Are you sure you want to delete this report?</p>
+
+            <div wire:loading.remove wire:target="deleteReport" class="flex justify-center gap-3 mt-4">
+                <button type="button" @click="showDeleteModal = false"
+                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                    Cancel
+                </button>
+                <flux:button variant="danger" icon="trash" wire:click="deleteReport">
+                    Yes, Delete
+                </flux:button>
+            </div>
+
+            <div wire:loading wire:target="deleteReport">
+                <div class="flex items-center justify-center gap-2 w-full">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
