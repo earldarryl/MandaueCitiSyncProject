@@ -304,13 +304,13 @@ class Create extends Component implements Forms\Contracts\HasForms
                 'grievance_category',
                 'priority_level',
                 'department',
-                'attachments',
                 'grievance_title',
                 'grievance_details',
+                'attachments',
             ]);
 
             $this->dispatch('resetGrievanceDetails');
-
+            $this->dispatch('submit-finished');
             $this->redirectRoute('citizen.grievance.index', navigate: true);
 
             session()->put('grievance_submitted_once', true);

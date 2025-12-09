@@ -25,7 +25,9 @@ class LoginForm extends Form
     public bool $remember = false;
 
     #[Validate('boolean')]
-    public bool $forceLogin = false; // <-- optional "Force login" toggle
+    public bool $forceLogin = false;
+    public int $cooldown = 0;
+
 
     /**
      * Attempt to authenticate the request's credentials.
@@ -119,15 +121,11 @@ class LoginForm extends Form
             return;
         }
 
-        event(new Lockout(request()));
-
         $seconds = RateLimiter::availableIn($this->throttleKey());
+        $this->cooldown = $seconds;
 
         throw ValidationException::withMessages([
-            'form.email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'form.email' => 'Too many login attempts. Please try again in ' . $seconds . ' seconds.',
         ]);
     }
 
@@ -138,4 +136,5 @@ class LoginForm extends Form
     {
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
+
 }

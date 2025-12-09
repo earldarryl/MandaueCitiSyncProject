@@ -68,29 +68,34 @@
             <div class="w-full flex justify-end gap-2">
                 <div
                     x-data="{
-                        timeLeft: @entangle('cooldown').live,
-                        label: ''
-                    }"
-
-                    @if ($cooldown > 0)
-                        wire:poll.100ms="updateCooldown"
-                    @endif
-
-                    x-init="
-                        $watch('timeLeft', value => {
-                            if (value > 0) {
-                                label = 'Wait ' + value + 's';
-                            } else {
-                                label = 'Resend OTP';
-                            }
-                        });
-                        if (timeLeft > 0) {
-                            label = 'Wait ' + timeLeft + 's';
-                        } else {
-                            label = 'Resend OTP';
+                        timeLeft: @entangle('cooldown').defer ?? 0,
+                        label: '',
+                        startCooldown(seconds = 30) {
+                            this.timeLeft = seconds;
+                            this.updateLabel();
+                            const interval = setInterval(() => {
+                                if (this.timeLeft > 1) {
+                                    this.timeLeft--;
+                                    this.updateLabel();
+                                } else {
+                                    clearInterval(interval);
+                                    this.timeLeft = 0;
+                                    this.updateLabel();
+                                }
+                            }, 1000);
+                        },
+                        updateLabel() {
+                            this.label = this.timeLeft > 0 ? 'Wait ' + this.timeLeft + 's' : 'Resend OTP';
+                        },
+                        resend() {
+                            if (this.timeLeft > 0) return;
+                            $wire.sendVerification();
+                            this.startCooldown(60);
                         }
+                    }"
+                    x-init="
+                        if (timeLeft > 0) { startCooldown(timeLeft); } else { updateLabel(); }
                     "
-
                     class="w-full"
                 >
                     <flux:button
@@ -101,7 +106,7 @@
                         class="w-full group transition duration-300 ease-in-out
                             disabled:cursor-not-allowed disabled:opacity-50
                             bg-mc_primary_color dark:bg-blue-700"
-                        wire:click="sendVerification"
+                        @click="resend()"
                         x-bind:disabled="timeLeft > 0"
                         wire:loading.attr="disabled"
                         wire:target="sendVerification"
@@ -111,19 +116,19 @@
                     </flux:button>
                 </div>
 
-                <flux:button
-                    type="button"
-                    wire:click="logout"
-                    variant="danger"
-                    color="rose"
-                    wire:loading.attr="disabled"
-                    wire:target="logout"
-                    icon="arrow-left-end-on-rectangle"
-                    class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <span wire:loading.remove wire:target="logout">Log Out</span>
-                    <span wire:loading wire:target="logout">Logging Out...</span>
-                </flux:button>
+            <flux:button
+                type="button"
+                wire:click="logout"
+                variant="danger"
+                color="rose"
+                wire:loading.attr="disabled"
+                wire:target="logout"
+                icon="arrow-left-end-on-rectangle"
+                class="w-full group bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                <span wire:loading.remove wire:target="logout">Log Out</span>
+                <span wire:loading wire:target="logout">Logging Out...</span>
+            </flux:button>
             </div>
         </div>
 

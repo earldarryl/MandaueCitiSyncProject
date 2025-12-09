@@ -56,13 +56,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
             $this->loadMessages();
             $this->dispatch('messagesLoaded', canLoadMore: $this->canLoadMore);
         }
-
-        Notification::make()
-            ->title('Data Refreshed')
-            ->body('The report page has been successfully refreshed.')
-            ->success()
-            ->send();
-
     }
 
     public function getListeners()

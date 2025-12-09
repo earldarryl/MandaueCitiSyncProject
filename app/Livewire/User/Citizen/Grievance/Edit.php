@@ -77,6 +77,11 @@ class Edit extends Component implements Forms\Contracts\HasForms
         ];
     }
 
+    public function getUploadingAttachmentsProperty()
+    {
+        return $this->attachments && collect($this->attachments)->some(fn($f) => $f->getError() === null && !$f->hashName());
+    }
+
     public function removeAttachment($attachmentId)
     {
         $attachment = GrievanceAttachment::find($attachmentId);
@@ -165,7 +170,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
             ]);
 
             $this->dispatch('resetGrievanceDetails');
-
+            $this->dispatch('submit-finished');
             $this->redirectRoute('citizen.grievance.index', navigate: true);
 
         } catch (\Exception $e) {

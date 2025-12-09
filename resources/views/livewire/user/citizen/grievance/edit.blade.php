@@ -1,18 +1,38 @@
 <div class="p-4 flex flex-col justify-between gap-2 bg-white dark:bg-black w-full border border-gray-300 dark:border-zinc-700 bg-gray-200/20 dark:bg-zinc-800/50"
-     x-data="{ showModal: @entangle('showConfirmSubmitModal') }">
-
-    <x-responsive-nav-link
-        href="{{ route('citizen.grievance.index') }}"
-        wire:navigate
-        class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
-            bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200
-            border border-gray-500 dark:border-gray-200
-            hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 w-full sm:w-52"
+     x-data="{
+        showModal: @entangle('showConfirmSubmitModal'),
+        progress: 0,
+        uploading: false,
+        submitted: false
+    }"
+    @submit-finished.window = "submitted = true"
     >
-        <x-heroicon-o-home class="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        <span class="hidden lg:inline">Return to Home</span>
-        <span class="lg:hidden">Home</span>
-    </x-responsive-nav-link>
+
+    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
+        <x-responsive-nav-link
+            href="{{ route('citizen.grievance.index') }}"
+            wire:navigate
+            class="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+                border border-gray-500 dark:border-gray-200
+                hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 w-full sm:w-52"
+        >
+            <x-heroicon-o-home class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <span class="hidden lg:inline">Return to Home</span>
+            <span class="lg:hidden">Home</span>
+        </x-responsive-nav-link>
+
+        <a href="{{ route('citizen.grievance.view', $grievance) }}" wire:navigate
+        class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                border border-blue-500 dark:border-blue-400
+                hover:bg-blue-200 dark:hover:bg-blue-800/50
+                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                transition-all duration-200">
+            <x-heroicon-o-eye class="w-5 h-5 text-blue-500" />
+            <span>View Report</span>
+        </a>
+    </div>
 
     <div class="flex flex-col w-full p-3 rounded-lg">
         <div class="p-6 bg-gray-200/20 dark:bg-zinc-800/50 rounded-lg border border-gray-300 dark:border-zinc-700 w-full">
@@ -35,7 +55,7 @@
                                 wire:model="grievance_title"
                                 type="text"
                                 name="grievance_title"
-                                placeholder="Enter your grievance title"
+                                placeholder="Enter your report title"
                                 clearable
                             />
                         </flux:input.group>
@@ -125,7 +145,17 @@
                 </flux:field>
 
                 <flux:field>
-                    <div x-data="{ progress: 0 }" class="flex flex-col gap-2 w-full">
+                    <div
+                        x-init="
+                            $el.addEventListener('livewire-upload-start', () => uploading = true);
+                            $el.addEventListener('livewire-upload-progress', (event) => {
+                                progress = event.detail.progress;
+                            });
+                            $el.addEventListener('livewire-upload-finish', () => uploading = false);
+                            $el.addEventListener('livewire-upload-error', () => uploading = false);
+                        "
+                        class="flex flex-col gap-2 w-full">
+
                         <flux:label class="flex gap-2">
                             <flux:icon.folder />
                             <span>Attachments</span>
@@ -139,16 +169,11 @@
                             type="file"
                             wire:model="attachments"
                             multiple
-                            x-on:livewire-upload-start="progress = 5"
-                            x-on:livewire-upload-finish="progress = 100"
-                            x-on:livewire-upload-error="progress = 0"
-                            x-on:livewire-upload-progress="progress = $event.detail.progress"
                         />
 
-                        <div x-show="progress > 0 && progress < 100" class="w-full mt-2">
+                        <div x-show="uploading" class="w-full mt-2">
                             <div class="relative w-full bg-gray-200 dark:bg-zinc-700 h-2 rounded overflow-hidden">
-                                <div
-                                    class="absolute left-0 top-0 h-2 bg-blue-600 dark:bg-blue-400 rounded transition-all"
+                                <div class="absolute left-0 top-0 h-2 bg-blue-600 dark:bg-blue-400 rounded transition-all"
                                     :style="'width: ' + progress + '%'">
                                 </div>
                             </div>
@@ -163,17 +188,26 @@
             <div class="mt-4 flex justify-end w-full">
                 <flux:button
                     variant="primary"
-                    @click="showModal = true"
                     icon="check"
                     color="blue"
                     type="button"
-                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
                     wire:loading.attr="disabled"
-                    wire:target="attachments,submit"
+                    wire:target="submit"
+                    class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
+                    x-bind:disabled="uploading || submitted"
+                    @click="showModal = true;"
                 >
-                    <span wire:loading.remove wire:target="submit, attachments">Update</span>
-                    <span wire:loading wire:target="submit">Processing..</span>
-                    <span wire:loading wire:target="attachments">Uploading...</span>
+                    <span x-show="uploading" class="inline-flex items-center gap-2">
+                        Uploading...
+                    </span>
+
+                    <span x-show="!uploading" wire:loading wire:target="submit" class="inline-flex items-center gap-2">
+                        Processing...
+                    </span>
+
+                    <span x-show="!uploading" wire:loading.remove wire:target="submit" class="inline-flex items-center gap-2">
+                        Submit
+                    </span>
                 </flux:button>
             </div>
         </div>

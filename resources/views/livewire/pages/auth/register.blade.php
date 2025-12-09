@@ -465,7 +465,7 @@
                                                             x-ref="input"
                                                             type="text"
                                                             wire:model="birthdate"
-                                                            class="cursor-pointer select-none"
+                                                            class:input="cursor-pointer select-none"
                                                             x-model="birthdate"
                                                             placeholder="Enter a birthdate"
                                                             readonly
