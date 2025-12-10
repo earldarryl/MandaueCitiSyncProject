@@ -229,7 +229,6 @@ class Index extends Component
         ]);
     }
 
-
     public function closeFeedbackModal()
     {
         if ($this->dontShowAgain) {

@@ -160,7 +160,7 @@
 
                                     <flux:modal wire:model.self="showConfirmModal">
                                         <div class="p-6 flex flex-col items-center text-center space-y-4">
-                                            <div class="rounded-full bg-red-100 p-3 text-red-600">
+                                            <div class="rounded-full p-3 bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-300">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
                                                 </svg>

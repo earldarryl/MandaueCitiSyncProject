@@ -139,7 +139,8 @@
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
                                                 @if(is_null($notification['read_at']))
-                                                    <button wire:click="markNotificationAsRead('{{ $notification['id'] }}')"
+                                                    <button  wire:key="mark-read-{{ $notification['id'] }}"
+                                                             wire:click="markNotificationAsRead('{{ $notification['id'] }}')"
                                                             class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
                                                             wire:loading.attr="disabled">
                                                         <x-heroicon-o-check-circle class="w-5 h-5 text-green-500" />
@@ -151,7 +152,8 @@
                                                         </span>
                                                     </button>
                                                 @else
-                                                    <button wire:click="markNotificationAsUnread('{{ $notification['id'] }}')"
+                                                    <button  wire:key="mark-unread-{{ $notification['id'] }}"
+                                                            wire:click="markNotificationAsUnread('{{ $notification['id'] }}')"
                                                             class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium relative"
                                                             wire:loading.attr="disabled">
                                                         <x-heroicon-o-arrow-uturn-left class="w-5 h-5 text-yellow-500" />
@@ -233,11 +235,21 @@
         @endforelse
 
        @if ($totalNotifications > collect($groupedNotifications)->flatten(1)->count())
-            <div class="mt-4 flex justify-center">
-                <flux:button wire:click="loadMore" wire:loading.attr="disabled" variant="subtle">
-                    <span wire:loading.remove wire:target="loadMore">Load More</span>
-                    <span wire:loading wire:target="loadMore">Loading...</span>
-                </flux:button>
+            <div class="flex justify-center items-center mt-6">
+                <div wire:target="loadMore" wire:loading.remove>
+                    <flux:button wire:click="loadMore" wire:loading.attr="disabled" variant="ghost">
+                        <span wire:loading.remove wire:target="loadMore">Load More</span>
+                        <span wire:loading wire:target="loadMore">Loading...</span>
+                    </flux:button>
+                </div>
+
+                <div wire:target="loadMore" wire:loading>
+                    <div class="w-full flex items-center justify-center gap-2">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
+                </div>
             </div>
         @endif
     </div>

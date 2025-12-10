@@ -95,14 +95,13 @@ class SubmissionHistory extends Component
 
         $this->updateRestoreStatus();
 
-        auth()->user()->notify(new GeneralNotification(
-            "History Restored",
-            'All records have been restored to your submission history.',
-            'success',
-            [],
-            [],
-            false
-        ));
+        $this->dispatch('notify', [
+                'type' => 'success',
+                'title' => 'History Restored',
+                'message' => 'All records have been restored to your submission history.',
+            ]);
+
+
     }
 
     public function loadMore(): void

@@ -39,8 +39,18 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $grievance_details;
     public $departmentOptions;
     public $categoriesMap;
+    protected $listeners = [
+        'handleDelayedRedirect',
+    ];
+
+    public function handleDelayedRedirect()
+    {
+        $this->redirectRoute('citizen.grievance.index', navigate: true);
+    }
+
     public function mount(): void
     {
+
        $this->departmentOptions = Department::whereHas('hrLiaisons')
             ->where('is_active', 1)
             ->where('is_available', 1)
@@ -113,7 +123,7 @@ class Create extends Component implements Forms\Contracts\HasForms
             'grievance_category'  => ['required', 'string', 'max:255'],
             'priority_level'      => ['required', 'string', 'max:50'],
             'department'          => ['required', 'exists:departments,department_name'],
-            'grievance_title'     => ['required', 'string', 'max:255'],
+            'grievance_title'     => ['required', 'string', 'max:60'],
             'grievance_details'   => ['required', 'string'],
             'attachments.*'       => ['nullable', 'file', 'max:51200'],
         ];
@@ -129,7 +139,7 @@ class Create extends Component implements Forms\Contracts\HasForms
             'department.required'         => 'Please select a department.',
             'department.exists'           => 'The selected department does not exist.',
             'grievance_title.required'    => 'Please provide a title of your report.',
-            'grievance_title.max'         => 'The title cannot exceed 255 characters.',
+            'grievance_title.max'         => 'The title cannot exceed 60 characters.',
             'grievance_details.required'    => 'Please provide detailed information about your report.',
             'attachments.*.file'          => 'Each attachment must be a valid file.',
             'attachments.*.max'           => 'Each attachment must not exceed 50MB.',
@@ -143,6 +153,7 @@ class Create extends Component implements Forms\Contracts\HasForms
 
     public function submit(): void
     {
+
         $this->showConfirmSubmitModal = false;
 
         try {
@@ -156,20 +167,20 @@ class Create extends Component implements Forms\Contracts\HasForms
         $department = Department::where('department_name', $this->department)->first();
 
         if (! $department) {
-            Notification::make()
-                ->title('Invalid Department')
-                ->body('The selected department does not exist.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'Invalid Department',
+                'message' => 'The selected department does not exist.',
+            ]);
             return;
         }
 
         if (! $department->is_active || !$department->is_available) {
-            Notification::make()
-                ->title('Department Not Available')
-                ->body('The selected department is either inactive or unavailable.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'Department Not Available',
+                'message' => 'The selected department is either inactive or unavailable.',
+            ]);
             return;
         }
 
@@ -205,6 +216,33 @@ class Create extends Component implements Forms\Contracts\HasForms
                     ]);
                 }
             }
+
+            $this->reset([
+                'is_anonymous',
+                'grievance_type',
+                'grievance_category',
+                'priority_level',
+                'department',
+                'grievance_title',
+                'grievance_details',
+                'attachments',
+            ]);
+
+            auth()->user()->notify(new GeneralNotification(
+                'Report Submitted',
+                "Your report titled '{$grievance->grievance_title}' was submitted successfully.",
+                'success',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                ['type' => 'success'],
+                true,
+                [
+                        [
+                            'label' => 'View Report',
+                            'url'   => route('citizen.grievance.index', $grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ],
+                ]
+            ));
 
             ActivityLog::create([
                 'user_id'     => auth()->id(),
@@ -248,15 +286,15 @@ class Create extends Component implements Forms\Contracts\HasForms
                 ]);
 
                 $hr->notify(new GeneralNotification(
-                    'New Grievance Assigned',
-                    "A grievance titled '{$grievance->grievance_title}' has been assigned to you.",
+                    'New Report Assigned',
+                    "A report titled '{$grievance->grievance_title}' has been assigned to you.",
                     'info',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id],
-                    [],
+                    ['type' => 'info'],
                     true,
                     [
                         [
-                            'label'        => 'View Grievance',
+                            'label'        => 'View Report',
                             'url'          => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
                             'open_new_tab' => true,
                         ]
@@ -269,15 +307,15 @@ class Create extends Component implements Forms\Contracts\HasForms
 
             foreach ($admins as $admin) {
                 $admin->notify(new GeneralNotification(
-                    'New Grievance Submitted',
-                    "A new grievance titled '{$grievance->grievance_title}' has been submitted.",
+                    'New Report Submitted',
+                    "A new report titled '{$grievance->grievance_title}' has been submitted.",
                     'warning',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id],
-                    [],
+                    ['type' => 'info'],
                     true,
                     [
                         [
-                            'label' => 'Open in Admin Panel',
+                            'label' => 'View Report',
                             'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
                             'open_new_tab' => true,
                         ],
@@ -292,36 +330,18 @@ class Create extends Component implements Forms\Contracts\HasForms
 
             }
 
-            Notification::make()
-                ->title('Grievance Submitted')
-                ->body('Your grievance was submitted and assigned to the relevant HR liaisons.')
-                ->success()
-                ->send();
-
-            $this->reset([
-                'is_anonymous',
-                'grievance_type',
-                'grievance_category',
-                'priority_level',
-                'department',
-                'grievance_title',
-                'grievance_details',
-                'attachments',
-            ]);
-
             $this->dispatch('resetGrievanceDetails');
             $this->dispatch('submit-finished');
-            $this->redirectRoute('citizen.grievance.index', navigate: true);
-
+            $this->dispatch('delayed-redirect');
             session()->put('grievance_submitted_once', true);
 
-
         } catch (\Exception $e) {
-            Notification::make()
-                ->title('Submission Failed')
-                ->body('Something went wrong while submitting your grievance.')
-                ->danger()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Submission Failed',
+                'message' => 'Something went wrong while submitting your report.',
+            ]);
 
             $this->showConfirmSubmitModal = false;
         }

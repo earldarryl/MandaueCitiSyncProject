@@ -3,12 +3,12 @@
         showModal: @entangle('showConfirmSubmitModal'),
         progress: 0,
         uploading: false,
-        submitted: false
-    }"
+        submitted: false,
+     }"
     @submit-finished.window = "submitted = true"
     >
 
-    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
+    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         <x-responsive-nav-link
             href="{{ route('citizen.grievance.index') }}"
             wire:navigate
@@ -135,9 +135,6 @@
                                 const observer = new MutationObserver(applyDarkMode);
                                 observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-                                 Livewire.on('resetGrievanceDetails', () => {
-                                    $('#grievance_details').summernote('reset');
-                                });
                             });
                         </script>
 
@@ -194,7 +191,7 @@
                     wire:loading.attr="disabled"
                     wire:target="submit"
                     class="w-full bg-mc_primary_color dark:bg-blue-700 transition duration-300 ease-in-out"
-                    x-bind:disabled="uploading || submitted"
+                    x-bind:disabled="uploading"
                     @click="showModal = true;"
                 >
                     <span x-show="uploading" class="inline-flex items-center gap-2">
@@ -440,7 +437,9 @@
                                                         <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
 
                                                         <div x-show="showDeleteModal" x-transition.scale
-                                                            class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                                            class="fixed inset-0 flex items-center justify-center z-50 p-4"
+                                                            wire:key="attachment-{{ $attachment['attachment_id'] }}"
+                                                            >
                                                             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
                                                                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
                                                                     <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
@@ -507,7 +506,7 @@
 
     <flux:modal wire:model.self="showConfirmModal" :closable="false">
         <div class="p-6 flex flex-col items-center text-center space-y-4">
-            <div class="rounded-full bg-red-100 p-3 text-red-600">
+            <div class="rounded-full p-3 bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
                 </svg>
@@ -594,3 +593,4 @@
         </div>
     </div>
 </div>
+

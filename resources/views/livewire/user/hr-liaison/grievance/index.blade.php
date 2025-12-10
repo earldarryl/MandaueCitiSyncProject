@@ -12,7 +12,7 @@
         $highlight = fn($text, $search) => $search
             ? preg_replace(
                 '/(' . preg_quote($search, '/') . ')/i',
-                '<mark class="bg-yellow-200 text-black dark:bg-yellow-500 dark:text-black">$1</mark>',
+                '<mark class="bg-blue-400 text-white dark:bg-blue-500 text-white">$1</mark>',
                 $text
             )
             : $text;
@@ -367,7 +367,7 @@
                     id="search"
                     wire:model.defer="searchInput"
                     wire:keydown.enter="applySearch"
-                    placeholder="Search grievances..."
+                    placeholder="Search reports..."
                     class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
                         bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                         dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
@@ -462,7 +462,7 @@
                     transition-all duration-200"
             >
                 <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="importReportsExcel">Import Grievances</span>
+                <span wire:loading.remove wire:target="importReportsExcel">Import Reports</span>
                 <span wire:loading wire:target="importReportsExcel">Processing...</span>
             </button>
 

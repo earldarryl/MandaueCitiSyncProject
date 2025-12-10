@@ -3,11 +3,19 @@
         showModal: @entangle('showConfirmSubmitModal'),
         progress: 0,
         uploading: false,
-        submitted: false
-    }"
-     @submit-finished.window = "submitted = true"
-     >
+        submitted: false,
+        notyf: null,
 
+        handleDelayedRedirect() {
+            setTimeout(() => {
+                $wire.handleDelayedRedirect();
+            }, 1500);
+        },
+
+     }"
+     @submit-finished.window="submitted = true"
+     @delayed-redirect.window="handleDelayedRedirect()"
+>
 
     <x-responsive-nav-link
         href="{{ route('citizen.grievance.index') }}"
@@ -365,15 +373,42 @@
                             </h3>
 
                             <div class="relative !cursor-pointer">
-                                <flux:input
-                                    name="grievance_type"
-                                    readonly
-                                    x-model="grievanceType"
-                                    placeholder="Select report type"
-                                    @click="open = !open"
-                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                />
+                                <!-- Input -->
+                                <div
+                                    @click="open = !open; if(open) highlightedIndex=0"
+                                    tabindex="0"
+                                    class="relative !cursor-pointer"
+                                >
+                                    <flux:input
+                                        name="grievance_type"
+                                        readonly
+                                        x-bind:value="grievanceType"
+                                        placeholder="Select report type"
+                                        class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                    />
 
+                                    <!-- X button & Chevron -->
+                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
+                                        <flux:button
+                                            x-show="!!grievanceType"
+                                            size="sm"
+                                            variant="subtle"
+                                            icon="x-mark"
+                                            class="h-5 w-5"
+                                            @click.stop="grievanceType=''; $wire.set('grievance_type','',true);"
+                                        />
+                                        <div class="h-5 w-5 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="2" stroke="currentColor"
+                                                class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                                                :class="open ? 'rotate-180' : ''">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dropdown -->
                                 <div
                                     x-show="open"
                                     @click.outside="open = false; search=''"
@@ -420,8 +455,7 @@
                     </flux:field>
 
                     <flux:field x-cloak>
-                        <div
-                            class="flex flex-col gap-2"
+                        <div class="flex flex-col gap-2"
                             x-data="{
                                 open: false,
                                 search: '',
@@ -436,7 +470,7 @@
                                     this.search = '';
                                 }
                             }"
-                           x-init="
+                            x-init="
                                 selectedCategory = grievanceCategory;
                                 $watch('grievanceCategory', value => selectedCategory = value);
                             "
@@ -447,32 +481,52 @@
                                 <flux:icon.list-bullet />
                                 <span>Category</span>
                             </flux:label>
-
                             <h3 class="text-sm font-medium text-gray-900 dark:text-white">
                                 Choose a category based on the selected department and type.
                             </h3>
 
                             <div class="relative !cursor-pointer">
-
-                                <!-- MAIN READONLY INPUT -->
-                                <flux:input
-                                    name="grievance_category"
-                                    readonly
-                                    x-bind:value="selectedCategory"
-                                    placeholder="Select report category"
+                                <!-- Input with X & Chevron -->
+                                <div
                                     @click="open = !open"
-                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                />
+                                    tabindex="0"
+                                    class="relative !cursor-pointer"
+                                >
+                                    <flux:input
+                                        name="grievance_category"
+                                        readonly
+                                        x-bind:value="selectedCategory"
+                                        placeholder="Select report category"
+                                        class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                    />
 
-                                <!-- DROPDOWN -->
+                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
+                                        <flux:button
+                                            x-show="!!selectedCategory"
+                                            size="sm"
+                                            variant="subtle"
+                                            icon="x-mark"
+                                            class="h-5 w-5"
+                                            @click.stop="selectedCategory=''; $wire.set('grievance_category','',true);"
+                                        />
+                                        <div class="h-5 w-5 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="2" stroke="currentColor"
+                                                class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                                                :class="open ? 'rotate-180' : ''">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dropdown -->
                                 <div
                                     x-show="open"
                                     @click.outside="open = false; search=''; grievanceCategoryInput='';"
                                     x-transition
                                     class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
                                 >
-
-                                    <!-- Search -->
                                     <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
                                         <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
                                         <input
@@ -483,12 +537,8 @@
                                         />
                                     </div>
 
-                                    <!-- CATEGORY OPTIONS -->
                                     <ul class="py-1">
-                                        <template
-                                            x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))"
-                                            :key="opt"
-                                        >
+                                        <template x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))" :key="opt">
                                             <li>
                                                 <button
                                                     type="button"
@@ -496,8 +546,8 @@
                                                     x-text="opt"
                                                     @click="
                                                         if (opt === 'Other') {
-                                                            selectedCategory = '';       // main input shows blank
-                                                            grievanceCategoryInput = '';  // start typing empty
+                                                            selectedCategory = '';
+                                                            grievanceCategoryInput = '';
                                                             open = true;
                                                             $nextTick(() => {
                                                                 $refs.otherBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -514,10 +564,8 @@
                                             </li>
                                         </template>
 
-                                        <li
-                                            x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
-                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-                                        >
+                                        <li x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
                                             No results found
                                         </li>
                                     </ul>
@@ -529,7 +577,6 @@
                                         class="p-3 border-t border-gray-300 dark:border-zinc-700"
                                     >
                                         <flux:label>Specify Other Category</flux:label>
-
                                         <div class="flex gap-2 mt-1">
                                             <flux:input
                                                 type="text"
@@ -539,25 +586,18 @@
                                                 @keydown.enter.prevent="confirmOther()"
                                                 class="flex-1"
                                             />
-
-                                            <flux:button
-                                                @click="confirmOther()"
-                                                size="sm"
-                                                variant="primary"
-                                            >
+                                            <flux:button @click="confirmOther()" size="sm" variant="primary">
                                                 Select
                                             </flux:button>
                                         </div>
-
                                         <flux:error name="grievance_category" />
                                     </div>
-
                                 </div>
                             </div>
                         </div>
-
                         <flux:error name="grievance_category" />
                     </flux:field>
+
 
                 </div>
 
@@ -825,7 +865,7 @@
 
     <flux:modal wire:model.self="showConfirmModal" :closable="false">
         <div class="p-6 flex flex-col items-center text-center space-y-4">
-            <div class="rounded-full bg-red-100 p-3 text-red-600">
+            <div class="rounded-full p-3 bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" />
                 </svg>
@@ -849,4 +889,7 @@
             </div>
         </div>
     </flux:modal>
+
 </div>
+
+

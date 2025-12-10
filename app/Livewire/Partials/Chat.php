@@ -186,28 +186,29 @@ class Chat extends Component implements Forms\Contracts\HasForms
             }
         }
 
+        $recipientIds = $this->getReceiverIds();
+        $recipients = \App\Models\User::whereIn('id', $recipientIds)
+            ->where('id', '!=', $sender->id)
+            ->get();
+
+        $admins = \App\Models\User::role('admin')
+            ->where('id', '!=', $sender->id)
+            ->get();
+
+        $recipients = $recipients->merge($admins);
+
+        $firstRecipientId = $recipients->first()?->id ?? null;
 
         $messageData = [
             'grievance_id' => $this->grievance->grievance_id,
             'sender_id'    => $sender->id,
+            'recipient_id' => $firstRecipientId,
             'message'      => $this->newMessage,
             'file_path'    => $filePaths ? json_encode($filePaths) : null,
             'file_name'    => $fileNames ? json_encode($fileNames) : null,
         ];
 
         $message = Message::create($messageData)->load('sender');
-
-        $recipients = collect();
-
-        $receiverId = $this->getReceiverId();
-        if ($receiverId && $receiverId !== $sender->id) {
-            $receiver = \App\Models\User::find($receiverId);
-            if ($receiver) $recipients->push($receiver);
-        }
-
-        $admins = \App\Models\User::role('admin')->get()->filter(fn($admin) => $admin->id !== $sender->id);
-        $recipients = $recipients->merge($admins);
-
 
         foreach ($recipients as $recipient) {
             broadcast(new MessageSent($message));
@@ -223,7 +224,11 @@ class Chat extends Component implements Forms\Contracts\HasForms
                 'New Message Received',
                 "{$sender->name} sent you a message in Grievance #{$this->grievance->grievance_ticket_id}.",
                 'info',
-                ['grievance_id' => $this->grievance->grievance_id],
+                [
+                    'grievance_id' => $this->grievance->grievance_id,
+                    'message' => $this->newMessage,
+                    'files' => $filePaths
+                ],
                 [],
                 true,
                 $viewRoute ? [['label' => 'Open Chat', 'url' => $viewRoute, 'open_new_tab' => true]] : []
@@ -234,7 +239,11 @@ class Chat extends Component implements Forms\Contracts\HasForms
             'Message Sent',
             'Your message has been successfully delivered.',
             'success',
-            ['grievance_id' => $this->grievance->grievance_id],
+            [
+                'grievance_id' => $this->grievance->grievance_id,
+                'message' => $this->newMessage,
+                'files' => $filePaths
+            ],
             [],
             true
         ));
@@ -249,12 +258,17 @@ class Chat extends Component implements Forms\Contracts\HasForms
         })');
     }
 
-    private function getReceiverId()
+
+    private function getReceiverIds(): array
     {
         if ($this->currentUserId === $this->grievance->user_id) {
-            return $this->grievance->assignments->first()->hr_liaison_id ?? null;
+            return $this->grievance->assignments
+                ->pluck('hr_liaison_id')
+                ->filter(fn($id) => $id !== null)
+                ->toArray();
         }
-        return $this->grievance->user_id;
+
+        return [$this->grievance->user_id];
     }
 
     public function readableSize($bytes)

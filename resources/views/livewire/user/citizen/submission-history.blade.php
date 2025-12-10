@@ -344,7 +344,7 @@
     @if ($hasMore)
         <div class="flex justify-center items-center mt-6">
             <div wire:target="loadMore" wire:loading.remove>
-                <flux:button wire:click="loadMore" wire:loading.attr="disabled" variant="subtle">
+                <flux:button wire:click="loadMore" wire:loading.attr="disabled" variant="ghost">
                     <span wire:loading.remove wire:target="loadMore">Load More</span>
                     <span wire:loading wire:target="loadMore">Loading...</span>
                 </flux:button>

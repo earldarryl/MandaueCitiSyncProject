@@ -4,6 +4,8 @@ namespace App\Livewire\User\Citizen\Grievance;
 
 use App\Models\ActivityLog;
 use App\Models\HistoryLog;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Filament\Notifications\Notification;
@@ -60,7 +62,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
     protected function rules(): array
     {
         return [
-            'grievance_title' => ['required', 'string', 'max:255'],
+            'grievance_title' => ['required', 'string', 'max:60'],
             'grievance_details' => ['required', 'string'],
             'attachments.*'  => ['nullable', 'file', 'max:51200'],
         ];
@@ -70,7 +72,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
     {
         return [
             'grievance_title.required' => 'Please provide a title of your report.',
-            'grievance_title.max'      => 'The title cannot exceed 255 characters.',
+            'grievance_title.max'      => 'The title cannot exceed 60 characters.',
             'grievance_details.required'    => 'Please provide detailed information about your report.',
             'attachments.*.file'       => 'Each attachment must be a valid file.',
             'attachments.*.max'        => 'Each attachment must not exceed 50MB.',
@@ -92,19 +94,105 @@ class Edit extends Component implements Forms\Contracts\HasForms
 
             $this->existing_attachments = $this->grievance->fresh()->attachments->toArray();
 
-            Notification::make()
-                ->title('Attachment Removed')
-                ->body("The file **{$attachment->file_name}** was successfully removed.")
-                ->success()
-                ->send();
+            $message = "Attachment '{$attachment->file_name}' has been removed from grievance #{$this->grievance->grievance_ticket_id}.";
+
+            $this->grievance->addRemark([
+                'message'   => $message,
+                'user_id'   => auth()->id(),
+                'user_name' => $this->grievance->is_anonymous ? 'Anonymous' : auth()->user()->name,
+                'role'      => auth()->user()->getRoleNames()->first(),
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+                'status'    => $this->grievance->grievance_status,
+                'type'      => 'note',
+            ]);
+
+            auth()->user()->notify(new GeneralNotification(
+                'Attachment Removed',
+                "Attachment '{$attachment->file_name}' has been removed.",
+                'success',
+                ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                ['type' => 'success'],
+                true
+            ));
+
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) =>
+                    $q->where('hr_liaison_departments.department_id', $this->grievance->department_id)
+                )->get();
+
+            foreach ($hrLiaisons as $hr) {
+                $hr->notify(new GeneralNotification(
+                    'Attachment Removed',
+                    $message,
+                    'info',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    ['type' => 'info'],
+                    true
+                ));
+            }
+
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'Attachment Removed',
+                    $message,
+                    'warning',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    ['type' => 'info'],
+                    true
+                ));
+            }
 
             $this->dispatch('close-all-modals');
         }
     }
 
+
     public function submit(): void
     {
         $this->showConfirmUpdateModal = false;
+
+        $hasApproved = $this->grievance->editRequests()
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->exists();
+
+        $pending = $this->grievance->editRequests()
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->exists();
+
+        $denied = $this->grievance->editRequests()
+            ->where('user_id', auth()->id())
+            ->where('status', 'denied')
+            ->exists();
+
+        if ($pending) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Edit Request Denied',
+                'message' => 'Your edit request is still awaiting approval.',
+            ]);
+            return;
+        }
+
+        if ($denied) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Edit Request Denied',
+                'message' => 'Your request to edit this report was denied.',
+            ]);
+            return;
+        }
+
+        if (!$hasApproved) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Update Not Allowed',
+                'message' => 'You are not authorized to update this report.',
+            ]);
+            return;
+        }
 
         try {
             $this->validate();
@@ -120,6 +208,53 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 'grievance_details' => $this->grievance_details,
             ]);
 
+            $changes = $this->grievance->getChanges();
+            $originals = $this->grievance->getOriginal();
+            $formattedMessage = '';
+
+            foreach ($changes as $field => $newValue) {
+                $oldValue = $originals[$field] ?? '';
+
+                switch ($field) {
+                    case 'grievance_title':
+                        $label = 'Title';
+                        break;
+                    case 'grievance_details':
+                        $label = 'Details';
+                        $oldValue = strip_tags($oldValue);
+                        $newValue = strip_tags($newValue);
+                        break;
+                    case 'updated_at':
+                        $label = 'Last Updated';
+                        $oldValue = \Carbon\Carbon::parse($oldValue)
+                                    ->timezone(config('app.timezone'))
+                                    ->format('Y-m-d h:i:s A');
+                        $newValue = \Carbon\Carbon::parse($newValue)
+                                    ->timezone(config('app.timezone'))
+                                    ->format('Y-m-d h:i:s A');
+                        break;
+                    default:
+                        $label = ucwords(str_replace('_', ' ', $field));
+                }
+
+                $formattedMessage .= "$label: changed from \"$oldValue\" to \"$newValue\"" . PHP_EOL;
+            }
+
+            $attachmentCount = !empty($this->attachments) ? count($this->attachments) : 0;
+            if ($attachmentCount > 0) {
+                $formattedMessage .= "Attachments Added: $attachmentCount file(s)" . PHP_EOL;
+            }
+
+            $this->grievance->addRemark([
+                'message'   => trim($formattedMessage),
+                'user_id'   => auth()->id(),
+                'user_name' => $this->grievance->is_anonymous ? 'Anonymous' : auth()->user()->name,
+                'role'      => auth()->user()->getRoleNames()->first(),
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+                'status'    => $this->grievance->grievance_status,
+                'type'      => 'note',
+            ]);
+
             if (!empty($this->attachments)) {
                 foreach ($this->attachments as $file) {
                     $storedPath = $file->store('grievance_files', 'public');
@@ -131,6 +266,27 @@ class Edit extends Component implements Forms\Contracts\HasForms
                     ]);
                 }
             }
+
+            $this->reset(['attachments']);
+            $this->grievance->refresh();
+            $this->grievance->load('attachments');
+            $this->existing_attachments = $this->grievance->attachments->toArray();
+
+            auth()->user()->notify(new GeneralNotification(
+                'Report Updated',
+                "Your report titled '{$this->grievance->grievance_title}' was updated.",
+                'success',
+                ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                ['type' => 'success'],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('citizen.grievance.index', $this->grievance->grievance_ticket_id),
+                        'open_new_tab' => true,
+                    ],
+                ]
+            ));
 
             ActivityLog::create([
                 'user_id'     => auth()->id(),
@@ -157,28 +313,54 @@ class Edit extends Component implements Forms\Contracts\HasForms
                 'ip_address'     => request()->ip(),
             ]);
 
-            Notification::make()
-                ->title('Grievance Updated')
-                ->body('Your grievance was successfully updated.')
-                ->success()
-                ->send();
+            $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+                ->whereHas('departments', fn($q) =>
+                    $q->where('hr_liaison_departments.department_id', $this->grievance->department_id)
+                )->get();
 
-            $this->reset([
-                'attachments',
-                'grievance_title',
-                'grievance_details',
-            ]);
+            foreach ($hrLiaisons as $hr) {
+                $hr->notify(new GeneralNotification(
+                    'Report Updated',
+                    "A report titled '{$this->grievance->grievance_title}' has been updated.",
+                    'info',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    ['type' => 'info'],
+                    true,
+                    [
+                        [
+                            'label'        => 'View Updated Report',
+                            'url'          => route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ],
+                    ]
+                ));
+            }
 
-            $this->dispatch('resetGrievanceDetails');
-            $this->dispatch('submit-finished');
-            $this->redirectRoute('citizen.grievance.index', navigate: true);
+            $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new GeneralNotification(
+                    'Report Updated',
+                    "A report titled '{$this->grievance->grievance_title}' has been updated.",
+                    'warning',
+                    ['grievance_ticket_id' => $this->grievance->grievance_ticket_id],
+                    ['type' => 'info'],
+                    true,
+                    [
+                        [
+                            'label'        => 'Open in Admin Panel',
+                            'url'          => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id),
+                            'open_new_tab' => true,
+                        ],
+                    ]
+                ));
+            }
 
         } catch (\Exception $e) {
-            Notification::make()
-                ->title('Update Failed')
-                ->body('Something went wrong while updating your grievance. Please try again.')
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Update Failed',
+                'message' => 'Something went wrong while updating your report. Please try again.',
+            ]);
         }
     }
 

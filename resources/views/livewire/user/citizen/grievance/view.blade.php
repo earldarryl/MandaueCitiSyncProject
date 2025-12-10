@@ -1,9 +1,20 @@
 <div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
      data-component="citizen-grievance-view"
-     x-data="{ showDeleteModal: false }"
+     x-data="{
+        showDeleteModal: false,
+        notyf: null,
+
+        handleDelayedRedirect() {
+            setTimeout(() => {
+                $wire.handleDelayedRedirect();
+            }, 1500);
+        },
+
+    }"
      @close-modal-delete.window="showDeleteModal = false"
-     data-wire-id="{{ $this->id() }}"
->
+     @delayed-redirect.window="handleDelayedRedirect()"
+     data-wire-id="{{ $this->id() }}">
+
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
 
         <x-responsive-nav-link
@@ -66,7 +77,7 @@
                     focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                     transition-all duration-200">
                 <x-heroicon-o-pencil class="w-5 h-5 text-green-500" />
-                <span>Permission Granted</span>
+                <span>Edit Report</span>
             </a>
         @elseif($pending)
             <button
@@ -322,7 +333,7 @@
             x-data="progressLogs(@js($this->canLoadMore))"
             x-init="scrollToBottom()"
             x-on:new-log.window="scrollToBottom()"
-            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800"
+            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800 scroll-smooth"
             x-ref="logContainer"
             @scroll.passive="checkScroll()"
         >
@@ -691,7 +702,6 @@
             </div>
         </div>
     </div>
-
 </div>
 <script>
 document.addEventListener('alpine:init', () => {
@@ -774,3 +784,4 @@ document.addEventListener('alpine:init', () => {
   }));
 });
 </script>
+
