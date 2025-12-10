@@ -304,7 +304,7 @@
                             id="search"
                             wire:model.defer="searchInput"
                             wire:keydown.enter="applySearch"
-                            placeholder="Search grievances..."
+                            placeholder="Search reports..."
                             class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
                                 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
@@ -692,7 +692,8 @@
                                                         <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 bg-black/50 z-50"></div>
 
                                                         <div x-show="showDeleteModal" x-transition.scale
-                                                            class="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                                            class="fixed inset-0 flex items-center justify-center z-50 p-4"
+                                                            wire:key="grievance-{{ $grievance->grievance_id }}">
                                                             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg w-full max-w-md p-6 text-center space-y-5">
                                                                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
                                                                     <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
@@ -842,8 +843,9 @@
                                     Give Feedback
                                 </a>
                                 <button
+                                    @click = "showFeedbackModal = false";
                                     wire:click="closeFeedbackModal"
-                                    class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-all duration-200"
+                                    class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-600 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-all duration-200"
                                 >
                                     Close
                                 </button>

@@ -54,7 +54,39 @@
             <flux:error name="form.password" />
         </flux:field>
 
-        <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full">
+        <div class="flex flex-col items-center gap-2 justify-end mt-4 w-full"
+            x-data="{
+                    cooldown: @entangle('form.cooldown') || @entangle('form.cooldown').defer || @entangle('cooldown').defer || 0,
+                    label: 'Login',
+                    interval: null,
+                    startCooldown(seconds) {
+                        this.cooldown = seconds;
+                        this.updateLabel();
+                        if (this.interval) clearInterval(this.interval);
+                        this.interval = setInterval(() => {
+                            if (this.cooldown > 1) {
+                                this.cooldown--;
+                                this.updateLabel();
+                            } else {
+                                clearInterval(this.interval);
+                                this.cooldown = 0;
+                                this.updateLabel();
+                            }
+                        }, 1000);
+                    },
+                    updateLabel() {
+                        this.label = this.cooldown > 0
+                            ? 'Please try again in ' + this.cooldown + 's.'
+                            : 'Login';
+                    }
+                }"
+                x-init="
+                    if (cooldown > 0) startCooldown(cooldown);
+                    $watch('cooldown', value => {
+                        if (value > 0) startCooldown(value);
+                    });
+                "
+        >
             <flux:button
                 variant="primary"
                 color="blue"
@@ -63,15 +95,16 @@
                 wire:target="openModalRegister, login"
                 wire:loading.attr="disabled"
                 wire:loading.remove
+                x-bind:disabled="cooldown > 0"
                 >
                     <span class="flex items-center justify-center gap-2">
                         <span>
                             <flux:icon.arrow-right-end-on-rectangle/>
                         </span>
-                        <span>{{ __('Log in') }} </span>
+                        <span x-text="label"></span>
                     </span>
             </flux:button>
-            <div wire:loading wire:target="openModalRegister, login">
+            <div wire:loading wire:target="login">
                 <div class="w-full flex items-center justify-center gap-2">
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>

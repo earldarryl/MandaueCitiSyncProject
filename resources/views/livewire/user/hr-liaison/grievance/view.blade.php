@@ -477,7 +477,7 @@
             x-data="progressLogs(@js($this->canLoadMore))"
             x-init="scrollToBottom()"
             x-on:new-log.window="scrollToBottom()"
-            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800"
+            class="flex flex-col gap-4 max-h-80 overflow-y-auto px-6 py-4 mt-3 border border-gray-300 dark:border-zinc-800 scroll-smooth"
             x-ref="logContainer"
             @scroll.passive="checkScroll()"
         >

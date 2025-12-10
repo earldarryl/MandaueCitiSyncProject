@@ -251,7 +251,7 @@ body {
 }
 
 .fi-input-wrp:not(.fi-disabled):not(:has(.fi-ac-action:focus)):focus-within {
-    --tw-ring-color: #3b82f6 !important; /* Tailwind blue-500 */
+    --tw-ring-color: #3b82f6 !important;
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow) !important;
 }
 
@@ -259,4 +259,3 @@ body {
     background-color: #f9fafb;
     color: #3b82f6;
 }
-

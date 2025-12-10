@@ -7,6 +7,7 @@ use App\Models\Feedback;
 use App\Models\HistoryLog;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
+use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -189,7 +190,7 @@ class FeedbackForm extends Component
                     "{$sender->name} submitted feedback #{$feedback->id}.",
                     'info',
                     ['feedback_id' => $feedback->id],
-                    [],
+                    ['type' => 'info'],
                     true,
                     [
                         [
@@ -201,17 +202,22 @@ class FeedbackForm extends Component
                 ));
             }
 
-            $sender->notify(new GeneralNotification(
-                'Feedback Submitted Successfully',
-                "You submitted feedback #{$feedback->id}.",
+            auth()->user()->notify(new GeneralNotification(
+                'Feedback Submitted',
+                "Your feedback has been received and will be reviewed.",
                 'success',
                 ['feedback_id' => $feedback->id],
-                [],
+                ['type' => 'success'],
                 true,
                 []
             ));
 
-            $this->resetForm();
+            $this->cc1 = null;
+            $this->cc2 = null;
+            $this->cc3 = null;
+            $this->answers = [];
+            $this->suggestions = null;
+            $this->email = null;
 
         } catch (ValidationException $e) {
             $this->showConfirmModal = true;
@@ -221,13 +227,19 @@ class FeedbackForm extends Component
 
     public function resetForm()
     {
-        $this->gender = null;
         $this->cc1 = null;
         $this->cc2 = null;
         $this->cc3 = null;
         $this->answers = [];
         $this->suggestions = null;
         $this->email = null;
+
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Feedback Form Resetted',
+            'message' => 'All fields cleared successfully',
+        ]);
+
     }
 
     public function render()

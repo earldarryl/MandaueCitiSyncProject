@@ -22,7 +22,13 @@ class View extends Component
     public $totalRemarksCount;
     protected $listeners = [
         'loadMore' => 'loadMore',
+        'handleDelayedRedirect',
     ];
+
+    public function handleDelayedRedirect()
+    {
+        $this->redirectRoute('citizen.grievance.index', navigate: true);
+    }
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -97,11 +103,11 @@ class View extends Component
         $grievance = $this->grievance;
 
         if (! $grievance) {
-            Notification::make()
-                ->title('Error')
-                ->body('Report not found or already deleted.')
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'Report not found or already deleted.',
+            ]);
             return;
         }
 
@@ -118,19 +124,45 @@ class View extends Component
                 'Report Deleted',
                 "A report titled '{$title}' has been deleted.",
                 'danger',
-                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                ['type' => 'info'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                        'open_new_tab' => true,
+                    ]
+                ]
             ));
         }
 
         $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
         foreach ($admins as $admin) {
             $admin->notify(new GeneralNotification(
                 'Report Deleted',
                 "A report titled '{$title}' has been deleted from the system.",
                 'warning',
-                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                ['type' => 'info'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
+                        'open_new_tab' => true,
+                    ],
+                    [
+                        'label'   => 'Undo',
+                        'color'   => 'gray',
+                        'dispatch'=> 'undoLatestGrievance',
+                        'close'   => true
+                    ],
+                ]
             ));
         }
+
 
         ActivityLog::create([
             'user_id'      => auth()->id(),
@@ -153,14 +185,15 @@ class View extends Component
 
         $grievance->delete();
 
-        Notification::make()
-            ->title('Report Removed')
-            ->body("Report '{$title}' has been deleted successfully.")
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Report Removed',
+            'message' => "Report {$title} has been deleted successfully.",
+            'grievance_ticket_id' => $this->grievance->grievance_ticket_id,
+        ]);
 
         $this->dispatch('close-modal-delete');
-        $this->redirectRoute('citizen.grievance.index', navigate: true);
+        $this->dispatch('delayed-redirect');
     }
 
     public function editRequest()
@@ -173,11 +206,11 @@ class View extends Component
             ->first();
 
         if ($existing) {
-            Notification::make()
-                ->title('Request Not Allowed')
-                ->body('You already have submitted an edit request for this report.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'info',
+                'title' => 'Request Not Allowed',
+                'message' => 'You already have submitted an edit request for this report.',
+            ]);
             return;
         }
 
@@ -200,16 +233,32 @@ class View extends Component
                 'info',
                 [
                     'grievance_ticket_id' => $grievance->grievance_ticket_id,
-                    'edit_request_id'     => $editRequest->id
-                ]
+                    'edit_request_id'     => $editRequest->id,
+                ],
+                ['type' => 'info']
             ));
         }
 
-        Notification::make()
-            ->title('Request Sent')
-            ->body('Your edit request has been sent to the assigned HR Liaisons.')
-            ->success()
-            ->send();
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Edit Request Pending',
+                "{$requesterName} requested permission to edit report '{$grievance->grievance_title}'.",
+                'info',
+                [
+                    'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                    'edit_request_id'     => $editRequest->id,
+                ],
+                ['type' => 'info']
+            ));
+        }
+
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Request Sent',
+            'message' => 'Your edit request has been sent to the assigned HR Liaisons.',
+        ]);
 
         ActivityLog::create([
             'user_id'      => $user->id,

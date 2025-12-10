@@ -36,7 +36,132 @@
 
     @else
 
-    <div class="flex h-full">
+    <div class="flex h-full"
+        x-data="{
+                userId: @js(auth()->id()),
+                notyf: null,
+
+                componentMap: @js([
+                    'hr-liaison-grievance-index' => 'applyFilters',
+                    'hr-liaison-grievance-view' => 'refreshGrievance',
+                    'hr-liaison-department-view' => 'refreshHrLiaisonsData',
+                    'hr-liaison-department-index' => 'refreshDepartments',
+                    'hr-liaison-activity-logs-index' => 'applyFilter',
+                    'citizen-grievance-index' => 'applyFilters',
+                    'citizen-grievance-view' => 'refreshGrievance',
+                    'admin-grievance-index' => 'applyFilters',
+                    'admin-grievance-view' => 'refreshGrievance',
+                    'admin-feedback-index' => 'applyFilters',
+                    'admin-activity-logs-index' => 'applyFilter',
+                    'admin-departments-and-hr-liaisons-index' => 'applyFilters',
+                    'admin-hr-liaisons-list-view' => 'loadHrLiaisons',
+                    'admin-citizens-index' => 'applyFilters',
+                    'notifications-live' => 'loadNotifications',
+                ]),
+
+                initNotyf() {
+                    if (!this.notyf) {
+                        const localNotyf = new Notyf({
+                            duration: 5000,
+                            position: { x: 'right', y: 'top' },
+                            dismissible: true,
+                            ripple: true,
+                            types: [
+                                { type: 'info', background: '#2196F3' },
+                                { type: 'warning', background: '#FF9800' },
+                                { type: 'success', background: '#4CAF50' },
+                                { type: 'error', background: 'indianred', duration: 4000 }
+                            ]
+                        });
+
+                        this.notyf = localNotyf;
+
+                        document.addEventListener('notify', (event) => {
+                            const detail = Array.isArray(event.detail) ? (event.detail[0] ?? {}) : (event.detail ?? {});
+                            const type = detail.type ?? 'info';
+                            const title = detail.title ?? '';
+                            const message = detail.message ?? '';
+
+                            localNotyf.open({
+                                type: type,
+                                message: `<b>${title}</b><br>${message}`,
+                                icon: {
+                                    className: 'material-icons',
+                                    tagName: 'i',
+                                    text:
+                                        type === 'success' ? 'check_circle' :
+                                        type === 'error'   ? 'error' :
+                                        type === 'warning' ? 'warning' :
+                                        'info',
+                                    color: '#ffffff'
+                                }
+                            });
+                        });
+
+                        this.initNotifications(localNotyf);
+                    }
+                },
+
+                initNotifications(localNotyf) {
+                    if (!this.userId || !window.Echo) return;
+
+                    Echo.private(`App.Models.User.${this.userId}`)
+                        .notification((notification) => {
+
+                            const payload = notification.data || notification.notification || notification;
+                            if (!payload) return;
+
+                            const type = payload.metadata?.type || 'info';
+                            const title = payload.title ?? 'New Notification';
+                            const body  = payload.body ?? '';
+                            const duration = type === 'error' ? 4000 : 5000;
+
+                            localNotyf.open({
+                                type: type,
+                                message: `<b>${title}</b><br>${body}`,
+                                duration: duration,
+                                icon: {
+                                    className: 'material-icons',
+                                    tagName: 'i',
+                                    color: '#fff',
+                                    text:
+                                        type === 'success' ? 'check_circle' :
+                                        type === 'error'   ? 'error' :
+                                        type === 'warning' ? 'warning' :
+                                        'info',
+                                }
+                            });
+
+                            if (Array.isArray(payload.actions)) {
+                                payload.actions.forEach((action) => {
+                                    setTimeout(() => {
+                                        if (action.url) {
+                                            action.open_new_tab
+                                                ? window.open(action.url, '_blank')
+                                                : window.location.href = action.url;
+                                        }
+                                        if (action.dispatch && window.Livewire) {
+                                            Livewire.dispatch(action.dispatch);
+                                        }
+                                    }, 1000);
+                                });
+                            }
+
+                            Object.entries(this.componentMap).forEach(([selector, method]) => {
+                                const el = document.querySelector(`[data-component='${selector}']`);
+
+                                if (el?.dataset?.wireId) {
+                                    const instance = Livewire.find(el.dataset.wireId);
+                                    if (instance && typeof instance.$call === 'function') {
+                                        instance.$call(method);
+                                    }
+                                }
+                            });
+                        });
+                }
+            }"
+            x-init="initNotyf()"
+        >
 
         <livewire:partials.sidebar />
         <livewire:partials.notifications />
@@ -71,69 +196,7 @@
             userId: {{ auth()->id() ?? 'null' }},
         };
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-        const userId = @json(auth()->id());
 
-        if (!window.Echo || !userId) return;
-
-        const componentMap = {
-            'hr-liaison-grievance-index': 'applyFilters',
-            'hr-liaison-grievance-view': 'refreshGrievance',
-            'hr-liaison-department-view': 'refreshHrLiaisonsData',
-            'hr-liaison-department-index': 'refreshDepartments',
-            'hr-liaison-activity-logs-index': 'applyFilter',
-            'citizen-grievance-index': 'applyFilters',
-            'citizen-grievance-view': 'refreshGrievance',
-            'admin-grievance-index': 'applyFilters',
-            'admin-grievance-view': 'refreshGrievance',
-            'admin-feedback-index': 'applyFilters',
-            'admin-activity-logs-index': 'applyFilter',
-            'admin-departments-and-hr-liaisons-index': 'applyFilters',
-            'admin-hr-liaisons-list-view': 'loadHrLiaisons',
-            'admin-citizens-index': 'applyFilters',
-            'notifications-live': 'loadNotifications',
-        };
-
-        Echo.private(`App.Models.User.${userId}`).notification((notification) => {
-            console.log('Incoming notification', notification);
-
-            const f = new FilamentNotification()
-                .title(notification.title || 'New Notification')
-                .body(notification.body || '');
-
-            switch (notification.type) {
-                case 'success': f.success(); break;
-                case 'warning': f.warning(); break;
-                case 'danger':  f.danger();  break;
-                default:        f.info();    break;
-            }
-
-            if (notification.actions && Array.isArray(notification.actions)) {
-                const builtActions = notification.actions.map(action => {
-                    let btn = new FilamentNotificationAction(action.label);
-                    if (action.button !== false) btn = btn.button();
-                    if (action.url) btn = btn.url(action.url);
-                    if (action.open_new_tab) btn = btn.openUrlInNewTab();
-                    if (action.color) btn = btn.color(action.color);
-                    if (action.dispatch) btn = btn.dispatch(action.dispatch);
-                    if (action.close) btn = btn.close();
-                    return btn;
-                });
-                f.actions(builtActions);
-            }
-
-            f.send();
-
-            Object.entries(componentMap).forEach(([selector, method]) => {
-                const el = document.querySelector(`[data-component="${selector}"]`);
-                if (el && window.Livewire) {
-                    Livewire.find(el.dataset.wireId)?.$call(method);
-                }
-            });
-        });
-    });
-    </script>
     @vite('resources/js/pusher-echo.js')
     @filamentScripts
     @fluxScripts

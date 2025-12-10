@@ -112,9 +112,20 @@ class View extends Component
 
     public function refreshGrievance()
     {
+        try {
+            $this->grievance->refresh();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $this->redirectRoute('admin.forms.grievances.index', navigate: true);
+            return;
+        }
+
+        if (method_exists($this->grievance, 'trashed') && $this->grievance->trashed()) {
+            $this->redirectRoute('admin.forms.grievances.index', navigate: true);
+            return;
+        }
+
         $this->dispatch('$refresh');
         $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
-        $this->grievance->refresh();
     }
 
     public function getEditRequestsProperty()
