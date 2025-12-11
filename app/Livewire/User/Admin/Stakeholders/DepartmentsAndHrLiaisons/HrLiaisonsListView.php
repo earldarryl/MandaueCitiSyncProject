@@ -119,8 +119,13 @@ class HrLiaisonsListView extends Component
 
     public function render()
     {
-        $totalAssignments = Grievance::where('department_id', $this->departmentId)->count();
+        $totalAssignments = Assignment::where('department_id', $this->departmentId)
+            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'))
+            ->distinct('grievance_id')
+            ->count('grievance_id');
 
+
+        // Load HR liaisons for this department
         $hrLiaisons = User::role('hr_liaison')
             ->whereHas('departments', fn($q) =>
                 $q->where('hr_liaison_departments.department_id', $this->departmentId)
@@ -138,10 +143,13 @@ class HrLiaisonsListView extends Component
                 $q->orderBy($this->sortField, $this->sortDirection)
             )
             ->withCount(['assignments as assigned_count' => fn($q) =>
-                $q->where('department_id', $this->departmentId)->distinct('grievance_id')
+                $q->where('department_id', $this->departmentId)
+                ->whereHas('grievance', fn($g) => $g->whereNull('deleted_at'))
+                ->distinct('grievance_id')
             ])
             ->paginate($this->perPage);
 
+        // Add total assignments for reference
         $hrLiaisons->getCollection()->transform(function ($liaison) use ($totalAssignments) {
             $liaison->total_assignments = $totalAssignments;
             return $liaison;

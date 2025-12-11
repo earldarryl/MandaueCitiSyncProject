@@ -22,12 +22,14 @@ class SubmissionHistory extends Component
     {
         $this->updateRestoreStatus();
 
-        $this->actionTypeOptions = HistoryLog::where('user_id', auth()->id())
+        $this->actionTypeOptions = HistoryLog::withTrashed()
+            ->where('user_id', auth()->id())
             ->select('action_type')
             ->distinct()
             ->pluck('action_type')
             ->map(fn($type) => ucwords(str_replace('_', ' ', $type)))
             ->toArray();
+
     }
 
     private function updateRestoreStatus(): void
@@ -47,45 +49,72 @@ class SubmissionHistory extends Component
             $log->delete();
             $this->updateRestoreStatus();
 
-            auth()->user()->notify(new GeneralNotification(
-                "Removed from History",
-                'This record has been removed from your submission history.',
-                'success',
-                [],
-                [],
-                false
-            ));
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'title' => 'Removed from History',
+                'message' => 'This record has been removed from your submission history.',
+            ]);
         }
     }
 
     public function clearHistory(): void
     {
-        HistoryLog::where('user_id', auth()->id())->delete();
+        $logs = HistoryLog::where('user_id', auth()->id())
+            ->whereNull('deleted_at')
+            ->get();
+
+        $hasLogs = $logs->filter(function ($log) {
+            if ($log->reference_table === 'grievances') {
+                return \App\Models\Grievance::where('grievance_id', $log->reference_id)->exists();
+            } elseif ($log->reference_table === 'feedback') {
+                return \App\Models\Feedback::where('id', $log->reference_id)->exists();
+            }
+            return true;
+        });
+
+        if ($hasLogs->isEmpty()) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'Nothing to Clear',
+                'message' => 'All submission records have already been deleted or hidden.',
+            ]);
+            return;
+        }
+
+        foreach ($logs as $log) {
+            $deleteHard = false;
+
+            if ($log->reference_table === 'grievances') {
+                $deleteHard = !\App\Models\Grievance::where('grievance_id', $log->reference_id)->exists();
+            } elseif ($log->reference_table === 'feedback') {
+                $deleteHard = !\App\Models\Feedback::where('id', $log->reference_id)->exists();
+            }
+
+            if ($deleteHard) {
+                $log->forceDelete();
+            } else {
+                $log->delete();
+            }
+        }
+
         $this->updateRestoreStatus();
 
-        auth()->user()->notify(new GeneralNotification(
-                "History Cleared",
-                'All submission records have been hidden from your history.',
-                'success',
-                [],
-                [],
-                false
-            ));
-
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'History Cleared',
+            'message' => 'All submission records have been cleared from your history.',
+        ]);
     }
 
     public function restoreHistory(): void
     {
         if (! $this->canRestore) {
 
-            auth()->user()->notify(new GeneralNotification(
-                "Nothing to Restore",
-                'There are no hidden records available to restore.',
-                'warning',
-                [],
-                [],
-                false
-            ));
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'Nothing to Restore',
+                'message' => 'There are no cleared records available to restore.',
+            ]);
             return;
         }
 
@@ -100,7 +129,6 @@ class SubmissionHistory extends Component
                 'title' => 'History Restored',
                 'message' => 'All records have been restored to your submission history.',
             ]);
-
 
     }
 
@@ -118,22 +146,49 @@ class SubmissionHistory extends Component
     {
         $query = HistoryLog::where('user_id', auth()->id());
 
-        $query->when($this->filter === 'Reports', fn($q) => $q->where('reference_table', 'grievances'))
-              ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'));
+        if ($this->filter === 'Reports') {
+            $query->where('reference_table', 'grievances')
+                ->whereExists(fn($subQuery) =>
+                    $subQuery->selectRaw(1)
+                            ->from('grievances')
+                            ->whereColumn('grievances.grievance_id', 'history_logs.reference_id')
+                );
+        } elseif ($this->filter === 'Feedbacks') {
+            $query->where('reference_table', 'feedback')
+                ->whereExists(fn($subQuery) =>
+                    $subQuery->selectRaw(1)
+                            ->from('feedback')
+                            ->whereColumn('feedback.id', 'history_logs.reference_id')
+                );
+        } elseif ($this->filter) {
+            $query->where('action_type', strtolower(preg_replace('/[\s-]+/', '_', $this->filter)));
+            $query->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('reference_table', 'grievances')
+                    ->whereExists(fn($subQuery) =>
+                            $subQuery->selectRaw(1)
+                                    ->from('grievances')
+                                    ->whereColumn('grievances.grievance_id', 'history_logs.reference_id')
+                        );
+                })
+                ->orWhere(function ($q2) {
+                    $q2->where('reference_table', 'feedback')
+                    ->whereExists(fn($subQuery) =>
+                            $subQuery->selectRaw(1)
+                                    ->from('feedback')
+                                    ->whereColumn('feedback.id', 'history_logs.reference_id')
+                        );
+                });
+            });
+        }
 
-        $query->when($this->filter && $this->filter !== 'Reports' && $this->filter !== 'Feedbacks', function ($q) {
-            $q->where('action_type', strtolower(preg_replace('/[\s-]+/', '_', $this->filter)));
-        });
+        if ($this->selectedDate) {
+            $query->whereDate('created_at', $this->selectedDate);
+        }
 
-        $query->when($this->selectedDate, fn($q) =>
-            $q->whereDate('created_at', $this->selectedDate)
-        );
+        $logs = $query->latest()->get();
 
-        $logs = $query->latest()
-                      ->take($this->limit)
-                      ->get();
-
-        return $logs->groupBy(function ($log) {
+        $grouped = $logs->groupBy(function ($log) {
             $date = $log->created_at->startOfDay();
             $today = now()->startOfDay();
             $yesterday = now()->subDay()->startOfDay();
@@ -144,24 +199,25 @@ class SubmissionHistory extends Component
                 default => $log->created_at->format('F j, Y'),
             };
         });
+
+        return $grouped->map(fn($items) => $items->take($this->limit))
+                    ->filter(fn($items) => $items->count() > 0);
     }
 
     public function render()
     {
         $this->updateRestoreStatus();
 
-        $totalCount = HistoryLog::where('user_id', auth()->id())
-            ->when($this->filter === 'Reports', fn($q) => $q->where('reference_table', 'grievances'))
-            ->when($this->filter === 'Feedbacks', fn($q) => $q->where('reference_table', 'feedback'))
-            ->when($this->filter && $this->filter !== 'Reports' && $this->filter !== 'Feedbacks', function ($q) {
-                $q->where('action_type', strtolower(preg_replace('/[\s-]+/', '_', $this->filter)));
-            })
-            ->count();
+        $groupedLogs = $this->groupedLogs;
+
+        $totalVisibleCount = $groupedLogs->sum(fn($items) => $items->count());
 
         return view('livewire.user.citizen.submission-history', [
             'groupedLogs' => $this->groupedLogs,
             'canRestore'  => $this->canRestore,
-            'hasMore'     => $totalCount > $this->limit,
+            'hasMore'     => $totalVisibleCount > $this->limit,
+            'hasAny'      => $totalVisibleCount > 0,
         ]);
     }
+
 }

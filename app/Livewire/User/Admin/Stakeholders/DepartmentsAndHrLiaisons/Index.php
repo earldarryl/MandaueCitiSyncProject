@@ -68,6 +68,10 @@ class Index extends Component implements Forms\Contracts\HasForms
         'is_available' => '',
     ];
 
+    public $currentDepartmentId;
+    public $availableLiaisons = [];
+    public $removeLiaisons = [];
+
     protected $listeners = ['refresh' => '$refresh'];
 
     public function mount()
@@ -78,6 +82,29 @@ class Index extends Component implements Forms\Contracts\HasForms
             'create_department_profile' => $this->create_department_profile,
             'create_department_background' => $this->create_department_background,
         ]);
+    }
+
+    public function loadAvailableLiaisons($departmentId)
+    {
+        $this->currentDepartmentId = $departmentId;
+
+        $this->availableLiaisons = User::role('hr_liaison')
+            ->whereDoesntHave('departments', fn($query) => $query->where('hr_liaison_departments.department_id', $departmentId))
+            ->pluck('name', 'id')
+            ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
+            ->toArray();
+    }
+
+    public function loadRemoveLiaisons($departmentId)
+    {
+        $this->currentDepartmentId = $departmentId;
+
+        $department = Department::find($departmentId);
+
+        $this->removeLiaisons = $department->hrLiaisons
+            ->pluck('name', 'id')
+            ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
+            ->toArray();
     }
 
     public function createHrLiaison()

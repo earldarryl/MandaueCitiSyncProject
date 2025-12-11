@@ -35,7 +35,7 @@ class Assignments extends Component
 
     public function assignAll()
     {
-        $grievanceIds = Grievance::pluck('grievance_id');
+        $grievanceIds = Grievance::whereNull('deleted_at')->pluck('grievance_id');
         $count = 0;
 
         foreach ($grievanceIds as $gid) {
@@ -78,6 +78,7 @@ class Assignments extends Component
 
         $this->resetPage();
     }
+
 
     public function assignSingle(int $grievanceId)
     {
@@ -130,11 +131,16 @@ class Assignments extends Component
                 'assigned_at' => null,
             ]);
 
-            $assignment->load('grievance');
+            // Load the grievance including soft-deleted
+            $grievance = Grievance::withTrashed()->find($assignment->grievance_id);
+
+            if ($grievance && $grievance->trashed()) {
+                $grievance->forceDelete();
+            }
 
             Notification::make()
                 ->title('Assignment Updated')
-                ->body("Grievance {$assignment->grievance->grievance_ticket_id} unassigned from {$this->hrLiaison->name}.")
+                ->body("Grievance {$grievance?->grievance_ticket_id} unassigned from {$this->hrLiaison->name}.")
                 ->success()
                 ->send();
 
@@ -142,40 +148,62 @@ class Assignments extends Component
         }
     }
 
+
     public function unassignAll()
     {
-        $assignments = Assignment::where('department_id', $this->departmentId)
+        $grievanceIds = Assignment::where('department_id', $this->departmentId)
             ->where('hr_liaison_id', $this->hrLiaison->id)
-            ->get();
+            ->pluck('grievance_id')
+            ->unique();
 
         $count = 0;
-        foreach ($assignments as $assignment) {
-            $assignment->update([
-                'hr_liaison_id' => null,
-                'assigned_at' => null,
-            ]);
-            $count++;
+
+        foreach ($grievanceIds as $gid) {
+            $updated = Assignment::where('grievance_id', $gid)
+                ->where('department_id', $this->departmentId)
+                ->where('hr_liaison_id', $this->hrLiaison->id)
+                ->update([
+                    'hr_liaison_id' => null,
+                    'assigned_at' => null,
+                ]);
+
+            if ($updated) {
+                $count++;
+
+                // Load grievance including soft-deleted
+                $grievance = Grievance::withTrashed()->find($gid);
+
+                if ($grievance && $grievance->trashed()) {
+                    $grievance->forceDelete();
+                }
+            }
         }
 
         Notification::make()
             ->title('Assignments Updated')
-            ->body("$count assignment(s) unassigned from {$this->hrLiaison->name}.")
+            ->body("$count grievance(s) unassigned from {$this->hrLiaison->name}.")
             ->success()
             ->send();
 
         $this->resetPage();
     }
 
+
     public function render()
     {
-        $query = Assignment::with(['grievance', 'department'])
-            ->where('department_id', $this->departmentId)
-            ->where(function ($q) {
-                $q->where('hr_liaison_id', $this->hrLiaison->id)
-                ->orWhereNull('hr_liaison_id');
-            })
-            ->select('grievance_id', 'department_id', 'hr_liaison_id', 'assigned_at')
-            ->distinct('grievance_id');
+        $query = Assignment::with(['grievance' => function ($q) {
+                $q->whereNull('deleted_at');
+                }, 'department'])
+                ->where('department_id', $this->departmentId)
+                ->where(function ($q) {
+                    $q->where('hr_liaison_id', $this->hrLiaison->id)
+                    ->orWhereNull('hr_liaison_id');
+                })
+                ->select('grievance_id', 'department_id', 'hr_liaison_id', 'assigned_at')
+                ->distinct('grievance_id')
+                ->whereHas('grievance', function ($q) {
+                    $q->whereNull('deleted_at');
+                });
 
         if ($this->filterStatus === 'Assigned') {
             $query->whereNotNull('hr_liaison_id');
@@ -189,20 +217,18 @@ class Assignments extends Component
 
         $assignmentsPaginated = $query->paginate(10);
 
-        $grievanceIds = Assignment::where('department_id', $this->departmentId)
-            ->pluck('grievance_id')
-            ->unique();
+       $baseQuery = Assignment::where('department_id', $this->departmentId)
+            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'));
 
-        $assignedCount = Assignment::where('department_id', $this->departmentId)
+        $assignedCount = (clone $baseQuery)
             ->where('hr_liaison_id', $this->hrLiaison->id)
-            ->whereIn('grievance_id', $grievanceIds)
-            ->count();
+            ->distinct('grievance_id')
+            ->count('grievance_id');
 
-        $unassignedCount = Assignment::where('department_id', $this->departmentId)
+        $unassignedCount = (clone $baseQuery)
             ->whereNull('hr_liaison_id')
-            ->whereNull('assigned_at')
-            ->whereIn('grievance_id', $grievanceIds)
-            ->count();
+            ->distinct('grievance_id')
+            ->count('grievance_id');
 
         $totalAssignments = $assignedCount + $unassignedCount;
 

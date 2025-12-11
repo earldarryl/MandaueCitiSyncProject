@@ -364,7 +364,7 @@
 
                         <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                             @forelse($departments as $department)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition" wire:key="department-{{ $department->department_id }}">
                                 <td class="px-6 py-4">
                                     <img src="{{ $department->department_profile_url ?? asset('images/default-dept.png') }}"
                                         class="w-10 h-10 rounded-full object-cover border border-gray-300 dark:border-zinc-600 shadow-sm">
@@ -435,6 +435,7 @@
 
                                                 <button
                                                     @click="open = false; openAdd = true"
+                                                    wire:click.prevent="loadAvailableLiaisons({{ $department->department_id }})"
                                                     class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-green-600">
                                                     <x-heroicon-o-user-plus class="w-4 h-4" />
                                                     Add HR Liaison
@@ -442,6 +443,7 @@
 
                                                 <button
                                                     @click="open = false; openRemove = true"
+                                                    wire:click.prevent="loadRemoveLiaisons({{ $department->department_id }})"
                                                     class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-amber-600">
                                                     <x-heroicon-o-user-minus class="w-4 h-4" />
                                                     Remove HR Liaison
@@ -461,21 +463,13 @@
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Add HR Liaison</h3>
 
-                                            @php
-                                            $availableLiaisons = \App\Models\User::role('hr_liaison')
-                                                ->whereDoesntHave('departments', function ($query) use ($department) {
-                                                    $query->where('hr_liaison_departments.department_id', $department->department_id);
-                                                })
-                                                ->pluck('name', 'id')
-                                                ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
-                                                ->toArray();
-                                        @endphp
-
-                                            <x-multiple-select
-                                                name="selectedLiaisonsToAdd"
-                                                :options="$availableLiaisons"
-                                                placeholder="Select HR Liaisons"
-                                            />
+                                            <div wire:key="save-liaisons-{{ $department->department_id }}">
+                                                <x-multiple-select
+                                                    name="selectedLiaisonsToAdd"
+                                                    :options="$availableLiaisons"
+                                                    placeholder="Select HR Liaisons"
+                                                />
+                                            </div>
 
                                             <div class="mt-5 flex justify-end gap-2">
                                                 <button
@@ -508,18 +502,13 @@
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Remove HR Liaison</h3>
 
-                                            @php
-                                                $removeLiaisons = $department->hrLiaisons
-                                                    ->pluck('name', 'id')
-                                                    ->mapWithKeys(fn($name, $id) => [(string)$id => $name])
-                                                    ->toArray();
-                                            @endphp
-
-                                            <x-multiple-select
-                                                name="selectedLiaisonsToRemove"
-                                                :options="$removeLiaisons"
-                                                placeholder="Select HR Liaisons to Remove"
-                                            />
+                                            <div wire:key="remove-liaisons-{{ $department->department_id }}">
+                                                <x-multiple-select
+                                                    name="selectedLiaisonsToRemove"
+                                                    :options="$removeLiaisons"
+                                                    placeholder="Select HR Liaisons to Remove"
+                                                />
+                                            </div>
 
                                             <div class="mt-5 flex justify-end gap-2">
 
