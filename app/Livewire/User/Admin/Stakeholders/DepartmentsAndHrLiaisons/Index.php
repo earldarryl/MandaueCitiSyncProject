@@ -33,7 +33,7 @@ class Index extends Component implements Forms\Contracts\HasForms
     public $filterHRStatus = 'All';
     public $filterDate = 'Show All';
     public $nameStartsWith = 'All';
-    public int $perPage = 2;
+    public int $perPage = 5;
     public $totalHrLiaisons = 0;
     public $totalLiaisonHours = 0;
     public $totalDepartments = 0;

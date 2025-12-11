@@ -93,25 +93,24 @@
                     </div>
 
                     <div class="pt-10 pb-4 px-5 flex flex-col gap-2">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">
                             {{ $department->department_name }}
                         </h2>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                        <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 line-clamp-3">
                             {{ $department->department_description ?? 'No description available.' }}
                         </p>
 
                         <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto pt-2 border-t border-gray-200 dark:border-zinc-700">
-                            <span>Code: <span class="font-medium">{{ $department->department_code }}</span></span>
-                            <span>Created: {{ $department->created_at->format('M d, Y') }}</span>
+                            <span class="font-semibold">Code: <span class="font-medium">{{ $department->department_code }}</span></span>
+                            <span class="font-semibold">Created: {{ $department->created_at->format('M d, Y') }}</span>
                         </div>
 
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('hr-liaison.department.view', $department->department_id) }}" wire:navigate
-                                class="flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold rounded-md
+                                class="flex items-center gap-1.5 px-4 py-1 text-[13px] font-semibold rounded-md
                                     bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200
                                     dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-700
                                     dark:hover:bg-gray-800/60 transition-all duration-200">
-                                <flux:icon.eye class="w-4 h-4" />
                                 View
                             </a>
                         </div>

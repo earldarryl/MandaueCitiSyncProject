@@ -261,467 +261,503 @@
                 </button>
             </div>
 
-            <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
-                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
+                <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-semibold">Profile</th>
+
+                                    <th wire:click="sortBy('department_name')" class="px-6 py-3 cursor-pointer">
+                                        <div class="flex items-center justify-between">
+                                            <span>Department Name</span>
+                                            <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                                @if($sortField === 'department_name')
+                                                    @if($sortDirection === 'asc')
+                                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @else
+                                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </th>
+
+                                    <th wire:click="sortBy('department_code')" class="px-6 py-3 cursor-pointer">
+                                        <div class="flex items-center justify-between">
+                                            <span>Code</span>
+                                            <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                                @if($sortField === 'department_code')
+                                                    @if($sortDirection === 'asc')
+                                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @else
+                                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </th>
+
+                                    <th wire:click="sortBy('is_active')" class="px-6 py-3 cursor-pointer">
+                                        <div class="flex items-center justify-between">
+                                            <span>Active Status</span>
+                                            <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                                @if($sortField === 'is_active')
+                                                    @if($sortDirection === 'asc')
+                                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @else
+                                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </th>
+
+                                    <th wire:click="sortBy('is_available')" class="px-6 py-3 cursor-pointer">
+                                        <div class="flex items-center justify-between">
+                                            <span>Availability Status</span>
+                                            <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                                @if($sortField === 'is_available')
+                                                    @if($sortDirection === 'asc')
+                                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @else
+                                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </th>
+
+                                    <th wire:click="sortBy('hr_liaisons_count')" class="px-6 py-3 cursor-pointer">
+                                        <div class="flex items-center justify-between">
+                                            <span>HR Liaisons</span>
+                                            <span class="w-2.5 h-full font-bold text-black dark:text-white">
+                                                @if($sortField === 'hr_liaisons_count')
+                                                    @if($sortDirection === 'asc')
+                                                        <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @else
+                                                        <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
+                                                    @endif
+                                                @else
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </th>
+
+                                    <th class="px-6 py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                                @forelse($departments as $department)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition" wire:key="department-{{ $department->department_id }}">
+                                    <td class="px-6 py-4">
+                                        <img src="{{ $department->department_profile_url ?? asset('images/default-dept.png') }}"
+                                            class="w-10 h-10 rounded-full object-cover border border-gray-300 dark:border-zinc-600 shadow-sm">
+                                    </td>
+
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-100">
+                                        {{ $department->department_name }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-sm font-medium uppercase text-gray-600 dark:text-gray-300">
+                                        {{ $department->department_code ?? '—' }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-sm text-center">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
+                                            {{ $department->is_active
+                                                ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
+                                                : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
+                                            {{ $department->is_active ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-sm text-center">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
+                                            {{ $department->is_available
+                                                ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
+                                                : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
+                                            {{ $department->is_available ? 'Yes' : 'No' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-sm font-medium text-center">
+                                        @php
+                                            [$active, $total] = explode(' / ', $department->hrLiaisonsStatus);
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
+                                            {{ $active > 0 ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500' : 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500' }}">
+                                            {{ $active }} online / {{ $total }} total
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-center space-x-1" x-data="{ open: false, openAdd: false, openRemove: false, openEdit: false, openDelete: false }">
+                                        <div>
+                                            <button @click="open = !open"
+                                                class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                                <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
+                                            </button>
+
+                                            <div x-show="open" @click.away="open = false" x-transition
+                                                class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 overflow-hidden">
+
+                                                <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+
+                                                    <a
+                                                        href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view', $department->department_id) }}"
+                                                        wire:navigate
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
+                                                        <x-heroicon-o-eye class="w-4 h-4 text-blue-500"/>
+                                                        View
+                                                    </a>
+
+                                                    <button
+                                                        @click="open = false; openEdit = true; $wire.editDepartment({{ $department->department_id }})"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
+                                                        <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/>
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        @click="open = false; openAdd = true"
+                                                        wire:click.prevent="loadAvailableLiaisons({{ $department->department_id }})"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-green-600">
+                                                        <x-heroicon-o-user-plus class="w-4 h-4" />
+                                                        Add HR Liaison
+                                                    </button>
+
+                                                    <button
+                                                        @click="open = false; openRemove = true"
+                                                        wire:click.prevent="loadRemoveLiaisons({{ $department->department_id }})"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-amber-600">
+                                                        <x-heroicon-o-user-minus class="w-4 h-4" />
+                                                        Remove HR Liaison
+                                                    </button>
+
+                                                    <button
+                                                        @click="open = false; openDelete = true"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-600">
+                                                        <x-heroicon-o-trash class="w-4 h-4"/>
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div x-show="openAdd" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openAdd = false">
+                                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+                                                <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Add HR Liaison</h3>
+
+                                                <div wire:loading.remove wire:target="loadAvailableLiaisons({{ $department->department_id }})">
+                                                    <div wire:key="save-liaisons-{{ $department->department_id }}">
+                                                        <x-multiple-select
+                                                            name="selectedLiaisonsToAdd"
+                                                            :options="$availableLiaisons"
+                                                            placeholder="Select HR Liaisons"
+                                                        />
+                                                    </div>
+
+                                                    <div class="mt-5 flex justify-end gap-2">
+                                                        <button
+                                                            @click="openAdd = false"
+                                                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            wire:click="saveLiaison({{ $department->department_id }})"
+                                                            @click="openAdd = false"
+                                                            class="px-3 py-1 text-xs rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100
+                                                                dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
+                                                            wire:loading.attr="disabled"
+                                                            wire:target="saveLiaison"
+                                                        >
+                                                            <span wire:loading.remove wire:target="saveLiaison">
+                                                                <x-heroicon-o-user-plus class="w-4 h-4 inline-block mr-1" /> Add
+                                                            </span>
+                                                            <span wire:loading wire:target="saveLiaison">
+                                                                Processing...
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div wire:loading wire:target="loadAvailableLiaisons({{ $department->department_id }})" >
+                                                    <div class="flex items-center justify-center gap-2 w-full">
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div x-show="openRemove" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openRemove = false">
+                                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+                                                <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Remove HR Liaison</h3>
+
+                                                <div wire:loading.remove wire:target="loadRemoveLiaisons({{ $department->department_id }})">
+                                                    <div wire:key="remove-liaisons-{{ $department->department_id }}">
+                                                        <x-multiple-select
+                                                            name="selectedLiaisonsToRemove"
+                                                            :options="$removeLiaisons"
+                                                            placeholder="Select HR Liaisons to Remove"
+                                                        />
+                                                    </div>
+
+                                                    <div class="mt-5 flex justify-end gap-2">
+
+                                                        <button
+                                                            @click="openRemove = false"
+                                                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60"
+                                                        >
+                                                            Cancel
+                                                        </button>
+
+                                                        <button
+                                                            wire:click="removeLiaison({{ $department->department_id }})"
+                                                            @click="openRemove = false"
+                                                            class="px-3 py-1 text-xs rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100
+                                                                dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60"
+                                                            wire:loading.attr="disabled"
+                                                            wire:target="removeLiaison"
+                                                        >
+                                                            <span wire:loading.remove wire:target="removeLiaison">
+                                                                <x-heroicon-o-user-minus class="w-4 h-4 inline-block mr-1" /> Remove
+                                                            </span>
+                                                            <span wire:loading wire:target="removeLiaison">
+                                                                Processing...
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div wire:loading wire:target="loadRemoveLiaisons({{ $department->department_id }})" >
+                                                    <div class="flex items-center justify-center gap-2 w-full">
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div x-show="openDelete" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openRemove = false">
+                                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+                                                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
+                                                    <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
+                                                </div>
+
+                                                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+                                                <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this department? This action cannot be undone.</p>
+
+                                                <div wire:loading.remove wire:target="deleteDepartment({{ $department->department_id }})" class="flex justify-center gap-3 mt-4">
+                                                    <button type="button" @click="openDelete = false"
+                                                        class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                                                        Cancel
+                                                    </button>
+                                                    <flux:button variant="danger" icon="trash" wire:click="deleteDepartment({{ $department->department_id }})" @click="openDelete = false">
+                                                        Yes, Delete
+                                                    </flux:button>
+                                                </div>
+
+                                                <div wire:loading wire:target="deleteDepartment({{ $department->department_id }})" >
+                                                    <div class="flex items-center justify-center gap-2 w-full">
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div x-show="openEdit" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openEdit = false">
+
+                                            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md
+                                                        max-h-[90vh] flex flex-col overflow-y-auto">
+
+                                                <header class="flex gap-2 items-center justify-start border-b border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
+                                                    <x-heroicon-o-pencil-square class="w-6 h-6" />
+                                                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
+                                                        Edit Department
+                                                    </h3>
+                                                </header>
+
+                                                <div wire:loading wire:target="editDepartment({{ $department->department_id }})">
+                                                    <div class="w-full flex items-center justify-center gap-2 py-6">
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                                                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div wire:loading.remove wire:target="editDepartment({{ $department->department_id }})">
+                                                    <div class="flex-1 overflow-y-auto p-6 space-y-3">
+                                                        <flux:input type="text" wire:model.defer="editingDepartment.department_name" placeholder="Department Name" clearable/>
+                                                        <flux:error name="editingDepartment.department_name" />
+
+                                                        <flux:input type="text" wire:model.defer="editingDepartment.department_code" placeholder="Department Code" clearable/>
+                                                        <flux:error name="editingDepartment.department_code" />
+
+                                                        <flux:textarea wire:model.defer="editingDepartment.department_description" placeholder="Department Description" clearable/>
+                                                        <flux:error name="editingDepartment.department_description" />
+
+                                                        <x-select
+                                                            name="editingDepartment.is_active"
+                                                            placeholder="Select active status"
+                                                            :options="['Inactive','Active']"
+                                                        />
+                                                        <flux:error name="editingDepartment.is_active" />
+
+                                                        <x-select
+                                                            name="editingDepartment.is_available"
+                                                            placeholder="Select availability status"
+                                                            :options="['Yes','No']"
+                                                        />
+                                                        <flux:error name="editingDepartment.is_available" />
+
+                                                        <div class="flex flex-col items-center justify-center space-y-4 mt-4">
+                                                            @php
+                                                                $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
+                                                                $index = crc32($department->department_name) % count($palette);
+                                                                $bgColor = $palette[$index];
+                                                            @endphp
+
+                                                            <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 dark:border-zinc-700">
+                                                                <input type="file" id="edit_profile_input" wire:model="edit_department_profile" class="hidden">
+                                                                <label for="edit_profile_input" class="cursor-pointer w-full h-full block">
+                                                                    <img
+                                                                        src="{{ $profilePreview
+                                                                                ? $profilePreview
+                                                                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=256' }}"
+                                                                        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                                        alt="Profile Preview"
+                                                                    >
+
+                                                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                                                                        <div class="text-white flex flex-col items-center gap-1">
+                                                                            <x-heroicon-o-camera class="w-6 h-6"/>
+                                                                            <span class="text-sm font-medium">Change</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+
+                                                            <div class="relative w-full max-w-md h-40 rounded overflow-hidden border-4 border-gray-300 dark:border-zinc-700">
+                                                                <input type="file" id="edit_background_input" wire:model="edit_department_background" class="hidden">
+                                                                <label for="edit_background_input" class="cursor-pointer w-full h-full block">
+                                                                    <img
+                                                                        src="{{ $backgroundPreview
+                                                                                ? $backgroundPreview
+                                                                                : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=512' }}"
+                                                                        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                                        alt="Background Preview"
+                                                                    >
+
+                                                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                                                                        <div class="text-white flex flex-col items-center gap-1">
+                                                                            <x-heroicon-o-camera class="w-6 h-6"/>
+                                                                            <span class="text-sm font-medium">Change</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                                                    <button @click="openEdit = false"
+                                                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                                                        Cancel
+                                                    </button>
+
+                                                    <button
+                                                        wire:click="updateDepartment({{ $department->department_id }})"
+                                                        wire:loading.attr="disabled"
+                                                        wire:target="edit_department_profile, edit_department_background"
+                                                        @click="openEdit = false"
+                                                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
+                                                            disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        Save
+                                                    </button>
+
+                                                </footer>
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                                        <x-heroicon-o-building-office-2 class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                        No departments found
+                                    </td>
+                                </tr>
+                                @endforelse
+
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+
+                <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters"
+                    class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <thead class="bg-gray-100 dark:bg-zinc-900">
                             <tr>
-                                <th class="px-6 py-3 text-left font-semibold">Profile</th>
-
-                                <th wire:click="sortBy('department_name')" class="px-6 py-3 cursor-pointer">
-                                    <div class="flex items-center justify-between">
-                                        <span>Department Name</span>
-                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                            @if($sortField === 'department_name')
-                                                @if($sortDirection === 'asc')
-                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @else
-                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @endif
-                                            @else
-                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
-                                            @endif
-                                        </span>
-                                    </div>
-                                </th>
-
-                                <th wire:click="sortBy('department_code')" class="px-6 py-3 cursor-pointer">
-                                    <div class="flex items-center justify-between">
-                                        <span>Code</span>
-                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                            @if($sortField === 'department_code')
-                                                @if($sortDirection === 'asc')
-                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @else
-                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @endif
-                                            @else
-                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
-                                            @endif
-                                        </span>
-                                    </div>
-                                </th>
-
-                                <th wire:click="sortBy('is_active')" class="px-6 py-3 cursor-pointer">
-                                    <div class="flex items-center justify-between">
-                                        <span>Active Status</span>
-                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                            @if($sortField === 'is_active')
-                                                @if($sortDirection === 'asc')
-                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @else
-                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @endif
-                                            @else
-                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
-                                            @endif
-                                        </span>
-                                    </div>
-                                </th>
-
-                                <th wire:click="sortBy('is_available')" class="px-6 py-3 cursor-pointer">
-                                    <div class="flex items-center justify-between">
-                                        <span>Availability Status</span>
-                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                            @if($sortField === 'is_available')
-                                                @if($sortDirection === 'asc')
-                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @else
-                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @endif
-                                            @else
-                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
-                                            @endif
-                                        </span>
-                                    </div>
-                                </th>
-
-                                <th wire:click="sortBy('hr_liaisons_count')" class="px-6 py-3 cursor-pointer">
-                                    <div class="flex items-center justify-between">
-                                        <span>HR Liaisons</span>
-                                        <span class="w-2.5 h-full font-bold text-black dark:text-white">
-                                            @if($sortField === 'hr_liaisons_count')
-                                                @if($sortDirection === 'asc')
-                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @else
-                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400" />
-                                                @endif
-                                            @else
-                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5" />
-                                            @endif
-                                        </span>
-                                    </div>
-                                </th>
-
-                                <th class="px-6 py-3 text-center">Actions</th>
+                                @for ($i = 0; $i < 7; $i++)
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
+                                    </th>
+                                @endfor
                             </tr>
                         </thead>
 
                         <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
-                            @forelse($departments as $department)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition" wire:key="department-{{ $department->department_id }}">
-                                <td class="px-6 py-4">
-                                    <img src="{{ $department->department_profile_url ?? asset('images/default-dept.png') }}"
-                                        class="w-10 h-10 rounded-full object-cover border border-gray-300 dark:border-zinc-600 shadow-sm">
-                                </td>
-
-                                <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-100">
-                                    {{ $department->department_name }}
-                                </td>
-
-                                <td class="px-6 py-4 text-sm font-medium uppercase text-gray-600 dark:text-gray-300">
-                                    {{ $department->department_code ?? '—' }}
-                                </td>
-
-                                <td class="px-6 py-4 text-sm text-center">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
-                                        {{ $department->is_active
-                                            ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
-                                            : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
-                                        {{ $department->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-sm text-center">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
-                                        {{ $department->is_available
-                                            ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500'
-                                            : 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600' }}">
-                                        {{ $department->is_available ? 'Yes' : 'No' }}
-                                    </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-sm font-medium text-center">
-                                    @php
-                                        [$active, $total] = explode(' / ', $department->hrLiaisonsStatus);
-                                    @endphp
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border shadow-sm
-                                        {{ $active > 0 ? 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500' : 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500' }}">
-                                        {{ $active }} online / {{ $total }} total
-                                    </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-center space-x-1" x-data="{ open: false, openAdd: false, openRemove: false, openEdit: false, openDelete: false }">
-                                    <div>
-                                        <button @click="open = !open"
-                                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
-                                            <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-black dark:text-white"/>
-                                        </button>
-
-                                        <div x-show="open" @click.away="open = false" x-transition
-                                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50 overflow-hidden">
-
-                                            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
-
-                                                <a
-                                                    href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-view', $department->department_id) }}"
-                                                    wire:navigate
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
-                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500"/>
-                                                    View
-                                                </a>
-
-                                                <button
-                                                    @click="open = false; openEdit = true; $wire.editDepartment({{ $department->department_id }})"
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium">
-                                                    <x-heroicon-o-pencil class="w-4 h-4 text-green-500"/>
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    @click="open = false; openAdd = true"
-                                                    wire:click.prevent="loadAvailableLiaisons({{ $department->department_id }})"
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-green-600">
-                                                    <x-heroicon-o-user-plus class="w-4 h-4" />
-                                                    Add HR Liaison
-                                                </button>
-
-                                                <button
-                                                    @click="open = false; openRemove = true"
-                                                    wire:click.prevent="loadRemoveLiaisons({{ $department->department_id }})"
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-amber-600">
-                                                    <x-heroicon-o-user-minus class="w-4 h-4" />
-                                                    Remove HR Liaison
-                                                </button>
-
-                                                <button
-                                                    @click="open = false; openDelete = true"
-                                                    class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm font-medium text-red-600">
-                                                    <x-heroicon-o-trash class="w-4 h-4"/>
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="openAdd" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openAdd = false">
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
-                                            <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Add HR Liaison</h3>
-
-                                            <div wire:key="save-liaisons-{{ $department->department_id }}">
-                                                <x-multiple-select
-                                                    name="selectedLiaisonsToAdd"
-                                                    :options="$availableLiaisons"
-                                                    placeholder="Select HR Liaisons"
-                                                />
-                                            </div>
-
-                                            <div class="mt-5 flex justify-end gap-2">
-                                                <button
-                                                    @click="openAdd = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                        dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    wire:click="saveLiaison({{ $department->department_id }})"
-                                                    @click="openAdd = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100
-                                                        dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
-                                                    wire:loading.attr="disabled"
-                                                    wire:target="saveLiaison"
-                                                >
-                                                    <span wire:loading.remove wire:target="saveLiaison">
-                                                        <x-heroicon-o-user-plus class="w-4 h-4 inline-block mr-1" /> Add
-                                                    </span>
-                                                    <span wire:loading wire:target="saveLiaison">
-                                                        Processing...
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="openRemove" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openRemove = false">
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
-                                            <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">Remove HR Liaison</h3>
-
-                                            <div wire:key="remove-liaisons-{{ $department->department_id }}">
-                                                <x-multiple-select
-                                                    name="selectedLiaisonsToRemove"
-                                                    :options="$removeLiaisons"
-                                                    placeholder="Select HR Liaisons to Remove"
-                                                />
-                                            </div>
-
-                                            <div class="mt-5 flex justify-end gap-2">
-
-                                                <button
-                                                    @click="openRemove = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                        dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60"
-                                                >
-                                                    Cancel
-                                                </button>
-
-                                                <button
-                                                    wire:click="removeLiaison({{ $department->department_id }})"
-                                                    @click="openRemove = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100
-                                                        dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60"
-                                                    wire:loading.attr="disabled"
-                                                    wire:target="removeLiaison"
-                                                >
-                                                    <span wire:loading.remove wire:target="removeLiaison">
-                                                        <x-heroicon-o-user-minus class="w-4 h-4 inline-block mr-1" /> Remove
-                                                    </span>
-                                                    <span wire:loading wire:target="removeLiaison">
-                                                        Processing...
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="openDelete" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openRemove = false">
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
-                                            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
-                                                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
-                                            </div>
-
-                                            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
-                                            <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to delete this department? This action cannot be undone.</p>
-
-                                            <div wire:loading.remove wire:target="deleteDepartment({{ $department->department_id }})" class="flex justify-center gap-3 mt-4">
-                                                <button type="button" @click="openDelete = false"
-                                                    class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
-                                                    Cancel
-                                                </button>
-                                                <flux:button variant="danger" icon="trash" wire:click="deleteDepartment({{ $department->department_id }})" @click="openDelete = false">
-                                                    Yes, Delete
-                                                </flux:button>
-                                            </div>
-
-                                            <div wire:loading wire:target="deleteDepartment({{ $department->department_id }})" >
-                                                <div class="flex items-center justify-center gap-2 w-full">
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="openEdit" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50" @click.self="openEdit = false">
-
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md
-                                                    max-h-[90vh] flex flex-col overflow-y-auto">
-
-                                            <header class="flex gap-2 items-center justify-start border-b border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
-                                                <x-heroicon-o-pencil-square class="w-6 h-6" />
-                                                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 m-0">
-                                                    Edit Department
-                                                </h3>
-                                            </header>
-
-                                            <div wire:loading wire:target="editDepartment({{ $department->department_id }})">
-                                                <div class="w-full flex items-center justify-center gap-2 py-6">
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
-                                                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
-                                                </div>
-                                            </div>
-
-                                            <div wire:loading.remove wire:target="editDepartment({{ $department->department_id }})">
-                                                <div class="flex-1 overflow-y-auto p-6 space-y-3">
-                                                    <flux:input type="text" wire:model.defer="editingDepartment.department_name" placeholder="Department Name" clearable/>
-                                                    <flux:error name="editingDepartment.department_name" />
-
-                                                    <flux:input type="text" wire:model.defer="editingDepartment.department_code" placeholder="Department Code" clearable/>
-                                                    <flux:error name="editingDepartment.department_code" />
-
-                                                    <flux:textarea wire:model.defer="editingDepartment.department_description" placeholder="Department Description" clearable/>
-                                                    <flux:error name="editingDepartment.department_description" />
-
-                                                    <x-select
-                                                        name="editingDepartment.is_active"
-                                                        placeholder="Select active status"
-                                                        :options="['Inactive','Active']"
-                                                    />
-                                                    <flux:error name="editingDepartment.is_active" />
-
-                                                    <x-select
-                                                        name="editingDepartment.is_available"
-                                                        placeholder="Select availability status"
-                                                        :options="['Yes','No']"
-                                                    />
-                                                    <flux:error name="editingDepartment.is_available" />
-
-                                                    <div class="flex flex-col items-center justify-center space-y-4 mt-4">
-                                                        @php
-                                                            $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
-                                                            $index = crc32($department->department_name) % count($palette);
-                                                            $bgColor = $palette[$index];
-                                                        @endphp
-
-                                                        <div class="relative">
-                                                            <input type="file" id="edit_profile_input" wire:model="edit_department_profile" class="hidden">
-                                                            <label for="edit_profile_input" class="cursor-pointer">
-                                                                <img
-                                                                    src="{{ $profilePreview
-                                                                            ? $profilePreview
-                                                                            : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=256' }}"
-                                                                    class="w-32 h-32 rounded-full object-cover border-4 border-gray-300 dark:border-zinc-700 hover:opacity-80 transition"
-                                                                    alt="Profile Preview"
-                                                                >
-                                                            </label>
-                                                        </div>
-
-                                                        <div class="relative w-full">
-                                                            <input type="file" id="edit_background_input" wire:model="edit_department_background" class="hidden">
-                                                            <label for="edit_background_input" class="cursor-pointer w-full flex justify-center">
-                                                                <img
-                                                                    src="{{ $backgroundPreview
-                                                                            ? $backgroundPreview
-                                                                            : 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=512' }}"
-                                                                    class="w-full max-w-md h-40 object-cover rounded border-4 border-gray-300 dark:border-zinc-700 hover:opacity-80 transition"
-                                                                    alt="Background Preview"
-                                                                >
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
-                                                <button @click="openEdit = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                        dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
-                                                    Cancel
-                                                </button>
-
-                                                <button
-                                                    wire:click="updateDepartment({{ $department->department_id }})"
-                                                    wire:loading.attr="disabled"
-                                                    wire:target="edit_department_profile, edit_department_background"
-                                                    @click="openEdit = false"
-                                                    class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                                                        dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
-                                                        disabled:opacity-50 disabled:cursor-not-allowed">
-                                                    Save
-                                                </button>
-
-                                            </footer>
-                                        </div>
-                                    </div>
-
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                                    <x-heroicon-o-building-office-2 class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                                    No departments found
-                                </td>
-                            </tr>
-                            @endforelse
-
-                        </tbody>
-
-                    </table>
-
-                    <div class="px-6 py-4">
-                        {{ $departments->links() }}
-                    </div>
-                </div>
-            </div>
-
-            <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch, clearSearch, applyFilters"
-                class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                    <thead class="bg-gray-100 dark:bg-zinc-900">
-                        <tr>
-                            @for ($i = 0; $i < 7; $i++)
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
-                                </th>
+                            @for ($row = 0; $row < 5; $row++)
+                                <tr>
+                                    @for ($col = 0; $col < 6; $col++)
+                                        <td class="px-4 py-3 align-middle">
+                                            @if($col === 0)
+                                                <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>
+                                            @else
+                                                <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
+                                            @endif
+                                        </td>
+                                    @endfor
+                                </tr>
                             @endfor
-                        </tr>
-                    </thead>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
-                        @for ($row = 0; $row < 5; $row++)
-                            <tr>
-                                @for ($col = 0; $col < 6; $col++)
-                                    <td class="px-4 py-3 align-middle">
-                                        @if($col === 0)
-                                            <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>
-                                        @else
-                                            <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
-                                        @endif
-                                    </td>
-                                @endfor
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
+                <div class="px-6 py-4">
+                    {{ $departments->links() }}
+                </div>
             </div>
 
         </div>

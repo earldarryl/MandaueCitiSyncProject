@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 use Filament\Notifications\Notification;
 
 #[Layout('layouts.app')]
-#[Title('HR Liaisons List View')]
+#[Title("HR Liaison's Assignment")]
 class Assignments extends Component
 {
     use WithPagination;
@@ -131,7 +131,6 @@ class Assignments extends Component
                 'assigned_at' => null,
             ]);
 
-            // Load the grievance including soft-deleted
             $grievance = Grievance::withTrashed()->find($assignment->grievance_id);
 
             if ($grievance && $grievance->trashed()) {

@@ -30,6 +30,27 @@ class View extends Component
     protected $listeners = [
         'loadMore' => 'loadMore',
     ];
+
+    function displayRoleName(string $role): string
+    {
+        return match ($role) {
+            'hr_liaison' => 'HR Liaison',
+            'admin'      => 'Administrator',
+            'citizen'    => 'Citizen',
+            default      => ucwords(str_replace('_', ' ', $role)),
+        };
+    }
+
+    private function formatStatus($value)
+    {
+        return strtolower(str_replace(' ', '_', trim($value)));
+    }
+
+    private function displayText($value)
+    {
+        return ucwords(str_replace('_', ' ', $value));
+    }
+
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -64,6 +85,16 @@ class View extends Component
             $this->grievance->forceFill([
                 'grievance_status' => 'acknowledged',
             ])->save();
+
+            $this->grievance->addRemark([
+                'message'   => "Report acknowledged by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first())  .")",
+                'user_id'   => $user->id,
+                'user_name' => $user->name,
+                'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+                'timestamp' => now()->format('Y-m-d H:i:s'),
+                'status'    => 'acknowledged',
+                'type'      => 'acknowledge',
+            ]);
 
             ActivityLog::create([
                 'user_id'      => $user->id,
@@ -133,11 +164,11 @@ class View extends Component
                         ->toArray();
 
         if (empty($hrLiaisons)) {
-            Notification::make()
-                ->title('No HR Liaisons Found')
-                ->body("This department has no HR Liaisons assigned.")
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'No HR Liaisons Found',
+                'message' => 'This department has no HR Liaisons assigned.',
+            ]);
 
             return;
         }
@@ -163,6 +194,81 @@ class View extends Component
                 'assigned_at'   => now(),
             ]);
         }
+
+        $grievance = $this->grievance;
+        $ticketId  = $grievance->grievance_ticket_id;
+
+        $this->grievance->addRemark([
+            'message'   => "Report rerouted to '{$department->department_name}' and category changed to '{$this->category}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status'    => 'pending',
+            'type'      => 'reroute',
+        ]);
+
+        $citizen = $this->grievance->user()->first();
+
+        if (! $citizen) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Citizen Not Found',
+                'message' => 'Cannot notify the citizen because the report owner does not exist.',
+            ]);
+        } else {
+            $citizen->notify(new GeneralNotification(
+                'Your Report Was Rerouted',
+                "Your report titled '{$grievance->grievance_title}' has been rerouted to {$department->department_name}.",
+                'info',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                ['type' => 'info'],
+                true,
+                [
+                    [
+                        'label'        => 'View Updated Report',
+                        'url'          => route('citizen.grievance.view', $grievance->grievance_ticket_id),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Report Rerouted',
+                "The report titled '{$grievance->grievance_title}' was rerouted to {$department->department_name}.",
+                'warning',
+                ['grievance_ticket_id' => $ticketId],
+                ['type' => 'warning'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
+        }
+
+        $user->notify(new GeneralNotification(
+            'Reroute Successful',
+            "You have rerouted the report '{$grievance->grievance_title}' to {$department->department_name}.",
+            'success',
+            ['grievance_ticket_id' => $ticketId],
+            ['type' => 'success'],
+            true,
+            [
+                [
+                    'label'        => 'View Report',
+                    'url'          => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
+                ],
+            ]
+        ));
 
         $changes = [
             'grievance_status' => [
@@ -200,27 +306,15 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
-
-        Notification::make()
-            ->title('Report Rerouted')
-            ->body("Report rerouted to {$department->department_name}. HR Liaisons assigned.")
-            ->success()
-            ->send();
-
         return $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
-    }
-
-    private function formatStatus($value)
-    {
-        return strtolower(str_replace(' ', '_', trim($value)));
     }
 
     public function updateStatus()
     {
-
         $this->validate([
             'statusUpdate' => 'required|string',
         ]);
+
         $formattedStatus = $this->formatStatus($this->statusUpdate);
         $user = auth()->user();
         $oldStatus = $this->grievance->grievance_status;
@@ -254,13 +348,72 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
-        if ($oldStatus !== $formattedStatus) {
-            Notification::make()
-                ->title('Report Updated')
-                ->body("Report status successfully changed from {$oldStatus} to {$formattedStatus}.")
-                ->success()
-                ->send();
+        $this->grievance->addRemark([
+            'message'   => "Status changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status'    => $formattedStatus,
+            'type'      => 'status_update',
+        ]);
+
+        $grievance = $this->grievance;
+        $ticketId  = $grievance->grievance_ticket_id;
+
+        $citizen = $grievance->user()->first();
+        if ($citizen) {
+            $citizen->notify(new GeneralNotification(
+                'Report Status Updated',
+                "The status of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                'info',
+                ['grievance_ticket_id' => $ticketId],
+                ['type' => 'info'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('citizen.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
         }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Report Status Updated',
+                "The report '{$grievance->grievance_title}' status changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                'warning',
+                ['grievance_ticket_id' => $ticketId],
+                ['type' => 'warning'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
+        }
+
+        $user->notify(new GeneralNotification(
+            'Status Update Successful',
+            "You changed the status of '{$grievance->grievance_title}' from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+            'success',
+            ['grievance_ticket_id' => $ticketId],
+            ['type' => 'success'],
+            true,
+            [
+                [
+                    'label'        => 'View Report',
+                    'url'          => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
+                ],
+            ]
+        ));
 
         $this->dispatch('close-status-modal');
         $this->dispatch('update-success-modal');
@@ -288,7 +441,7 @@ class View extends Component
         };
 
         $this->grievance->update([
-            'priority_level' => $formattedPriority,
+            'priority_level'  => $formattedPriority,
             'processing_days' => $priorityProcessingDays,
         ]);
 
@@ -318,11 +471,11 @@ class View extends Component
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
             'module'       => 'Report Management',
-            'action'       => "Changed report #{$this->grievance->grievance_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
             'action_type'  => 'update_priority',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) changed priority of report #{$this->grievance->grievance_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'description'  => "HR Liaison ({$user->email}) changed priority of report #{$this->grievance->grievance_ticket_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
             'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
@@ -332,11 +485,72 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
-        Notification::make()
-            ->title('Priority Updated')
-            ->body("Report priority successfully changed from {$oldPriority} to {$formattedPriority}. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.")
-            ->success()
-            ->send();
+        $this->grievance->addRemark([
+            'message'   => "Priority changed from '{$oldPriority}' to '{$formattedPriority}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) ."). Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status'    => $this->grievance->grievance_status,
+            'type'      => 'priority_update',
+        ]);
+
+        $grievance = $this->grievance;
+        $ticketId  = $grievance->grievance_ticket_id;
+
+        $citizen = $grievance->user()->first();
+        if ($citizen) {
+            $citizen->notify(new GeneralNotification(
+                'Report Priority Updated',
+                "The priority of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.",
+                'info',
+                ['grievance_ticket_id' => $ticketId],
+                ['type' => 'info'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('citizen.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Report Priority Updated',
+                "The priority of report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'.",
+                'warning',
+                ['grievance_ticket_id' => $ticketId],
+                ['type' => 'warning'],
+                true,
+                [
+                    [
+                        'label'        => 'View Report',
+                        'url'          => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ],
+                ]
+            ));
+        }
+
+        $user->notify(new GeneralNotification(
+            'Priority Update Successful',
+            "You changed the priority of '{$grievance->grievance_title}' from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'.",
+            'success',
+            ['grievance_ticket_id' => $ticketId],
+            ['type' => 'success'],
+            true,
+            [
+                [
+                    'label'        => 'View Report',
+                    'url'          => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
+                ],
+            ]
+        ));
 
         $this->dispatch('close-priority-modal');
         $this->dispatch('update-success-modal');
@@ -349,15 +563,70 @@ class View extends Component
         $editRequest = EditRequest::findOrFail($editRequestId);
         $editRequest->update(['status' => 'approved']);
 
-        $user = $editRequest->user;
         $grievance = $editRequest->grievance;
+        $ticketId = $grievance->grievance_ticket_id;
+        $user = auth()->user();
+
+        $grievance->addRemark([
+            'message'   => "Edit request #{$editRequest->id} approved by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status'    => $grievance->grievance_status,
+            'type'      => 'edit_request',
+        ]);
+
+        $citizen = $editRequest->user()->first();
+        if ($citizen) {
+            $citizen->notify(new GeneralNotification(
+                'Edit Request Approved',
+                "Your request to edit report '{$grievance->grievance_title}' has been approved.",
+                'success',
+                [
+                    'grievance_ticket_id' => $ticketId,
+                    'edit_request_id'     => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('citizen.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Edit Request Approved',
+                "The edit request for report '{$grievance->grievance_title}' has been approved.",
+                'info',
+                [
+                    'grievance_ticket_id' => $ticketId,
+                    'edit_request_id'     => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
 
         $user->notify(new GeneralNotification(
             'Edit Request Approved',
-            "Your request to edit report '{$grievance->grievance_title}' has been approved.",
+            "You approved the edit request for '{$grievance->grievance_title}'.",
             'success',
             [
-                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'grievance_ticket_id' => $ticketId,
                 'edit_request_id'     => $editRequest->id
             ],
             [],
@@ -365,8 +634,8 @@ class View extends Component
             [
                 [
                     'label' => 'View Report',
-                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
-                    'open_new_tab' => true,
+                    'url'   => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
                 ]
             ]
         ));
@@ -375,11 +644,11 @@ class View extends Component
                                 ->orderBy('created_at', 'desc')
                                 ->get();
 
-        Notification::make()
-            ->title('Edit Request Approved')
-            ->body("You approved the edit request for '{$grievance->grievance_title}'.")
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Edit Request Approved',
+            'message' => "You approved the edit request for '{$grievance->grievance_title}'.",
+        ]);
     }
 
     public function denyEditRequest($editRequestId)
@@ -387,15 +656,70 @@ class View extends Component
         $editRequest = EditRequest::findOrFail($editRequestId);
         $editRequest->update(['status' => 'denied']);
 
-        $user = $editRequest->user;
         $grievance = $editRequest->grievance;
+        $ticketId = $grievance->grievance_ticket_id;
+        $user = auth()->user();
+
+        $grievance->addRemark([
+            'message'   => "Edit request #{$editRequest->id} denied by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'status'    => $grievance->grievance_status,
+            'type'      => 'edit_request',
+        ]);
+
+        $citizen = $editRequest->user()->first();
+        if ($citizen) {
+            $citizen->notify(new GeneralNotification(
+                'Edit Request Denied',
+                "Your request to edit report '{$grievance->grievance_title}' has been denied.",
+                'danger',
+                [
+                    'grievance_ticket_id' => $ticketId,
+                    'edit_request_id'     => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('citizen.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Edit Request Denied',
+                "The edit request for report '{$grievance->grievance_title}' has been denied.",
+                'info',
+                [
+                    'grievance_ticket_id' => $ticketId,
+                    'edit_request_id'     => $editRequest->id
+                ],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
 
         $user->notify(new GeneralNotification(
             'Edit Request Denied',
-            "Your request to edit report '{$grievance->grievance_title}' has been denied.",
+            "You denied the edit request for '{$grievance->grievance_title}'.",
             'danger',
             [
-                'grievance_ticket_id' => $grievance->grievance_ticket_id,
+                'grievance_ticket_id' => $ticketId,
                 'edit_request_id'     => $editRequest->id
             ],
             [],
@@ -403,8 +727,8 @@ class View extends Component
             [
                 [
                     'label' => 'View Report',
-                    'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
-                    'open_new_tab' => true,
+                    'url'   => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
                 ]
             ]
         ));
@@ -413,11 +737,11 @@ class View extends Component
                                 ->orderBy('created_at', 'desc')
                                 ->get();
 
-        Notification::make()
-            ->title('Edit Request Denied')
-            ->body("You denied the edit request for '{$grievance->grievance_title}'.")
-            ->warning()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'title' => 'Edit Request Denied',
+            'message' => "You denied the edit request for '{$grievance->grievance_title}'.",
+        ]);
     }
 
     public function addRemark()
@@ -426,28 +750,84 @@ class View extends Component
             'message' => 'required|string|max:1000',
         ]);
 
+        $grievance = $this->grievance;
+        $ticketId = $grievance->grievance_ticket_id;
+        $user = auth()->user();
+
         $this->grievance->addRemark([
-            'message' => $this->message,
-            'user_id' => auth()->id(),
-            'user_name' => auth()->user()->name,
-            'role' => auth()->user()->getRoleNames()->first(),
+            'message'   => $this->message,
+            'user_id'   => $user->id,
+            'user_name' => $user->name,
+            'role'      => $this->displayRoleName($user->getRoleNames()->first()),
             'timestamp' => now()->format('Y-m-d H:i:s'),
-            'status' => $this->grievance->grievance_status,
-            'type' => 'note',
+            'status'    => $grievance->grievance_status,
+            'type'      => 'note',
         ]);
 
+        $citizen = $grievance->user()->first();
+        if ($citizen) {
+            $citizen->notify(new GeneralNotification(
+                'Progress Log Added',
+                "A new note has been added to your report '{$grievance->grievance_title}'.",
+                'info',
+                ['grievance_ticket_id' => $ticketId],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('citizen.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Progress Log Added',
+                "A new note has been added to report '{$grievance->grievance_title}'.",
+                'info',
+                ['grievance_ticket_id' => $ticketId],
+                [],
+                true,
+                [
+                    [
+                        'label' => 'View Report',
+                        'url'   => route('admin.forms.grievances.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]
+                ]
+            ));
+        }
+
+        $user->notify(new GeneralNotification(
+            'Progress Log Added',
+            "You added a note to '{$grievance->grievance_title}'.",
+            'success',
+            ['grievance_ticket_id' => $ticketId],
+            [],
+            true,
+            [
+                [
+                    'label' => 'View Report',
+                    'url'   => route('hr-liaison.grievance.view', $ticketId),
+                    'open_new_tab' => false,
+                ]
+            ]
+        ));
+
         $this->message = '';
-
         $this->grievance->refresh();
-
         $this->dispatch('new-log');
-
-        Notification::make()
-            ->title('Progress Log Added')
-            ->body('Your note has been recorded.')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Progress Log Added',
+            'message' => "Your note has been recorded.",
+        ]);
     }
+
 
     public function loadMore()
     {

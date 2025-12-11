@@ -383,7 +383,7 @@
                                     @elseif($remark['type'] === 'escalation') text-red-500 dark:text-red-400
                                     @else text-gray-500 dark:text-gray-400 @endif
                                 ">
-                                    {{ strtoupper($remark['type']) }} - {{ strtoupper(str_replace('_', ' ', $remark['status'])) }}
+                                    {{ strtoupper(str_replace('_', ' ', $remark['type'])) }} - {{ strtoupper(str_replace('_', ' ', $remark['status'])) }}
                                 </p>
 
                                 <p class="text-sm mt-1 leading-relaxed font-medium

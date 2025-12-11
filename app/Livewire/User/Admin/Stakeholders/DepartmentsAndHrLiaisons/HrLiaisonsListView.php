@@ -22,7 +22,7 @@ class HrLiaisonsListView extends Component
     public int $departmentId;
     public ?string $sortField = 'name';
     public string $sortDirection = 'asc';
-    public int $perPage = 2;
+    public int $perPage = 5;
 
     public $editLiaison = [
         'id' => null,
@@ -125,7 +125,6 @@ class HrLiaisonsListView extends Component
             ->count('grievance_id');
 
 
-        // Load HR liaisons for this department
         $hrLiaisons = User::role('hr_liaison')
             ->whereHas('departments', fn($q) =>
                 $q->where('hr_liaison_departments.department_id', $this->departmentId)

@@ -10,7 +10,7 @@ use App\Models\GrievanceAttachment;
 use App\Models\HistoryLog;
 use App\Models\HrLiaisonDepartment;
 use App\Models\User;
-use Filament\Notifications\Notification;
+use App\Notifications\GeneralNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -81,17 +81,47 @@ class Index extends Component
         'poll' => '$refresh',
     ];
 
+    function displayRoleName(string $role): string
+    {
+        return match ($role) {
+            'hr_liaison' => 'HR Liaison',
+            'admin'      => 'Administrator',
+            'citizen'    => 'Citizen',
+            default      => ucwords(str_replace('_', ' ', $role)),
+        };
+    }
+
+    private function formatStatus($value)
+    {
+        return strtolower(str_replace(' ', '_', trim($value)));
+    }
+
+    private function displayText($value)
+    {
+        return ucwords(str_replace('_', ' ', $value));
+    }
+
+    private function resetInputFields(): void
+    {
+        $this->selected = [];
+        $this->status = null;
+        $this->priorityUpdate = null;
+        $this->department = null;
+        $this->category = null;
+    }
+
     public function mount()
     {
         $this->updateStats();
 
         if (session()->has('notification')) {
             $notif = session('notification');
-            Notification::make()
-                ->title($notif['title'])
-                ->body($notif['body'])
-                ->{$notif['type']}()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => $notif['type'],
+                'title' => $notif['title'],
+                'message' => $notif['body'],
+            ]);
         }
 
         $currentHrLiaison = auth()->user();
@@ -268,11 +298,12 @@ class Index extends Component
     public function exportSelectedReportsExcel()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Reports Selected')
-                ->body('Please select at least one report to export.')
-                ->warning()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'Please select at least one report to export.',
+            ]);
             return;
         }
 
@@ -286,11 +317,12 @@ class Index extends Component
             ->get();
 
         if ($reports->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('The selected reports were not found or are not assigned to you.')
-                ->warning()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'The selected reports were not found or are not assigned to you.',
+            ]);
             return;
         }
 
@@ -370,11 +402,11 @@ class Index extends Component
             ->get();
 
         if ($reports->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('There are no reports assigned to you to export.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'There are no reports assigned to you to export.',
+            ]);
             return;
         }
 
@@ -446,11 +478,11 @@ class Index extends Component
     public function importReportsExcel()
     {
         if (!$this->importFile) {
-            Notification::make()
-                ->title('No File Selected')
-                ->body('Please select a Reports Excel file to import.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'info',
+                'title' => 'No File Selected',
+                'message' => 'Please select a Reports Excel file to import.',
+            ]);
             return;
         }
 
@@ -464,11 +496,11 @@ class Index extends Component
             $rows = $sheet->toArray();
 
             if (count($rows) <= 1) {
-                Notification::make()
-                    ->title('Empty File')
-                    ->body('The uploaded Excel file contains no report records.')
-                    ->warning()
-                    ->send();
+                $this->dispatch('notify', [
+                    'type' => 'warning',
+                    'title' => 'Empty File',
+                    'message' => 'The uploaded Excel file contains no report records.',
+                ]);
                 Storage::disk('public')->delete($path);
                 return;
             }
@@ -614,31 +646,31 @@ class Index extends Component
                 ]);
             }
 
-            Notification::make()
-                ->title('Import Completed')
-                ->body('Reports have been imported successfully.' . ($skippedCount ? " Skipped {$skippedCount} duplicate(s)." : ""))
-                ->success()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'title' => 'Import Completed',
+                'message' => 'Reports have been imported successfully.' . ($skippedCount ? " Skipped {$skippedCount} duplicate(s)." : ""),
+            ]);
 
             Storage::disk('public')->delete($path);
 
         } catch (\Exception $e) {
-            Notification::make()
-                ->title('Import Failed')
-                ->body("Something went wrong while importing reports. Error: {$e->getMessage()}")
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Import Failed',
+                'message' => "Something went wrong while importing reports. Error: {$e->getMessage()}.",
+            ]);
         }
     }
 
     public function printSelectedGrievances()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Reports Selected')
-                ->body('Please select at least one grievance to print.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => "Please select at least one grievance to print.",
+            ]);
             return;
         }
 
@@ -650,11 +682,11 @@ class Index extends Component
             ->get();
 
         if ($grievances->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('The selected reports were not found or are not assigned to you.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => "The selected reports were not found or are not assigned to you.",
+            ]);
             return;
         }
 
@@ -666,11 +698,11 @@ class Index extends Component
     public function exportSelectedReportsCsv()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Reports Selected')
-                ->body('Please select at least one report to export.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Selected',
+                'message' => "Please select at least one report to export.",
+            ]);
             return;
         }
 
@@ -684,11 +716,11 @@ class Index extends Component
             ->get();
 
         if ($reports->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('The selected reports were not found or are not assigned to you.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => "The selected reports were not found or are not assigned to you.",
+            ]);
             return;
         }
 
@@ -789,12 +821,11 @@ class Index extends Component
                     ->toArray();
 
                 if (empty($hrLiaisons)) {
-                    Notification::make()
-                        ->title('No HR Liaisons Found')
-                        ->body("Department {$department->department_name} has no HR Liaisons assigned for report #{$grievance->grievance_ticket_id}.")
-                        ->danger()
-                        ->send();
-
+                    $this->dispatch('notify', [
+                        'type' => 'error',
+                        'title' => 'No HR Liaisons Found',
+                        'message' => "Department {$department->department_name} has no HR Liaisons assigned for report #{$grievance->grievance_ticket_id}.",
+                    ]);
                     continue;
                 }
 
@@ -813,6 +844,16 @@ class Index extends Component
                         'assigned_at'   => now(),
                     ]);
                 }
+
+                $grievance->addRemark([
+                    'message'   => "Report rerouted to {$department->department_name}, category changed from '{$oldCategory}' to '{$this->category}', status set to 'Pending' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                    'user_id'   => $user->id,
+                    'user_name' => $user->name,
+                    'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+                    'timestamp' => now()->format('Y-m-d H:i:s'),
+                    'status'    => 'pending',
+                    'type'      => 'reroute',
+                ]);
 
                 $changes = [
                     'grievance_status' => [
@@ -849,22 +890,70 @@ class Index extends Component
                     'platform'     => php_uname('s'),
                     'timestamp'    => now(),
                 ]);
+
+                $citizen = $grievance->user()->first();
+                if ($citizen) {
+                    $citizen->notify(new GeneralNotification(
+                        'Your Report Was Rerouted',
+                        "Your report '{$grievance->grievance_title}' has been rerouted to {$department->department_name}.",
+                        'info',
+                        ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                        ['type' => 'info'],
+                        true,
+                        [
+                            [
+                                'label' => 'View Updated Report',
+                                'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
+                                'open_new_tab' => true,
+                            ],
+                        ]
+                    ));
+                }
+
+                $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new GeneralNotification(
+                        'Report Rerouted',
+                        "The report '{$grievance->grievance_title}' was rerouted to {$department->department_name}.",
+                        'warning',
+                        ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                        ['type' => 'warning'],
+                        true,
+                        [
+                            [
+                                'label' => 'View Report',
+                                'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
+                                'open_new_tab' => true,
+                            ],
+                        ]
+                    ));
+                }
+
+                $user->notify(new GeneralNotification(
+                    'Reroute Successful',
+                    "You have rerouted the report '{$grievance->grievance_title}' to {$department->department_name}.",
+                    'success',
+                    ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                    ['type' => 'success'],
+                    true,
+                    [
+                        [
+                            'label' => 'View Report',
+                            'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
+                            'open_new_tab' => false,
+                        ],
+                    ]
+                ));
             }
         });
 
-        Notification::make()
-            ->title('Reports Rerouted')
-            ->body('Selected reports have been rerouted, category updated, and status set to pending successfully.')
-            ->success()
-            ->send();
+        $this->dispatch('reroute-success');
 
-        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+        $this->resetPage();
+        $this->updateStats();
+        $this->resetInputFields();
     }
 
-    private function formatStatus($value)
-    {
-        return strtolower(str_replace(' ', '_', trim($value)));
-    }
 
     public function updateSelectedGrievanceStatus(): void
     {
@@ -893,6 +982,16 @@ class Index extends Component
                         'updated_at'       => now(),
                     ]);
 
+                    $grievance->addRemark([
+                        'message'   => "Status changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                        'user_id'   => $user->id,
+                        'user_name' => $user->name,
+                        'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+                        'timestamp' => now()->format('Y-m-d H:i:s'),
+                        'status'    => $formattedStatus,
+                        'type'      => 'status_update',
+                    ]);
+
                     ActivityLog::create([
                         'user_id'      => $user->id,
                         'role_id'      => $user->roles->first()?->id,
@@ -909,35 +1008,81 @@ class Index extends Component
                         'platform'     => php_uname('s'),
                         'timestamp'    => now(),
                     ]);
+
+                    $ticketId = $grievance->grievance_ticket_id;
+
+                    $citizen = $grievance->user()->first();
+                    if ($citizen) {
+                        $citizen->notify(new GeneralNotification(
+                            'Report Status Updated',
+                            "The status of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                            'info',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'info'],
+                            true,
+                            [
+                                [
+                                    'label' => 'View Report',
+                                    'url'   => route('citizen.grievance.view', $ticketId),
+                                    'open_new_tab' => false,
+                                ],
+                            ]
+                        ));
+                    }
+
+                    $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+                    foreach ($admins as $admin) {
+                        $admin->notify(new GeneralNotification(
+                            'Report Status Updated',
+                            "The status of report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                            'warning',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'warning'],
+                            true,
+                            [
+                                [
+                                    'label' => 'View Report',
+                                    'url'   => route('admin.forms.grievances.view', $ticketId),
+                                    'open_new_tab' => false,
+                                ],
+                            ]
+                        ));
+                    }
+
+                    $user->notify(new GeneralNotification(
+                        'Status Update Successful',
+                        "You changed the status of '{$grievance->grievance_title}' from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                        'success',
+                        ['grievance_ticket_id' => $ticketId],
+                        ['type' => 'success'],
+                        true,
+                        [
+                            [
+                                'label' => 'View Report',
+                                'url'   => route('hr-liaison.grievance.view', $ticketId),
+                                'open_new_tab' => false,
+                            ],
+                        ]
+                    ));
                 }
             }
 
             DB::commit();
-
             $this->dispatch('status-update-success');
 
-            Notification::make()
-                ->title('Report Status Updated')
-                ->body(
-                    'The selected reports have been updated to "' .
-                    ucwords(str_replace('_', ' ', $formattedStatus)) . '".'
-                )
-                ->success()
-                ->send();
-
-            $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+            $this->resetPage();
+            $this->updateStats();
+            $this->resetInputFields();
 
         } catch (\Throwable $e) {
             DB::rollBack();
-
-            Notification::make()
-                ->title('Status Update Failed')
-                ->body('An error occurred while updating report statuses: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Status Update Failed',
+                'message' => "An error occurred while updating report statuses: {$e->getMessage()}.",
+            ]);
         }
     }
-
 
     public function updateSelectedPriority(): void
     {
@@ -953,10 +1098,10 @@ class Index extends Component
         $formattedPriority = $this->priorityUpdate;
 
         $priorityProcessingDays = match (strtolower($formattedPriority)) {
-            'low'      => 7,
-            'normal'   => 5,
-            'high'     => 3,
-            'critical' => 1,
+            'low'      => 3,
+            'normal'   => 7,
+            'high'     => 20,
+            'critical' => 7,
             default    => 7,
         };
 
@@ -976,6 +1121,16 @@ class Index extends Component
                         'updated_at'      => now(),
                     ]);
 
+                    $grievance->addRemark([
+                        'message'   => "Priority changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}' (processing days {$oldProcessingDays} → {$priorityProcessingDays}) by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                        'user_id'   => $user->id,
+                        'user_name' => $user->name,
+                        'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+                        'timestamp' => now()->format('Y-m-d H:i:s'),
+                        'status'    => $formattedPriority,
+                        'type'      => 'priority_update',
+                    ]);
+
                     ActivityLog::create([
                         'user_id'      => $user->id,
                         'role_id'      => $user->roles->first()?->id,
@@ -992,6 +1147,62 @@ class Index extends Component
                         'platform'     => php_uname('s'),
                         'timestamp'    => now(),
                     ]);
+
+                    $ticketId = $grievance->grievance_ticket_id;
+
+                    $citizen = $grievance->user()->first();
+                    if ($citizen) {
+                        $citizen->notify(new GeneralNotification(
+                            'Report Priority Updated',
+                            "The priority of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'. Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.",
+                            'info',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'info'],
+                            true,
+                            [
+                                [
+                                    'label' => 'View Report',
+                                    'url' => route('citizen.grievance.view', $ticketId),
+                                    'open_new_tab' => false,
+                                ]
+                            ]
+                        ));
+                    }
+
+                    $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+                    foreach ($admins as $admin) {
+                        $admin->notify(new GeneralNotification(
+                            'Report Priority Updated',
+                            "The priority of report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'.",
+                            'warning',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'warning'],
+                            true,
+                            [
+                                [
+                                    'label' => 'View Report',
+                                    'url' => route('admin.forms.grievances.view', $ticketId),
+                                    'open_new_tab' => false,
+                                ]
+                            ]
+                        ));
+                    }
+
+                    $user->notify(new GeneralNotification(
+                        'Priority Update Successful',
+                        "You changed the priority of '{$grievance->grievance_title}' from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}'.",
+                        'success',
+                        ['grievance_ticket_id' => $ticketId],
+                        ['type' => 'success'],
+                        true,
+                        [
+                            [
+                                'label' => 'View Report',
+                                'url' => route('hr-liaison.grievance.view', $ticketId),
+                                'open_new_tab' => false,
+                            ]
+                        ]
+                    ));
                 }
             }
 
@@ -999,33 +1210,29 @@ class Index extends Component
 
             $this->dispatch('priority-update-success');
 
-            Notification::make()
-                ->title('Priority Updated')
-                ->body('The selected reports have been updated to "' . ucfirst($formattedPriority) . '" with updated processing days.')
-                ->success()
-                ->send();
-
-            $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+            $this->resetPage();
+            $this->updateStats();
+            $this->resetInputFields();
 
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            Notification::make()
-                ->title('Priority Update Failed')
-                ->body('An error occurred while updating report priorities: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Priority Update Failed',
+                'message' => "An error occurred while updating report priorities: {$e->getMessage()}.",
+            ]);
         }
     }
 
     public function downloadSelectedGrievancesPdf()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Reports Selected')
-                ->body('Please select at least one report to download.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Selected',
+                'message' => "Please select at least one report to download.",
+            ]);
             return;
         }
 
@@ -1038,11 +1245,11 @@ class Index extends Component
             ->get();
 
         if ($grievances->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('The selected reports were not found or are not assigned to you.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => "The selected reports were not found or are not assigned to you.",
+            ]);
             return;
         }
 
@@ -1077,11 +1284,11 @@ class Index extends Component
             ->get();
 
         if ($grievances->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('There are no grievances assigned to you to download.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'There are no reports assigned to you to download.',
+            ]);
             return;
         }
 
@@ -1116,11 +1323,11 @@ class Index extends Component
             ->get();
 
         if ($grievances->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('There are no grievances assigned to you to print.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'There are no reports assigned to you to print.',
+            ]);
             return;
         }
 
@@ -1139,11 +1346,11 @@ class Index extends Component
             ->get();
 
         if ($reports->isEmpty()) {
-            Notification::make()
-                ->title('No Reports Found')
-                ->body('There are no reports assigned to you to export.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reports Found',
+                'message' => 'There are no reports assigned to you to export.',
+            ]);
             return;
         }
 
@@ -1231,11 +1438,6 @@ class Index extends Component
         $this->searchInput = '';
         $this->search = '';
         $this->resetPage();
-    }
-
-    public function goToGrievanceView($id)
-    {
-        return $this->redirect(route('hr-liaison.grievance.view', $id, absolute: false), navigate: true);
     }
 
     public function updateStats()

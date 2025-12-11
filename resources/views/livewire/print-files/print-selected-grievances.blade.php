@@ -1,8 +1,24 @@
 <div class="page w-full relative p-5 print:mx-0 print:p-5">
     @php
-        $department = auth()->user()->departments->first();
-        $departmentName = $department->department_name ?? 'Administration';
-        $departmentProfile = $department->department_profile ?? null;
+        $grievanceDepartments = $grievances
+            ->pluck('departments')
+            ->flatten()
+            ->where('is_active', 1)
+            ->where('is_available', 1)
+            ->unique('department_id');
+
+        $departmentCount = $grievanceDepartments->count();
+
+        if ($departmentCount === 0) {
+            $departmentName = 'Administration';
+            $departmentProfile = null;
+        } elseif ($departmentCount === 1) {
+            $departmentName = $grievanceDepartments->first()->department_name;
+            $departmentProfile = $grievanceDepartments->first()->department_profile;
+        } else {
+            $departmentName = "{$departmentCount} Departments";
+            $departmentProfile = null;
+        }
 
         $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
         $index = crc32($departmentName) % count($palette);

@@ -272,19 +272,37 @@
             <div class="header-left">
                 @php
                     $total = array_sum($statuses);
-                    $department = $user->departments->first();
-                    $departmentName = $department->department_name ?? 'N/A';
-                    $departmentProfile = $department->department_profile ?? null;
+
+                    $grievanceDepartments = $data
+                        ->pluck('departments')
+                        ->flatten()
+                        ->where('is_active', 1)
+                        ->where('is_available', 1)
+                        ->unique('department_id');
+
+                    $departmentCount = $grievanceDepartments->count();
+
+                    if ($departmentCount === 0) {
+                        $departmentNameDisplay = 'Administration';
+                        $departmentProfile = null;
+                    } elseif ($departmentCount === 1) {
+                        $departmentNameDisplay = $grievanceDepartments->first()->department_name;
+                        $departmentProfile = $grievanceDepartments->first()->department_profile;
+                    } else {
+                        $departmentNameDisplay = "{$departmentCount} Departments";
+                        $departmentProfile = null;
+                    }
 
                     $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
-                    $index = crc32($departmentName) % count($palette);
+                    $index = crc32($departmentNameDisplay) % count($palette);
                     $bgColor = $palette[$index];
 
                     if ($departmentProfile) {
                         $departmentLogoPath = storage_path('app/public/' . $departmentProfile);
                     } else {
-                        $departmentLogoPath = 'https://ui-avatars.com/api/?name=' . urlencode($departmentName) . '&background=' . $bgColor . '&color=fff&size=128';
+                        $departmentLogoPath = 'https://ui-avatars.com/api/?name=' . urlencode($departmentNameDisplay) . '&background=' . $bgColor . '&color=fff&size=128';
                     }
+
 
                     function formatNumber($number) {
                         if ($number >= 1000000) {
@@ -303,7 +321,7 @@
 
             <div class="header-right">
                 <span class="span-1">REPUBLIC OF THE PHILIPPINES | CITY OF MANDAUE</span>
-                <span class="span-2">{{ strtoupper($departmentName) }}</span>
+                <span class="span-2">{{ strtoupper($departmentNameDisplay) }}</span>
             </div>
         </div>
 

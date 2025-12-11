@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Layout;
+use Illuminate\Validation\Rules\Password;
 
 #[Layout('layouts.guest')]
 class Register extends Component
@@ -72,7 +73,7 @@ class Register extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
+            'password' => ['required', 'string', Password::min(12)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'password_confirmation' => ['required', 'same:password'],
         ];
     }
@@ -116,6 +117,7 @@ class Register extends Component
             throw $e;
         }
     }
+
     public function rules()
     {
         return [
@@ -131,23 +133,74 @@ class Register extends Component
             'contact' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', \Illuminate\Validation\Rules\Password::defaults()],
+            'password' => ['required', 'string', Password::min(12)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'password_confirmation' => ['required', 'same:password'],
             'agreed_terms' => ['accepted'],
         ];
     }
 
+    public function messages()
+    {
+        return [
+
+            'first_name.required' => 'First name is required.',
+            'first_name.regex' => 'First name may only contain letters, spaces, and hyphens.',
+
+            'middle_name.required' => 'Middle name is required.',
+            'middle_name.regex' => 'Middle name may only contain letters, spaces, and hyphens.',
+
+            'last_name.required' => 'Last name is required.',
+            'last_name.regex' => 'Last name may only contain letters, spaces, and hyphens.',
+
+            'suffix.required' => 'Suffix is required.',
+            'suffix.regex' => 'Suffix may contain letters, slashes, periods, and hyphens only.',
+
+            'gender.required' => 'Gender is required.',
+            'gender.regex' => 'Gender format is invalid.',
+
+            'civil_status.required' => 'Civil status is required.',
+            'civil_status.regex' => 'Civil status format is invalid.',
+
+            'barangay.required' => 'Barangay is required.',
+            'barangay.regex' => 'Barangay may only contain letters and hyphens.',
+
+            'sitio.required' => 'Sitio is required.',
+
+            'birthdate.required' => 'Birthdate is required.',
+            'birthdate.before_or_equal' => 'You must be at least 18 years old to register.',
+
+            'contact.required' => 'Contact number is required.',
+            'contact.regex' => 'Contact number format is invalid. Use +63XXXXXXXXXX or 09XXXXXXXX.',
+
+            'name.required' => 'Name is required.',
+
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please provide a valid email address.',
+            'email.regex' => 'Email format is invalid.',
+            'email.unique' => 'This email is already registered.',
+
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least :min characters long.',
+            'password.mixedCase' => 'Password must contain upper and lower case letters.',
+            'password.letters' => 'Password must contain at least one letter.',
+            'password.numbers' => 'Password must contain at least one number.',
+            'password.symbols' => 'Password must contain at least one special character.',
+            'password.uncompromised' => 'This password has appeared in a data breach. Please choose another.',
+
+            'password_confirmation.required' => 'Please confirm your password.',
+            'password_confirmation.same' => 'Password confirmation does not match.',
+
+            'agreed_terms.accepted' => 'You must accept the terms and conditions.',
+
+        ];
+
+    }
+
+
     public function updatedBirthdate($value)
     {
         $birthdate = \Carbon\Carbon::parse($value);
         $this->age = $birthdate->age;
-    }
-
-    protected function messages()
-    {
-        return [
-            'birthdate.before_or_equal' => 'You must be at least 18 years old to register.',
-        ];
     }
 
     public function register()

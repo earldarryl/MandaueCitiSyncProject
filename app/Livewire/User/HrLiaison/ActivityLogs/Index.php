@@ -4,8 +4,6 @@ namespace App\Livewire\User\HrLiaison\ActivityLogs;
 
 use App\Models\ActivityLog;
 use App\Models\Assignment;
-use App\Models\User;
-use App\Models\Department;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;

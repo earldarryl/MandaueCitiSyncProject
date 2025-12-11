@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Browsershot\Browsershot;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
