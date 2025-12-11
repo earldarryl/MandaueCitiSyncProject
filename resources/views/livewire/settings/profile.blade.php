@@ -166,45 +166,55 @@
 
                             <flux:error name="email" />
 
-                                   @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                                        <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-96" :closable="false" :dismissible="false">
-                                            <div class="flex flex-col items-center justify-center w-full">
-                                                <div class="relative">
-                                                    <img
-                                                        src="{{ asset('/images/exclamation-mark.png') }}"
-                                                        class="w-full h-48 sm:h-56 object-cover rounded-t-xl"
-                                                        alt="Heads up! Background"
+                            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+                                <flux:modal wire:model.self="showMyModal" name="my-unique-modal-name" class="w-full" :closable="false" :dismissible="false">
+                                    <div class="flex flex-col items-center justify-center w-full">
+                                        <div class="relative">
+                                            <img
+                                                src="{{ asset('/images/exclamation-mark.png') }}"
+                                                class="w-full h-48 sm:h-56 object-cover rounded-t-xl"
+                                                alt="Heads up! Background"
+                                            >
+                                        </div>
+
+                                        <div class="flex flex-col items-center space-y-4 w-full px-4 py-6">
+                                            <span class="text-5xl font-extrabold text-red-600 text-center">
+                                                Heads Up!
+                                            </span>
+
+                                            <span class="text-lg font-bold text-center text-gray-800 dark:text-gray-200">
+                                                Your email has been updated.
+                                            </span>
+
+                                            <span class="text-sm text-center font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
+                                                Please verify your email to continue using your account. Click the button below to proceed to verification.
+                                            </span>
+                                            <div class="flex flex-col gap-2 items-center justify-center" x-data="{ clicked: @entangle('emailVerifyClicked') }">
+                                                <div wire:loading.remove wire:target="redirectEmailVerify" class="mt-4">
+                                                    <flux:button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        wire:click="redirectEmailVerify"
+                                                        x-bind:disabled="clicked"
+                                                        class="w-full border border-gray-400 dark:border-zinc-700"
                                                     >
+                                                        <span wire:loading.remove wire:target="redirectEmailVerify">Proceed to Verify</span>
+                                                        <span wire:loading wire:target="redirectEmailVerify">Redirecting...</span>
+                                                    </flux:button>
                                                 </div>
 
-                                                <div class="flex flex-col items-center space-y-4 w-full px-4 py-6">
-                                                    <span class="text-5xl font-extrabold text-red-600 text-center">
-                                                        Heads Up!
-                                                    </span>
-
-                                                    <span class="text-lg font-bold text-center text-gray-800 dark:text-gray-200">
-                                                        Your email has been updated.
-                                                    </span>
-
-                                                    <span class="text-sm text-center font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
-                                                        Please verify your email to continue using your account. Click the button below to proceed to verification.
-                                                    </span>
-
-                                                    <div wire:loading.remove wire:target="redirectEmailVerify" class="mt-4">
-                                                        <flux:button type="button" variant="primary" wire:click="redirectEmailVerify" class="w-full">
-                                                            Proceed to Verify
-                                                        </flux:button>
-                                                    </div>
-
-                                                    <div wire:loading wire:target="redirectEmailVerify" class="flex items-center justify-center gap-2 mt-4">
+                                                <div wire:loading wire:target="redirectEmailVerify">
+                                                    <div class="flex items-center justify-center gap-2 mt-4">
                                                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
                                                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
                                                         <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </flux:modal>
-                                    @endif
+                                        </div>
+                                    </div>
+                                </flux:modal>
+                            @endif
                         </flux:field>
 
                         <flux:field>

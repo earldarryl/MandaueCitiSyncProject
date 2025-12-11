@@ -258,7 +258,6 @@ class Chat extends Component implements Forms\Contracts\HasForms
         })');
     }
 
-
     private function getReceiverIds(): array
     {
         if ($this->currentUserId === $this->grievance->user_id) {

@@ -2,7 +2,7 @@
      data-component="admin-hr-liaisons-list-view"
      data-wire-id="{{ $this->id() }}">
 
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-3">
        <div class="flex-1">
             @php
                 $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
@@ -303,10 +303,6 @@
                         @endforelse
                     </tbody>
                 </table>
-
-                <div class="px-6 py-4">
-                    {{ $hrLiaisons->links() }}
-                </div>
             </div>
         </div>
 
@@ -341,6 +337,10 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="px-6">
+            {{ $hrLiaisons->links() }}
         </div>
     </div>
 </div>

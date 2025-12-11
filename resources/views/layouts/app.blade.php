@@ -135,10 +135,8 @@
                             if (Array.isArray(payload.actions)) {
                                 payload.actions.forEach((action) => {
                                     setTimeout(() => {
-                                        if (action.url) {
-                                            action.open_new_tab
-                                                ? window.open(action.url, '_blank')
-                                                : window.location.href = action.url;
+                                        if (action.url && action.open_new_tab) {
+                                            window.open(action.url, '_blank');
                                         }
                                         if (action.dispatch && window.Livewire) {
                                             Livewire.dispatch(action.dispatch);

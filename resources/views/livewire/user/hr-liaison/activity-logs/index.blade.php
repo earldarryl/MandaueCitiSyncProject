@@ -256,13 +256,13 @@
                                                                     @if(isset($value['old']))
                                                                         <div class="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded text-[10px]">
                                                                             <span class="font-semibold text-gray-600 dark:text-gray-400">OLD:</span>
-                                                                            <span class="font-bold">{{ $value['old'] ?? '—' }}</span>
+                                                                            <span class="font-bold">{{ strtoupper(str_replace('_', ' ', $value['old'])) ?? '—' }}</span>
                                                                         </div>
                                                                     @endif
                                                                     @if(isset($value['new']))
                                                                         <div class="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded text-[10px]">
                                                                             <span class="font-semibold text-gray-600 dark:text-gray-400">NEW:</span>
-                                                                            <span class="font-bold">{{ $value['new'] ?? '—' }}</span>
+                                                                            <span class="font-bold">{{ strtoupper(str_replace('_', ' ', $value['new'])) ?? '—' }}</span>
                                                                         </div>
                                                                     @endif
                                                                 @else

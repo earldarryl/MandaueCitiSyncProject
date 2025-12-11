@@ -41,7 +41,6 @@ class Notifications extends Component
         $this->prependNewNotification($payload['notification'] ?? null);
     }
 
-    #[On('notificationUpdated')]
     public function loadNotifications(): void
     {
         if (! $this->user) return;
@@ -305,7 +304,7 @@ class Notifications extends Component
     public function loadMore(): void
     {
         $this->limit += 20;
-        $this->dispatch('notificationUpdated');
+        $this->loadNotifications();
     }
 
     public function render()

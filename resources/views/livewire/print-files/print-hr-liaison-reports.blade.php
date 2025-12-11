@@ -3,9 +3,25 @@
         <div class="flex items-end justify-end gap-3 border-r-2 border-gray-800 w-1/3 pr-3">
             <img src="{{ asset('images/mandaue-logo.png') }}" alt="Mandaue Logo" class="w-16 h-16 rounded-full object-cover bg-white">
             @php
-                $department = $user->departments->first();
-                $departmentName = $department->department_name ?? 'N/A';
-                $departmentProfile = $department->department_profile ?? null;
+                $grievanceDepartments = $data
+                    ->pluck('departments')
+                    ->flatten()
+                    ->where('is_active', 1)
+                    ->where('is_available', 1)
+                    ->unique('department_id');
+
+                $departmentCount = $grievanceDepartments->count();
+
+                if ($departmentCount === 0) {
+                    $departmentName = 'Administration';
+                    $departmentProfile = null;
+                } elseif ($departmentCount === 1) {
+                    $departmentName = $grievanceDepartments->first()->department_name;
+                    $departmentProfile = $grievanceDepartments->first()->department_profile;
+                } else {
+                    $departmentName = "{$departmentCount} Departments";
+                    $departmentProfile = null;
+                }
 
                 $palette = ['0D8ABC','10B981','EF4444','F59E0B','8B5CF6','EC4899','14B8A6','6366F1','F97316','84CC16'];
                 $index = crc32($departmentName) % count($palette);

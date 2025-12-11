@@ -68,6 +68,7 @@ class View extends Component
         $this->dispatch('$refresh');
         $this->dispatch('refreshChat', grievanceId: $this->grievance->grievance_id);
         $this->grievance->refresh();
+
     }
 
     public function loadMore()
@@ -119,6 +120,27 @@ class View extends Component
                 $q->where('hr_liaison_departments.department_id', $department?->department_id)
             )->get();
 
+        ActivityLog::create([
+            'user_id'      => auth()->id(),
+            'role_id'      => auth()->user()->roles->first()->id ?? null,
+            'module'       => 'Grievances',
+            'action'       => 'delete',
+            'action_type'  => 'single_delete',
+            'model_type'   => Grievance::class,
+            'model_id'     => $grievance->grievance_id,
+            'description'  => "Grievance '{$title}' deleted by user.",
+            'changes'      => null,
+            'status'       => 'success',
+            'ip_address'   => Request::ip(),
+            'device_info'  => request()->header('User-Agent'),
+            'user_agent'   => request()->userAgent(),
+            'platform'     => php_uname(),
+            'location'     => null,
+            'timestamp'    => now(),
+        ]);
+
+        $grievance->delete();
+
         foreach ($hrLiaisons as $hr) {
             $hr->notify(new GeneralNotification(
                 'Report Deleted',
@@ -162,28 +184,6 @@ class View extends Component
                 ]
             ));
         }
-
-
-        ActivityLog::create([
-            'user_id'      => auth()->id(),
-            'role_id'      => auth()->user()->roles->first()->id ?? null,
-            'module'       => 'Grievances',
-            'action'       => 'delete',
-            'action_type'  => 'single_delete',
-            'model_type'   => Grievance::class,
-            'model_id'     => $grievance->grievance_id,
-            'description'  => "Grievance '{$title}' deleted by user.",
-            'changes'      => null,
-            'status'       => 'success',
-            'ip_address'   => Request::ip(),
-            'device_info'  => request()->header('User-Agent'),
-            'user_agent'   => request()->userAgent(),
-            'platform'     => php_uname(),
-            'location'     => null,
-            'timestamp'    => now(),
-        ]);
-
-        $grievance->delete();
 
         $this->dispatch('notify', [
             'type' => 'success',

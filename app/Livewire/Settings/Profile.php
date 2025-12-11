@@ -35,8 +35,9 @@ class Profile extends Component implements HasSchemas
     public string $password_confirmation = '';
     public ?string $current_profile_pic = null;
     public $profilePicPreview = null;
-    public bool $showMyModal = false;
+    public bool $showMyModal = true;
     public bool $showProfileEditModal = false;
+    public bool $emailVerifyClicked = false;
     public array $data = [];
     public string $originalName = '';
     public string $originalEmail = '';
@@ -184,11 +185,13 @@ class Profile extends Component implements HasSchemas
         $path = $state['profile_pic'] ?? null;
 
         if (! $path) {
-            Notification::make()
-                ->title('No image uploaded')
-                ->body('Please select and upload a profile picture before saving.')
-                ->warning()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No image uploaded',
+                'message' => 'Please select and upload a profile picture before saving.',
+            ]);
+
 
             return;
         }
@@ -205,10 +208,11 @@ class Profile extends Component implements HasSchemas
 
         $state['profile_pic'] = null;
 
-        Notification::make()
-            ->title('Profile picture updated!')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Profile picture updated!',
+            'message' => '',
+        ]);
 
         $this->showProfileEditModal = false;
     }
@@ -224,10 +228,12 @@ class Profile extends Component implements HasSchemas
             $this->isClean('contact');
 
         if ($fieldsChanged) {
-            Notification::make()
-                ->title('No changes detected')
-                ->warning()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No changes detected',
+                'message' => 'Please make any changes to your credentials first.',
+            ]);
             return;
         }
 
@@ -267,14 +273,21 @@ class Profile extends Component implements HasSchemas
         $this->originalName = $this->name;
         $this->originalEmail = $this->email;
 
-        Notification::make()
-            ->title('Profile updated successfully!')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Profile updated successfully!',
+            'message' => '',
+        ]);
     }
 
     public function redirectEmailVerify()
     {
+        if ($this->emailVerifyClicked) {
+            return;
+        }
+
+        $this->emailVerifyClicked = true;
+
         $trigger = Str::uuid()->toString();
         session(['email_verify_trigger' => $trigger]);
 
@@ -300,10 +313,11 @@ class Profile extends Component implements HasSchemas
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        Notification::make()
-            ->title('Password updated')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Password updated',
+            'message' => '',
+        ]);
     }
 
     public function deleteUser(Logout $logout): void
@@ -322,10 +336,11 @@ class Profile extends Component implements HasSchemas
 
         tap($user, $logout(...))->delete();
 
-        Notification::make()
-            ->title('Account deactivated')
-            ->danger()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Account deactivated',
+            'message' => '',
+        ]);
 
         $this->redirect('/', navigate: true);
     }

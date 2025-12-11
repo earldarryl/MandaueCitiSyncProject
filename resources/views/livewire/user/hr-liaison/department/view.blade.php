@@ -38,15 +38,15 @@
                 >
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ $department->department_name }}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $department->department_description }}</p>
+                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">{{ $department->department_description }}</p>
                 </div>
             </div>
         </div>
 
         <div class="flex-1 px-4 w-full">
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">HR Liaisons</h3>
+            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200 mb-3">HR Liaisons</h3>
             @if($hrLiaisons->isEmpty())
-                <p class="text-sm text-gray-500 dark:text-gray-400">No HR Liaisons assigned.</p>
+                <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">No HR Liaisons assigned.</p>
             @else
                 <ul class="w-full divide-y divide-gray-200 dark:divide-gray-700">
                     @foreach($hrLiaisons as $liaison)
@@ -82,7 +82,7 @@
                                         <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
                                             {{ $liaison->name }}
                                         </p>
-                                        <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                                        <p class="text-sm font-semibold text-gray-500 truncate dark:text-gray-400">
                                             {{ $liaison->email }}
                                         </p>
                                     </div>

@@ -68,8 +68,7 @@
     </div>
 
     <div class="mt-4 w-full bg-white/70 dark:bg-zinc-800/50 border border-blue-200/40 dark:border-zinc-700
-        p-3 shadow-sm flex items-center justify-between transition hover:shadow-md
-        hover:bg-blue-50/70 dark:hover:bg-zinc-700/60">
+        p-3 shadow-sm flex items-center justify-between transition">
 
         <div class="flex items-center gap-3">
             <div class="relative w-10 h-10 rounded-full shrink-0 dark:bg-white overflow-visible">
@@ -86,13 +85,13 @@
             </div>
 
             <div class="flex flex-col">
-                <span class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
+                <span class="text-[15px] font-medium text-gray-700 dark:text-gray-300">
                     {{ $hrLiaison->name }}
                 </span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">
+                <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">
                     {{ $hrLiaison->email }}
                 </span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">
+                <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">
                     Department: {{ $hrLiaison->departments->pluck('department_name')->join(', ') }}
                 </span>
             </div>
@@ -262,9 +261,6 @@
                     </tbody>
                 </table>
 
-                <div class="px-6 py-4">
-                    {{ $assignments->links() }}
-                </div>
             </div>
         </div>
 
@@ -300,6 +296,9 @@
             </table>
         </div>
 
+        <div class="px-6 py-4">
+            {{ $assignments->links() }}
+        </div>
 
     </div>
 

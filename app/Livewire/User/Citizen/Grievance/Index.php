@@ -75,20 +75,21 @@ class Index extends Component
         $this->user = auth()->user();
 
         if (session()->pull('just_logged_in', false)) {
-            Notification::make()
-                ->title('Welcome back, ' . $this->user->name)
-                ->body('Good to see you again! Here’s your dashboard.')
-                ->success()
-                ->send();
+
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'title' => 'Welcome back, ' . $this->user->name,
+                'message' => "Good to see you again! Here’s your dashboard.",
+            ]);
         }
 
         if (session()->has('notification')) {
             $notif = session('notification');
-            Notification::make()
-                ->title($notif['title'])
-                ->body($notif['body'])
-                ->{$notif['type']}()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => $notif['type'],
+                'title' => $notif['title'],
+                'message' => $notif['body'],
+            ]);
         }
 
         if (session()->get('hide_feedback_modal', false)) {
@@ -127,11 +128,11 @@ class Index extends Component
             ->first();
 
         if ($existing) {
-            Notification::make()
-                ->title('Request Not Allowed')
-                ->body('You already have submitted an edit request for this report.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'Request Not Allowed',
+                'message' => "You already have submitted an edit request for this report.",
+            ]);
             return;
         }
 
@@ -203,11 +204,11 @@ class Index extends Component
             ));
         }
 
-        Notification::make()
-            ->title('Request Sent')
-            ->body('Your edit request has been sent to the assigned HR Liaisons and Admin.')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Request Sent',
+            'message' => "Your edit request has been sent to the assigned HR Liaisons and Admin.",
+        ]);
 
         ActivityLog::create([
             'user_id'      => $user->id,
@@ -338,11 +339,11 @@ class Index extends Component
         $this->updateStats();
         $this->dispatch('close-modal-delete');
 
-        Notification::make()
-            ->title('Bulk Remove')
-            ->body('Selected reports were removed successfully.')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Bulk Remove',
+            'message' => "Selected reports were removed successfully.",
+        ]);
     }
 
     public function deleteReport($grievanceId)
@@ -361,30 +362,6 @@ class Index extends Component
         $title = $grievance->grievance_title;
 
         $department = $grievance->department;
-
-        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
-            ->whereHas('departments', fn($q) =>
-                $q->where('hr_liaison_departments.department_id', $department->department_id)
-            )->get();
-
-        foreach ($hrLiaisons as $hr) {
-            $hr->notify(new GeneralNotification(
-                'Report Deleted',
-                "A report titled '{$title}' has been deleted.",
-                'danger',
-                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
-            ));
-        }
-
-        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new GeneralNotification(
-                'Report Deleted',
-                "A grievance titled '{$title}' has been deleted from the system.",
-                'warning',
-                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
-            ));
-        }
 
         ActivityLog::create([
             'user_id'      => auth()->id(),
@@ -416,11 +393,36 @@ class Index extends Component
 
         $grievance->delete();
 
-        Notification::make()
-            ->title('Report Removed')
-            ->body("Report '{$title}' has been deleted successfully.")
-            ->success()
-            ->send();
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) =>
+                $q->where('hr_liaison_departments.department_id', $department->department_id)
+            )->get();
+
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'Report Deleted',
+                "A report titled '{$title}' has been deleted.",
+                'danger',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Report Deleted',
+                "A grievance titled '{$title}' has been deleted from the system.",
+                'warning',
+                ['grievance_ticket_id' => $grievance->grievance_ticket_id]
+            ));
+        }
+
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'title' => 'Report Removed',
+            'message' => "Report {$title} has been deleted successfully.",
+            'grievance_ticket_id' => $grievance->grievance_ticket_id,
+        ]);
     }
 
     private function sendMessage($message, $type = 'info')

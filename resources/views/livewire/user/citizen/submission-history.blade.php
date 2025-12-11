@@ -358,11 +358,12 @@
                 </div>
             </div>
         </div>
-    @else
+    @elseif (!$hasMore && $hasAny)
         <div class="flex justify-center items-center mt-6">
             <span class="text-sm text-gray-500 dark:text-gray-400">
                 No more records to load.
             </span>
         </div>
     @endif
+
 </div>

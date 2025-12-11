@@ -86,7 +86,7 @@
         class="relative flex-1 overflow-y-auto px-4 py-3 space-y-6"
     >
         @forelse ($groupedNotifications as $dateLabel => $notifications)
-            <div>
+            <div wire:key="group-{{ md5($dateLabel) }}">
                 <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 border-b border-gray-200 dark:border-zinc-700 pb-1">
                     {{ $dateLabel }}
                 </h3>
