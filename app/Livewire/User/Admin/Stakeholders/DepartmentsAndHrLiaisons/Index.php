@@ -2,8 +2,10 @@
 
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
+use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\Grievance;
+use App\Notifications\GeneralNotification;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -15,7 +17,6 @@ use App\Models\Department;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Forms;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
 #[Layout('layouts.app')]
 #[Title('Departments & HR Liaisons')]
@@ -74,6 +75,33 @@ class Index extends Component implements Forms\Contracts\HasForms
 
     protected $listeners = ['refresh' => '$refresh'];
 
+    public function resetFields(): void
+    {
+        $this->newDepartment = [
+            'department_name' => '',
+            'department_code' => '',
+            'department_description' => '',
+            'is_active' => '',
+            'is_available' => '',
+        ];
+
+        $this->editingDepartment = [
+            'department_name' => '',
+            'department_code' => '',
+            'department_description' => '',
+            'is_active' => '',
+            'is_available' => '',
+        ];
+
+        $this->newLiaison = [
+            'name' => '',
+            'email' => '',
+            'password' => '',
+        ];
+
+        $this->resetErrorBag();
+    }
+
     public function mount()
     {
         $this->calculateSummary();
@@ -109,11 +137,28 @@ class Index extends Component implements Forms\Contracts\HasForms
 
     public function createHrLiaison()
     {
-        $this->validate([
-            'newLiaison.name' => 'required|string|max:255',
-            'newLiaison.email' => 'required|email|unique:users,email',
-            'newLiaison.password' => 'required|string|min:6',
-        ]);
+        $this->validate(
+    [
+                'newLiaison.name'     => 'required|string|max:255',
+                'newLiaison.email'    => 'required|email|unique:users,email',
+                'newLiaison.password' => 'required|string|min:6',
+            ],
+            [
+                'newLiaison.name.required'     => 'Please enter the name of the HR liaison.',
+                'newLiaison.name.string'       => 'Name must be a valid text.',
+                'newLiaison.name.max'          => 'Name cannot exceed 255 characters.',
+
+                'newLiaison.email.required'    => 'Please enter an email address.',
+                'newLiaison.email.email'       => 'Please provide a valid email address.',
+                'newLiaison.email.unique'      => 'This email is already registered. Please choose another one.',
+
+                'newLiaison.password.required' => 'Please enter a password.',
+                'newLiaison.password.string'   => 'Password must be a valid string.',
+                'newLiaison.password.min'      => 'Password must be at least 6 characters long.',
+            ]
+        );
+
+        $creator = auth()->user();
 
         $user = new User([
             'name' => $this->newLiaison['name'],
@@ -135,12 +180,76 @@ class Index extends Component implements Forms\Contracts\HasForms
 
         $this->calculateSummary();
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+        $this->resetFields();
 
-        Notification::make()
-            ->title('HR Liaison Added')
-            ->body("{$user->name} has been successfully added as HR Liaison.")
-            ->success()
-            ->send();
+        $user->notify(new GeneralNotification(
+            'Welcome to the HR Liaison Team',
+            "You have been registered as an HR Liaison in the system.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true,
+            [[
+                'label' => 'Go to Dashboard',
+                'url' => route('hr-liaison.dashboard'),
+                'open_new_tab' => false,
+            ]]
+        ));
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'New HR Liaison Added',
+                "{$user->name} has been added as an HR Liaison.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true,
+                [[
+                'label' => 'View Departments & HR Liaisons',
+                'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+                ]]
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'HR Liaison Created Successfully',
+            "You added {$user->name} as a new HR Liaison.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true,
+            [[
+                'label' => 'View Departments & HR Liaisons',
+                'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+            ]]
+        ));
+
+        ActivityLog::create([
+            'user_id'     => auth()->id(),
+            'role_id'     => auth()->user()->roles->first()?->id,
+            'module'      => 'HR Liaisons',
+            'action'      => 'Create',
+            'action_type' => 'create',
+            'model_type'  => User::class,
+            'model_id'    => $user->id,
+            'description' => "Created new HR Liaison named '{$user->name}'",
+            'changes'     => $user->toArray(),
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
+
     }
 
     public function calculateSummary()
@@ -238,60 +347,130 @@ class Index extends Component implements Forms\Contracts\HasForms
 
     public function createDepartment()
     {
-        $this->validate([
-            'newDepartment.department_name' => 'required|string|max:255|unique:departments,department_name',
-            'newDepartment.department_code' => 'required|string|max:50|unique:departments,department_code',
-            'newDepartment.department_description' => 'nullable|string|max:1000',
-            'newDepartment.is_active' => 'required',
-            'newDepartment.is_available' => 'required',
-        ]);
+        $this->validate(
+            [
+                'newDepartment.department_name'        => 'required|string|max:255|unique:departments,department_name',
+                'newDepartment.department_code'        => 'required|string|max:50|unique:departments,department_code',
+                'newDepartment.department_description' => 'nullable|string|max:1000',
+                'newDepartment.is_active'              => 'required',
+                'newDepartment.is_available'           => 'required',
+            ],
+            [
+                'newDepartment.department_name.required' => 'Please enter a department name.',
+                'newDepartment.department_name.string'   => 'Department name must be valid text.',
+                'newDepartment.department_name.max'      => 'Department name cannot exceed 255 characters.',
+                'newDepartment.department_name.unique'   => 'This department name already exists.',
 
-        $state = $this->form->getState();
-        $create_department_profile = $state['create_department_profile'] ?? null;
-        $create_department_background = $state['create_department_background'] ?? null;
+                'newDepartment.department_code.required' => 'Please enter a department code.',
+                'newDepartment.department_code.string'   => 'Department code must be valid text.',
+                'newDepartment.department_code.max'      => 'Department code cannot exceed 50 characters.',
+                'newDepartment.department_code.unique'   => 'This department code is already in use.',
 
-        if ($create_department_profile instanceof \Livewire\TemporaryUploadedFile) {
-            $create_department_profile = $create_department_profile->store('departments/profile', 'public');
+                'newDepartment.department_description.string' => 'Description must be valid text.',
+                'newDepartment.department_description.max'    => 'Description cannot exceed 1000 characters.',
+
+                'newDepartment.is_active.required'    => 'Please select whether the department is active.',
+                'newDepartment.is_available.required' => 'Please select whether the department is available.',
+            ]
+        );
+
+        $create_department_profile = null;
+        $create_department_background = null;
+
+        if (!empty($this->create_department_profile)) {
+            $create_department_profile = $this->create_department_profile->store('departments/profile', 'public');
         }
 
-        if ($create_department_background instanceof \Livewire\TemporaryUploadedFile) {
-            $create_department_background = $create_department_background->store('departments/backgrounds', 'public');
+        if (!empty($this->create_department_background)) {
+            $create_department_background = $this->create_department_background->store('departments/backgrounds', 'public');
         }
 
-        $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
+        $isActiveValue    = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
 
         $department = Department::create([
-            'department_name' => $this->newDepartment['department_name'],
-            'department_code' => $this->newDepartment['department_code'],
+            'department_name'        => $this->newDepartment['department_name'],
+            'department_code'        => $this->newDepartment['department_code'],
             'department_description' => $this->newDepartment['department_description'],
-            'is_active' => $isActiveValue,
-            'is_available' => $isAvailableValue,
-            'department_profile' => $create_department_profile,
-            'department_bg' => $create_department_background,
+            'is_active'              => $isActiveValue,
+            'is_available'           => $isAvailableValue,
+            'department_profile'     => $create_department_profile,
+            'department_bg'          => $create_department_background,
         ]);
 
         $this->newDepartment = [
-            'department_name' => '',
-            'department_code' => '',
-            'department_description' => '',
-            'is_active' => '',
-            'is_available' => '',
-            'create_department_profile' => null,
+            'department_name'             => '',
+            'department_code'             => '',
+            'department_description'      => '',
+            'is_active'                   => '',
+            'is_available'                => '',
+            'create_department_profile'   => null,
             'create_department_background' => null,
         ];
 
+        $this->create_department_profile = null;
+        $this->create_department_background = null;
+
         $this->calculateSummary();
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+        $this->resetFields();
 
-        Notification::make()
-            ->title('Department Created')
-            ->body("The department <b>{$department->department_name}</b> has been successfully created.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        $creator = auth()->user();
+
+        $creator->notify(new GeneralNotification(
+            'Department Created Successfully',
+            "You created the new department <b>{$department->department_name}</b>.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true,
+            [[
+                'label'        => 'View Departments',
+                'url'          => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+            ]]
+        ));
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'New Department Created',
+                "{$creator->name} has created the department <b>{$department->department_name}</b>.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true,
+                [[
+                    'label'        => 'View Departments',
+                    'url'          => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                    'open_new_tab' => false,
+                ]]
+            ));
+        }
+
+        ActivityLog::create([
+            'user_id'     => $creator->id,
+            'role_id'     => $creator->roles->first()?->id ?? null,
+            'module'      => 'Department',
+            'action'      => 'Create',
+            'action_type' => 'create',
+            'model_type'  => Department::class,
+            'model_id'    => $department->department_id,
+            'description' => "Created a new department named '{$department->department_name}'",
+            'changes'     => $department->toArray(),
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
     }
-
 
     public function editDepartment($departmentId)
     {
@@ -319,71 +498,158 @@ class Index extends Component implements Forms\Contracts\HasForms
     public function updateDepartment()
     {
         $this->validate([
-            'editingDepartment.department_name' => 'required|string|max:255',
-            'editingDepartment.department_code' => 'required|string|max:50',
+            'editingDepartment.department_name'        => 'required|string|max:255',
+            'editingDepartment.department_code'        => 'required|string|max:50',
             'editingDepartment.department_description' => 'nullable|string|max:1000',
-            'editingDepartment.is_active' => 'required',
-            'editingDepartment.is_available' => 'required',
+            'editingDepartment.is_active'              => 'required',
+            'editingDepartment.is_available'           => 'required',
         ]);
 
-        $state = $this->form->getState();
-        $edit_department_profile = $state['edit_department_profile'] ?? null;
-        $edit_department_background = $state['edit_department_background'] ?? null;
-
-        if ($edit_department_profile instanceof \Livewire\TemporaryUploadedFile) {
-            $edit_department_profile = $edit_department_profile->store('departments/profile', 'public');
-        }
-
-        if ($edit_department_background instanceof \Livewire\TemporaryUploadedFile) {
-            $edit_department_background = $edit_department_background->store('departments/backgrounds', 'public');
-        }
-
-        $isActiveValue = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
-        $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
-
         $department = Department::find($this->editingDepartment['department_id']);
-
         if (!$department) {
-            Notification::make()
-                ->title('Department Not Found')
-                ->body('The selected department could not be found.')
-                ->danger()
-                ->duration(4000)
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'Department Not Found',
+                'message' => 'The selected department could not be found.',
+            ]);
             return;
         }
 
-        $department->update([
-            'department_name' => $this->editingDepartment['department_name'],
-            'department_code' => $this->editingDepartment['department_code'],
+        $originalData = $department->toArray();
+
+        $newProfilePath = null;
+        $newBackgroundPath = null;
+
+        if (!empty($this->edit_department_profile)) {
+            $newProfilePath = $this->edit_department_profile->store('departments/profile', 'public');
+        }
+
+        if (!empty($this->edit_department_background)) {
+            $newBackgroundPath = $this->edit_department_background->store('departments/backgrounds', 'public');
+        }
+
+        $isActiveValue    = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
+        $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
+
+        $department->fill([
+            'department_name'        => $this->editingDepartment['department_name'],
+            'department_code'        => $this->editingDepartment['department_code'],
             'department_description' => $this->editingDepartment['department_description'],
-            'is_active' => $isActiveValue,
-            'is_available' => $isAvailableValue,
-            'department_profile' => $edit_department_profile,
-            'department_bg' => $edit_department_background,
+            'is_active'              => $isActiveValue,
+            'is_available'           => $isAvailableValue,
         ]);
 
+        if ($newProfilePath) {
+            $department->department_profile = $newProfilePath;
+        }
+        if ($newBackgroundPath) {
+            $department->department_bg = $newBackgroundPath;
+        }
+
+        if (!$department->isDirty()) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Changes Detected',
+                'message' => "No updates were made to <b>{$department->department_name}</b>.",
+            ]);
+            return;
+        }
+
+        $department->save();
+
         $this->editingDepartment = [
-            'department_id' => null,
-            'department_name' => '',
-            'department_code' => '',
-            'department_description' => '',
-            'is_active' => '',
-            'is_available' => '',
-            'edit_department_profile' => null,
+            'department_id'            => null,
+            'department_name'          => '',
+            'department_code'          => '',
+            'department_description'   => '',
+            'is_active'                => '',
+            'is_available'             => '',
+            'edit_department_profile'  => null,
             'edit_department_background' => null,
         ];
+        $this->edit_department_profile = null;
+        $this->edit_department_background = null;
 
         $this->calculateSummary();
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+        $this->resetFields();
 
-        Notification::make()
-            ->title('Department Updated')
-            ->body("The department <b>{$department->department_name}</b> has been successfully updated.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        $currentUser = auth()->user();
+
+        $currentUser->notify(new GeneralNotification(
+            'Department Updated',
+            "You have successfully updated the department <b>{$department->department_name}</b>.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
+
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $department->department_id))
+            ->get();
+
+        foreach ($hrLiaisons as $hr) {
+            $hr->notify(new GeneralNotification(
+                'Department Updated',
+                "The department <b>{$department->department_name}</b> has been updated.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true,
+                [[
+                    'label' => 'View Department',
+                    'url'   => route('hr-liaison.department.view', $department->department_id),
+                    'open_new_tab' => false
+                ]]
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $currentUser->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Department Updated',
+                "The department <b>{$department->department_name}</b> has been updated by {$currentUser->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true,
+                [[
+                    'label' => 'View Departments',
+                    'url'   => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                    'open_new_tab' => false
+                ]]
+            ));
+        }
+
+
+        ActivityLog::create([
+            'user_id'     => auth()->id(),
+            'role_id'     => auth()->user()->roles->first()?->id,
+            'module'      => 'Departments',
+            'action'      => 'Update',
+            'action_type' => 'update',
+            'model_type'  => Department::class,
+            'model_id'    => $department->department_id,
+            'description' => "Updated department '{$department->department_name}'",
+            'changes'     => [
+                'before' => $originalData,
+                'after'  => $department->toArray()
+            ],
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
     }
+
 
     public function applySearch()
     {
@@ -432,21 +698,21 @@ class Index extends Component implements Forms\Contracts\HasForms
         $department = Department::findOrFail($departmentId);
 
         if (empty($this->selectedLiaisonsToAdd)) {
-            Notification::make()
-                ->title('No HR Liaisons Selected')
-                ->body('Please select at least one HR Liaison to add.')
-                ->warning()
-                ->duration(3000)
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No HR Liaisons Selected',
+                'message' => 'Please select at least one HR Liaison to add.',
+            ]);
             return;
         }
 
         $department->hrLiaisons()->attach($this->selectedLiaisonsToAdd);
 
+        $creator = auth()->user();
+
         $grievances = Grievance::whereHas('assignments', function ($q) use ($departmentId) {
             $q->where('department_id', $departmentId);
         })->get();
-
 
         foreach ($this->selectedLiaisonsToAdd as $liaisonId) {
             foreach ($grievances as $grievance) {
@@ -460,14 +726,63 @@ class Index extends Component implements Forms\Contracts\HasForms
             }
         }
 
-        $this->reset('selectedLiaisonsToAdd');
+        $existingLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $departmentId))
+            ->whereNotIn('id', $this->selectedLiaisonsToAdd)
+            ->get();
 
-        Notification::make()
-            ->title('HR Liaisons Added & Auto-Assigned')
-            ->body("Selected HR Liaisons have been added and automatically assigned to this department's grievances.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        foreach ($existingLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'New HR Liaisons Added',
+                "{$creator->name} added new HR Liaisons to <b>{$department->department_name}</b>.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true,
+            ));
+        }
+
+        $newLiaisons = User::whereIn('id', $this->selectedLiaisonsToAdd)->get();
+
+        foreach ($newLiaisons as $newLiaison) {
+            $newLiaison->notify(new GeneralNotification(
+                'You Have Been Added to a Department',
+                "You are now assigned as an HR Liaison for <b>{$department->department_name}</b>.",
+                'success',
+                [],
+                ['type' => 'success'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'HR Liaisons Added',
+                "{$creator->name} added new HR Liaisons to the <b>{$department->department_name}</b> department.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'HR Liaisons Added Successfully',
+            "You successfully added HR Liaisons to <b>{$department->department_name}</b>.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
+
+        $this->reset('selectedLiaisonsToAdd');
+        $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+
     }
 
 
@@ -476,14 +791,23 @@ class Index extends Component implements Forms\Contracts\HasForms
         $department = Department::findOrFail($departmentId);
 
         if (empty($this->selectedLiaisonsToRemove)) {
-            Notification::make()
-                ->title('No HR Liaisons Selected')
-                ->body('Please select at least one HR Liaison to remove.')
-                ->warning()
-                ->duration(3000)
-                ->send();
+
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No HR Liaisons Selected',
+                'message' => 'Please select at least one HR Liaison to remove.',
+            ]);
             return;
         }
+
+        $creator = auth()->user();
+
+        $removedLiaisons = User::whereIn('id', $this->selectedLiaisonsToRemove)->get();
+
+        $remainingLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $departmentId))
+            ->whereNotIn('id', $this->selectedLiaisonsToRemove)
+            ->get();
 
         $department->hrLiaisons()->detach($this->selectedLiaisonsToRemove);
 
@@ -491,42 +815,121 @@ class Index extends Component implements Forms\Contracts\HasForms
             ->whereIn('hr_liaison_id', $this->selectedLiaisonsToRemove)
             ->delete();
 
-        $this->reset('selectedLiaisonsToRemove');
+        foreach ($remainingLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'HR Liaison Removed',
+                "{$creator->name} removed one or more HR Liaisons from <b>{$department->department_name}</b>.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
 
-        Notification::make()
-            ->title('HR Liaisons Removed Successfully')
-            ->body("Selected HR Liaisons have been removed from the {$department->department_name} department and unassigned from its grievances.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        foreach ($removedLiaisons as $removed) {
+            $removed->notify(new GeneralNotification(
+                'Removed from Department',
+                "You have been removed as an HR Liaison from <b>{$department->department_name}</b>.",
+                'warning',
+                [],
+                ['type' => 'warning'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'HR Liaison Removal',
+                "{$creator->name} removed HR Liaisons from the <b>{$department->department_name}</b> department.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'HR Liaisons Removed Successfully',
+            "You removed HR Liaisons from <b>{$department->department_name}</b>.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
+
+        $this->reset('selectedLiaisonsToRemove');
+        $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+
     }
 
     public function deleteDepartment($departmentId)
     {
-        $department = Department::find($departmentId);
+        $department = Department::with('hrLiaisons')->find($departmentId);
 
         if (!$department) {
-            Notification::make()
-                ->title('Department Not Found')
-                ->body('The selected department could not be found.')
-                ->danger()
-                ->duration(4000)
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'Department Not Found',
+                'message' => 'The selected department could not be found.',
+            ]);
             return;
         }
 
         $departmentName = $department->department_name;
+
+        $creator = auth()->user();
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        $existingLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) =>
+                $q->where('hr_liaison_departments.department_id', $departmentId)
+            )
+            ->get();
+
         $department->delete();
 
         $this->calculateSummary();
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
 
-        Notification::make()
-            ->title('Department Deleted')
-            ->body("The department <b>{$departmentName}</b> has been successfully deleted.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Department Deleted',
+                "{$creator->name} deleted the <b>{$departmentName}</b> department.",
+                'warning',
+                [],
+                ['type' => 'warning'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'Department Deleted Successfully',
+            "You successfully deleted the <b>{$departmentName}</b> department.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
+
+        foreach ($existingLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'Department Deleted',
+                "{$creator->name} deleted the <b>{$departmentName}</b> department where you were assigned.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
     }
 
     public function render()

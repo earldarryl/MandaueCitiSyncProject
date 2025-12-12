@@ -1,7 +1,17 @@
 <div class="w-full px-2 bg-gray-100/20 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-col gap-6"
      data-component="admin-grievance-view"
      data-wire-id="{{ $this->id() }}"
-     x-data="{ openRerouteModal: false, openStatusModal: false, openPriorityModal: false, showModal: false }"
+     x-data="{
+            openRerouteModal: false,
+            openStatusModal: false,
+            openPriorityModal: false,
+            showModal: false,
+            handleDelayedRedirect() {
+                    setTimeout(() => {
+                        $wire.handleDelayedRedirect();
+                    }, 1500);
+                },
+            }"
      x-on:close-status-modal.window="openStatusModal = false"
      x-on:close-priority-modal.window="openPriorityModal = false"
      x-on:update-success-modal.window="showModal = true"
@@ -1203,85 +1213,5 @@
     </div>
 
 </div>
-<script>
-document.addEventListener('alpine:init', () => {
-  Alpine.data('progressLogs', (initialCanLoadMore) => ({
-        loadingMore: false,
-        canLoadMore: initialCanLoadMore,
 
-    emitToLivewire(eventName, payload = null) {
-      if (window.Livewire && typeof window.Livewire.emit === 'function') {
-        return window.Livewire.emit(eventName, payload);
-      }
-      if (window.livewire && typeof window.livewire.emit === 'function') {
-        return window.livewire.emit(eventName, payload);
-      }
-
-      return new Promise(resolve => {
-        const onLoad = () => {
-          if (window.Livewire && typeof window.Livewire.emit === 'function') {
-            window.Livewire.emit(eventName, payload);
-          } else if (window.livewire && typeof window.livewire.emit === 'function') {
-            window.livewire.emit(eventName, payload);
-          } else {
-            window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
-          }
-          resolve();
-        };
-
-        window.addEventListener('livewire:load', onLoad, { once: true });
-
-        setTimeout(() => {
-          if (window.Livewire || window.livewire) onLoad();
-        }, 2000);
-      });
-    },
-
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const el = this.$refs.logContainer;
-        if (!el) return;
-        el.scrollTop = el.scrollHeight;
-      });
-    },
-
-    checkScroll() {
-            const el = this.$refs.logContainer;
-            if (!el) return;
-
-            if (el.scrollTop <= 5 && !this.loadingMore && this.canLoadMore) {
-                this.loadingMore = true;
-
-                const prevScrollTop = el.scrollTop;
-                const prevScrollHeight = el.scrollHeight;
-
-                const onUpdated = (event) => {
-                    this.$nextTick(() => {
-                        const newScrollHeight = el.scrollHeight;
-                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
-                        this.loadingMore = false;
-
-                        const newCanLoadMore = event.detail.canLoadMore !== undefined
-                            ? event.detail.canLoadMore
-                            : (event.detail[0] && event.detail[0].canLoadMore);
-
-                        if (newCanLoadMore !== undefined) {
-                            this.canLoadMore = newCanLoadMore;
-                        }
-
-                    });
-                    window.removeEventListener('remarks-updated', onUpdated);
-                };
-
-                window.addEventListener('remarks-updated', onUpdated);
-
-                this.emitToLivewire('loadMore').catch(() => {
-                    this.loadingMore = false;
-                    window.removeEventListener('remarks-updated', onUpdated);
-                });
-            }
-        }
-  }));
-});
-</script>
 

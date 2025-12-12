@@ -398,6 +398,7 @@
         x-data="{ openImportModal: false, openRerouteModal: false, openStatusModal: false, openPriorityModal: false }"
         x-on:reroute-success.window="openRerouteModal = false"
         x-on:status-update-success.window="openStatusModal = false"
+        x-on:priority-update-success.window="openPriorityModal = false"
         class="flex flex-col w-full"
     >
 
@@ -642,7 +643,7 @@
                             focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-700
                             transition-all duration-200">
                         <x-heroicon-o-exclamation-circle class="w-5 h-5" />
-                        <span>Update Selected Status</span>
+                        <span>Update Selected Priority</span>
                     </button>
 
                 </div>
@@ -969,7 +970,7 @@
     <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
 
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch, applyFilters">
+            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -1250,7 +1251,7 @@
                 </div>
             </div>
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch, applyFilters"
+            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch"
                 class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">

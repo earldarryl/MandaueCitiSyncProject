@@ -4,7 +4,6 @@
         progress: 0,
         uploading: false,
         submitted: false,
-        notyf: null,
 
         handleDelayedRedirect() {
             setTimeout(() => {
