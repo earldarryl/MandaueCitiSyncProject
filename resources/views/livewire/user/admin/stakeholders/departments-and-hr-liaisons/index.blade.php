@@ -666,7 +666,17 @@
                                                                 $bgColor = $palette[$index];
                                                             @endphp
 
-                                                            <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 dark:border-zinc-700">
+                                                            <!-- Profile Upload -->
+                                                            <div
+                                                                x-data="{ uploading: false, progress: 0 }"
+                                                                x-init="
+                                                                    $el.addEventListener('livewire-upload-start', () => uploading = true);
+                                                                    $el.addEventListener('livewire-upload-progress', (event) => { progress = event.detail.progress });
+                                                                    $el.addEventListener('livewire-upload-finish', () => uploading = false);
+                                                                    $el.addEventListener('livewire-upload-error', () => uploading = false);
+                                                                "
+                                                                class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 dark:border-zinc-700"
+                                                            >
                                                                 <input type="file" id="edit_profile_input" wire:model="edit_department_profile" class="hidden">
                                                                 <label for="edit_profile_input" class="cursor-pointer w-full h-full block">
                                                                     <img
@@ -674,7 +684,6 @@
                                                                         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                                                                         alt="Profile Preview"
                                                                     >
-
                                                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
                                                                         <div class="text-white flex flex-col items-center gap-1">
                                                                             <x-heroicon-o-camera class="w-6 h-6"/>
@@ -682,9 +691,27 @@
                                                                         </div>
                                                                     </div>
                                                                 </label>
+
+                                                                <!-- Progress Bar -->
+                                                                <div x-show="uploading" class="absolute bottom-0 left-0 w-full mt-1">
+                                                                    <div class="relative w-full bg-gray-200 dark:bg-zinc-700 h-2 rounded overflow-hidden">
+                                                                        <div class="absolute left-0 top-0 h-2 bg-blue-500 transition-all" :style="'width: ' + progress + '%'"></div>
+                                                                    </div>
+                                                                    <span class="text-xs text-gray-700 dark:text-gray-300 mt-1" x-text="progress + '%'"></span>
+                                                                </div>
                                                             </div>
 
-                                                            <div class="relative w-full max-w-md h-40 rounded overflow-hidden border-4 border-gray-300 dark:border-zinc-700">
+                                                            <!-- Background Upload -->
+                                                            <div
+                                                                x-data="{ uploading: false, progress: 0 }"
+                                                                x-init="
+                                                                    $el.addEventListener('livewire-upload-start', () => uploading = true);
+                                                                    $el.addEventListener('livewire-upload-progress', (event) => { progress = event.detail.progress });
+                                                                    $el.addEventListener('livewire-upload-finish', () => uploading = false);
+                                                                    $el.addEventListener('livewire-upload-error', () => uploading = false);
+                                                                "
+                                                                class="relative w-full max-w-md h-40 rounded overflow-hidden border-4 border-gray-300 dark:border-zinc-700 mt-4"
+                                                            >
                                                                 <input type="file" id="edit_background_input" wire:model="edit_department_background" class="hidden">
                                                                 <label for="edit_background_input" class="cursor-pointer w-full h-full block">
                                                                     <img
@@ -692,7 +719,6 @@
                                                                         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                                                                         alt="Background Preview"
                                                                     >
-
                                                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
                                                                         <div class="text-white flex flex-col items-center gap-1">
                                                                             <x-heroicon-o-camera class="w-6 h-6"/>
@@ -700,6 +726,14 @@
                                                                         </div>
                                                                     </div>
                                                                 </label>
+
+                                                                <!-- Progress Bar -->
+                                                                <div x-show="uploading" class="absolute bottom-0 left-0 w-full mt-1">
+                                                                    <div class="relative w-full bg-gray-200 dark:bg-zinc-700 h-2 rounded overflow-hidden">
+                                                                        <div class="absolute left-0 top-0 h-2 bg-green-500 transition-all" :style="'width: ' + progress + '%'"></div>
+                                                                    </div>
+                                                                    <span class="text-xs text-gray-700 dark:text-gray-300 mt-1" x-text="progress + '%'"></span>
+                                                                </div>
                                                             </div>
 
                                                         </div>
@@ -834,7 +868,7 @@
                         </button>
                         <button wire:click="createDepartment"
                                 wire:loading.attr="disabled"
-                                wire:target="create_department_profile, create_department_background"
+                                wire:target="create_department_profile, create_department_background, createDepartment"
                                 class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
                                     dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
                                     disabled:opacity-50 disabled:cursor-not-allowed">

@@ -99,8 +99,15 @@ class Index extends Component implements Forms\Contracts\HasForms
             'password' => '',
         ];
 
+        $this->edit_department_profile = null;
+        $this->edit_department_background = null;
+
+        $this->profilePreview = null;
+        $this->backgroundPreview = null;
+
         $this->resetErrorBag();
     }
+
 
     public function mount()
     {
@@ -485,13 +492,9 @@ class Index extends Component implements Forms\Contracts\HasForms
             'is_available' => $department->is_available ? 'Yes' : 'No',
         ];
 
-        $this->profilePreview = $department->department_profile
-            ? Storage::url($department->department_profile)
-            : null;
+        $this->profilePreview = $department->department_profile ? Storage::url($department->department_profile) : null;
+        $this->backgroundPreview = $department->department_bg ? Storage::url($department->department_bg) : null;
 
-        $this->backgroundPreview = $department->department_bg
-            ? Storage::url($department->department_bg)
-            : null;
 
     }
 
@@ -724,6 +727,27 @@ class Index extends Component implements Forms\Contracts\HasForms
                     'assigned_at' => now(),
                 ]);
             }
+
+            $liaison = User::find($liaisonId);
+            ActivityLog::create([
+                'user_id'     => $creator->id,
+                'role_id'     => $creator->roles->first()?->id,
+                'module'      => 'HR Liaisons',
+                'action'      => 'Add',
+                'action_type' => 'create',
+                'model_type'  => User::class,
+                'model_id'    => $liaisonId,
+                'description' => "Added HR Liaison '{$liaison->name}' to department '{$department->department_name}'",
+                'changes'     => $liaison->toArray(),
+                'status'      => 'success',
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('device') ?? null,
+                'user_agent'  => request()->userAgent(),
+                'platform'    => php_uname('s'),
+                'location'    => null,
+                'timestamp'   => now(),
+            ]);
+
         }
 
         $existingLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
@@ -835,6 +859,25 @@ class Index extends Component implements Forms\Contracts\HasForms
                 ['type' => 'warning'],
                 true
             ));
+
+            ActivityLog::create([
+                'user_id'     => $creator->id,
+                'role_id'     => $creator->roles->first()?->id,
+                'module'      => 'HR Liaisons',
+                'action'      => 'Remove',
+                'action_type' => 'delete',
+                'model_type'  => User::class,
+                'model_id'    => $removed->id,
+                'description' => "Removed HR Liaison '{$removed->name}' from department '{$department->department_name}'",
+                'changes'     => $removed->toArray(),
+                'status'      => 'success',
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('device') ?? null,
+                'user_agent'  => request()->userAgent(),
+                'platform'    => php_uname('s'),
+                'location'    => null,
+                'timestamp'   => now(),
+            ]);
         }
 
         $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
@@ -893,6 +936,25 @@ class Index extends Component implements Forms\Contracts\HasForms
                 $q->where('hr_liaison_departments.department_id', $departmentId)
             )
             ->get();
+
+        ActivityLog::create([
+            'user_id'     => $creator->id,
+            'role_id'     => $creator->roles->first()?->id,
+            'module'      => 'Departments',
+            'action'      => 'Delete',
+            'action_type' => 'delete',
+            'model_type'  => Department::class,
+            'model_id'    => $department->department_id,
+            'description' => "Deleted department '{$departmentName}'",
+            'changes'     => $department->toArray(),
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
 
         $department->delete();
 

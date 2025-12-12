@@ -1,4 +1,8 @@
-<div class="relative w-full">
+<div class="relative w-full" x-data="{ openAssignAll: false, openUnassignAll: false }"
+     @close-all-modals.window="
+        openAssignAll = false;
+        openUnassignAll = false;
+    ">
 
     <div class="flex flex-col sm:flex-row w-full sm:w-auto p-2">
         <x-responsive-nav-link
@@ -68,7 +72,7 @@
     </div>
 
     <div class="mt-4 w-full bg-white/70 dark:bg-zinc-800/50 border border-blue-200/40 dark:border-zinc-700
-        p-3 shadow-sm flex items-center justify-between transition">
+        p-3 shadow-sm flex lg:flex-row flex-col items-center justify-between transition">
 
         <div class="flex items-center gap-3">
             <div class="relative w-10 h-10 rounded-full shrink-0 dark:bg-white overflow-visible">
@@ -121,7 +125,7 @@
 
     </div>
 
-    <div class="flex justify-center w-full px-3 mb-3">
+    <div class="flex flex-col justify-center w-full px-3 mb-3">
         <button
             wire:click="applyFilters"
             class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
@@ -131,12 +135,12 @@
         </button>
     </div>
 
-    <div class="flex gap-2 justify-end pt-4 pr-2 bg-gray-50 dark:bg-zinc-900">
+    <div class="flex lg:flex-row flex-col gap-2 lg:justify-end justify-center items-center lg:items-end pt-4 px-2 bg-gray-50 dark:bg-zinc-900">
         <button
-            wire:click="unassignAll"
+            @click="openUnassignAll = true;"
             wire:loading.attr="disabled"
-            wire:target="assignAll"
-            class="px-4 py-2 rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60"
+            wire:target="unassignAll"
+            class="px-4 py-2 w-full lg:w-auto rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60"
         >
             <span wire:loading.remove wire:target="unassignAll">
                 <span class="flex gap-2 justify-center items-center">
@@ -150,10 +154,10 @@
         </button>
 
         <button
-            wire:click="assignAll"
+            @click="openAssignAll = true;"
             wire:loading.attr="disabled"
             wire:target="assignAll"
-            class="px-4 py-2 rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
+            class="px-4 py-2 w-full lg:w-auto rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60"
         >
             <span wire:loading.remove wire:target="assignAll">
                 <span class="flex gap-2 justify-center items-center">
@@ -175,17 +179,17 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th class="px-6 py-3 text-center font-semibold">Grievance Ticket</th>
-                            <th class="px-6 py-3 text-left font-semibold">Title</th>
-                            <th class="px-6 py-3 text-center font-semibold">Department</th>
-                            <th class="px-6 py-3 text-center font-semibold">Assigned At</th>
-                            <th class="px-6 py-3 text-center font-semibold">Actions</th>
+                            <th class="px-6 py-3 text-center font-medium">Grievance Ticket</th>
+                            <th class="px-6 py-3 text-left font-medium">Title</th>
+                            <th class="px-6 py-3 text-center font-medium">Department</th>
+                            <th class="px-6 py-3 text-center font-medium">Assigned At</th>
+                            <th class="px-6 py-3 text-center font-medium">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                         @forelse ($assignments as $assignment)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition
+                            <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition font-medium
                                 @if($assignment->hr_liaison_id !== $hrLiaison->id) bg-gray-100 dark:bg-gray-800/40 @endif">
 
                                 <td class="px-6 py-4 text-center text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -211,42 +215,58 @@
                                     @endif
                                 </td>
 
-                                <td class="px-6 py-4 flex items-center justify-center gap-2">
-
-                                    <a href="{{ route('admin.forms.grievances.view', $assignment->grievance->grievance_ticket_id) }}" wire:navigate
-                                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 dark:bg-zinc-700 dark:text-gray-200">
-                                        View
-                                    </a>
-
-                                    @if($assignment->hr_liaison_id)
-                                        <button
-                                            wire:click="unassignSingle({{ $assignment->grievance_id }})"
-                                            wire:loading.attr="disabled"
-                                            class="px-3 py-1 text-xs rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100
-                                                dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60">
-
-                                            <span wire:loading.remove wire:target="unassignSingle({{ $assignment->grievance_id }})">
-                                                Unassign
-                                            </span>
-                                            <span wire:loading wire:target="unassignSingle({{ $assignment->grievance_id }})">
-                                                Processing...
-                                            </span>
+                                <td class="px-6 py-4 text-center"
+                                    x-data="{ open: false }"
+                                    @close-all-modals.window="open = false"
+                                >
+                                    <div class="relative inline-block text-left">
+                                        <button @click="open = !open"
+                                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                            <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-gray-700 dark:text-gray-200"/>
                                         </button>
-                                    @else
-                                        <button
-                                            wire:click="assignSingle({{ $assignment->grievance_id }})"
-                                            wire:loading.attr="disabled"
-                                            class="px-3 py-1 text-xs rounded-md border border-green-400 text-green-700 bg-green-50 hover:bg-green-100
-                                                dark:bg-green-900/40 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-900/60">
 
-                                            <span wire:loading.remove wire:target="assignSingle({{ $assignment->grievance_id }})">
-                                                Assign
-                                            </span>
-                                            <span wire:loading wire:target="assignSingle({{ $assignment->grievance_id }})">
-                                                Processing...
-                                            </span>
-                                        </button>
-                                    @endif
+                                        <div x-show="open" x-transition @click.away="open = false"
+                                            class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
+
+                                                <a href="{{ route('admin.forms.grievances.view', $assignment->grievance->grievance_ticket_id) }}"
+                                                wire:navigate
+                                                class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
+                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500 dark:text-blue-400"/>
+                                                    View
+                                                </a>
+
+                                                @if($assignment->hr_liaison_id)
+                                                    <button
+                                                        wire:click="unassignSingle({{ $assignment->grievance_id }})"
+                                                        wire:loading.attr="disabled"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500 w-full">
+                                                        <x-heroicon-o-user-minus class="w-4 h-4"/>
+                                                        <span wire:loading.remove wire:target="unassignSingle({{ $assignment->grievance_id }})">
+                                                            Unassign
+                                                        </span>
+                                                        <span wire:loading wire:target="unassignSingle({{ $assignment->grievance_id }})">
+                                                            Processing...
+                                                        </span>
+                                                    </button>
+                                                @else
+                                                    <button
+                                                        wire:click="assignSingle({{ $assignment->grievance_id }})"
+                                                        wire:loading.attr="disabled"
+                                                        class="px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-green-500 w-full">
+                                                        <x-heroicon-o-user-plus class="w-4 h-4"/>
+                                                        <span wire:loading.remove wire:target="assignSingle({{ $assignment->grievance_id }})">
+                                                            Assign
+                                                        </span>
+                                                        <span wire:loading wire:target="assignSingle({{ $assignment->grievance_id }})">
+                                                            Processing...
+                                                        </span>
+                                                    </button>
+                                                @endif
+
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
 
                             </tr>
@@ -300,6 +320,73 @@
             {{ $assignments->links() }}
         </div>
 
+    </div>
+
+
+    <div x-show="openAssignAll" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 dark:bg-blue-500/30 mx-auto">
+                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-blue-500 dark:text-blue-400" />
+            </div>
+
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mt-4 text-center">Confirm Assign All</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2 text-center">
+                Are you sure you want to assign all grievances to <b>{{ $hrLiaison->name }}</b>?
+            </p>
+
+            <div class="flex flex-col justify-center items-center mt-6">
+                <div wire:loading.remove wire:target="assignAll" class="flex justify-center gap-3 mt-4">
+                    <button type="button" @click="openAssignAll = false;"
+                        class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                        Cancel
+                    </button>
+                    <flux:button variant="primary" color="green" icon="check" wire:click="assignAll">
+                        Yes, Assign
+                    </flux:button>
+                </div>
+
+                <div wire:loading wire:target="assignAll" >
+                    <div class="flex items-center justify-center gap-2 w-full">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="openUnassignAll" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/20 dark:bg-blue-500/30 mx-auto">
+                <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-blue-500 dark:text-blue-400" />
+            </div>
+
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mt-4 text-center">Confirm Unassign All</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2 text-center">
+                Are you sure you want to unassign all grievances from <b>{{ $hrLiaison->name }}</b>?
+            </p>
+
+            <div class="flex flex-col justify-center items-center mt-6">
+                <div wire:loading.remove wire:target="unassignAll" class="flex justify-center gap-3 mt-4">
+                    <button type="button" @click="openUnassignAll = false;"
+                        class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+                        Cancel
+                    </button>
+                    <flux:button variant="danger" icon="check" wire:click="unassignAll">
+                        Yes, Unassign
+                    </flux:button>
+                </div>
+
+                <div wire:loading wire:target="unassignAll" >
+                    <div class="flex items-center justify-center gap-2 w-full">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

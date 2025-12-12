@@ -2,15 +2,15 @@
 
 namespace App\Livewire\User\Admin\Stakeholders\DepartmentsAndHrLiaisons;
 
+use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\Grievance;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Filament\Notifications\Notification;
-
 #[Layout('layouts.app')]
 #[Title("HR Liaison's Assignment")]
 class Assignments extends Component
@@ -37,6 +37,7 @@ class Assignments extends Component
     {
         $grievanceIds = Grievance::whereNull('deleted_at')->pluck('grievance_id');
         $count = 0;
+        $creator = auth()->user();
 
         foreach ($grievanceIds as $gid) {
             $assignmentForHR = Assignment::where('grievance_id', $gid)
@@ -44,9 +45,7 @@ class Assignments extends Component
                 ->where('hr_liaison_id', $this->hrLiaison->id)
                 ->first();
 
-            if ($assignmentForHR) {
-                continue;
-            }
+            if ($assignmentForHR) continue;
 
             $existingAssignment = Assignment::where('grievance_id', $gid)
                 ->where('department_id', $this->departmentId)
@@ -68,25 +67,76 @@ class Assignments extends Component
             }
 
             $count++;
+
+            ActivityLog::create([
+                'user_id'     => $creator->id,
+                'role_id'     => $creator->roles->first()?->id,
+                'module'      => 'Grievance Assignment',
+                'action'      => 'Assign',
+                'action_type' => 'assign',
+                'model_type'  => Assignment::class,
+                'model_id'    => $gid,
+                'description' => "Assigned grievance ID {$gid} to HR Liaison {$this->hrLiaison->name} in department ID {$this->departmentId}.",
+                'changes'     => ['hr_liaison_id' => $this->hrLiaison->id, 'department_id' => $this->departmentId],
+                'status'      => 'success',
+                'ip_address'  => request()->ip(),
+                'device_info' => request()->header('device') ?? null,
+                'user_agent'  => request()->userAgent(),
+                'platform'    => php_uname('s'),
+                'location'    => null,
+                'timestamp'   => now(),
+            ]);
         }
 
-        Notification::make()
-            ->title('Assignments Updated')
-            ->body("$count grievance(s) assigned to {$this->hrLiaison->name}.")
-            ->success()
-            ->send();
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $this->departmentId))
+            ->get();
+
+        foreach ($hrLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'Grievances Assigned',
+                "{$creator->name} assigned $count grievance(s) to {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Grievances Assigned',
+                "{$creator->name} assigned $count grievance(s) to {$this->hrLiaison->name} in department {$this->department->department_name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'Grievances Assigned Successfully',
+            "You successfully assigned $count grievance(s) to {$this->hrLiaison->name}.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
 
         $this->resetPage();
+        $this->dispatch('close-all-modals');
     }
-
 
     public function assignSingle(int $grievanceId)
     {
         $grievance = Grievance::find($grievanceId);
+        if (!$grievance) return;
 
-        if (!$grievance) {
-            return;
-        }
+        $creator = auth()->user();
 
         $assignment = Assignment::where('grievance_id', $grievance->grievance_id)
             ->where('department_id', $this->departmentId)
@@ -109,11 +159,63 @@ class Assignments extends Component
             ]);
         }
 
-        Notification::make()
-            ->title('Assignment Updated')
-            ->body("Grievance {$grievance->grievance_ticket_id} assigned to {$this->hrLiaison->name}.")
-            ->success()
-            ->send();
+        ActivityLog::create([
+            'user_id'     => $creator->id,
+            'role_id'     => $creator->roles->first()?->id,
+            'module'      => 'Grievance Assignment',
+            'action'      => 'Assign',
+            'action_type' => 'assign',
+            'model_type'  => Assignment::class,
+            'model_id'    => $grievance->grievance_id,
+            'description' => "Assigned grievance ID {$grievance->grievance_id} to HR Liaison {$this->hrLiaison->name} in department ID {$this->departmentId}.",
+            'changes'     => ['hr_liaison_id' => $this->hrLiaison->id, 'department_id' => $this->departmentId],
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
+
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $this->departmentId))
+            ->get();
+
+        foreach ($hrLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'Grievance Assigned',
+                "{$creator->name} assigned grievance {$grievance->grievance_ticket_id} to {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Grievance Assigned',
+                "{$creator->name} assigned grievance {$grievance->grievance_ticket_id} to {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'Grievance Assigned Successfully',
+            "You successfully assigned grievance {$grievance->grievance_ticket_id} to {$this->hrLiaison->name}.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
 
         $this->resetPage();
     }
@@ -125,28 +227,80 @@ class Assignments extends Component
             ->where('hr_liaison_id', $this->hrLiaison->id)
             ->first();
 
-        if ($assignment) {
-            $assignment->update([
-                'hr_liaison_id' => null,
-                'assigned_at' => null,
-            ]);
+        if (!$assignment) return;
 
-            $grievance = Grievance::withTrashed()->find($assignment->grievance_id);
+        $assignment->update([
+            'hr_liaison_id' => null,
+            'assigned_at' => null,
+        ]);
 
-            if ($grievance && $grievance->trashed()) {
-                $grievance->forceDelete();
-            }
+        $grievance = Grievance::withTrashed()->find($assignment->grievance_id);
+        $creator = auth()->user();
 
-            Notification::make()
-                ->title('Assignment Updated')
-                ->body("Grievance {$grievance?->grievance_ticket_id} unassigned from {$this->hrLiaison->name}.")
-                ->success()
-                ->send();
-
-            $this->resetPage();
+        if ($grievance && $grievance->trashed()) {
+            $grievance->forceDelete();
         }
-    }
 
+        ActivityLog::create([
+            'user_id'     => $creator->id,
+            'role_id'     => $creator->roles->first()?->id,
+            'module'      => 'Grievance Assignment',
+            'action'      => 'Unassign',
+            'action_type' => 'unassign',
+            'model_type'  => Assignment::class,
+            'model_id'    => $grievance?->grievance_id,
+            'description' => "Unassigned grievance ID {$grievance?->grievance_id} from HR Liaison {$this->hrLiaison->name} in department ID {$this->departmentId}.",
+            'changes'     => ['hr_liaison_id' => null, 'department_id' => $this->departmentId],
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
+
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $this->departmentId))
+            ->get();
+
+        foreach ($hrLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'Grievance Unassigned',
+                "{$creator->name} unassigned grievance {$grievance?->grievance_ticket_id} from {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Grievance Unassigned',
+                "{$creator->name} unassigned grievance {$grievance?->grievance_ticket_id} from {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'Grievance Unassigned Successfully',
+            "You successfully unassigned grievance {$grievance?->grievance_ticket_id} from {$this->hrLiaison->name}.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
+
+        $this->resetPage();
+    }
 
     public function unassignAll()
     {
@@ -156,6 +310,7 @@ class Assignments extends Component
             ->unique();
 
         $count = 0;
+        $creator = auth()->user();
 
         foreach ($grievanceIds as $gid) {
             $updated = Assignment::where('grievance_id', $gid)
@@ -169,24 +324,74 @@ class Assignments extends Component
             if ($updated) {
                 $count++;
 
-                // Load grievance including soft-deleted
                 $grievance = Grievance::withTrashed()->find($gid);
-
                 if ($grievance && $grievance->trashed()) {
                     $grievance->forceDelete();
                 }
+
+                ActivityLog::create([
+                    'user_id'     => $creator->id,
+                    'role_id'     => $creator->roles->first()?->id,
+                    'module'      => 'Grievance Assignment',
+                    'action'      => 'Unassign',
+                    'action_type' => 'unassign',
+                    'model_type'  => Assignment::class,
+                    'model_id'    => $gid,
+                    'description' => "Unassigned grievance ID {$gid} from HR Liaison {$this->hrLiaison->name} in department ID {$this->departmentId}.",
+                    'changes'     => ['hr_liaison_id' => null, 'department_id' => $this->departmentId],
+                    'status'      => 'success',
+                    'ip_address'  => request()->ip(),
+                    'device_info' => request()->header('device') ?? null,
+                    'user_agent'  => request()->userAgent(),
+                    'platform'    => php_uname('s'),
+                    'location'    => null,
+                    'timestamp'   => now(),
+                ]);
             }
         }
 
-        Notification::make()
-            ->title('Assignments Updated')
-            ->body("$count grievance(s) unassigned from {$this->hrLiaison->name}.")
-            ->success()
-            ->send();
+        $hrLiaisons = User::whereHas('roles', fn($q) => $q->where('name', 'hr_liaison'))
+            ->whereHas('departments', fn($q) => $q->where('hr_liaison_departments.department_id', $this->departmentId))
+            ->get();
+
+        foreach ($hrLiaisons as $liaison) {
+            $liaison->notify(new GeneralNotification(
+                'Grievances Unassigned',
+                "{$creator->name} unassigned $count grievance(s) from {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'Grievances Unassigned',
+                "{$creator->name} unassigned $count grievance(s) from {$this->hrLiaison->name}.",
+                'info',
+                [],
+                ['type' => 'info'],
+                true
+            ));
+        }
+
+        $creator->notify(new GeneralNotification(
+            'Grievances Unassigned Successfully',
+            "You successfully unassigned $count grievance(s) from {$this->hrLiaison->name}.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true
+        ));
 
         $this->resetPage();
+        $this->dispatch('close-all-modals');
     }
-
 
     public function render()
     {
@@ -217,7 +422,8 @@ class Assignments extends Component
         $assignmentsPaginated = $query->paginate(10);
 
        $baseQuery = Assignment::where('department_id', $this->departmentId)
-            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'));
+            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'))
+            ->distinct('grievance_id');
 
         $assignedCount = (clone $baseQuery)
             ->where('hr_liaison_id', $this->hrLiaison->id)

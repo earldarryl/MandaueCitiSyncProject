@@ -46,6 +46,6 @@ app()->booted(function () {
     $schedule->command('grievances:mark-overdue')->everyMinute();
     $schedule->command('grievances:mark-closed')->everyMinute();
     $schedule->command('activitylogs:clear-old')->monthlyOn(1, '00:00');
-    $schedule->command('sessions:clear-expired')->hourly();
+    $schedule->command('sessions:clear-expired')->everyFiveMinutes();
 });
 

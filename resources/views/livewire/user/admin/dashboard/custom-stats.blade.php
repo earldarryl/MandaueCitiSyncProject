@@ -1,4 +1,6 @@
-<div x-data="{ openCreate: false, openCreateLiaison: false, confirmDeleteAllActivityLogs: false }">
+<div x-data="{ openCreate: false, openCreateLiaison: false, confirmDeleteAllActivityLogs: false }"
+     @close-all-modals.window = "openCreate = false; openCreateLiaison = false; confirmDeleteAllActivityLogs = false"
+>
 
     <div class="flex flex-col w-full space-y-6">
 
@@ -231,49 +233,65 @@
                 </h3>
             </header>
 
-            <div class="space-y-3 w-full p-6">
-                <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
-                <flux:error name="newDepartment.department_name" />
+            <div wire:loading.remove wire:target="resetFields">
+                <div class="space-y-3 w-full p-6">
+                    <flux:input type="text" wire:model.defer="newDepartment.department_name" placeholder="Department Name" clearable/>
+                    <flux:error name="newDepartment.department_name" />
 
-                <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
-                <flux:error name="newDepartment.department_code" />
+                    <flux:input type="text" wire:model.defer="newDepartment.department_code" placeholder="Department Code" clearable/>
+                    <flux:error name="newDepartment.department_code" />
 
-                <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
-                <flux:error name="newDepartment.department_description" />
+                    <flux:textarea wire:model.defer="newDepartment.department_description" placeholder="Department Description" clearable/>
+                    <flux:error name="newDepartment.department_description" />
 
-                <x-select
-                    name="newDepartment.is_active"
-                    wire:model.defer="newDepartment.is_active"
-                    placeholder="Select active status"
-                    :options="['Inactive','Active']"
-                />
-                <flux:error name="newDepartment.is_active" />
+                    <x-select
+                        name="newDepartment.is_active"
+                        wire:model.defer="newDepartment.is_active"
+                        placeholder="Select active status"
+                        :options="['Inactive','Active']"
+                    />
+                    <flux:error name="newDepartment.is_active" />
 
-                <x-select
-                    name="newDepartment.is_available"
-                    wire:model.defer="newDepartment.is_available"
-                    placeholder="Select availability status"
-                    :options="['Yes','No']"
-                />
-                <flux:error name="newDepartment.is_available" />
+                    <x-select
+                        name="newDepartment.is_available"
+                        wire:model.defer="newDepartment.is_available"
+                        placeholder="Select availability status"
+                        :options="['Yes','No']"
+                    />
+                    <flux:error name="newDepartment.is_available" />
 
-                {{ $this->form->getComponent('department_profile') }}
-                {{ $this->form->getComponent('department_background') }}
+                    <flux:input type="file" wire:model="create_department_profile" />
+                    <flux:error name="create_department_profile" />
+
+                    <flux:input type="file" wire:model="create_department_background" />
+                    <flux:error name="create_department_background" />
+                </div>
+
+                <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                    <button @click="openCreate = false; $wire.resetFields();"
+                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                        Cancel
+                    </button>
+                    <button wire:click="createDepartment"
+                            wire:loading.attr="disabled"
+                            wire:target="create_department_profile, create_department_background, createDepartment"
+                            class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
+                                disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="createDepartment">Save</span>
+                        <span wire:loading wire:target="createDepartment">Processing...</span>
+                    </button>
+                </footer>
             </div>
 
-            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
-                <button @click="openCreate = false"
-                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
-                    Cancel
-                </button>
-                <button wire:click="createDepartment" wire:loading.attr="disabled" @click="openCreate = false"
-                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span wire:loading.remove wire:target="createDepartment">Save</span>
-                    <span wire:loading wire:target="createDepartment">Processing...</span>
-                </button>
-            </footer>
+            <div wire:loading wire:target="resetFields">
+                <div class="w-full flex items-center justify-center gap-2 py-6">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -287,30 +305,40 @@
                 </h3>
             </header>
 
-            <div class="space-y-3 w-full p-6">
-                <flux:input type="text" wire:model.defer="newLiaison.name" placeholder="Full Name" clearable/>
-                <flux:error name="newLiaison.name" />
+            <div wire:loading.remove wire:target="resetFields">
+                <div class="space-y-3 w-full p-6">
+                    <flux:input type="text" wire:model.defer="newLiaison.name" placeholder="Full Name" clearable/>
+                    <flux:error name="newLiaison.name" />
 
-                <flux:input type="email" wire:model.defer="newLiaison.email" placeholder="Email Address" clearable/>
-                <flux:error name="newLiaison.email" />
+                    <flux:input type="email" wire:model.defer="newLiaison.email" placeholder="Email Address" clearable/>
+                    <flux:error name="newLiaison.email" />
 
-                <flux:input type="password" wire:model.defer="newLiaison.password" placeholder="Password" class:input="hide-password-toggle" viewable clearable/>
-                <flux:error name="newLiaison.password" />
+                    <flux:input type="password" wire:model.defer="newLiaison.password" placeholder="Password" class:input="hide-password-toggle" viewable clearable/>
+                    <flux:error name="newLiaison.password" />
+                </div>
+
+                <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                    <button @click="openCreateLiaison = false; $wire.resetFields();"
+                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                        Cancel
+                    </button>
+                    <button wire:click="createHrLiaison" wire:loading.attr="disabled"
+                            class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
+                                dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="createHrLiaison">Save</span>
+                        <span wire:loading wire:target="createHrLiaison">Processing...</span>
+                    </button>
+                </footer>
             </div>
 
-            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
-                <button @click="openCreateLiaison = false"
-                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
-                    Cancel
-                </button>
-                <button wire:click="createHrLiaison" wire:loading.attr="disabled" @click="openCreateLiaison = false"
-                        class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
-                            dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span wire:loading.remove wire:target="createHrLiaison">Save</span>
-                    <span wire:loading wire:target="createHrLiaison">Processing...</span>
-                </button>
-            </footer>
+            <div wire:loading wire:target="resetFields">
+                <div class="w-full flex items-center justify-center gap-2 py-6">
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                    <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -330,7 +358,7 @@
                     class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                     Cancel
                 </button>
-                <flux:button variant="danger" icon="trash" wire:click="confirmDeleteAllActivityLogs" @click="confirmDeleteAllActivityLogs = false">
+                <flux:button variant="danger" icon="trash" wire:click="confirmDeleteAllActivityLogs">
                     Yes, Delete
                 </flux:button>
             </div>

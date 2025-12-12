@@ -43,10 +43,9 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
     public $totalFeedbacks = 0;
     public $citizenFeedbacks = 0;
-    protected $listeners = ['dateRangeUpdated' => 'updateDateRange'];
+    protected $listeners = ['dateRangeUpdated' => 'updateDateRange', 'refresh' => '$refresh'];
     public $department_profile;
     public $department_background;
-
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
@@ -61,6 +60,31 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         'email' => '',
         'password' => '',
     ];
+
+    public function resetFields(): void
+    {
+        $this->newDepartment = [
+            'department_name' => '',
+            'department_code' => '',
+            'department_description' => '',
+            'is_active' => '',
+            'is_available' => '',
+        ];
+
+        $this->newLiaison = [
+            'name' => '',
+            'email' => '',
+            'password' => '',
+        ];
+
+        $this->edit_department_profile = null;
+        $this->edit_department_background = null;
+
+        $this->profilePreview = null;
+        $this->backgroundPreview = null;
+
+        $this->resetErrorBag();
+    }
 
     public function mount()
     {
@@ -83,59 +107,44 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->calculateStats();
     }
 
-    protected function getFormSchema(): array
-    {
-        return [
-            FileUpload::make('department_profile')
-                ->label('Department Profile Image')
-                ->image()
-                ->directory('departments/profile')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->avatar()
-                ->alignCenter(true)
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a profile image (JPG, PNG, or WEBP, max 5MB).'),
-
-            FileUpload::make('department_background')
-                ->label('Department Background Image')
-                ->image()
-                ->directory('departments/backgrounds')
-                ->disk('public')
-                ->openable()
-                ->downloadable()
-                ->preserveFilenames()
-                ->previewable(true)
-                ->maxSize(5120)
-                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                ->helperText('Upload a background image (JPG, PNG, or WEBP, max 5MB).'),
-        ];
-    }
-
     public function confirmDeleteAllActivityLogs()
     {
         ActivityLog::query()->delete();
 
-        Notification::make()
-            ->title('Activity Logs Deleted')
-            ->body('All activity logs have been successfully deleted.')
-            ->success()
-            ->send();
+        $this->dispatch('notify', [
+            'type'    => 'success',
+            'title'   => 'Activity Logs Deleted',
+            'message' => 'All activity logs have been successfully deleted.',
+        ]);
 
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
     }
 
     public function createHrLiaison()
     {
-        $this->validate([
-            'newLiaison.name' => 'required|string|max:255',
-            'newLiaison.email' => 'required|email|unique:users,email',
-            'newLiaison.password' => 'required|string|min:6',
-        ]);
+        $this->validate(
+    [
+                'newLiaison.name'     => 'required|string|max:255',
+                'newLiaison.email'    => 'required|email|unique:users,email',
+                'newLiaison.password' => 'required|string|min:6',
+            ],
+            [
+                'newLiaison.name.required'     => 'Please enter the name of the HR liaison.',
+                'newLiaison.name.string'       => 'Name must be a valid text.',
+                'newLiaison.name.max'          => 'Name cannot exceed 255 characters.',
+
+                'newLiaison.email.required'    => 'Please enter an email address.',
+                'newLiaison.email.email'       => 'Please provide a valid email address.',
+                'newLiaison.email.unique'      => 'This email is already registered. Please choose another one.',
+
+                'newLiaison.password.required' => 'Please enter a password.',
+                'newLiaison.password.string'   => 'Password must be a valid string.',
+                'newLiaison.password.min'      => 'Password must be at least 6 characters long.',
+            ]
+        );
+
+        $creator = auth()->user();
 
         $user = new User([
             'name' => $this->newLiaison['name'],
@@ -155,38 +164,76 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'password' => '',
         ];
 
-        $this->calculateStats();
         $this->dispatch('refresh');
+        $this->dispatch('close-all-modals');
+        $this->resetFields();
 
-        Notification::make()
-            ->title('HR Liaison Created')
-            ->body("{$user->name} has been successfully created as HR Liaison.")
-            ->success()
-            ->send();
-        $sender = auth()->user();
+        $user->notify(new GeneralNotification(
+            'Welcome to the HR Liaison Team',
+            "You have been registered as an HR Liaison in the system.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true,
+            [[
+                'label' => 'Go to Dashboard',
+                'url' => route('hr-liaison.dashboard'),
+                'open_new_tab' => false,
+            ]]
+        ));
 
-        $hrLiaisons = User::role('hr_liaison')->get();
-        foreach ($hrLiaisons as $hr) {
-            $hr->notify(new GeneralNotification(
-                'New HR Liaison Created',
-                "{$user->name} has been created as an HR Liaison.",
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
+                'New HR Liaison Added',
+                "{$user->name} has been added as an HR Liaison.",
                 'info',
-                ['user_id' => $user->id],
                 [],
+                ['type' => 'info'],
                 true,
-                []
+                [[
+                'label' => 'View Departments & HR Liaisons',
+                'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+                ]]
             ));
         }
 
-         $sender?->notify(new GeneralNotification(
+        $creator->notify(new GeneralNotification(
             'HR Liaison Created Successfully',
-            "You have created {$user->name} as HR Liaison.",
+            "You added {$user->name} as a new HR Liaison.",
             'success',
-            ['user_id' => $user->id],
             [],
+            ['type' => 'success'],
             true,
-            []
+            [[
+                'label' => 'View Departments & HR Liaisons',
+                'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+            ]]
         ));
+
+        ActivityLog::create([
+            'user_id'     => auth()->id(),
+            'role_id'     => auth()->user()->roles->first()?->id,
+            'module'      => 'HR Liaisons',
+            'action'      => 'Create',
+            'action_type' => 'create',
+            'model_type'  => User::class,
+            'model_id'    => $user->id,
+            'description' => "Created new HR Liaison named '{$user->name}'",
+            'changes'     => $user->toArray(),
+            'status'      => 'success',
+            'ip_address'  => request()->ip(),
+            'device_info' => request()->header('device') ?? null,
+            'user_agent'  => request()->userAgent(),
+            'platform'    => php_uname('s'),
+            'location'    => null,
+            'timestamp'   => now(),
+        ]);
     }
 
     public function createDepartment()
