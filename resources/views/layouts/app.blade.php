@@ -195,6 +195,166 @@
         };
     </script>
 
+    <script>
+        document.addEventListener('alpine:init', () => {
+        Alpine.data('progressLogs', (initialCanLoadMore) => ({
+            loadingMore: false,
+            canLoadMore: initialCanLoadMore,
+            initialized: false,
+            prevScrollTop: 0,
+
+            init() {
+            this.initialized = true;
+
+            const el = this.$refs.logContainer;
+            if (!el) return;
+
+            el.addEventListener('scroll', () => this.checkScroll());
+            },
+
+            emitToLivewire(eventName, payload = null) {
+            if (window.Livewire && typeof window.Livewire.emit === 'function') {
+                return window.Livewire.emit(eventName, payload);
+            }
+            if (window.livewire && typeof window.livewire.emit === 'function') {
+                return window.livewire.emit(eventName, payload);
+            }
+
+            return new Promise(resolve => {
+                const onLoad = () => {
+                if (window.Livewire && typeof window.Livewire.emit === 'function') {
+                    window.Livewire.emit(eventName, payload);
+                } else if (window.livewire && typeof window.livewire.emit === 'function') {
+                    window.livewire.emit(eventName, payload);
+                } else {
+                    window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
+                }
+                resolve();
+                };
+
+                window.addEventListener('livewire:load', onLoad, { once: true });
+
+                setTimeout(() => {
+                if (window.Livewire || window.livewire) onLoad();
+                }, 2000);
+            });
+            },
+
+            scrollToBottom() {
+            this.$nextTick(() => {
+                const el = this.$refs.logContainer;
+                if (!el) return;
+                el.scrollTop = el.scrollHeight;
+            });
+            },
+
+            checkScroll() {
+            const el = this.$refs.logContainer;
+            if (!el || !this.initialized) return;
+
+            if (el.scrollTop < this.prevScrollTop && el.scrollTop <= 5 && !this.loadingMore && this.canLoadMore) {
+                this.loadingMore = true;
+
+                const prevScrollTop = el.scrollTop;
+                const prevScrollHeight = el.scrollHeight;
+
+                const onUpdated = (event) => {
+                this.$nextTick(() => {
+                    const newScrollHeight = el.scrollHeight;
+                    el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+                    this.loadingMore = false;
+
+                    const newCanLoadMore = event.detail.canLoadMore !== undefined
+                    ? event.detail.canLoadMore
+                    : (event.detail[0] && event.detail[0].canLoadMore);
+
+                    if (newCanLoadMore !== undefined) {
+                    this.canLoadMore = newCanLoadMore;
+                    }
+                });
+
+                window.removeEventListener('remarks-updated', onUpdated);
+                };
+
+                window.addEventListener('remarks-updated', onUpdated);
+
+                this.emitToLivewire('loadMore').catch(() => {
+                this.loadingMore = false;
+                window.removeEventListener('remarks-updated', onUpdated);
+                });
+            }
+
+            this.prevScrollTop = el.scrollTop;
+            }
+        }));
+        });
+    </script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('chatScroll', (initialCanLoadMore) => ({
+                hasMore: initialCanLoadMore,
+                loadingOlder: false,
+                initialized: false,
+
+                prevScrollHeight: 0,
+
+                checkScroll() {
+                    const el = this.$refs.chatBox;
+                    if (!el || !this.hasMore || this.loadingOlder || !this.initialized) return;
+
+                    if (Math.ceil(el.scrollTop) === 0) {
+                        this.loadingOlder = true;
+
+                        this.prevScrollHeight = el.scrollHeight;
+
+                        const onUpdated = (event) => {
+                            this.hasMore = event.detail.canLoadMore;
+
+                            this.$nextTick(() => {
+                                const newScrollHeight = el.scrollHeight;
+                                el.scrollTop = newScrollHeight - this.prevScrollHeight;
+                                this.loadingOlder = false;
+                            });
+
+                            window.removeEventListener('messagesLoaded', onUpdated);
+                        };
+
+                        window.addEventListener('messagesLoaded', onUpdated);
+
+                        this.$wire.loadOlderMessages();
+                    }
+                },
+
+                init() {
+                    const el = this.$refs.chatBox;
+                    if (!el) return;
+
+                    this.initialized = true;
+                    this.hasMore = initialCanLoadMore;
+
+                    el.addEventListener('scroll', () => this.checkScroll());
+
+                    this.$nextTick(() => {
+                        if (el.scrollHeight > el.clientHeight) {
+                            el.scrollTop = el.scrollHeight - el.clientHeight;
+                        }
+                    });
+
+                    window.addEventListener('messageReceived', (event) => {
+                        const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+                        if (distanceFromBottom < 100) {
+                            this.$nextTick(() => {
+                                el.scrollTop = el.scrollHeight - el.clientHeight;
+                            });
+                        }
+                    });
+                }
+            }));
+        });
+    </script>
+
     @vite('resources/js/pusher-echo.js')
     @filamentScripts
     @fluxScripts

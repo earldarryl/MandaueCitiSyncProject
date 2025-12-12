@@ -187,7 +187,7 @@
                                     wire:navigate
                                     class="px-3 py-1 text-xs rounded-md border border-gray-400 text-gray-700 bg-gray-50 hover:bg-gray-100
                                             dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-900/60">
-                                        Open Assignments
+                                       <x-heroicon-o-folder class="w-4 h-4 inline-block mr-1" /> Manage Assignments
                                     </a>
 
                                     <button
@@ -215,7 +215,6 @@
                                         x-show="openEditLiaison"
                                         x-transition
                                         class="fixed inset-0 flex items-center justify-center z-50 bg-black/20"
-                                        @click.self="openEditLiaison = false"
                                     >
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
 
@@ -263,7 +262,7 @@
                                         </div>
                                     </div>
 
-                                    <div x-show="openRemove" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/20" @click.self="openRemove = false">
+                                    <div x-show="openRemove" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/20">
                                         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
                                             <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
                                                 <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />

@@ -2,7 +2,6 @@
      data-component="citizen-grievance-view"
      x-data="{
         showDeleteModal: false,
-        notyf: null,
 
         handleDelayedRedirect() {
             setTimeout(() => {
@@ -703,85 +702,5 @@
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('alpine:init', () => {
-  Alpine.data('progressLogs', (initialCanLoadMore) => ({
-        loadingMore: false,
-        canLoadMore: initialCanLoadMore,
 
-    emitToLivewire(eventName, payload = null) {
-      if (window.Livewire && typeof window.Livewire.emit === 'function') {
-        return window.Livewire.emit(eventName, payload);
-      }
-      if (window.livewire && typeof window.livewire.emit === 'function') {
-        return window.livewire.emit(eventName, payload);
-      }
-
-      return new Promise(resolve => {
-        const onLoad = () => {
-          if (window.Livewire && typeof window.Livewire.emit === 'function') {
-            window.Livewire.emit(eventName, payload);
-          } else if (window.livewire && typeof window.livewire.emit === 'function') {
-            window.livewire.emit(eventName, payload);
-          } else {
-            window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
-          }
-          resolve();
-        };
-
-        window.addEventListener('livewire:load', onLoad, { once: true });
-
-        setTimeout(() => {
-          if (window.Livewire || window.livewire) onLoad();
-        }, 2000);
-      });
-    },
-
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const el = this.$refs.logContainer;
-        if (!el) return;
-        el.scrollTop = el.scrollHeight;
-      });
-    },
-
-    checkScroll() {
-            const el = this.$refs.logContainer;
-            if (!el) return;
-
-            if (el.scrollTop <= 5 && !this.loadingMore && this.canLoadMore) {
-                this.loadingMore = true;
-
-                const prevScrollTop = el.scrollTop;
-                const prevScrollHeight = el.scrollHeight;
-
-                const onUpdated = (event) => {
-                    this.$nextTick(() => {
-                        const newScrollHeight = el.scrollHeight;
-                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
-                        this.loadingMore = false;
-
-                        const newCanLoadMore = event.detail.canLoadMore !== undefined
-                            ? event.detail.canLoadMore
-                            : (event.detail[0] && event.detail[0].canLoadMore);
-
-                        if (newCanLoadMore !== undefined) {
-                            this.canLoadMore = newCanLoadMore;
-                        }
-
-                    });
-                    window.removeEventListener('remarks-updated', onUpdated);
-                };
-
-                window.addEventListener('remarks-updated', onUpdated);
-
-                this.emitToLivewire('loadMore').catch(() => {
-                    this.loadingMore = false;
-                    window.removeEventListener('remarks-updated', onUpdated);
-                });
-            }
-        }
-  }));
-});
-</script>
 

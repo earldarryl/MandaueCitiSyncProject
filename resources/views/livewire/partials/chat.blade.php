@@ -4,8 +4,8 @@
         id="chat-box"
         x-ref="chatBox"
         class="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth"
-        x-data="chatScroll({{ $canLoadMore ? 'true' : 'false' }})"
-        x-init="init"
+        x-data="chatScroll({{ $totalMessagesCount > 10 && $canLoadMore ? 'true' : 'false' }})"
+        x-init="init()"
     >
        <template x-if="loadingOlder && hasMore">
             <div class="text-center text-gray-400 text-xs py-2">
@@ -20,11 +20,13 @@
                 <p class="text-xs">Start a conversation with your HR Liaison if needed.</p>
             </div>
         @else
-            <div x-show="!hasMore" x-cloak>
-                <div class="text-center text-gray-400 text-xs py-2 italic">
-                    — No more messages —
+            @if ($totalMessagesCount > 10)
+                <div x-show="!hasMore" x-cloak>
+                    <div class="text-center text-gray-400 text-xs py-2 italic">
+                        — No more messages —
+                    </div>
                 </div>
-            </div>
+            @endif
 
             @foreach($this->messages as $msg)
                 @php
@@ -325,62 +327,3 @@
     </script>
 
 </div>
-
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('chatScroll', (initialCanLoadMore) => ({
-        hasMore: initialCanLoadMore,
-        loadingOlder: false,
-
-        checkScroll() {
-            const el = this.$refs.chatBox;
-            if (!el || !this.hasMore || this.loadingOlder) return;
-
-            if (Math.ceil(el.scrollTop) === 0) {
-                this.loadingOlder = true;
-
-                const prevScrollTop = el.scrollTop;
-                const prevScrollHeight = el.scrollHeight;
-
-                const onUpdated = (event) => {
-                    this.hasMore = event.detail.canLoadMore;
-                    this.$nextTick(() => {
-                        const newScrollHeight = el.scrollHeight;
-
-                        el.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
-
-                        this.loadingOlder = false;
-                    });
-                    window.removeEventListener('messagesLoaded', onUpdated);
-                };
-
-                window.addEventListener('messagesLoaded', onUpdated);
-
-                this.$wire.loadOlderMessages();
-            }
-        },
-
-        init() {
-            const el = this.$refs.chatBox;
-
-            this.hasMore = initialCanLoadMore;
-
-            el.addEventListener('scroll', () => this.checkScroll());
-
-            this.$nextTick(() => {
-                if (el.scrollHeight > el.clientHeight) {
-                    el.scrollTop = el.scrollHeight;
-                }
-            });
-
-            window.addEventListener('messageReceived', (event) => {
-                if ((el.scrollHeight - el.scrollTop - el.clientHeight) < 100) {
-                    this.$nextTick(() => {
-                        el.scrollTop = el.scrollHeight;
-                    });
-                }
-            });
-        }
-    }));
-});
-</script>

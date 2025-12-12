@@ -51,6 +51,11 @@ class View extends Component
         return ucwords(str_replace('_', ' ', $value));
     }
 
+    public function handleDelayedRedirect()
+    {
+        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+    }
+
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -306,7 +311,7 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
-        return $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+        $this->dispatch('delayed-redirect');
     }
 
     public function updateStatus()
@@ -334,11 +339,11 @@ class View extends Component
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
             'module'       => 'Report Management',
-            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} status from {$oldStatus} to {$formattedStatus}",
+            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} status from {$this->displayText($oldStatus)} to {$this->displayText($formattedStatus)}",
             'action_type'  => 'update_status',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) changed status of report #{$this->grievance->grievance_ticket_id} from {$oldStatus} to {$formattedStatus}.",
+            'description'  => "HR Liaison ({$user->email}) changed status of report #{$this->grievance->grievance_ticket_id} from {$this->displayText($oldStatus)} to {$this->displayText($formattedStatus)}.",
             'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
@@ -471,11 +476,11 @@ class View extends Component
             'user_id'      => $user->id,
             'role_id'      => $user->roles->first()?->id,
             'module'       => 'Report Management',
-            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} priority from {$oldPriority} to {$formattedPriority} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
+            'action'       => "Changed report #{$this->grievance->grievance_ticket_id} priority from {$this->displayText($oldPriority)} to {$this->displayText($formattedPriority)} and processing days from {$oldProcessingDays} to {$priorityProcessingDays}",
             'action_type'  => 'update_priority',
             'model_type'   => 'App\\Models\\Grievance',
             'model_id'     => $this->grievance->grievance_id,
-            'description'  => "HR Liaison ({$user->email}) changed priority of report #{$this->grievance->grievance_ticket_id} from {$oldPriority} to {$formattedPriority}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
+            'description'  => "HR Liaison ({$user->email}) changed priority of report #{$this->grievance->grievance_ticket_id} from {$this->displayText($oldPriority)} to {$this->displayText($formattedPriority)}, updating processing days from {$oldProcessingDays} to {$priorityProcessingDays}.",
             'changes'      => $changes,
             'status'       => 'success',
             'ip_address'   => request()->ip(),
@@ -821,11 +826,6 @@ class View extends Component
         $this->message = '';
         $this->grievance->refresh();
         $this->dispatch('new-log');
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'title' => 'Progress Log Added',
-            'message' => "Your note has been recorded.",
-        ]);
     }
 
 

@@ -81,7 +81,7 @@ class Index extends Component
         'poll' => '$refresh',
     ];
 
-    function displayRoleName(string $role): string
+    private function displayRoleName(string $role): string
     {
         return match ($role) {
             'hr_liaison' => 'HR Liaison',
@@ -108,6 +108,9 @@ class Index extends Component
         $this->priorityUpdate = null;
         $this->department = null;
         $this->category = null;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     public function mount()
@@ -845,8 +848,8 @@ class Index extends Component
                     ]);
                 }
 
-                $grievance->addRemark([
-                    'message'   => "Report rerouted to {$department->department_name}, category changed from '{$oldCategory}' to '{$this->category}', status set to 'Pending' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                $this->grievance->addRemark([
+                    'message'   => "Report rerouted to '{$department->department_name}' and category changed to '{$this->category}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
                     'user_id'   => $user->id,
                     'user_name' => $user->name,
                     'role'      => $this->displayRoleName($user->getRoleNames()->first()),
@@ -972,110 +975,108 @@ class Index extends Component
 
         try {
             foreach ($this->selected as $grievanceId) {
+
                 $grievance = Grievance::find($grievanceId);
+                if (!$grievance) continue;
 
-                if ($grievance) {
-                    $oldStatus = $grievance->grievance_status;
+                $oldStatus = $grievance->grievance_status;
 
-                    $grievance->update([
-                        'grievance_status' => $formattedStatus,
-                        'updated_at'       => now(),
-                    ]);
+                $grievance->update([
+                    'grievance_status' => $formattedStatus,
+                    'updated_at'       => now(),
+                ]);
 
-                    $grievance->addRemark([
-                        'message'   => "Status changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
-                        'user_id'   => $user->id,
-                        'user_name' => $user->name,
-                        'role'      => $this->displayRoleName($user->getRoleNames()->first()),
-                        'timestamp' => now()->format('Y-m-d H:i:s'),
-                        'status'    => $formattedStatus,
-                        'type'      => 'status_update',
-                    ]);
+                $grievance->addRemark([
+                    'message'   => "Status changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                    'user_id'   => $user->id,
+                    'user_name' => $user->name,
+                    'role'      => $this->displayRoleName($user->getRoleNames()->first()),
+                    'timestamp' => now()->format('Y-m-d H:i:s'),
+                    'status'    => $formattedStatus,
+                    'type'      => 'status_update',
+                ]);
 
-                    ActivityLog::create([
-                        'user_id'      => $user->id,
-                        'role_id'      => $user->roles->first()?->id,
-                        'module'       => 'Report Management',
-                        'action'       => "Changed report #{$grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
-                        'action_type'  => 'update_status',
-                        'model_type'   => 'App\\Models\\Grievance',
-                        'model_id'     => $grievance->grievance_id,
-                        'description'  => "HR Liaison ({$user->email}) changed status of report #{$grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
-                        'status'       => 'success',
-                        'ip_address'   => request()->ip(),
-                        'device_info'  => request()->header('User-Agent'),
-                        'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
-                        'platform'     => php_uname('s'),
-                        'timestamp'    => now(),
-                    ]);
+                ActivityLog::create([
+                    'user_id'      => $user->id,
+                    'role_id'      => $user->roles->first()?->id,
+                    'module'       => 'Report Management',
+                    'action'       => "Changed report #{$grievance->grievance_id} status from {$oldStatus} to {$formattedStatus}",
+                    'action_type'  => 'update_status',
+                    'model_type'   => 'App\\Models\\Grievance',
+                    'model_id'     => $grievance->grievance_id,
+                    'description'  => "HR Liaison ({$user->email}) changed status of report #{$grievance->grievance_id} from {$oldStatus} to {$formattedStatus}.",
+                    'status'       => 'success',
+                    'ip_address'   => request()->ip(),
+                    'device_info'  => request()->header('User-Agent'),
+                    'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
+                    'platform'     => php_uname('s'),
+                    'timestamp'    => now(),
+                ]);
 
-                    $ticketId = $grievance->grievance_ticket_id;
+                $ticketId = $grievance->grievance_ticket_id;
 
-                    $citizen = $grievance->user()->first();
-                    if ($citizen) {
-                        $citizen->notify(new GeneralNotification(
-                            'Report Status Updated',
-                            "The status of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
-                            'info',
-                            ['grievance_ticket_id' => $ticketId],
-                            ['type' => 'info'],
-                            true,
-                            [
-                                [
-                                    'label' => 'View Report',
-                                    'url'   => route('citizen.grievance.view', $ticketId),
-                                    'open_new_tab' => false,
-                                ],
-                            ]
-                        ));
-                    }
-
-                    $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
-                    foreach ($admins as $admin) {
-                        $admin->notify(new GeneralNotification(
-                            'Report Status Updated',
-                            "The status of report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
-                            'warning',
-                            ['grievance_ticket_id' => $ticketId],
-                            ['type' => 'warning'],
-                            true,
-                            [
-                                [
-                                    'label' => 'View Report',
-                                    'url'   => route('admin.forms.grievances.view', $ticketId),
-                                    'open_new_tab' => false,
-                                ],
-                            ]
-                        ));
-                    }
-
-                    $user->notify(new GeneralNotification(
-                        'Status Update Successful',
-                        "You changed the status of '{$grievance->grievance_title}' from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
-                        'success',
+                $citizen = $grievance->user()->first();
+                if ($citizen) {
+                    $citizen->notify(new GeneralNotification(
+                        'Report Status Updated',
+                        "The status of your report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                        'info',
                         ['grievance_ticket_id' => $ticketId],
-                        ['type' => 'success'],
+                        ['type' => 'info'],
                         true,
-                        [
-                            [
-                                'label' => 'View Report',
-                                'url'   => route('hr-liaison.grievance.view', $ticketId),
-                                'open_new_tab' => false,
-                            ],
-                        ]
+                        [[
+                            'label' => 'View Report',
+                            'url'   => route('citizen.grievance.view', $ticketId),
+                            'open_new_tab' => false,
+                        ]]
                     ));
                 }
+
+                $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+                    ->where('id', '!=', $user->id)
+                    ->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(new GeneralNotification(
+                        'Report Status Updated',
+                        "The status of report '{$grievance->grievance_title}' has changed from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                        'info',
+                        ['grievance_ticket_id' => $ticketId],
+                        ['type' => 'info'],
+                        true,
+                        [[
+                            'label' => 'View Report',
+                            'url'   => route('admin.forms.grievances.view', $ticketId),
+                            'open_new_tab' => false,
+                        ]]
+                    ));
+                }
+
+                $user->notify(new GeneralNotification(
+                    'Status Update Successful',
+                    "You changed the status of '{$grievance->grievance_title}' from '{$this->displayText($oldStatus)}' to '{$this->displayText($formattedStatus)}'.",
+                    'success',
+                    ['grievance_ticket_id' => $ticketId],
+                    ['type' => 'success'],
+                    true,
+                    [[
+                        'label' => 'View Report',
+                        'url'   => route('hr-liaison.grievance.view', $ticketId),
+                        'open_new_tab' => false,
+                    ]]
+                ));
             }
 
             DB::commit();
-            $this->dispatch('status-update-success');
 
+            $this->dispatch('status-update-success');
             $this->resetPage();
             $this->updateStats();
             $this->resetInputFields();
 
         } catch (\Throwable $e) {
             DB::rollBack();
+
             $this->dispatch('notify', [
                 'type' => 'error',
                 'title' => 'Status Update Failed',
@@ -1121,13 +1122,13 @@ class Index extends Component
                         'updated_at'      => now(),
                     ]);
 
-                    $grievance->addRemark([
-                        'message'   => "Priority changed from '{$this->displayText($oldPriority)}' to '{$this->displayText($formattedPriority)}' (processing days {$oldProcessingDays} → {$priorityProcessingDays}) by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                    $this->grievance->addRemark([
+                        'message'   => "Priority changed from '{$oldPriority}' to '{$formattedPriority}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) ."). Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.",
                         'user_id'   => $user->id,
                         'user_name' => $user->name,
                         'role'      => $this->displayRoleName($user->getRoleNames()->first()),
                         'timestamp' => now()->format('Y-m-d H:i:s'),
-                        'status'    => $formattedPriority,
+                        'status'    => $this->grievance->grievance_status,
                         'type'      => 'priority_update',
                     ]);
 
