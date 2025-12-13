@@ -33,6 +33,21 @@ class HrLiaisonsListView extends Component
 
     protected $updatesQueryString = ['sortField', 'sortDirection', 'page'];
 
+    public string $searchInput = '';
+    public ?string $searchTerm = null;
+
+    public function applySearch()
+    {
+        $this->searchTerm = $this->searchInput ?: null;
+        $this->resetPage();
+    }
+
+    public function clearSearch()
+    {
+        $this->searchInput = '';
+        $this->searchTerm = null;
+        $this->resetPage();
+    }
 
     public function resetFields(): void
     {
@@ -312,16 +327,23 @@ class HrLiaisonsListView extends Component
 
     public function render()
     {
+        // Total distinct grievances in this department
         $totalAssignments = Assignment::where('department_id', $this->departmentId)
             ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'))
-            ->distinct('grievance_id')
-            ->count('grievance_id');
+            ->selectRaw('COUNT(DISTINCT grievance_id) as count')
+            ->value('count'); // returns single integer
 
-
+        // HR liaisons with correct assigned_count
         $hrLiaisons = User::role('hr_liaison')
             ->whereHas('departments', fn($q) =>
                 $q->where('hr_liaison_departments.department_id', $this->departmentId)
             )
+            ->when($this->searchTerm, function ($q) {
+                $q->where(function ($query) {
+                    $query->where('name', 'like', '%' . $this->searchTerm . '%')
+                        ->orWhere('email', 'like', '%' . $this->searchTerm . '%');
+                });
+            })
             ->when($this->sortField === 'status', function ($query) {
                 $query->orderByRaw("
                     CASE
@@ -334,13 +356,14 @@ class HrLiaisonsListView extends Component
             ->when($this->sortField !== 'status', fn($q) =>
                 $q->orderBy($this->sortField, $this->sortDirection)
             )
-            ->withCount(['assignments as assigned_count' => fn($q) =>
+            ->withCount(['assignments as assigned_count' => function ($q) {
                 $q->where('department_id', $this->departmentId)
                 ->whereHas('grievance', fn($g) => $g->whereNull('deleted_at'))
-                ->distinct('grievance_id')
-            ])
+                ->selectRaw('COUNT(DISTINCT grievance_id)'); // ensure distinct count
+            }])
             ->paginate($this->perPage);
 
+        // Attach total assignments to each HR liaison
         $hrLiaisons->getCollection()->transform(function ($liaison) use ($totalAssignments) {
             $liaison->total_assignments = $totalAssignments;
             return $liaison;
@@ -351,5 +374,6 @@ class HrLiaisonsListView extends Component
             'department' => $this->department,
         ]);
     }
+
 
 }

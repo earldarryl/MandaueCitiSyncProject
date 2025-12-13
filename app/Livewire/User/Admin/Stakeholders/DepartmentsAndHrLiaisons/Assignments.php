@@ -22,6 +22,22 @@ class Assignments extends Component
     public ?string $filterStatus = null;
     public ?string $filterDate = null;
 
+    public string $searchInput = '';
+    public ?string $searchTerm = null;
+
+    public function applySearch()
+    {
+        $this->searchTerm = $this->searchInput ?: null;
+        $this->resetPage();
+    }
+
+    public function clearSearch()
+    {
+        $this->searchInput = '';
+        $this->searchTerm = null;
+        $this->resetPage();
+    }
+
     public function mount($department, User $hrLiaison)
     {
         $this->departmentId = $department;
@@ -35,7 +51,10 @@ class Assignments extends Component
 
     public function assignAll()
     {
-        $grievanceIds = Grievance::whereNull('deleted_at')->pluck('grievance_id');
+        $grievanceIds = Grievance::whereNull('deleted_at')
+            ->where('department_id', $this->departmentId)
+            ->pluck('grievance_id');
+
         $count = 0;
         $creator = auth()->user();
 
@@ -137,6 +156,15 @@ class Assignments extends Component
         if (!$grievance) return;
 
         $creator = auth()->user();
+
+        if ($grievance->department_id !== $this->departmentId) {
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'Invalid Assignment',
+                'message' => "Grievance {$grievance->grievance_ticket_id} does not belong to this department.",
+            ]);
+            return;
+        }
 
         $assignment = Assignment::where('grievance_id', $grievance->grievance_id)
             ->where('department_id', $this->departmentId)
@@ -395,19 +423,19 @@ class Assignments extends Component
 
     public function render()
     {
-        $query = Assignment::with(['grievance' => function ($q) {
-                $q->whereNull('deleted_at');
-                }, 'department'])
-                ->where('department_id', $this->departmentId)
-                ->where(function ($q) {
-                    $q->where('hr_liaison_id', $this->hrLiaison->id)
-                    ->orWhereNull('hr_liaison_id');
-                })
-                ->select('grievance_id', 'department_id', 'hr_liaison_id', 'assigned_at')
-                ->distinct('grievance_id')
-                ->whereHas('grievance', function ($q) {
-                    $q->whereNull('deleted_at');
-                });
+        $query = Assignment::with(['grievance' => fn($q) => $q->whereNull('deleted_at'), 'department'])
+            ->where('department_id', $this->departmentId)
+            ->where(function ($q) {
+                $q->where('hr_liaison_id', $this->hrLiaison->id)
+                ->orWhereNull('hr_liaison_id');
+            });
+
+        if ($this->searchTerm) {
+            $query->whereHas('grievance', fn($q) =>
+                $q->where('grievance_title', 'like', '%' . $this->searchTerm . '%')
+                ->orWhere('grievance_ticket_id', 'like', '%' . $this->searchTerm . '%')
+            );
+        }
 
         if ($this->filterStatus === 'Assigned') {
             $query->whereNotNull('hr_liaison_id');
@@ -421,9 +449,10 @@ class Assignments extends Component
 
         $assignmentsPaginated = $query->paginate(10);
 
-       $baseQuery = Assignment::where('department_id', $this->departmentId)
-            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'))
-            ->distinct('grievance_id');
+        $baseQuery = Assignment::whereHas('grievance', function ($q) {
+            $q->where('department_id', $this->departmentId)
+            ->whereNull('deleted_at');
+        });
 
         $assignedCount = (clone $baseQuery)
             ->where('hr_liaison_id', $this->hrLiaison->id)
@@ -432,6 +461,7 @@ class Assignments extends Component
 
         $unassignedCount = (clone $baseQuery)
             ->whereNull('hr_liaison_id')
+            ->whereNull('assigned_at')
             ->distinct('grievance_id')
             ->count('grievance_id');
 

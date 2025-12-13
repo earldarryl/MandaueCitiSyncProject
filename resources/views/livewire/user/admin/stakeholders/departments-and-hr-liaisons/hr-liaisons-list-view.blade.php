@@ -59,7 +59,46 @@
             </div>
         </div>
 
-        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage">
+        <div class="flex w-full px-2">
+            <div class="relative w-full font-bold">
+                <label for="search" class="sr-only">Search</label>
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    </div>
+
+                    <input
+                        type="text"
+                        id="search"
+                        wire:model.defer="searchInput"
+                        wire:keydown.enter="applySearch"
+                        placeholder="Search HR liaisons..."
+                        class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
+                            bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                            dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+                            dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    />
+
+                    <button type="button" wire:click="clearSearch"
+                        class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors">
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                    </button>
+
+                    <button type="button" wire:click="applySearch"
+                        class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
+                            px-4 py-2 text-sm font-semibold rounded-r-xl
+                            text-white bg-gradient-to-r from-blue-600 to-blue-700
+                            hover:from-blue-700 hover:to-blue-800
+                            shadow-sm hover:shadow-md transition-all duration-200">
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch">
             <div class="m-6 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -328,7 +367,7 @@
             </div>
         </div>
 
-        <div wire:loading wire:target="previousPage, nextPage, gotoPage">
+        <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch">
             <div class="mx-6 mt-6 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
 
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">

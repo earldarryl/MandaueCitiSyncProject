@@ -9,7 +9,7 @@ use Livewire\Component;
 use Illuminate\Auth\Events\Registered;
 use Livewire\Attributes\Layout;
 use Illuminate\Validation\Rules\Password;
-
+use App\Rules\ValidEmail;
 #[Layout('layouts.guest')]
 class Register extends Component
 {
@@ -72,7 +72,7 @@ class Register extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => ['required', 'string', 'max:255', new ValidEmail(), 'unique:users,email'],
             'password' => ['required', 'string', Password::min(12)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'password_confirmation' => ['required', 'same:password'],
         ];
@@ -132,7 +132,7 @@ class Register extends Component
             'birthdate' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
             'contact' => ['required', 'regex:/^(\+?\d{1,3})?\d{7,11}$|^\d{3}-\d{3}-\d{4}$/'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/', 'unique:users,email'],
+            'email' => ['required', 'string', 'max:255', new ValidEmail(), 'unique:users,email'],
             'password' => ['required', 'string', Password::min(12)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'password_confirmation' => ['required', 'same:password'],
             'agreed_terms' => ['accepted'],

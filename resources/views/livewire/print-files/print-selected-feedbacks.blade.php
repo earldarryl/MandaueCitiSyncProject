@@ -76,24 +76,23 @@
             </tbody>
         </table>
     </div>
-
-    <div class="noted flex gap-3 mt-10 ml-5">
-        <div class="noted-text text-base">Noted:</div>
-        <div class="name-with-role flex flex-col items-center gap-1">
-            <div class="name font-semibold border-b-2 border-gray-800 px-3">
+    <div class="status-footer">
+        <div class="footer-row">
+            <div class="footer-label">Noted by:</div>
+            <div class="footer-value">
                 @if(isset($admin))
                     {{ $admin->name }}
                 @else
                     N/A
                 @endif
             </div>
-            <div class="position text-gray-500 text-sm font-medium text-center">
-                @if(isset($admin))
-                    Admin
-                @else
-                    —
-                @endif
-            </div>
+        </div>
+        <div class="footer-subtext">
+            @if(isset($admin))
+                Admin
+            @else
+                —
+            @endif
         </div>
     </div>
 </div>

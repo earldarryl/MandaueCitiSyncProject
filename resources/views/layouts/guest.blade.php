@@ -43,7 +43,60 @@
                 />
             </template>
         </div>
-        <div x-data>
+        <div x-data="{
+                    notyf: null,
+
+                    initNotyf() {
+                        if (this.notyf) return;
+
+                        const localNotyf = new Notyf({
+                            duration: 5000,
+                            position: { x: 'right', y: 'top' },
+                            dismissible: true,
+                            ripple: true,
+                            types: [
+                                { type: 'info', background: '#2196F3' },
+                                { type: 'warning', background: '#FF9800' },
+                                { type: 'success', background: '#4CAF50' },
+                                { type: 'error', background: 'indianred', duration: 4000 },
+                            ],
+                        });
+
+                        this.notyf = localNotyf;
+
+                        document.addEventListener('notify', (event) => {
+                            const detail = Array.isArray(event.detail)
+                                ? (event.detail[0] ?? {})
+                                : (event.detail ?? {});
+
+                            this.showNotification(localNotyf, detail);
+                        }, { once: false });
+                    },
+
+                    showNotification(localNotyf, detail) {
+                        const type = detail.type ?? 'info';
+                        const title = detail.title ?? '';
+                        const message = detail.message ?? '';
+
+                        localNotyf.open({
+                            type,
+                            message: `<b>${title}</b><br>${message}`,
+                            icon: {
+                                className: 'material-icons',
+                                tagName: 'i',
+                                text:
+                                    type === 'success' ? 'check_circle' :
+                                    type === 'error'   ? 'error' :
+                                    type === 'warning' ? 'warning' :
+                                    'info',
+                                color: '#ffffff',
+                            },
+                        });
+                    }
+                }"
+                x-init="initNotyf()"
+
+        >
             <div class="h-full w-full flex flex-col-reverse lg:grid lg:grid-cols-4">
                 <div class="bg-white dark:bg-zinc-900 w-full lg:col-span-1 flex items-center justify-center h-full">
                     <div class="w-full h-full px-5 py-5 flex flex-col items-center justify-center rounded-lg overflow-hidden">

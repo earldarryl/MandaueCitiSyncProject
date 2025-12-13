@@ -16,7 +16,7 @@
      x-on:close-priority-modal.window="openPriorityModal = false"
      x-on:update-success-modal.window="showModal = true"
      x-on:close-success-modal.window="showModal = false"
-     x-on:close-all-modals.window="showModal = false"
+     x-on:close-all-modals.window="showModal = false; openPriorityModal = false; openStatusModal = false; openRerouteModal = false"
      >
 
     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto py-2">
@@ -34,7 +34,7 @@
         </x-responsive-nav-link>
 
         <button
-            @click="openRerouteModal = true"
+            @click="openRerouteModal = true; $wire.clearForm();"
             class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
                 border border-blue-500 dark:border-blue-400
@@ -46,7 +46,7 @@
         </button>
 
         <button
-            @click="openStatusModal = true"
+            @click="openStatusModal = true; $wire.clearForm();"
             class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300
                 border border-yellow-500 dark:border-yellow-400
@@ -58,7 +58,7 @@
         </button>
 
         <button
-            @click="openPriorityModal = true"
+            @click="openPriorityModal = true; $wire.clearForm();"
             class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300
                 border border-red-500 dark:border-red-400
@@ -70,16 +70,19 @@
         </button>
 
         <button
-            wire:click="refreshGrievance"
+            x-data="{ clicked: false }"
+            x-on:click="clicked = true; $wire.refreshGrievance().then(() => clicked = false)"
             class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
                 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
                 border border-blue-500 dark:border-blue-400
                 hover:bg-blue-200 dark:hover:bg-blue-800/50
                 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
-                transition-all duration-200">
+                transition-all duration-200"
+        >
             <x-heroicon-o-arrow-path class="w-5 h-5" />
-            <span wire:loading.remove wire:target="refreshGrievance">Refresh</span>
-            <span wire:loading wire:target="refreshGrievance">Processing...</span>
+
+            <span x-show="!clicked">Refresh</span>
+            <span x-show="clicked">Processing...</span>
         </button>
 
     </div>
@@ -290,7 +293,7 @@
             };
         @endphp
 
-        <div class="flex items-center justify-between font-sans p-4 rounded-sm border border-gray-300 dark:border-zinc-700">
+        <div class="flex flex-col lg:flex-row items-center justify-between font-sans p-4 rounded-sm border border-gray-300 dark:border-zinc-700">
             <div class="flex items-center gap-3">
                 <div class="relative w-10 h-10 rounded-full shrink-0 dark:bg-white overflow-visible">
                     <img
@@ -301,15 +304,15 @@
                     <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full ring-1 ring-white {{ $statusDotColor }}"></span>
                 </div>
                 <div class="flex flex-col">
-                    <h4 class="text-[17px] font-semibold text-gray-600 dark:text-gray-400 tracking-wide uppercase">
+                    <h4 class="text-[17px] font-medium text-gray-600 dark:text-gray-400 tracking-wide uppercase">
                         Anonymous User
                     </h4>
-                    <p class="text-[15px] text-gray-700 dark:text-gray-300">
+                    <p class="text-[15px] font-semibold text-gray-700 dark:text-gray-300">
                         This report was filed anonymously. No personal information is available.
                     </p>
                 </div>
             </div>
-            <div class="flex justify-end">
+            <div class="flex justify-end mt-4 lg:mt-0">
                 <span class="text-[15px] font-semibold {{ $statusTextColor }}">
                     {{ ucwords($user->status) }}
                 </span>
@@ -879,155 +882,168 @@
                 </button>
             </div>
 
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Please select a department and category to reroute report.
-            </p>
-
-            <div
-                x-data="{
-                    department: @entangle('department'),
-                    grievanceCategory: @entangle('grievance_category'),
-
-                    categoriesMap: {
-                        'Business Permit and Licensing Office': [
-                            'Delayed Business Permit Processing',
-                            'Unclear Requirements or Procedures',
-                            'Unfair Treatment by Personnel',
-                            'Business Permit Requirements Inquiry',
-                            'Renewal Process Clarification',
-                            'Schedule or Fee Inquiry',
-                            'Document Correction or Update Request',
-                            'Business Record Verification Request',
-                            'Appointment or Processing Schedule Request'
-                        ],
-                        'Traffic Enforcement Agency of Mandaue': [
-                            'Traffic Enforcer Misconduct',
-                            'Unjust Ticketing or Penalty',
-                            'Inefficient Traffic Management',
-                            'Traffic Rules Clarification',
-                            'Citation or Violation Inquiry',
-                            'Inquiry About Traffic Assistance',
-                            'Request for Traffic Assistance',
-                            'Request for Event Traffic Coordination',
-                            'Request for Violation Review'
-                        ],
-                        'City Social Welfare Services': [
-                            'Discrimination or Neglect in Assistance',
-                            'Delayed Social Service Response',
-                            'Unprofessional Staff Behavior',
-                            'Assistance Program Inquiry',
-                            'Eligibility or Requirements Clarification',
-                            'Social Service Schedule Inquiry',
-                            'Request for Social Assistance',
-                            'Financial Aid or Program Enrollment Request',
-                            'Home Visit or Consultation Request'
-                        ]
-                    },
-
-                    get categoryOptions() {
-                        return this.department ? this.categoriesMap[this.department] || [] : [];
-                    }
-                }"
-                class="flex flex-col gap-6"
-            >
-                <div class="flex flex-col gap-2">
-                    <label class="font-medium text-gray-900 dark:text-gray-100">Department</label>
-                    <x-searchable-select
-                        name="department"
-                        placeholder="Select department"
-                        :options="$departmentOptions"
-                        x-on:change="grievanceCategory = ''; $wire.set('category', '', true)"
-                    />
-                    <flux:error name="department" />
-                </div>
-
-                <div x-show="department" x-cloak>
-                    <div class="flex flex-col gap-2">
-                        <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
-                            <flux:icon.list-bullet />
-                            <span>Report Category</span>
-                        </label>
-
-                        <h3 class="text-sm text-gray-700 dark:text-gray-300">
-                            Choose a category based on the selected department.
-                        </h3>
-
-                        <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
-                            <flux:input
-                                readonly
-                                x-model="grievanceCategory"
-                                placeholder="Select grievance category"
-                                @click="open = !open"
-                                class:input="border rounded-lg w-full cursor-pointer select-none"
-                            />
-
-                            <div
-                                x-show="open"
-                                @click.outside="open = false"
-                                x-transition
-                                class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
-                            >
-                                <div class="p-1 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-2">
-                                    <flux:icon.magnifying-glass class="text-gray-500 dark:text-zinc-400" />
-                                    <input
-                                        type="text"
-                                        x-model="search"
-                                        placeholder="Search..."
-                                        class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm"
-                                    />
-                                </div>
-
-                                <ul class="max-h-48 overflow-y-auto py-1">
-                                    <template x-for="opt in categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase()))" :key="opt">
-                                        <li>
-                                            <button
-                                                type="button"
-                                                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                                @click="
-                                                    grievanceCategory = opt;
-                                                    $wire.set('category', opt, true);
-                                                    open = false;
-                                                    search = '';
-                                                "
-                                                x-text="opt"
-                                            ></button>
-                                        </li>
-                                    </template>
-
-                                    <li
-                                        x-show="categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase())).length === 0"
-                                        class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-                                    >
-                                        No results found
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <flux:error name="category" />
+            <div class="flex flex-col items-center justify-center">
+                <div wire:loading wire:target="clearForm">
+                    <div class="w-full flex items-center justify-center gap-2 py-6">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+                <div wire:loading.remove wire:target="clearForm">
 
-            <div class="flex justify-end gap-3">
-                <button
-                    @click="openRerouteModal = false"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
-                >
-                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                    Cancel
-                </button>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Please select a department and category to reroute report.
+                    </p>
 
-                <button
-                    wire:click="reroute"
-                    wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-                >
-                    <x-heroicon-o-arrow-path class="w-4 h-4" />
-                    <span wire:loading.remove wire:target="reroute">Reroute</span>
-                    <span wire:loading wire:target="reroute">Processing...</span>
-                </button>
+                    <div
+                        x-data="{
+                            department: @entangle('department'),
+                            grievanceCategory: @entangle('grievance_category'),
+
+                            categoriesMap: {
+                                'Business Permit and Licensing Office': [
+                                    'Delayed Business Permit Processing',
+                                    'Unclear Requirements or Procedures',
+                                    'Unfair Treatment by Personnel',
+                                    'Business Permit Requirements Inquiry',
+                                    'Renewal Process Clarification',
+                                    'Schedule or Fee Inquiry',
+                                    'Document Correction or Update Request',
+                                    'Business Record Verification Request',
+                                    'Appointment or Processing Schedule Request'
+                                ],
+                                'Traffic Enforcement Agency of Mandaue': [
+                                    'Traffic Enforcer Misconduct',
+                                    'Unjust Ticketing or Penalty',
+                                    'Inefficient Traffic Management',
+                                    'Traffic Rules Clarification',
+                                    'Citation or Violation Inquiry',
+                                    'Inquiry About Traffic Assistance',
+                                    'Request for Traffic Assistance',
+                                    'Request for Event Traffic Coordination',
+                                    'Request for Violation Review'
+                                ],
+                                'City Social Welfare Services': [
+                                    'Discrimination or Neglect in Assistance',
+                                    'Delayed Social Service Response',
+                                    'Unprofessional Staff Behavior',
+                                    'Assistance Program Inquiry',
+                                    'Eligibility or Requirements Clarification',
+                                    'Social Service Schedule Inquiry',
+                                    'Request for Social Assistance',
+                                    'Financial Aid or Program Enrollment Request',
+                                    'Home Visit or Consultation Request'
+                                ]
+                            },
+
+                            get categoryOptions() {
+                                return this.department ? this.categoriesMap[this.department] || [] : [];
+                            }
+                        }"
+                        class="flex flex-col gap-6"
+                    >
+                        <div class="flex flex-col gap-2">
+                            <label class="font-medium text-gray-900 dark:text-gray-100">Department</label>
+                            <x-searchable-select
+                                name="department"
+                                placeholder="Select department"
+                                :options="$departmentOptions"
+                                x-on:change="grievanceCategory = ''; $wire.set('category', '', true)"
+                            />
+                            <flux:error name="department" />
+                        </div>
+
+                        <div x-show="department" x-cloak>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex gap-2 items-center font-medium text-gray-900 dark:text-white">
+                                    <flux:icon.list-bullet />
+                                    <span>Report Category</span>
+                                </label>
+
+                                <h3 class="text-sm text-gray-700 dark:text-gray-300">
+                                    Choose a category based on the selected department.
+                                </h3>
+
+                                <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                                    <flux:input
+                                        readonly
+                                        x-model="grievanceCategory"
+                                        placeholder="Select grievance category"
+                                        @click="open = !open"
+                                        class:input="border rounded-lg w-full cursor-pointer select-none"
+                                    />
+
+                                    <div
+                                        x-show="open"
+                                        @click.outside="open = false"
+                                        x-transition
+                                        class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md"
+                                    >
+                                        <div class="p-1 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-2">
+                                            <flux:icon.magnifying-glass class="text-gray-500 dark:text-zinc-400" />
+                                            <input
+                                                type="text"
+                                                x-model="search"
+                                                placeholder="Search..."
+                                                class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm"
+                                            />
+                                        </div>
+
+                                        <ul class="max-h-48 overflow-y-auto py-1">
+                                            <template x-for="opt in categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                                        @click="
+                                                            grievanceCategory = opt;
+                                                            $wire.set('category', opt, true);
+                                                            open = false;
+                                                            search = '';
+                                                        "
+                                                        x-text="opt"
+                                                    ></button>
+                                                </li>
+                                            </template>
+
+                                            <li
+                                                x-show="categoryOptions.filter(o => o.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                                class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+                                            >
+                                                No results found
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <flux:error name="category" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                    <div class="flex justify-end gap-3">
+                        <button
+                            @click="openRerouteModal = false"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                        >
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                            Cancel
+                        </button>
+
+                        <button
+                            wire:click="reroute"
+                            wire:loading.attr="disabled"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
+                        >
+                            <x-heroicon-o-arrow-path class="w-4 h-4" />
+                            <span wire:loading.remove wire:target="reroute">Reroute</span>
+                            <span wire:loading wire:target="reroute">Processing...</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1055,49 +1071,61 @@
                 </button>
             </div>
 
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Choose a new status to update this particular report.
-            </p>
-
-            <div class="flex flex-col gap-2 mb-2">
-                <x-searchable-select
-                    name="statusUpdate"
-                    placeholder="Select Status"
-                    :options="[
-                        'pending' => 'Pending',
-                        'acknowledged' => 'Acknowledged',
-                        'in_progress' => 'In Progress',
-                        'escalated' => 'Escalated',
-                        'resolved' => 'Resolved',
-                        'unresolved' => 'Unresolved',
-                        'closed' => 'Closed',
-                    ]"
-                />
-                <div class="space-y-1">
-                    <flux:error name="statusUpdate" />
+            <div class="flex flex-col justify-center items-center">
+                <div wire:loading wire:target="clearForm">
+                    <div class="w-full flex items-center justify-center gap-2 py-6">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+                <div wire:loading.remove wire:target="clearForm">
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Choose a new status to update this particular report.
+                    </p>
 
-            <div class="flex justify-end gap-3">
-                <button
-                    @click="openStatusModal = false"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
-                >
-                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                    Cancel
-                </button>
+                    <div class="flex flex-col gap-2 mb-2">
+                        <x-searchable-select
+                            name="statusUpdate"
+                            placeholder="Select Status"
+                            :options="[
+                                'pending' => 'Pending',
+                                'acknowledged' => 'Acknowledged',
+                                'in_progress' => 'In Progress',
+                                'escalated' => 'Escalated',
+                                'resolved' => 'Resolved',
+                                'unresolved' => 'Unresolved',
+                                'closed' => 'Closed',
+                            ]"
+                        />
+                        <div class="space-y-1">
+                            <flux:error name="statusUpdate" />
+                        </div>
+                    </div>
 
-                <button
-                    wire:click="updateStatus"
-                    wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition"
-                >
-                    <x-heroicon-o-check class="w-4 h-4" />
-                    <span wire:loading.remove wire:target="updateStatus">Update</span>
-                    <span wire:loading wire:target="updateStatus">Processing...</span>
-                </button>
+                    <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                    <div class="flex justify-end gap-3">
+                        <button
+                            @click="openStatusModal = false"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                        >
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                            Cancel
+                        </button>
+
+                        <button
+                            wire:click="updateStatus"
+                            wire:loading.attr="disabled"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition"
+                        >
+                            <x-heroicon-o-check class="w-4 h-4" />
+                            <span wire:loading.remove wire:target="updateStatus">Update</span>
+                            <span wire:loading wire:target="updateStatus">Processing...</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1125,47 +1153,59 @@
                 </button>
             </div>
 
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Choose a new priority level for this report.
-            </p>
-
-            <div class="flex flex-col gap-2 mb-2">
-                <x-searchable-select
-                    wire:model.defer="priorityUpdate"
-                    name="priorityUpdate"
-                    placeholder="Select Priority Level"
-                    :options="[
-                        'low' => 'Low',
-                        'normal' => 'Normal',
-                        'high' => 'High',
-                        'critical' => 'Critical',
-                    ]"
-                />
-                <div class="space-y-1">
-                    <flux:error name="priorityUpdate" />
+            <div class="flex flex-col items-center justify-center">
+                <div wire:loading wire:target="clearForm">
+                    <div class="w-full flex items-center justify-center gap-2 py-6">
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:0.5s]"></div>
+                        <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+                <div wire:loading.remove wire:target="clearForm">
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Choose a new priority level for this report.
+                    </p>
 
-            <div class="flex justify-end gap-3">
-                <button
-                    @click="openPriorityModal = false"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
-                >
-                    <x-heroicon-o-x-mark class="w-4 h-4" />
-                    Cancel
-                </button>
+                    <div class="flex flex-col gap-2 mb-2">
+                        <x-searchable-select
+                            wire:model.defer="priorityUpdate"
+                            name="priorityUpdate"
+                            placeholder="Select Priority Level"
+                            :options="[
+                                'low' => 'Low',
+                                'normal' => 'Normal',
+                                'high' => 'High',
+                                'critical' => 'Critical',
+                            ]"
+                        />
+                        <div class="space-y-1">
+                            <flux:error name="priorityUpdate" />
+                        </div>
+                    </div>
 
-                <button
-                    wire:click="updatePriority"
-                    wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
-                >
-                    <x-heroicon-o-check class="w-4 h-4" />
-                    <span wire:loading.remove wire:target="updatePriority">Update</span>
-                    <span wire:loading wire:target="updatePriority">Processing...</span>
-                </button>
+                    <div class="border-t border-gray-200 dark:border-zinc-700 my-4"></div>
+
+                    <div class="flex justify-end gap-3">
+                        <button
+                            @click="openPriorityModal = false"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border border-gray-300 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition"
+                        >
+                            <x-heroicon-o-x-mark class="w-4 h-4" />
+                            Cancel
+                        </button>
+
+                        <button
+                            wire:click="updatePriority"
+                            wire:loading.attr="disabled"
+                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+                        >
+                            <x-heroicon-o-check class="w-4 h-4" />
+                            <span wire:loading.remove wire:target="updatePriority">Update</span>
+                            <span wire:loading wire:target="updatePriority">Processing...</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

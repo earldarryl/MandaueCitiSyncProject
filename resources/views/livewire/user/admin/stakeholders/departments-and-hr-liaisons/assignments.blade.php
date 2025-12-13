@@ -108,6 +108,45 @@
         </div>
     </div>
 
+    <div class="flex w-full my-4 px-2">
+        <div class="relative w-full font-bold">
+            <label for="search" class="sr-only">Search</label>
+
+            <div class="relative w-full">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                </div>
+
+                <input
+                    type="text"
+                    id="search"
+                    wire:model.defer="searchInput"
+                    wire:keydown.enter="applySearch"
+                    placeholder="Search assignments..."
+                    class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
+                        bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
+                        dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                />
+
+                <button type="button" wire:click="clearSearch"
+                    class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors">
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                </button>
+
+                <button type="button" wire:click="applySearch"
+                    class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
+                        px-4 py-2 text-sm font-semibold rounded-r-xl
+                        text-white bg-gradient-to-r from-blue-600 to-blue-700
+                        hover:from-blue-700 hover:to-blue-800
+                        shadow-sm hover:shadow-md transition-all duration-200">
+                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                    <span>Search</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="flex gap-2 w-full mt-6 mb-2 mx-auto px-3">
 
         <x-filter-select
@@ -173,7 +212,7 @@
     </div>
 
     <div class="relative w-full p-2 bg-gray-50 dark:bg-zinc-900">
-        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, assignUnassigned">
+        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, assignUnassigned, applySearch">
             <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
 
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
@@ -219,14 +258,14 @@
                                     x-data="{ open: false }"
                                     @close-all-modals.window="open = false"
                                 >
-                                    <div class="relative inline-block text-left">
+                                    <div class="inline-block text-left">
                                         <button @click="open = !open"
                                             class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                             <x-heroicon-o-ellipsis-horizontal class="w-6 h-6 text-gray-700 dark:text-gray-200"/>
                                         </button>
 
                                         <div x-show="open" x-transition @click.away="open = false"
-                                            class="absolute right-0 mt-2 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
+                                            class="absolute right-4 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
                                                 <a href="{{ route('admin.forms.grievances.view', $assignment->grievance->grievance_ticket_id) }}"
@@ -284,7 +323,7 @@
             </div>
         </div>
 
-        <div wire:loading wire:target="previousPage, nextPage, gotoPage, assignUnassigned"
+        <div wire:loading wire:target="previousPage, nextPage, gotoPage, assignUnassigned, applySearch"
             class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
 
             <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
