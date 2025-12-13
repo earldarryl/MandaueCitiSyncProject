@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Mews\Purifier\Casts\CleanHtml;
 class Grievance extends Model
 {
     use HasFactory, SoftDeletes;
@@ -35,6 +36,7 @@ class Grievance extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'grievance_remarks' => 'array',
+        'grievance_details' => CleanHtml::class,
     ];
 
     protected $dates = ['deleted_at'];

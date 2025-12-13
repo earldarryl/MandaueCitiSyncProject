@@ -74,7 +74,7 @@
                                 <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-lg w-full max-w-3xl p-6 flex flex-col space-y-4">
                                     <div class="flex flex-col gap-3">
                                         <span class="text-center text-4xl font-bold text-mc_primary_color dark:text-blue-500">Edit Profile Picture</span>
-                                        <span class="text-start text-md text-gray-500 dark:text-gray-400 block">
+                                        <span class="text-start text-md block">
                                             Choose or upload a new photo for your account.
                                         </span>
                                     </div>
