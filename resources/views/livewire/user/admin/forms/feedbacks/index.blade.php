@@ -53,7 +53,7 @@
 
 
     <div class="flex flex-col items-center justify-center gap-4 mb-6">
-        <div class="flex gap-3 w-full">
+        <div class="flex flex-col lg:flex-row gap-3 w-full">
             <x-filter-select
                 name="filterDate"
                 wire:model="filterDate"
@@ -87,9 +87,9 @@
 
     </div>
 
-    <div class="flex w-full">
+    <div class="flex w-full my-4 px-2">
         <div class="relative w-full font-bold">
-            <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+            <label for="search" class="sr-only">Search</label>
 
             <div class="relative w-full">
                 <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -101,15 +101,16 @@
                     id="search"
                     wire:model.defer="searchInput"
                     wire:keydown.enter="applySearch"
-                    placeholder="Search feedbacks..."
+                    placeholder="Search assignments..."
                     class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
-                        bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                        dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
+                        bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
+                        dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                 />
 
                 <button type="button" wire:click="clearSearch"
                     class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors">
-                    <flux:icon.x-mark class="w-4 h-4" />
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
                 </button>
 
                 <button type="button" wire:click="applySearch"
@@ -130,7 +131,7 @@
         class="flex flex-col w-full"
         >
 
-        <div class="flex items-center justify-end gap-2 mb-2 px-3">
+        <div class="flex flex-wrap w-full items-center justify-end gap-2 mb-2 px-3">
             <button
                 wire:click="downloadAllFeedbacksCsv"
                 class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
@@ -287,10 +288,10 @@
                 <button wire:click="exportSelectedFeedbacksExcel"
                         wire:loading.attr="disabled"
                         class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
-                            bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
-                            border border-blue-500 dark:border-blue-400
-                            hover:bg-blue-200 dark:hover:bg-blue-800/50
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                            bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                            border border-green-500 dark:border-green-400
+                            hover:bg-green-200 dark:hover:bg-green-800/50
+                            focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
                             transition-all duration-200">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                         <span wire:loading.remove wire:target="exportSelectedFeedbacksExcel">Export Selected in Excel</span>
@@ -427,10 +428,10 @@
                                     <td class="px-6 py-4 text-sm font-medium">{{ $feedback->date->format('M d, Y') }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-center">{{ $feedback->gender }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-center">{{ $feedback->email ?? '—' }}</td>
-                                    <td class="px-6 py-4 text-sm text-center">
+                                    <td class="px-6 py-4 text-sm font-medium text-center">
                                         {{ $this->summarizeCC($feedback) }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-center">
+                                    <td class="px-6 py-4 text-sm font-medium text-center">
                                         {{ $this->summarizeSQD($feedback->answers) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm font-medium text-center">

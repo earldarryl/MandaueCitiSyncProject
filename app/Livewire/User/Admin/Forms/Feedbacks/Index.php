@@ -544,39 +544,27 @@ class Index extends Component
 
     public function render()
     {
-        $query = Feedback::query();
+        $all = $this->allFilteredFeedbacks();
 
-        if (!empty($this->searchInput)) {
-            $query->where(function ($q) {
-                $q->where('email', 'like', '%' . $this->searchInput . '%')
-                ->orWhere('region', 'like', '%' . $this->searchInput . '%')
-                ->orWhere('gender', 'like', '%' . $this->searchInput . '%');
-            });
+        if (in_array($this->sortField, ['sqd_summary', 'cc_summary'])) {
+            $all = $all->sortBy(function ($feedback) {
+                return $this->sortField === 'sqd_summary'
+                    ? $this->summarizeSQD($feedback->answers)
+                    : $this->summarizeCC($feedback);
+            }, SORT_REGULAR, $this->sortDirection === 'desc')->values();
+        } else {
+            $all = $all->sortBy($this->sortField, SORT_REGULAR, $this->sortDirection === 'desc')->values();
         }
 
-        if ($this->filterDate) {
-            switch ($this->filterDate) {
-                case 'Today':
-                    $query->whereDate('date', Carbon::today());
-                    break;
-                case 'Yesterday':
-                    $query->whereDate('date', Carbon::yesterday());
-                    break;
-                case 'This Week':
-                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
-                case 'This Month':
-                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year);
-                    break;
-                case 'This Year':
-                    $query->whereYear('date', Carbon::now()->year);
-                    break;
-            }
-        }
-
-        $query->orderBy($this->sortField ?? 'date', $this->sortDirection ?? 'desc');
-
-        $feedbacks = $query->paginate(10);
+        $page = request()->get('page', 1);
+        $perPage = 10;
+        $feedbacks = new LengthAwarePaginator(
+            $all->forPage($page, $perPage),
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
         return view('livewire.user.admin.forms.feedbacks.index', [
             'feedbacks' => $feedbacks,

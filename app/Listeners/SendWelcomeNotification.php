@@ -32,6 +32,12 @@ class SendWelcomeNotification
              []
         ));
 
+        Notification::make()
+            ->title('Welcome to the System!')
+            ->body("Hello {$user->name}, thank you for registering. Explore your dashboard and start using the system.")
+            ->success()
+            ->send();
+
         $roleName = ucfirst($user->roles->first()?->name ?? 'user');
 
         ActivityLog::create([

@@ -59,7 +59,46 @@
             </div>
         </div>
 
-        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, sortBy, loadHrLiaisons, editHrLiaisonModal, updateHrLiaison, removeLiaison">
+        <div class="flex w-full px-2">
+            <div class="relative w-full font-bold">
+                <label for="search" class="sr-only">Search</label>
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    </div>
+
+                    <input
+                        type="text"
+                        id="search"
+                        wire:model.defer="searchInput"
+                        wire:keydown.enter="applySearch"
+                        placeholder="Search HR liaisons..."
+                        class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
+                            bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                            dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+                            dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    />
+
+                    <button type="button" wire:click="clearSearch"
+                        class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors">
+                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                    </button>
+
+                    <button type="button" wire:click="applySearch"
+                        class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
+                            px-4 py-2 text-sm font-semibold rounded-r-xl
+                            text-white bg-gradient-to-r from-blue-600 to-blue-700
+                            hover:from-blue-700 hover:to-blue-800
+                            shadow-sm hover:shadow-md transition-all duration-200">
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div wire:loading.remove wire:target="previousPage, nextPage, gotoPage, applySearch">
             <div class="m-6 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -178,45 +217,65 @@
                                     {{ $liaison->assigned_count }} / {{ $liaison->total_assignments }}
                                 </td>
 
-                                <td class="px-6 py-4 text-center space-x-1" x-data="{ openRemove: false, openEditLiaison: false }">
+                                <td class="px-6 py-4 text-center space-x-1"
+                                    x-data="{
+                                        open: false,
+                                        openRemove: false,
+                                        openEditLiaison: false,
+                                    }"
+                                    @close-all-modals.window="
+                                        open = false;
+                                        openRemove = false;
+                                        openEditLiaison = false;
+                                    "
+                                >
+                                    <div class="relative inline-block text-left">
+                                        <button @click="open = !open"
+                                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                                            <x-heroicon-o-ellipsis-horizontal
+                                                class="w-6 h-6 text-gray-700 dark:text-gray-200" />
+                                        </button>
 
-                                    <a href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-assignments', [
-                                        'department' => $department->department_id,
-                                        'hrLiaison' => $liaison->id,
-                                    ]) }}"
-                                    wire:navigate
-                                    class="px-3 py-1 text-xs rounded-md border border-gray-400 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                            dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-900/60">
-                                       <x-heroicon-o-folder class="w-4 h-4 inline-block mr-1" /> Manage Assignments
-                                    </a>
+                                        <div x-show="open" x-transition @click.away="open = false"
+                                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900
+                                                rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
 
-                                    <button
-                                        @click="openRemove = true"
-                                        class="px-3 py-1 text-xs rounded-md border border-red-400 text-red-700 bg-red-50 hover:bg-red-100
-                                        dark:bg-red-900/40 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-900/60">
-                                        <span wire:loading.remove wire:target="removeLiaison({{ $liaison->id }})">
-                                            <x-heroicon-o-user-minus class="w-4 h-4 inline-block mr-1" /> Remove
-                                        </span>
-                                        <span wire:loading wire:target="removeLiaison({{ $liaison->id }})">Processing...</span>
-                                    </button>
+                                            <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
 
-                                    <button
-                                        @click="openEditLiaison = true"
-                                        wire:click="editHrLiaisonModal({{ $liaison->id }})"
-                                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100
-                                        dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-900/60">
-                                        <span wire:loading.remove wire:target="updateHrLiaison({{ $liaison->id }})">
-                                            <x-heroicon-o-pencil class="w-4 h-4 inline-block mr-1" /> Edit
-                                        </span>
-                                        <span wire:loading wire:target="updateHrLiaison({{ $liaison->id }})">Processing...</span>
-                                    </button>
+                                                <a href="{{ route('admin.stakeholders.departments-and-hr-liaisons.hr-liaisons-list-assignments', [
+                                                    'department' => $department->department_id,
+                                                    'hrLiaison' => $liaison->id,
+                                                ]) }}"
+                                                wire:navigate
+                                                class="px-4 py-2 font-medium hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
+                                                    <x-heroicon-o-folder class="w-4 h-4 text-blue-600 dark:text-blue-400"/>
+                                                    Manage Assignments
+                                                </a>
+
+                                                <button @click="open = false; openEditLiaison = true; $wire.editHrLiaisonModal({{ $liaison->id }}); $wire.resetFields();"
+                                                    class="px-4 py-2 font-medium text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm w-full">
+                                                    <x-heroicon-o-pencil class="w-4 h-4 text-green-500 dark:text-green-400"/>
+                                                    Edit Liaison
+                                                </button>
+
+                                                <button @click="open = false; openRemove = true; $wire.resetFields();"
+                                                    class="px-4 py-2 font-medium text-left hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm text-red-500 w-full">
+                                                    <x-heroicon-o-user-minus class="w-4 h-4"/>
+                                                    Remove Liaison
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div
                                         x-show="openEditLiaison"
                                         x-transition
                                         class="fixed inset-0 flex items-center justify-center z-50 bg-black/20"
                                     >
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
+                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col"
+                                             wire:key="edit-liaisons-{{ $liaison->id }}"
+                                        >
 
                                             <header class="flex gap-2 items-center justify-start border border-gray-300 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-800 z-10 p-3">
                                                 <x-heroicon-o-user-circle class="w-6 h-6" />
@@ -244,26 +303,29 @@
                                                     <flux:input type="password" wire:model.defer="editLiaison.password" placeholder="New Password (Optional)" viewable clearable/>
                                                     <flux:error name="editLiaison.password" />
                                                 </div>
+
+                                                <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
+                                                    <button @click="openEditLiaison = false; $wire.resetFields();"
+                                                            class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
+                                                                dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
+                                                        Cancel
+                                                    </button>
+                                                    <button wire:click="updateHrLiaison({{ $liaison->id }})" wire:loading.attr="disabled"
+                                                            class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
+                                                                dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        <span wire:loading.remove wire:target="updateHrLiaison({{ $liaison->id }})">Update</span>
+                                                        <span wire:loading wire:target="updateHrLiaison({{ $liaison->id }})">Processing...</span>
+                                                    </button>
+                                                </footer>
                                             </div>
 
-                                            <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
-                                                <button @click="openEditLiaison = false"
-                                                        class="px-3 py-1 text-xs rounded-md border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100
-                                                            dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-600/60">
-                                                    Cancel
-                                                </button>
-                                                <button wire:click="updateHrLiaison({{ $liaison->id }})" wire:loading.attr="disabled" @click="openEditLiaison = false"
-                                                        class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
-                                                            dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                                                    <span wire:loading.remove wire:target="updateHrLiaison({{ $liaison->id }})">Update</span>
-                                                    <span wire:loading wire:target="updateHrLiaison({{ $liaison->id }})">Processing...</span>
-                                                </button>
-                                            </footer>
                                         </div>
                                     </div>
 
                                     <div x-show="openRemove" x-transition class="fixed inset-0 flex items-center justify-center z-50 bg-black/20">
-                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6">
+                                        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-200 dark:border-zinc-700 w-full max-w-md p-6"
+                                             wire:key="remove-liaisons-{{ $liaison->id }}"
+                                        >
                                             <div class="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 mx-auto">
                                                 <x-heroicon-o-exclamation-triangle class="w-10 h-10 text-red-500" />
                                             </div>
@@ -272,11 +334,11 @@
                                             <p class="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to remove this liaison? This action cannot be undone.</p>
 
                                             <div wire:loading.remove wire:target="removeLiaison({{ $liaison->id }})" class="flex justify-center gap-3 mt-4">
-                                                <button type="button" @click="openRemove = false"
+                                                <button type="button" @click="openRemove = false; $wire.resetFields();"
                                                     class="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                                                     Cancel
                                                 </button>
-                                                <flux:button variant="danger" icon="trash" wire:click="removeLiaison({{ $liaison->id }})" @click="openRemove = false">
+                                                <flux:button variant="danger" icon="trash" wire:click="removeLiaison({{ $liaison->id }})">
                                                     Yes, Delete
                                                 </flux:button>
                                             </div>
@@ -305,7 +367,7 @@
             </div>
         </div>
 
-        <div wire:loading wire:target="previousPage, nextPage, gotoPage, sortBy, loadHrLiaisons, editHrLiaisonModal, updateHrLiaison, removeLiaison">
+        <div wire:loading wire:target="previousPage, nextPage, gotoPage, applySearch">
             <div class="mx-6 mt-6 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
 
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">

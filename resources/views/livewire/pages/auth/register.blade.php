@@ -698,21 +698,83 @@
                                         </div>
 
                                         <flux:field
-                                            x-data
-                                            @check-terms-error.window="
-                                                const modalScroll = document.getElementById('modal-scroll');
-                                                if (modalScroll) {
-                                                    modalScroll.scrollTo({ top: modalScroll.scrollHeight, behavior: 'smooth' });
+                                            x-data="{
+                                                showTerms: false,
+                                                highlight: false,
+                                                openTerms() {
+                                                    this.showTerms = true;
                                                 }
-                                            "
+                                            }"
                                             variant="inline"
-                                            class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-sm shadow-sm mt-4"
+                                            class="bg-gray-50 dark:bg-zinc-800 px-4 py-3 border border-gray-200 dark:border-zinc-700 rounded-sm shadow-sm mt-4"
                                         >
-                                            <flux:checkbox wire:model="agreed_terms" />
-                                            <flux:label class="text-sm text-gray-700 dark:text-gray-300 leading-6">
-                                                I agree to the terms and conditions
-                                            </flux:label>
-                                            <flux:error name="agreed_terms" class="text-xs text-red-500 mt-1"/>
+                                            <div
+                                                class="flex items-start gap-2 rounded-md p-2 transition-colors"
+                                            >
+                                                <flux:checkbox wire:model="agreed_terms" />
+
+                                                <flux:label class="flex gap-1 text-sm text-gray-700 dark:text-gray-300 leading-6">
+                                                    <span>I agree to the</span>
+                                                    <button
+                                                        type="button"
+                                                        @click.prevent="openTerms()"
+                                                        class="text-blue-600 dark:text-blue-400 underline font-medium hover:text-blue-700"
+                                                    >
+                                                        terms and conditions
+                                                    </button>
+                                                </flux:label>
+                                            </div>
+
+                                            <flux:error name="agreed_terms" class="text-xs text-red-500 mt-1" />
+
+                                            <div
+                                                x-show="showTerms"
+                                                x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                                                @click.self="showTerms = false"
+                                            >
+                                                <div
+                                                    x-transition.scale
+                                                    class="bg-white dark:bg-zinc-900 rounded-xl shadow-lg max-w-lg w-full mx-4"
+                                                >
+                                                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-zinc-700">
+                                                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                                            Terms & Conditions
+                                                        </h2>
+                                                        <button
+                                                            @click="showTerms = false"
+                                                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                                        >
+                                                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="p-5 max-h-80 overflow-y-auto text-sm text-gray-700 dark:text-gray-300">
+                                                        <p class="mb-3">
+                                                            By using this system, you agree to comply with all applicable rules,
+                                                            policies, and guidelines set by the organization.
+                                                        </p>
+
+                                                        <p class="mb-3">
+                                                            You acknowledge that submitting false or misleading information may
+                                                            result in administrative action.
+                                                        </p>
+
+                                                        <p>
+                                                            Your data will be processed in accordance with our privacy policy.
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-zinc-700">
+                                                        <button
+                                                            @click="showTerms = false"
+                                                            class="px-4 py-2 text-sm rounded-md bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200"
+                                                        >
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </flux:field>
                                     </div>
                                 </div>

@@ -75,12 +75,11 @@ class Index extends Component
         $this->user = auth()->user();
 
         if (session()->pull('just_logged_in', false)) {
-
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'title' => 'Welcome back, ' . $this->user->name,
-                'message' => "Good to see you again! Here’s your dashboard.",
-            ]);
+            Notification::make()
+                ->title('Welcome back, ' . $this->user->name)
+                ->body('Good to see you again! Here’s your dashboard.')
+                ->success()
+                ->send();
         }
 
         if (session()->has('notification')) {

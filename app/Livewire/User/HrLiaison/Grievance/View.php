@@ -31,6 +31,18 @@ class View extends Component
         'loadMore' => 'loadMore',
     ];
 
+    public function clearForm()
+    {
+        $this->reset([
+            'department',
+            'statusUpdate',
+            'priorityUpdate',
+            'category',
+        ]);
+
+        $this->resetErrorBag();
+    }
+
     function displayRoleName(string $role): string
     {
         return match ($role) {
@@ -158,6 +170,11 @@ class View extends Component
         $this->validate([
             'department' => 'required|exists:departments,department_name',
             'category'   => 'required|string',
+        ], [
+            'department.required' => 'Department is required.',
+            'department.exists'   => 'Selected department is invalid.',
+            'category.required'   => 'Category is required.',
+            'category.string'     => 'Category must be a valid text value.',
         ]);
 
         $user = auth()->user();
@@ -311,13 +328,17 @@ class View extends Component
             'timestamp'    => now(),
         ]);
 
-        $this->dispatch('delayed-redirect');
+        $this->dispatch('close-all-modals');
+        $this->dispatch('update-success-modal');
     }
 
     public function updateStatus()
     {
         $this->validate([
             'statusUpdate' => 'required|string',
+        ], [
+            'statusUpdate.required' => 'Status is required.',
+            'statusUpdate.string'   => 'Status must be a valid text value.',
         ]);
 
         $formattedStatus = $this->formatStatus($this->statusUpdate);
@@ -420,7 +441,7 @@ class View extends Component
             ]
         ));
 
-        $this->dispatch('close-status-modal');
+        $this->dispatch('close-all-modals');
         $this->dispatch('update-success-modal');
 
         $this->grievance->refresh();
@@ -430,6 +451,9 @@ class View extends Component
     {
         $this->validate([
             'priorityUpdate' => 'required|string',
+        ], [
+            'priorityUpdate.required' => 'Priority is required.',
+            'priorityUpdate.string'   => 'Priority must be a valid text value.',
         ]);
 
         $formattedPriority = $this->priorityUpdate;
@@ -557,7 +581,7 @@ class View extends Component
             ]
         ));
 
-        $this->dispatch('close-priority-modal');
+        $this->dispatch('close-all-modals');
         $this->dispatch('update-success-modal');
 
         $this->grievance->refresh();

@@ -92,18 +92,32 @@ class Index extends Component
         return ucwords(str_replace('_', ' ', $value));
     }
 
-    private function resetInputFields(): void
+    public function resetInputFieldsByCancelModal(): void
+    {
+
+        $this->status = null;
+        $this->priorityUpdate = null;
+        $this->department = null;
+        $this->category = null;
+        $this->importFile = null;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+    }
+
+    public function resetInputFields(): void
     {
         $this->selected = [];
         $this->status = null;
         $this->priorityUpdate = null;
         $this->department = null;
         $this->category = null;
+        $this->importFile = null;
 
         $this->resetErrorBag();
         $this->resetValidation();
     }
-
 
     public function mount()
     {

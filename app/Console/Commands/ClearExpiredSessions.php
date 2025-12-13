@@ -25,13 +25,14 @@ class ClearExpiredSessions extends Command
     public function handle()
     {
         $lifetime = config('session.lifetime');
-        $expired = Carbon::now()->subMinutes($lifetime)->timestamp;
+        $expired = now()->subMinutes($lifetime)->timestamp;
 
-        DB::table('sessions')
+        $updated = DB::table('sessions')
             ->where('last_activity', '<', $expired)
+            ->whereNotNull('user_id')
             ->update(['user_id' => null]);
 
-        $this->info('Expired sessions cleared.');
+        $this->info("{$updated} expired sessions nulled.");
     }
 
 }

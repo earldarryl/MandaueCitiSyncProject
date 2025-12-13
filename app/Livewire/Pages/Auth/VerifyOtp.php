@@ -146,7 +146,7 @@ class VerifyOtp extends Component
             return;
         }
 
-        $this->addError('otp', 'Invalid or expired OTP.');
+        $this->addError('otp', 'Invalid or expired OTP code.');
     }
 
     public function logout()

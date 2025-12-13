@@ -101,13 +101,28 @@ class Index extends Component
         return ucwords(str_replace('_', ' ', $value));
     }
 
-    private function resetInputFields(): void
+    public function resetInputFieldsByCancelModal(): void
+    {
+
+        $this->status = null;
+        $this->priorityUpdate = null;
+        $this->department = null;
+        $this->category = null;
+        $this->importFile = null;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+    }
+
+    public function resetInputFields(): void
     {
         $this->selected = [];
         $this->status = null;
         $this->priorityUpdate = null;
         $this->department = null;
         $this->category = null;
+        $this->importFile = null;
 
         $this->resetErrorBag();
         $this->resetValidation();
@@ -848,7 +863,7 @@ class Index extends Component
                     ]);
                 }
 
-                $this->grievance->addRemark([
+                $grievance->addRemark([
                     'message'   => "Report rerouted to '{$department->department_name}' and category changed to '{$this->category}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
                     'user_id'   => $user->id,
                     'user_name' => $user->name,
@@ -939,13 +954,7 @@ class Index extends Component
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id],
                     ['type' => 'success'],
                     true,
-                    [
-                        [
-                            'label' => 'View Report',
-                            'url'   => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
-                            'open_new_tab' => false,
-                        ],
-                    ]
+                    []
                 ));
             }
         });
@@ -956,7 +965,6 @@ class Index extends Component
         $this->updateStats();
         $this->resetInputFields();
     }
-
 
     public function updateSelectedGrievanceStatus(): void
     {
@@ -1122,13 +1130,13 @@ class Index extends Component
                         'updated_at'      => now(),
                     ]);
 
-                    $this->grievance->addRemark([
+                    $grievance->addRemark([
                         'message'   => "Priority changed from '{$oldPriority}' to '{$formattedPriority}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) ."). Processing days updated from {$oldProcessingDays} to {$priorityProcessingDays}.",
                         'user_id'   => $user->id,
                         'user_name' => $user->name,
                         'role'      => $this->displayRoleName($user->getRoleNames()->first()),
                         'timestamp' => now()->format('Y-m-d H:i:s'),
-                        'status'    => $this->grievance->grievance_status,
+                        'status'    => $grievance->grievance_status,
                         'type'      => 'priority_update',
                     ]);
 
