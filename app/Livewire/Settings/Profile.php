@@ -41,6 +41,7 @@ class Profile extends Component implements HasSchemas
     public array $data = [];
     public string $originalName = '';
     public string $originalEmail = '';
+    public int $profilePicKey = 0;
     public $authUser;
     protected $listeners = ['reset-form' => 'resetForm'];
 
@@ -147,6 +148,7 @@ class Profile extends Component implements HasSchemas
         return $schema
             ->components([
                 FileUpload::make('profile_pic')
+                    ->key('profile-pic-' . $this->profilePicKey)
                     ->avatar()
                     ->disk('public')
                     ->directory('avatars')
@@ -206,7 +208,11 @@ class Profile extends Component implements HasSchemas
 
         $this->current_profile_pic = $path;
 
-        $state['profile_pic'] = null;
+        $this->profilePicKey++;
+
+        $this->form->fill([
+            'profile_pic' => null,
+        ]);
 
         $this->dispatch('notify', [
             'type' => 'success',
