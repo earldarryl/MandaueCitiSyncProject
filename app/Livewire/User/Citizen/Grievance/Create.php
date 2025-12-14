@@ -239,7 +239,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                         [
                             'label' => 'View Report',
                             'url'   => route('citizen.grievance.index', $grievance->grievance_ticket_id),
-                            'open_new_tab' => true,
+                            'open_new_tab' => false,
                         ],
                 ]
             ));
@@ -296,7 +296,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                         [
                             'label'        => 'View Report',
                             'url'          => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
-                            'open_new_tab' => true,
+                            'open_new_tab' => false,
                         ]
                     ]
                 ));
@@ -317,7 +317,7 @@ class Create extends Component implements Forms\Contracts\HasForms
                         [
                             'label' => 'View Report',
                             'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
-                            'open_new_tab' => true,
+                            'open_new_tab' => false,
                         ],
                         [
                             'label'   => 'Undo',
