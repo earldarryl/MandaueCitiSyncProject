@@ -6,10 +6,10 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-RUN mkdir -p /var/www/database \
- && touch /var/www/database/citisync.sql
 # Stage 2 - Backend (Laravel + PHP + Composer)
 FROM php:8.2-fpm AS backend
+RUN mkdir -p /var/www/database \
+ && touch /var/www/database/citisync.sql
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,9 +32,6 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Laravel setup
 RUN php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear && \
-    php artisan queue:work && \
-    php artisan storage:link
+    php artisan route:clear
 
 CMD ["php-fpm"]
