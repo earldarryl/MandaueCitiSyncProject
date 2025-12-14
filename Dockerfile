@@ -1,6 +1,6 @@
 # Stage 1 - Build Frontend (Vite)
 FROM node:18 AS frontend
-WORKDIR /app
+WORKDIR /app/public
 COPY package*.json ./
 RUN npm install
 COPY . .
