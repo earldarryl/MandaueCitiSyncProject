@@ -283,7 +283,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
                     [
                         'label' => 'View Report',
                         'url'   => route('citizen.grievance.index', $this->grievance->grievance_ticket_id),
-                        'open_new_tab' => true,
+                        'open_new_tab' => false,
                     ],
                 ]
             ));
@@ -330,7 +330,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
                         [
                             'label'        => 'View Updated Report',
                             'url'          => route('hr-liaison.grievance.view', $this->grievance->grievance_ticket_id),
-                            'open_new_tab' => true,
+                            'open_new_tab' => false,
                         ],
                     ]
                 ));
@@ -349,7 +349,7 @@ class Edit extends Component implements Forms\Contracts\HasForms
                         [
                             'label'        => 'Open in Admin Panel',
                             'url'          => route('admin.forms.grievances.view', $this->grievance->grievance_ticket_id),
-                            'open_new_tab' => true,
+                            'open_new_tab' => false,
                         ],
                     ]
                 ));
