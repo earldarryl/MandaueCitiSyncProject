@@ -128,4 +128,9 @@ class Grievance extends Model
         ]);
     }
 
+    public function reroutes()
+    {
+        return $this->hasMany(GrievanceReroute::class, 'grievance_id', 'grievance_id');
+    }
+
 }

@@ -91,13 +91,13 @@ class Index extends Component
             ]);
         }
 
-        if (session()->get('hide_feedback_modal', false)) {
-            return;
-        }
+        // if (session()->get('hide_feedback_modal', false)) {
+        //     return;
+        // }
 
-        if (session()->pull('grievance_submitted_once', false)) {
-            $this->showFeedbackModal = true;
-        }
+        // if (session()->pull('grievance_submitted_once', false)) {
+        //     $this->showFeedbackModal = true;
+        // }
 
         $this->updateStats();
 
@@ -287,7 +287,7 @@ class Index extends Component
                 $hr->notify(new GeneralNotification(
                     'Report Deleted',
                     "A report titled '{$grievance->grievance_title}' has been deleted.",
-                    'danger',
+                    'info',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id]
                 ));
             }
@@ -297,7 +297,7 @@ class Index extends Component
                 $admin->notify(new GeneralNotification(
                     'Report Deleted',
                     "A report titled '{$grievance->grievance_title}' has been deleted from the system.",
-                    'warning',
+                    'info',
                     ['grievance_ticket_id' => $grievance->grievance_ticket_id]
                 ));
             }

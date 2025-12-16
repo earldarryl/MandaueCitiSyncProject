@@ -804,7 +804,7 @@
                 </div>
             </div>
 
-            <div x-data="{ showFeedbackModal: @entangle('showFeedbackModal') }">
+            {{-- <div x-data="{ showFeedbackModal: @entangle('showFeedbackModal') }">
                 <div
                     x-show="showFeedbackModal"
                     x-transition.opacity
@@ -853,7 +853,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <div class="p-4">
                 {{ $grievances->links() }}

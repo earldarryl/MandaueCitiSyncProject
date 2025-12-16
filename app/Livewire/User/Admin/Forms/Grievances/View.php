@@ -7,13 +7,14 @@ use App\Models\Assignment;
 use App\Models\Department;
 use App\Models\EditRequest;
 use App\Models\Grievance;
+use App\Models\GrievanceReroute;
 use App\Models\HrLiaisonDepartment;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
-use Filament\Notifications\Notification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\URL;
 #[Layout('layouts.app')]
 #[Title('View Report')]
 class View extends Component
@@ -41,6 +42,7 @@ class View extends Component
         ]);
 
         $this->resetErrorBag();
+        $this->dispatch('reset-reroute-form');
     }
 
     function displayRoleName(string $role): string
@@ -211,6 +213,17 @@ class View extends Component
             'grievance_status'   => 'pending',
             'grievance_category' => $this->category,
             'updated_at'         => now(),
+        ]);
+
+        $oldDepartmentId = $this->grievance->department_id;
+
+        GrievanceReroute::create([
+            'grievance_id'       => $this->grievance->grievance_id,
+            'from_department_id' => $oldDepartmentId,
+            'to_department_id'   => $department->department_id,
+            'performed_by'       => $user->id,
+            'from_category'      => $oldCategory,
+            'to_category'        => $this->category,
         ]);
 
         $this->grievance->assignments()->delete();
@@ -430,6 +443,30 @@ class View extends Component
                     ],
                 ]
             ));
+
+            $feedbackUrl = URL::temporarySignedRoute(
+                'citizen.feedback-form',
+                now()->addDays(7),
+                ['ticket' => $ticketId]
+            );
+
+            if($formattedStatus === 'resolved'){
+                $citizen->notify(new GeneralNotification(
+                    'Your Report Has Been Resolved',
+                    "Your report '{$grievance->grievance_title}' has been successfully resolved. Please take a moment to submit your feedback.",
+                    'success',
+                    ['grievance_ticket_id' => $ticketId],
+                    ['type' => 'success'],
+                    true,
+                    [
+                        [
+                            'label'        => 'Submit Feedback',
+                            'url'          => $feedbackUrl,
+                            'open_new_tab' => false,
+                        ],
+                    ]
+                ));
+            }
         }
 
         $departmentId = $grievance->department_id;

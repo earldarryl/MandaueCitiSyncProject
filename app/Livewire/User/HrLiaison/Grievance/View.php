@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\Department;
 use App\Models\Grievance;
+use App\Models\GrievanceReroute;
 use App\Models\EditRequest;
 use App\Models\HrLiaisonDepartment;
 use App\Models\User;
@@ -13,7 +14,7 @@ use App\Notifications\GeneralNotification;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\URL;
 #[Layout('layouts.app')]
 #[Title('View Report')]
 class View extends Component
@@ -41,6 +42,7 @@ class View extends Component
         ]);
 
         $this->resetErrorBag();
+        $this->dispatch('reset-reroute-form');
     }
 
     function displayRoleName(string $role): string
@@ -68,6 +70,11 @@ class View extends Component
         $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
     }
 
+    public function handleDelayedRedirectReroute()
+    {
+        $this->redirectRoute('hr-liaison.grievance.index', navigate: true);
+    }
+
     public function mount(Grievance $grievance)
     {
         $user = auth()->user();
@@ -78,7 +85,7 @@ class View extends Component
 
         $isAssigned = $this->grievance->assignments->contains('hr_liaison_id', $user->id);
         if (!$isAssigned) {
-            abort(403, 'You are not authorized to view this grievance.');
+            abort(403, 'You are not authorized to view this report.');
         }
 
         $this->editRequests = EditRequest::where('grievance_id', $grievance->grievance_id)
@@ -198,12 +205,22 @@ class View extends Component
         $oldStatus      = $this->grievance->grievance_status;
         $oldCategory    = $this->grievance->grievance_category;
         $oldDepartments = $this->grievance->departments()->pluck('department_name')->toArray();
+        $oldDepartmentId = $this->grievance->department_id;
 
         $this->grievance->update([
             'department_id'      => $department->department_id,
             'grievance_status'   => 'pending',
             'grievance_category' => $this->category,
             'updated_at'         => now(),
+        ]);
+
+        GrievanceReroute::create([
+            'grievance_id'       => $this->grievance->grievance_id,
+            'from_department_id' => $oldDepartmentId,
+            'to_department_id'   => $department->department_id,
+            'performed_by'       => $user->id,
+            'from_category'      => $oldCategory,
+            'to_category'        => $this->category,
         ]);
 
         $this->grievance->assignments()->delete();
@@ -330,6 +347,7 @@ class View extends Component
 
         $this->dispatch('close-all-modals');
         $this->dispatch('update-success-modal');
+        $this->dispatch('delayed-redirect-reroute');
     }
 
     public function updateStatus()
@@ -404,6 +422,32 @@ class View extends Component
                     ],
                 ]
             ));
+
+
+            $feedbackUrl = URL::temporarySignedRoute(
+                'citizen.feedback-form',
+                now()->addDays(7),
+                ['ticket' => $ticketId]
+            );
+
+
+            if($formattedStatus === 'resolved'){
+            $citizen->notify(new GeneralNotification(
+                    'Your Report Has Been Resolved',
+                    "Your report '{$grievance->grievance_title}' has been successfully resolved. Please take a moment to submit your feedback.",
+                    'success',
+                    ['grievance_ticket_id' => $ticketId],
+                    ['type' => 'success'],
+                    true,
+                    [
+                        [
+                            'label'        => 'Submit Feedback',
+                            'url'          => $feedbackUrl,
+                            'open_new_tab' => false,
+                        ],
+                    ]
+                ));
+            }
         }
 
         $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
@@ -443,7 +487,6 @@ class View extends Component
 
         $this->dispatch('close-all-modals');
         $this->dispatch('update-success-modal');
-
         $this->grievance->refresh();
     }
 

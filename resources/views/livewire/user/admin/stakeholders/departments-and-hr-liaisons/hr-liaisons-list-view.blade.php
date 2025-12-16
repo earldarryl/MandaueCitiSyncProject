@@ -229,7 +229,7 @@
                                         openEditLiaison = false;
                                     "
                                 >
-                                    <div class="relative inline-block text-left">
+                                    <div class="inline-block text-left">
                                         <button @click="open = !open"
                                             class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
                                             <x-heroicon-o-ellipsis-horizontal
@@ -237,7 +237,7 @@
                                         </button>
 
                                         <div x-show="open" x-transition @click.away="open = false"
-                                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900
+                                            class="absolute right-16 mt-2 w-56 bg-white dark:bg-zinc-900
                                                 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
 
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">

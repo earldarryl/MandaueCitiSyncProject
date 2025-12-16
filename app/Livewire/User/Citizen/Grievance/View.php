@@ -149,13 +149,7 @@ class View extends Component
                 ['grievance_ticket_id' => $grievance->grievance_ticket_id],
                 ['type' => 'info'],
                 true,
-                [
-                    [
-                        'label'        => 'View Report',
-                        'url'          => route('hr-liaison.grievance.view', $grievance->grievance_ticket_id),
-                        'open_new_tab' => true,
-                    ]
-                ]
+                []
             ));
         }
 
@@ -173,7 +167,7 @@ class View extends Component
                     [
                         'label'        => 'View Report',
                         'url'          => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
-                        'open_new_tab' => true,
+                        'open_new_tab' => false,
                     ],
                     [
                         'label'   => 'Undo',

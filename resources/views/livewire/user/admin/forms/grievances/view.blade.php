@@ -943,6 +943,11 @@
                                 return this.department ? this.categoriesMap[this.department] || [] : [];
                             }
                         }"
+
+                        @reset-reroute-form.window="
+                            department = null;
+                            grievanceCategory = '';
+                        "
                         class="flex flex-col gap-6"
                     >
                         <div class="flex flex-col gap-2">
@@ -967,14 +972,49 @@
                                     Choose a category based on the selected department.
                                 </h3>
 
-                                <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                                <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }" @reset-reroute-form.window="open = false; search = '';">
                                     <flux:input
                                         readonly
                                         x-model="grievanceCategory"
-                                        placeholder="Select grievance category"
+                                        placeholder="Select report category"
                                         @click="open = !open"
                                         class:input="border rounded-lg w-full cursor-pointer select-none"
                                     />
+
+                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
+                                        <!-- Clear (X) -->
+                                        <flux:button
+                                            x-show="!!grievanceCategory"
+                                            size="sm"
+                                            variant="subtle"
+                                            icon="x-mark"
+                                            class="h-5 w-5"
+                                            @click.stop="
+                                                grievanceCategory = '';
+                                                $wire.set('category', '', true);
+                                                search = '';
+                                            "
+                                        />
+
+                                        <!-- Chevron -->
+                                        <div class="h-5 w-5 flex items-center justify-center">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="2"
+                                                stroke="currentColor"
+                                                class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                                                :class="open ? 'rotate-180' : ''"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </div>
 
                                     <div
                                         x-show="open"

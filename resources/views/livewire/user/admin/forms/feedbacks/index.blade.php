@@ -169,7 +169,7 @@
                     transition-all duration-200"
             >
                 <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
-                <span wire:loading.remove wire:target="importFeedbacksExcel">Import Grievances</span>
+                <span wire:loading.remove wire:target="importFeedbacksExcel">Import Feedbacks</span>
                 <span wire:loading wire:target="importFeedbacksExcel">Processing...</span>
             </button>
 
