@@ -7,17 +7,15 @@ use App\Models\Assignment;
 use App\Models\Department;
 use App\Models\Grievance;
 use App\Models\GrievanceAttachment;
+use App\Models\GrievanceReroute;
 use App\Models\HistoryLog;
 use App\Models\HrLiaisonDepartment;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
-use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -26,6 +24,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Spatie\Browsershot\Browsershot;
+use Illuminate\Support\Facades\URL;
 #[Layout('layouts.app')]
 #[Title('Assignment Reports')]
 class Index extends Component
@@ -41,11 +40,15 @@ class Index extends Component
     public $searchInput = '';
     public $importFile;
     public $filterPriority = '';
-    public $filterStatus = 'Pending';
+    public $filterStatus = '';
     public $filterType = '';
     public $filterCategory = '';
     public $filterDate = '';
     public $filterIdentity = '';
+    public $filterRerouteStatus = '';
+    public $filterFromDepartment = '';
+    public $filterToDepartment = '';
+    public $filterRerouteCategory = '';
     public $selectAll = false;
     public $selected = [];
     public $department;
@@ -53,7 +56,9 @@ class Index extends Component
     public $status;
     public $priorityUpdate;
     public $departmentOptions;
+    public $departmentRerouteOptions;
     public $categoryOptions;
+    public $grievanceRerouteCategories;
     public $totalGrievances = 0;
     public $criticalPriorityCount = 0;
     public $highPriorityCount = 0;
@@ -80,6 +85,38 @@ class Index extends Component
     protected $listeners = [
         'poll' => '$refresh',
     ];
+
+    public string $rerouteSortField = 'created_at';
+    public string $rerouteSortDirection = 'desc';
+    public int $reroutePerPage = 10;
+    public string $searchReroutesInput = '';
+    public string $searchReroutes = '';
+
+    public function sortReroutesBy(string $field)
+    {
+        if ($this->rerouteSortField === $field) {
+            $this->rerouteSortDirection =
+                $this->rerouteSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->rerouteSortField = $field;
+            $this->rerouteSortDirection = 'asc';
+        }
+
+        $this->resetPage();
+    }
+
+    public function applySearchReroutes()
+    {
+        $this->searchReroutes = trim($this->searchReroutesInput);
+        $this->resetPage('reroutesPage');
+    }
+
+    public function clearSearchReroutes()
+    {
+        $this->searchReroutesInput = '';
+        $this->searchReroutes = '';
+        $this->resetPage('reroutesPage');
+    }
 
     private function displayRoleName(string $role): string
     {
@@ -112,6 +149,7 @@ class Index extends Component
 
         $this->resetErrorBag();
         $this->resetValidation();
+        $this->dispatch('reset-reroute-form');
 
     }
 
@@ -126,6 +164,8 @@ class Index extends Component
 
         $this->resetErrorBag();
         $this->resetValidation();
+        $this->dispatch('reset-reroute-form');
+
     }
 
     public function mount()
@@ -148,6 +188,12 @@ class Index extends Component
 
         $this->departmentOptions = Department::whereHas('hrLiaisons')
             ->whereNotIn('department_name', $liaisonDepartments)
+            ->where('is_active', 1)
+            ->where('is_available', 1)
+            ->pluck('department_name', 'department_name')
+            ->toArray();
+
+        $this->departmentRerouteOptions = Department::whereHas('hrLiaisons')
             ->where('is_active', 1)
             ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
@@ -236,6 +282,10 @@ class Index extends Component
 
         $this->categoryOptions = array_combine($allCategories, $allCategories);
 
+        $this->grievanceRerouteCategories = Grievance::distinct('grievance_category')
+            ->pluck('grievance_category')
+            ->filter()
+            ->toArray();
     }
 
     public function sortBy(string $field): void
@@ -350,7 +400,7 @@ class Index extends Component
 
         $headers = [
             'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
-            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks'
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks', 'Created At', 'Updated At'
         ];
 
         foreach ($headers as $col => $header) {
@@ -391,7 +441,9 @@ class Index extends Component
                 $departments,
                 strip_tags($report->grievance_details),
                 $attachments,
-                $remarksStr
+                $remarksStr,
+                $report->created_at?->format('Y-m-d H:i:s') ?? '',
+                $report->updated_at?->format('Y-m-d H:i:s') ?? '',
             ];
 
             foreach ($values as $col => $value) {
@@ -434,7 +486,7 @@ class Index extends Component
 
         $headers = [
             'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
-            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks'
+            'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks', 'Created At', 'Updated At'
         ];
 
         foreach ($headers as $col => $header) {
@@ -475,7 +527,9 @@ class Index extends Component
                 $departments,
                 strip_tags($report->grievance_details),
                 $attachments,
-                $remarksStr
+                $remarksStr,
+                $report->created_at?->format('Y-m-d H:i:s') ?? '',
+                $report->updated_at?->format('Y-m-d H:i:s') ?? '',
             ];
 
             foreach ($values as $col => $value) {
@@ -529,7 +583,7 @@ class Index extends Component
             foreach ($rows as $row) {
                 [
                     $ticketId, $title, $type, $category, $priority,
-                    $status, $submittedBy, $departments, $details, $attachmentsColumn, $remarksColumn
+                    $status, $submittedBy, $departments, $details, $attachmentsColumn, $remarksColumn, $createdAtColumn, $updatedAtColumn
                 ] = array_pad($row, 11, null);
 
                 $existingReport = Grievance::withTrashed()->where('grievance_ticket_id', $ticketId)->first();
@@ -551,6 +605,9 @@ class Index extends Component
                     default    => 7,
                 };
 
+                $createdAt = $createdAtColumn ? \Carbon\Carbon::parse($createdAtColumn) : now();
+                $updatedAt = $updatedAtColumn ? \Carbon\Carbon::parse($updatedAtColumn) : now();
+
                 $report = Grievance::updateOrCreate(
                     ['grievance_ticket_id' => $ticketId],
                     [
@@ -563,6 +620,8 @@ class Index extends Component
                         'is_anonymous' => strtolower($submittedBy) === 'anonymous' ? 1 : 0,
                         'grievance_status' => strtolower($status) === 'pending' ? 'pending' : strtolower($status),
                         'processing_days' => $processingDays,
+                        'created_at' => $createdAt,
+                        'updated_at' => $updatedAt,
                     ]
                 );
 
@@ -847,11 +906,22 @@ class Index extends Component
                     continue;
                 }
 
+                $oldDepartmentId = $grievance->department_id;
+
                 $grievance->update([
                     'department_id'      => $department->department_id,
                     'grievance_status'   => 'pending',
                     'grievance_category' => $this->category,
                     'updated_at'         => now(),
+                ]);
+
+                GrievanceReroute::create([
+                    'grievance_id'       => $grievance->grievance_id,
+                    'from_department_id' => $oldDepartmentId,
+                    'to_department_id'   => $department->department_id,
+                    'performed_by'       => $user->id,
+                    'from_category'      => $oldCategory,
+                    'to_category'        => $this->category,
                 ]);
 
                 foreach ($hrLiaisons as $liaisonId) {
@@ -1038,6 +1108,30 @@ class Index extends Component
                             'open_new_tab' => false,
                         ]]
                     ));
+
+                $feedbackUrl = URL::temporarySignedRoute(
+                    'citizen.feedback-form',
+                    now()->addDays(7),
+                    ['ticket' => $ticketId]
+                );
+
+                if($formattedStatus === 'resolved'){
+                    $citizen->notify(new GeneralNotification(
+                            'Your Report Has Been Resolved',
+                            "Your report '{$grievance->grievance_title}' has been successfully resolved. Please take a moment to submit your feedback.",
+                            'success',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'success'],
+                            true,
+                            [
+                                [
+                                    'label'        => 'Submit Feedback',
+                                    'url'          => $feedbackUrl,
+                                    'open_new_tab' => false,
+                                ],
+                            ]
+                        ));
+                    }
                 }
 
                 $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
@@ -1431,12 +1525,144 @@ class Index extends Component
         return response()->stream($callback, 200, $headers);
     }
 
+    public function downloadReportsRoutesCsv()
+    {
+        $user = auth()->user();
+        $departmentIds = $user->departments->pluck('department_id');
+
+        $reroutes = GrievanceReroute::with(['grievance', 'fromDepartment', 'toDepartment', 'performedBy'])
+            ->whereIn('from_department_id', $departmentIds)
+            ->orWhereIn('to_department_id', $departmentIds)
+            ->latest()
+            ->get();
+
+        if ($reroutes->isEmpty()) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reroutes Found',
+                'message' => 'There are no reroutes assigned to your departments to export.',
+            ]);
+            return;
+        }
+
+        $filename = "reroutes-{$user->id}-" . now()->format('Y_m_d_His') . ".csv";
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($reroutes) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Reroute ID',
+                'Ticket ID',
+                'Status',
+                'From Department',
+                'To Department',
+                'Performed By',
+                'From Category',
+                'To Category',
+                'Date',
+            ]);
+
+            foreach ($reroutes as $r) {
+                fputcsv($handle, [
+                    $r->id,
+                    $r->grievance->grievance_ticket_id ?? '—',
+                    ucwords(str_replace('_', ' ', $r->grievance->grievance_status)) ?? '—',
+                    $r->fromDepartment->department_name ?? '—',
+                    $r->toDepartment->department_name ?? '—',
+                    $r->performedBy->name ?? '—',
+                    $r->from_category ?? '—',
+                    $r->to_category ?? '—',
+                    $r->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function downloadReportsRoutesExcel()
+    {
+        $user = auth()->user();
+        $userNameSlug = str_replace(' ', '_', $user->name);
+
+        $departmentIds = $user->departments->pluck('department_id');
+
+        $reroutes = GrievanceReroute::with(['grievance', 'fromDepartment', 'toDepartment', 'performedBy'])
+            ->whereIn('from_department_id', $departmentIds)
+            ->orWhereIn('to_department_id', $departmentIds)
+            ->latest()
+            ->get();
+
+        if ($reroutes->isEmpty()) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => 'No Reroutes Found',
+                'message' => 'There are no reroutes assigned to your departments to export.',
+            ]);
+            return;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Reroutes');
+
+        $headers = [
+            'Reroute ID', 'Ticket ID', 'Status', 'From Department', 'To Department',
+            'Performed By', 'From Category', 'To Category', 'Date'
+        ];
+
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . '1', $header);
+        }
+
+        $rowNumber = 2;
+        foreach ($reroutes as $r) {
+            $values = [
+                $r->id,
+                $r->grievance->grievance_ticket_id ?? '—',
+                ucwords(str_replace('_', ' ', $r->grievance->grievance_status)) ?? '—',
+                $r->fromDepartment->department_name ?? '—',
+                $r->toDepartment->department_name ?? '—',
+                $r->performedBy->name ?? '—',
+                $r->from_category ?? '—',
+                $r->to_category ?? '—',
+                $r->created_at->format('Y-m-d H:i:s')
+            ];
+
+            foreach ($values as $col => $value) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $rowNumber, $value);
+            }
+
+            $rowNumber++;
+        }
+
+        $filename = "reroutes-{$userNameSlug}-" . now()->format('Y_m_d_His') . ".xlsx";
+        $writer = new Xlsx($spreadsheet);
+        $temp_file = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($temp_file);
+
+        return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
+    }
+
     public function applySearch()
     {
         $this->search = $this->searchInput;
         $this->resetPage();
     }
     public function applyFilters()
+    {
+        $this->resetPage();
+        $this->updateStats();
+
+    }
+
+    public function applyRerouteFilters()
     {
         $this->resetPage();
         $this->updateStats();
@@ -1553,8 +1779,71 @@ class Index extends Component
             }, function($query) {
                 $query->orderBy('created_at', 'desc');
             })
-            ->paginate($this->perPage);
+            ->paginate($this->perPage, ['*'], 'grievancesPage');
 
-        return view('livewire.user.hr-liaison.grievance.index', compact('grievances'));
+            $departmentIds = $user->departments->pluck('department_id')->toArray();
+
+            $grievanceReroutes = GrievanceReroute::with([
+                    'grievance',
+                    'fromDepartment',
+                    'toDepartment',
+                    'performedBy'
+                ])
+                ->where(function ($q) use ($departmentIds) {
+                    $q->whereIn('from_department_id', $departmentIds)
+                    ->orWhereIn('to_department_id', $departmentIds);
+                })
+                ->when($this->filterRerouteStatus && $this->filterRerouteStatus !== 'Show All', function ($q) {
+                    $statusMap = [
+                        'Pending' => 'pending',
+                        'Acknowledged' => 'acknowledged',
+                        'In Progress' => 'in_progress',
+                        'Escalated' => 'escalated',
+                        'Resolved' => 'resolved',
+                        'Unresolved' => 'unresolved',
+                        'Closed' => 'closed',
+                        'Overdue' => 'overdue',
+                    ];
+                    if (isset($statusMap[$this->filterRerouteStatus])) {
+                        $q->whereHas('grievance', fn($g) => $g->where('grievance_status', $statusMap[$this->filterRerouteStatus]));
+                    }
+                })
+                ->when($this->filterFromDepartment, function ($q) {
+                    $q->whereHas('fromDepartment', function ($sub) {
+                        $sub->where('department_name', $this->filterFromDepartment);
+                    });
+                })
+                ->when($this->filterToDepartment, function ($q) {
+                    $q->whereHas('toDepartment', function ($sub) {
+                        $sub->where('department_name', $this->filterToDepartment);
+                    });
+                })
+                ->when($this->filterRerouteCategory, fn($q) => $q->where('from_category', $this->filterRerouteCategory)->orWhere('to_category', $this->filterRerouteCategory))
+                ->when($this->searchReroutes, function ($q) {
+                    $term = '%' . $this->searchReroutes . '%';
+                    $q->where(function ($sub) use ($term) {
+                        $sub->where('id', 'like', $term)
+                            ->orWhere('from_category', 'like', $term)
+                            ->orWhere('to_category', 'like', $term)
+                            ->orWhereHas('grievance', function ($g) use ($term) {
+                                $g->where('grievance_ticket_id', 'like', $term)
+                                ->orWhere('grievance_title', 'like', $term);
+                            })
+                            ->orWhereHas('fromDepartment', fn ($d) =>
+                                $d->where('department_name', 'like', $term)
+                            )
+                            ->orWhereHas('toDepartment', fn ($d) =>
+                                $d->where('department_name', 'like', $term)
+                            )
+                            ->orWhereHas('performedBy', fn ($u) =>
+                                $u->where('name', 'like', $term)
+                            );
+                    });
+                })
+                ->orderBy($this->rerouteSortField, $this->rerouteSortDirection)
+                ->paginate($this->reroutePerPage, ['*'], 'reroutesPage');
+
+
+        return view('livewire.user.hr-liaison.grievance.index', compact('grievances', 'grievanceReroutes'));
     }
 }

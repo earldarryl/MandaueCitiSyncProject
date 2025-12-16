@@ -10,15 +10,15 @@
         <flux:field>
             <div class="flex flex-col gap-2">
                 <flux:label class="flex gap-2">
-                    <flux:icon.at-symbol/>
-                    <span>Email</span>
+                    <flux:icon.user/>
+                    <span>Email/Username</span>
                 </flux:label>
                 <flux:input.group>
                         <flux:input
                             wire:model="form.email"
                             id="email"
                             type="text"
-                            placeholder="Enter your email"
+                            placeholder="Enter your email/username"
                             class:input="text-lg font-semibold"
                             clearable
                             x-on:keydown.enter.prevent="$wire.call('login')"

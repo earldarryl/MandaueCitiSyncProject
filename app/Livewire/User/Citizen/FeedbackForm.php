@@ -77,8 +77,16 @@ class FeedbackForm extends Component
         'email.max' => 'Email must not exceed 255 characters.',
     ];
 
-    public function mount()
+    public string $ticket;
+
+    public function mount($ticket)
     {
+        if (session()->has("feedback_used_{$ticket}")) {
+            abort(403, 'This feedback link has already been used.');
+        }
+
+        $this->ticket = $ticket;
+
         $user = auth()->user();
 
         if ($user && $user->hasRole('citizen') && $user->userInfo) {
@@ -218,6 +226,8 @@ class FeedbackForm extends Component
             $this->answers = [];
             $this->suggestions = null;
             $this->email = null;
+
+            session()->put("feedback_used_{$this->ticket}", true);
 
         } catch (ValidationException $e) {
             $this->showConfirmModal = true;

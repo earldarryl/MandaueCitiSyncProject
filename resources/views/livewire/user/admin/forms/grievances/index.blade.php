@@ -732,6 +732,11 @@
                                     return this.department ? this.categoriesMap[this.department] || [] : [];
                                 }
                             }"
+
+                            @reset-reroute-form.window="
+                                department = null;
+                                grievanceCategory = '';
+                            "
                             class="flex flex-col gap-6"
                         >
                             <div class="flex flex-col gap-2">
@@ -756,7 +761,7 @@
                                         Choose a category based on the selected department.
                                     </h3>
 
-                                    <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }">
+                                    <div class="relative !cursor-pointer" x-data="{ open: false, search: '' }" @reset-reroute-form.window="open = false; search = '';">
                                         <flux:input
                                             readonly
                                             x-model="grievanceCategory"
@@ -764,6 +769,41 @@
                                             @click="open = !open"
                                             class:input="border rounded-lg w-full cursor-pointer select-none"
                                         />
+
+                                        <div class="absolute right-3 inset-y-0 flex items-center gap-2">
+                                            <!-- Clear (X) -->
+                                            <flux:button
+                                                x-show="!!grievanceCategory"
+                                                size="sm"
+                                                variant="subtle"
+                                                icon="x-mark"
+                                                class="h-5 w-5"
+                                                @click.stop="
+                                                    grievanceCategory = '';
+                                                    $wire.set('category', '', true);
+                                                    search = '';
+                                                "
+                                            />
+
+                                            <!-- Chevron -->
+                                            <div class="h-5 w-5 flex items-center justify-center">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke-width="2"
+                                                    stroke="currentColor"
+                                                    class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                                                    :class="open ? 'rotate-180' : ''"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        </div>
 
                                         <div
                                             x-show="open"
@@ -1009,8 +1049,8 @@
 
     <div class="relative">
         <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
-
-            <div wire:loading.remove wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch">
+            <h2 class="text-3xl font-bold mb-6">Reports</h2>
+            <div wire:loading.remove wire:target="gotoPageGrievancesPage">
                 <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -1291,7 +1331,7 @@
                 </div>
             </div>
 
-            <div wire:loading wire:target="applySearch, previousPage, nextPage, gotoPage, clearSearch"
+            <div wire:loading wire:target="gotoPageGrievancesPage"
                 class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
                     <thead class="bg-gray-100 dark:bg-zinc-900">
@@ -1324,6 +1364,367 @@
 
             <div class="p-4">
                 {{ $grievances->links() }}
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex flex-col flex-1 gap-2 w-full">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full mx-auto px-3 my-2">
+            <x-filter-select
+                name="filterRerouteStatus"
+                placeholder="Status"
+                :options="['Show All', 'Pending', 'Acknowledged', 'In Progress', 'Escalated', 'Resolved', 'Unresolved', 'Closed', 'Overdue']"
+            />
+
+            <x-filter-select
+                name="filterFromDepartment"
+                placeholder="From Department"
+                :options="$departmentOptions"
+            />
+
+            <x-filter-select
+                name="filterToDepartment"
+                placeholder="To Department"
+                :options="$departmentOptions"
+            />
+
+            <x-filter-select
+                name="filterRerouteCategory"
+                placeholder="Category"
+                :options="$grievanceRerouteCategories"
+            />
+        </div>
+
+        <div class="flex justify-center w-full px-3 mb-3">
+            <button
+                wire:click="applyRerouteFilters"
+                class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white w-full font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300">
+                <flux:icon.adjustments-horizontal class="w-4 h-4" />
+                <span wire:loading.remove wire:target="applyRerouteFilters">Apply Filters</span>
+                <span wire:loading wire:target="applyRerouteFilters">Processing...</span>
+            </button>
+        </div>
+
+        <div class="flex w-full flex-1 px-3 mb-3">
+
+            <div class="relative w-full font-bold">
+                <label for="searchReroutes" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+
+                    <input
+                        type="text"
+                        id="searchReroutes"
+                        wire:model.defer="searchReroutesInput"
+                        wire:keydown.enter="applySearchReroutes"
+                        placeholder="Search reports..."
+                        class="block w-full p-4 ps-10 pe-28 text-sm text-gray-900 border border-gray-300 rounded-lg
+                            bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                            dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400
+                            dark:text-white dark:focus:outline-none dark:focus:ring-2 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                    />
+
+                    <button
+                        type="button"
+                        wire:click="clearSearchReroutes"
+                        class="absolute inset-y-0 right-28 flex items-center justify-center text-gray-500
+                            hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
+                    >
+                        <flux:icon.x-mark class="w-4 h-4" />
+                    </button>
+
+                    <button
+                        type="button"
+                        wire:click="applySearchReroutes"
+                        class="absolute inset-y-0 right-0 my-auto inline-flex items-center justify-center gap-2
+                            px-4 py-2 text-sm font-semibold rounded-r-xl
+                            text-white bg-gradient-to-r from-blue-600 to-blue-700
+                            hover:from-blue-700 hover:to-blue-800
+                            focus:outline-none focus:ring-0
+                            shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="flex flex-col w-full">
+            <div class="flex flex-wrap items-center justify-end gap-2 mb-2 px-3">
+                <button
+                    wire:click="downloadReportsRoutesCsv"
+                    wire:loading.attr="disabled"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300
+                        border border-blue-500 dark:border-blue-400
+                        hover:bg-blue-200 dark:hover:bg-blue-800/50
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-700
+                        transition-all duration-200">
+                    <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                    <span wire:loading.remove wire:target="downloadReportsRoutesCsv">Export All in CSV</span>
+                    <span wire:loading wire:target="downloadReportsRoutesCsv">Processing...</span>
+                </button>
+
+                <button
+                    wire:click="downloadReportsRoutesExcel"
+                    wire:loading.attr="disabled"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-lg
+                        bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300
+                        border border-green-500 dark:border-green-400
+                        hover:bg-green-200 dark:hover:bg-green-800/50
+                        focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-700
+                        transition-all duration-200">
+                    <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                    <span wire:loading.remove wire:target="downloadReportsRoutesExcel">Export All in Excel</span>
+                    <span wire:loading wire:target="downloadReportsRoutesExcel">Processing...</span>
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="relative">
+        <div class="w-full h-full p-6 bg-gray-50 dark:bg-zinc-900">
+            <h2 class="text-3xl font-bold mb-6">Reroute History</h2>
+            <div wire:loading.remove wire:target="gotoPageReroutesPage">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700 text-sm">
+                        <thead class="bg-gray-50 dark:bg-zinc-700 text-gray-700 dark:text-gray-400 uppercase text-xs">
+                            <tr>
+                                <th wire:click="sortReroutesBy('id')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Reroute ID</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'id')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('grievance_id')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Ticket ID</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'grievance_id')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th scope="col" class="px-6 py-3 text-center">
+                                    Status
+                                </th>
+
+                                <th wire:click="sortReroutesBy('from_department_id')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>From Department</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'from_department_id')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('to_department_id')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>To Department</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'to_department_id')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('performed_by')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Performed By</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'performed_by')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('from_category')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>From Category</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'from_category')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('to_category')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>To Category</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'to_category')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th wire:click="sortReroutesBy('created_at')" scope="col" class="px-6 py-3 cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <span>Date</span>
+                                        <span class="w-2.5 h-full font-bold">
+                                            @if($rerouteSortField === 'created_at')
+                                                @if($rerouteSortDirection === 'asc')
+                                                    <x-heroicon-s-chevron-up class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @else
+                                                    <x-heroicon-s-chevron-down class="w-3 h-3 text-blue-500 dark:text-blue-400"/>
+                                                @endif
+                                            @else
+                                                <x-heroicon-s-chevron-up class="w-3 h-3 text-gray-400 dark:text-gray-500"/>
+                                                <x-heroicon-s-chevron-down class="w-3 h-3 text-gray-400 dark:text-gray-500 -mt-0.5"/>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                            @forelse($grievanceReroutes as $reroute)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->id }}</td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->grievance->grievance_ticket_id ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-full border shadow-sm
+                                            {{ match($reroute->grievance->grievance_status) {
+                                                'pending' => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                                'acknowledged' => 'bg-indigo-100 text-indigo-800 border-indigo-400 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-500',
+                                                'in_progress' => 'bg-blue-100 text-blue-800 border-blue-400 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500',
+                                                'escalated' => 'bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-500',
+                                                'resolved' => 'bg-green-100 text-green-800 border-green-400 dark:bg-green-900/40 dark:text-green-300 dark:border-green-500',
+                                                'unresolved' => 'bg-red-100 text-red-800 border-red-400 dark:bg-red-900/40 dark:text-red-300 dark:border-red-500',
+                                                'closed' => 'bg-purple-100 text-purple-800 border-purple-400 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-500',
+                                                'overdue' => 'bg-rose-100 text-rose-800 border-rose-400 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500',
+                                                default => 'bg-gray-100 text-gray-800 border-gray-400 dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600',
+                                            } }}"
+                                            >
+                                                {{ ucwords(str_replace('_', ' ', $reroute->grievance->grievance_status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->fromDepartment->department_name ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->toDepartment->department_name ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->performedBy->name ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->from_category ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center font-medium">{{ $reroute->to_category ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-center text-sm font-medium">{{ $reroute->created_at->format('M d, Y h:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                                        <x-heroicon-o-archive-box-x-mark class="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                        No reports found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4">
+                    {{ $grievanceReroutes->links() }}
+                </div>
+            </div>
+
+            <div wire:loading wire:target="gotoPageReroutesPage"
+                class="overflow-x-auto w-full rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-800 animate-pulse">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+                    <thead class="bg-gray-100 dark:bg-zinc-900">
+                        <tr>
+                            @for ($i = 0; $i < 8; $i++)
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <div class="h-3 bg-gray-300 dark:bg-zinc-700 rounded w-3/4"></div>
+                                </th>
+                            @endfor
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                        @for ($row = 0; $row < 5; $row++)
+                            <tr>
+                                @for ($col = 0; $col < 8; $col++)
+                                    <td class="px-4 py-3 align-middle">
+                                        @if($col === 0)
+                                            <div class="h-4 w-4 rounded bg-gray-200 dark:bg-zinc-700"></div>
+                                        @else
+                                            <div class="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full"></div>
+                                        @endif
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
             </div>
 
         </div>

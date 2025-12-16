@@ -232,11 +232,11 @@
                                 @if($assignment->hr_liaison_id !== $hrLiaison->id) bg-gray-100 dark:bg-gray-800/40 @endif">
 
                                 <td class="px-6 py-4 text-center text-sm font-medium text-blue-600 dark:text-blue-400">
-                                    {{ $assignment->grievance->grievance_ticket_id }}
+                                    {{ $assignment->grievance->grievance_ticket_id ?? '' }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
-                                    {{ $assignment->grievance->grievance_title }}
+                                    {{ $assignment->grievance->grievance_title ?? '' }}
                                 </td>
 
                                 <td class="px-6 py-4 text-center text-sm text-gray-700 dark:text-gray-300">
@@ -267,14 +267,14 @@
                                         <div x-show="open" x-transition @click.away="open = false"
                                             class="absolute right-4 w-44 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
                                             <div class="flex flex-col divide-y divide-gray-200 dark:divide-zinc-700">
-
-                                                <a href="{{ route('admin.forms.grievances.view', $assignment->grievance->grievance_ticket_id) }}"
-                                                wire:navigate
-                                                class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
-                                                    <x-heroicon-o-eye class="w-4 h-4 text-blue-500 dark:text-blue-400"/>
-                                                    View
-                                                </a>
-
+                                                @if($assignment->grievance->grievance_ticket_id)
+                                                    <a href="{{ route('admin.forms.grievances.view', $assignment->grievance->grievance_ticket_id) }}"
+                                                    wire:navigate
+                                                    class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2 text-sm">
+                                                        <x-heroicon-o-eye class="w-4 h-4 text-blue-500 dark:text-blue-400"/>
+                                                        View
+                                                    </a>
+                                                @endif
                                                 @if($assignment->hr_liaison_id)
                                                     <button
                                                         wire:click="unassignSingle({{ $assignment->grievance_id }})"

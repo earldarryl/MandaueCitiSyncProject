@@ -37,11 +37,11 @@ class Index extends Component
     public function downloadSelectedFeedbacksCsv()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Feedbacks Selected')
-                ->body('Please select at least one feedback to download.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Feedbacks Found',
+                'message' => "Please select at least one feedback to download.",
+            ]);
             return;
         }
 
@@ -82,11 +82,11 @@ class Index extends Component
         $feedbacks = $this->allFilteredFeedbacks();
 
         if ($feedbacks->isEmpty()) {
-            Notification::make()
-                ->title('No Feedbacks Found')
-                ->body('There are no feedbacks available to export.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Feedbacks Found',
+                'message' => "There are no feedbacks available to export.",
+            ]);
             return;
         }
 
@@ -383,21 +383,22 @@ class Index extends Component
     public function exportSelectedFeedbacksExcel()
     {
         if (empty($this->selected)) {
-            Notification::make()
-                ->title('No Feedbacks Selected')
-                ->body('Please select at least one feedback to export.')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Feedbacks Selected',
+                'message' => "Please select at least one feedback to export.",
+            ]);
             return;
         }
 
         $feedbacks = Feedback::whereIn('id', $this->selected)->get();
 
         if ($feedbacks->isEmpty()) {
-            Notification::make()
-                ->title('No Feedbacks Found')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Feedbacks Found',
+                'message' => "",
+            ]);
             return;
         }
 
@@ -443,10 +444,11 @@ class Index extends Component
         $feedbacks = $this->allFilteredFeedbacks();
 
         if ($feedbacks->isEmpty()) {
-            Notification::make()
-                ->title('No Feedbacks Found')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No Feedbacks Found',
+                'message' => "",
+            ]);
             return;
         }
 
@@ -490,10 +492,11 @@ class Index extends Component
     public function importFeedbacksExcel()
     {
         if (!$this->importFile) {
-            Notification::make()
-                ->title('No File Selected')
-                ->warning()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'warning',
+                'title'   => 'No File Selected',
+                'message' => "",
+            ]);
             return;
         }
 
@@ -526,19 +529,20 @@ class Index extends Component
                 ]);
             }
 
-            Notification::make()
-                ->title('Import Successful')
-                ->success()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'success',
+                'title'   => 'Import Successful',
+                'message' => "",
+            ]);
 
             Storage::disk('public')->delete($path);
 
         } catch (\Exception $e) {
-            Notification::make()
-                ->title('Import Failed')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'title'   => 'Import Failed',
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -573,6 +577,5 @@ class Index extends Component
             'mostCommonSQD' => $this->mostCommonSQD,
         ]);
     }
-
 
 }

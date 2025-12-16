@@ -423,12 +423,14 @@ class Assignments extends Component
 
     public function render()
     {
-        $query = Assignment::with(['grievance' => fn($q) => $q->whereNull('deleted_at'), 'department'])
+        $query = Assignment::with(['grievance', 'department'])
             ->where('department_id', $this->departmentId)
+            ->whereHas('grievance', fn($q) => $q->whereNull('deleted_at'))
             ->where(function ($q) {
                 $q->where('hr_liaison_id', $this->hrLiaison->id)
                 ->orWhereNull('hr_liaison_id');
             });
+
 
         if ($this->searchTerm) {
             $query->whereHas('grievance', fn($q) =>
@@ -447,12 +449,12 @@ class Assignments extends Component
             $query->whereDate('assigned_at', $this->filterDate);
         }
 
-        $assignmentsPaginated = $query->paginate(10);
+        $assignmentsPaginated = $query->distinct('grievance_id')->paginate(10);
 
-        $baseQuery = Assignment::whereHas('grievance', function ($q) {
-            $q->where('department_id', $this->departmentId)
-            ->whereNull('deleted_at');
-        });
+        $baseQuery = Assignment::where('department_id', $this->departmentId)
+            ->whereHas('grievance', function ($q) {
+                $q->whereNull('deleted_at');
+            });
 
         $assignedCount = (clone $baseQuery)
             ->where('hr_liaison_id', $this->hrLiaison->id)
@@ -479,6 +481,5 @@ class Assignments extends Component
             ],
         ]);
     }
-
 
 }

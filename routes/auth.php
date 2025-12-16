@@ -59,7 +59,7 @@ Route::middleware(['auth', 'verified', 'single_session', '2fa'])->group(function
         Volt::route('citizen/reports/create', 'user.citizen.grievance.create')->name('citizen.grievance.create');
         Volt::route('citizen/reports/view/{grievance}', 'user.citizen.grievance.view')->name('citizen.grievance.view');
         Volt::route('citizen/reports/edit/{grievance}', 'user.citizen.grievance.edit')->name('citizen.grievance.edit');
-        Volt::route('citizen/feedback-form', 'user.citizen.feedback-form')->name('citizen.feedback-form');
+        Volt::route('citizen/feedback-form/{ticket}','user.citizen.feedback-form')->name('citizen.feedback-form')->middleware('signed');
         Volt::route('citizen/submission-history', 'user.citizen.submission-history')->name('citizen.submission-history');
     });
 

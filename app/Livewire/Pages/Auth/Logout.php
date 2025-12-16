@@ -2,9 +2,6 @@
 
 namespace App\Livewire\Pages\Auth;
 
-use App\Models\User;
-use App\Notifications\GeneralNotification;
-use Illuminate\Auth\Events\Logout as LogoutEvent;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -16,9 +13,20 @@ class Logout extends Component
     {
         $user = auth()->user();
 
+        $redirectRoute = route('login', absolute: false);
+
         if ($user) {
             $role = $user->roles->first()?->name ?? 'user';
-            $roleName = $role === 'hr_liaison' ? 'HR Liaison' : ucfirst($role);
+
+            $redirectRoute = match ($role) {
+                'admin'       => route('admin.login', absolute: false),
+                'hr_liaison'  => route('hr-liaison.login', absolute: false),
+                default       => route('login', absolute: false),
+            };
+
+            $roleName = $role === 'hr_liaison'
+                ? 'HR Liaison'
+                : ucfirst($role);
 
             ActivityLog::create([
                 'user_id'      => $user->id,
@@ -43,11 +51,15 @@ class Logout extends Component
         }
 
         $this->dispatch('close-logout-modal');
+
         Auth::guard('web')->logout();
         Session::invalidate();
         Session::regenerateToken();
 
-        $this->redirectIntended(default: route('login', absolute: false), navigate: true);
+        $this->redirectIntended(
+            default: $redirectRoute,
+            navigate: true
+        );
     }
 
     public function render()

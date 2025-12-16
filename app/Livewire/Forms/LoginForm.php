@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +16,7 @@ use Livewire\Form;
 
 class LoginForm extends Form
 {
-    #[Validate('required|string|email')]
+    #[Validate('required|string')]
     public string $email = '';
 
     #[Validate('required|string')]
@@ -38,11 +39,24 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        $user = User::where('email', $this->email)->first();
-
+        $user = User::where(function ($q) {
+            $q->where('email', $this->email)
+            ->orWhere('name', $this->email);
+        })
+        ->first();
+        // -------------------- Email does not exist --------------------
         if (! $user) {
             throw ValidationException::withMessages([
-                'status' => 'The provided email address does not exist.',
+                'form.email' => 'The provided email or username does not exist.',
+            ]);
+        }
+
+        // -------------------- Wrong password --------------------
+        if (! Hash::check($this->password, $user->password)) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'form.password' => 'The password you entered is incorrect.',
             ]);
         }
 
@@ -59,28 +73,22 @@ class LoginForm extends Form
             ]);
         }
 
-        // If forceLogin is true, delete the old session
         if ($activeSession && $this->forceLogin) {
             DB::table('sessions')->where('id', $activeSession->id)->delete();
         }
 
-        // -------------------- Attempt login --------------------
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'status' => 'These credentials do not match our records.',
-            ]);
-        }
-
+        // -------------------- Login manually --------------------
+        Auth::login($user, $this->remember);
         RateLimiter::clear($this->throttleKey());
 
-        $user = Auth::user();
-
+        // -------------------- Role validation --------------------
         if (! $user->hasRole($expectedRole)) {
             Auth::logout();
+
             throw ValidationException::withMessages([
                 'status' => 'These credentials do not match our records.',
+                'form.email' => 'Invalid email',
+                'form.password' => 'Invalid password',
             ]);
         }
 
@@ -89,6 +97,7 @@ class LoginForm extends Form
         // -------------------- Email verification --------------------
         if (! $user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();
+
             return [
                 'user' => $user,
                 'redirect' => route('verification.notice'),
@@ -106,9 +115,9 @@ class LoginForm extends Form
         };
 
         return [
-            'user' => $user,
+            'user'     => $user,
             'redirect' => $redirect,
-            'success' => 'Login successful! Redirecting...',
+            'success'  => 'Login successful! Redirecting...',
         ];
     }
 
