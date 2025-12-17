@@ -759,6 +759,7 @@ class Index extends Component
         $sheet->setTitle('Reports');
 
         $headers = [
+            'User ID',
             'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
             'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks', 'Created At', 'Updated At'
         ];
@@ -791,6 +792,7 @@ class Index extends Component
             }
 
             $values = [
+                $report->user_id,
                 $report->grievance_ticket_id,
                 $report->grievance_title,
                 $report->grievance_type,
@@ -845,6 +847,7 @@ class Index extends Component
         $sheet->setTitle('Reports');
 
         $headers = [
+            'User ID',
             'Report Ticket ID', 'Title', 'Type', 'Category', 'Priority',
             'Status', 'Submitted By', 'Departments', 'Details', 'Attachments', 'Remarks', 'Created At', 'Updated At'
         ];
@@ -879,6 +882,7 @@ class Index extends Component
             }
 
             $values = [
+                $report->user_id,
                 $report->grievance_ticket_id,
                 $report->grievance_title,
                 $report->grievance_type,
@@ -947,6 +951,7 @@ class Index extends Component
 
             foreach ($rows as $row) {
                 [
+                    $userIdColumn,
                     $ticketId, $title, $type, $category, $priority,
                     $status, $submittedBy, $departments, $details, $attachmentsColumn, $remarksColumn, $createdAtColumn, $updatedAtColumn
                 ] = array_pad($row, 11, null);
@@ -955,7 +960,10 @@ class Index extends Component
                     ->where('grievance_ticket_id', $ticketId)
                     ->first();
 
-                $userId = $existingReport?->user_id ?? $currentUser->id;
+                $userId = User::where('id', $userIdColumn)->exists()
+                            ? $userIdColumn
+                            : $currentUser->id;
+
 
                 $processingDays = match (strtolower($priority)) {
                     'low' => 3,

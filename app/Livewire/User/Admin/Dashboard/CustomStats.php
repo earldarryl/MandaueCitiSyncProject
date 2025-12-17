@@ -45,7 +45,7 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
     public $citizenFeedbacks = 0;
     protected $listeners = ['dateRangeUpdated' => 'updateDateRange', 'refresh' => '$refresh'];
     public $department_profile;
-    public $department_background;
+    public $create_department_background;
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
@@ -77,8 +77,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'password' => '',
         ];
 
-        $this->edit_department_profile = null;
-        $this->edit_department_background = null;
+        $this->department_profile = null;
+        $this->create_department_background = null;
 
         $this->profilePreview = null;
         $this->backgroundPreview = null;
@@ -93,10 +93,6 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
         $this->calculateStats();
 
-        $this->form->fill([
-            'department_profile' => $this->department_profile,
-            'department_background' => $this->department_background,
-        ]);
     }
 
     public function updateDateRange($start, $end)
@@ -246,9 +242,16 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'newDepartment.is_available' => 'required',
         ]);
 
-        $state = $this->form->getState();
-        $department_profile = $state['department_profile'] ?? null;
-        $department_background = $state['department_background'] ?? null;
+        $create_department_profile = null;
+        $create_department_background = null;
+
+        if (!empty($this->department_profile)) {
+            $create_department_profile = $this->department_profile->store('departments/profile', 'public');
+        }
+
+        if (!empty($this->create_department_background)) {
+            $create_department_background = $this->create_department_background->store('departments/backgrounds', 'public');
+        }
 
         $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
@@ -259,8 +262,8 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'department_description' => $this->newDepartment['department_description'],
             'is_active' => $isActiveValue,
             'is_available' => $isAvailableValue,
-            'department_profile' => $department_profile,
-            'department_bg' => $department_background,
+            'department_profile' => $create_department_profile,
+            'department_bg' => $create_department_background,
         ]);
 
         $this->newDepartment = [
@@ -269,24 +272,14 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
-            'department_profile' => null,
-            'department_background' => null,
         ];
 
-        $this->form->fill([
-            'department_profile' => null,
-            'department_background' => null,
-        ]);
+        $this->department_profile = null;
+        $this->create_department_background = null;
 
         $this->calculateStats();
         $this->dispatch('refresh');
-
-        Notification::make()
-            ->title('Department Created')
-            ->body("The department <b>{$department->department_name}</b> has been successfully created.")
-            ->success()
-            ->duration(4000)
-            ->send();
+        $this->dispatch('close-all-modals');
 
         $sender = auth()->user();
 
@@ -351,12 +344,16 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             $hrLiaisonOnline = $onlineUsers->filter(fn($u) => $u->hasRole('hr_liaison'))->count();
 
             $assignments = Assignment::whereBetween('assigned_at', [$start, $end])->get();
-            $totalAssignments = $assignments->count();
+            $totalAssignments = $assignments->unique('grievance_id')->count();
 
             $departments = Department::all();
+
             $assignmentsByDepartment = $departments->map(fn($dept) => [
                 'department_name' => $dept->department_name,
-                'total' => $assignments->where('department_id', $dept->department_id)->count(),
+                'total' => $assignments
+                    ->where('department_id', $dept->department_id)
+                    ->unique('grievance_id')
+                    ->count(),
             ]);
 
             $grievances = Grievance::whereBetween('created_at', [$start, $end])->get();
