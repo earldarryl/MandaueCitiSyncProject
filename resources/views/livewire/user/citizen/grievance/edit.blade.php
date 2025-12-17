@@ -166,6 +166,7 @@
                             type="file"
                             wire:model="attachments"
                             multiple
+                            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                         />
 
                         <div x-show="uploading" class="w-full mt-2">

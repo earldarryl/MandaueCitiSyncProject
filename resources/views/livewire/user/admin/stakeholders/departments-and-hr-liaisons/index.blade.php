@@ -677,7 +677,7 @@
                                                                 "
                                                                 class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 dark:border-zinc-700"
                                                             >
-                                                                <input type="file" id="edit_profile_input" wire:model="edit_department_profile" class="hidden">
+                                                                <input type="file" id="edit_profile_input" wire:model="edit_department_profile" accept=".jpg,.jpeg,.png" class="hidden">
                                                                 <label for="edit_profile_input" class="cursor-pointer w-full h-full block">
                                                                     <img
                                                                         src="{{ $edit_department_profile ? $edit_department_profile->temporaryUrl() : ($profilePreview ?? 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=256') }}"
@@ -712,7 +712,7 @@
                                                                 "
                                                                 class="relative w-full max-w-md h-40 rounded overflow-hidden border-4 border-gray-300 dark:border-zinc-700 mt-4"
                                                             >
-                                                                <input type="file" id="edit_background_input" wire:model="edit_department_background" class="hidden">
+                                                                <input type="file" id="edit_background_input" wire:model="edit_department_background" accept=".jpg,.jpeg,.png" class="hidden">
                                                                 <label for="edit_background_input" class="cursor-pointer w-full h-full block">
                                                                     <img
                                                                         src="{{ $edit_department_background ? $edit_department_background->temporaryUrl() : ($backgroundPreview ?? 'https://ui-avatars.com/api/?name=' . urlencode($department->department_name) . '&background=' . $bgColor . '&color=fff&size=512') }}"
@@ -853,11 +853,55 @@
                         />
                         <flux:error name="newDepartment.is_available" />
 
-                        <flux:input type="file" wire:model="create_department_profile" />
-                        <flux:error name="create_department_profile" />
+                        <div class="space-y-4 mt-4">
 
-                        <flux:input type="file" wire:model="create_department_background" />
-                        <flux:error name="create_department_background" />
+                            <!-- Department Profile Upload -->
+                            <div x-data="{ uploading: false, progress: 0 }"
+                                x-init="
+                                    $el.querySelector('input').addEventListener('livewire-upload-start', () => uploading = true);
+                                    $el.querySelector('input').addEventListener('livewire-upload-progress', (event) => { progress = event.detail.progress });
+                                    $el.querySelector('input').addEventListener('livewire-upload-finish', () => uploading = false);
+                                    $el.querySelector('input').addEventListener('livewire-upload-error', () => uploading = false);
+                                "
+                                class="w-full max-w-md">
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Department Profile</label>
+
+                                <flux:input type="file" wire:model="create_department_profile" accept=".jpg,.jpeg,.png" />
+
+                                <!-- Progress Bar -->
+                                <div x-show="uploading" class="relative w-full bg-gray-200 rounded h-2 mt-2 overflow-hidden">
+                                    <div class="absolute top-0 left-0 h-2 bg-blue-500 transition-all" :style="'width: ' + progress + '%'"></div>
+                                </div>
+                                <span x-show="uploading" class="text-xs text-gray-700 mt-1" x-text="progress + '%'"></span>
+
+                                <flux:error name="create_department_profile" />
+                            </div>
+
+                            <!-- Department Background Upload -->
+                            <div x-data="{ uploading: false, progress: 0 }"
+                                x-init="
+                                    $el.querySelector('input').addEventListener('livewire-upload-start', () => uploading = true);
+                                    $el.querySelector('input').addEventListener('livewire-upload-progress', (event) => { progress = event.detail.progress });
+                                    $el.querySelector('input').addEventListener('livewire-upload-finish', () => uploading = false);
+                                    $el.querySelector('input').addEventListener('livewire-upload-error', () => uploading = false);
+                                "
+                                class="w-full max-w-md">
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Department Background</label>
+
+                                <flux:input type="file" wire:model="create_department_background" accept=".jpg,.jpeg,.png" />
+
+                                <!-- Progress Bar -->
+                                <div x-show="uploading" class="relative w-full bg-gray-200 rounded h-2 mt-2 overflow-hidden">
+                                    <div class="absolute top-0 left-0 h-2 bg-green-500 transition-all" :style="'width: ' + progress + '%'"></div>
+                                </div>
+                                <span x-show="uploading" class="text-xs text-gray-700 mt-1" x-text="progress + '%'"></span>
+
+                                <flux:error name="create_department_background" />
+                            </div>
+
+                        </div>
                     </div>
 
                     <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">

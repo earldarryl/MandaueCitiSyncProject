@@ -99,6 +99,8 @@ class Index extends Component implements Forms\Contracts\HasForms
             'password' => '',
         ];
 
+        $this->create_department_profile = null;
+        $this->create_department_background = null;
         $this->edit_department_profile = null;
         $this->edit_department_background = null;
 
@@ -113,10 +115,6 @@ class Index extends Component implements Forms\Contracts\HasForms
     {
         $this->calculateSummary();
 
-        $this->form->fill([
-            'create_department_profile' => $this->create_department_profile,
-            'create_department_background' => $this->create_department_background,
-        ]);
     }
 
     public function loadAvailableLiaisons($departmentId)
