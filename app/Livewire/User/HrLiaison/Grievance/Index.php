@@ -52,10 +52,12 @@ class Index extends Component
     public $selectAll = false;
     public $selected = [];
     public $department;
-    public $category;
+    public $grievance_type;
+    public $grievance_category;
     public $status;
     public $priorityUpdate;
     public $departmentOptions;
+    public $categoriesMap;
     public $departmentRerouteOptions;
     public $categoryOptions;
     public $grievanceRerouteCategories;
@@ -144,7 +146,8 @@ class Index extends Component
         $this->status = null;
         $this->priorityUpdate = null;
         $this->department = null;
-        $this->category = null;
+        $this->grievance_type = null;
+        $this->grievance_category = null;
         $this->importFile = null;
 
         $this->resetErrorBag();
@@ -159,7 +162,8 @@ class Index extends Component
         $this->status = null;
         $this->priorityUpdate = null;
         $this->department = null;
-        $this->category = null;
+        $this->grievance_type = null;
+        $this->grievance_category = null;
         $this->importFile = null;
 
         $this->resetErrorBag();
@@ -176,8 +180,8 @@ class Index extends Component
             $notif = session('notification');
 
             $this->dispatch('notify', [
-                'type' => $notif['type'],
-                'title' => $notif['title'],
+                'type'    => $notif['type'],
+                'title'   => $notif['title'],
                 'message' => $notif['body'],
             ]);
         }
@@ -186,107 +190,99 @@ class Index extends Component
 
         $liaisonDepartments = $currentHrLiaison->departments->pluck('department_name')->toArray();
 
-        $this->departmentOptions = Department::whereHas('hrLiaisons')
-            ->whereNotIn('department_name', $liaisonDepartments)
+        $departments = Department::whereNotIn('department_name', $liaisonDepartments)
             ->where('is_active', 1)
+            ->where('is_available', 1)
+            ->get();
+
+        $this->departmentOptions = $departments->pluck('department_name')->toArray();
+
+        $this->categoriesMap = $departments->mapWithKeys(fn ($dept) => [
+            $dept->department_name => $dept->grievance_categories ?? [],
+        ])->toArray();
+
+        $this->departmentRerouteOptions = Department::where('is_active', 1)
             ->where('is_available', 1)
             ->pluck('department_name', 'department_name')
             ->toArray();
 
-        $this->departmentRerouteOptions = Department::whereHas('hrLiaisons')
-            ->where('is_active', 1)
-            ->where('is_available', 1)
-            ->pluck('department_name', 'department_name')
+        $departmentIds = $currentHrLiaison->departments->pluck('department_id')->toArray();
+
+        // Collect all department grievance categories for the liaison
+        $departmentsCategories = Department::whereIn('department_id', $departmentIds)
+            ->pluck('grievance_categories')
             ->toArray();
 
-        $departmentName = $currentHrLiaison->departments->first()->department_name ?? null;
+        $this->categoryOptions = [];
 
-        $allCategoryOptions = [
-            'Business Permit and Licensing Office' => [
-                'Complaint' => [
-                    'Delayed Business Permit Processing',
-                    'Unclear Requirements or Procedures',
-                    'Unfair Treatment by Personnel',
-                ],
-                'Inquiry' => [
-                    'Business Permit Requirements Inquiry',
-                    'Renewal Process Clarification',
-                    'Schedule or Fee Inquiry',
-                ],
-                'Request' => [
-                    'Document Correction or Update Request',
-                    'Business Record Verification Request',
-                    'Appointment or Processing Schedule Request',
-                ],
-            ],
+        foreach ($departmentsCategories as $deptCategories) {
+            $deptCategories = is_string($deptCategories) ? json_decode($deptCategories, true) : $deptCategories;
 
-            'Traffic Enforcement Agency of Mandaue' => [
-                'Complaint' => [
-                    'Traffic Enforcer Misconduct',
-                    'Unjust Ticketing or Penalty',
-                    'Inefficient Traffic Management',
-                ],
-                'Inquiry' => [
-                    'Traffic Rules Clarification',
-                    'Citation or Violation Inquiry',
-                    'Inquiry About Traffic Assistance',
-                ],
-                'Request' => [
-                    'Request for Traffic Assistance',
-                    'Request for Event Traffic Coordination',
-                    'Request for Violation Review',
-                ],
-            ],
-
-            'City Social Welfare Services' => [
-                'Complaint' => [
-                    'Discrimination or Neglect in Assistance',
-                    'Delayed Social Service Response',
-                    'Unprofessional Staff Behavior',
-                ],
-                'Inquiry' => [
-                    'Assistance Program Inquiry',
-                    'Eligibility or Requirements Clarification',
-                    'Social Service Schedule Inquiry',
-                ],
-                'Request' => [
-                    'Request for Social Assistance',
-                    'Financial Aid or Program Enrollment Request',
-                    'Home Visit or Consultation Request',
-                ],
-            ],
-        ];
-
-        $departmentCategories = $allCategoryOptions[$departmentName] ?? [];
-
-        $flattened = [];
-        foreach ($departmentCategories as $type => $categories) {
-            foreach ($categories as $category) {
-                $flattened[] = $category;
+            if (is_array($deptCategories)) {
+                foreach ($deptCategories as $type => $categories) {
+                    if (is_array($categories)) {
+                        foreach ($categories as $cat) {
+                            $this->categoryOptions[] = $cat;
+                        }
+                    }
+                }
             }
         }
 
-        $customCategories = Grievance::whereHas('assignments', function ($q) use ($currentHrLiaison) {
-                $departmentId = $currentHrLiaison->departments->first()->department_id ?? null;
-                $q->where('department_id', $departmentId);
-            })
+        // Custom categories for all grievances assigned to any of the liaison's departments
+        $customCategories = Grievance::whereHas('assignments', function ($q) use ($departmentIds) {
+            $q->whereIn('department_id', $departmentIds);
+        })
             ->whereNotNull('grievance_category')
             ->pluck('grievance_category')
             ->toArray();
 
-        $allCategories = collect($flattened)
-            ->merge($customCategories)
-            ->unique()
-            ->values()
+        // Merge and remove duplicates
+        $this->categoryOptions = array_values(array_unique(array_merge($this->categoryOptions, $customCategories)));
+
+        // Flatten everything properly
+        $flattened = [];
+        foreach ($this->categoryOptions as $item) {
+            if (is_array($item)) {
+                foreach ($item as $value) {
+                    $flattened[] = $value;
+                }
+            } else {
+                $flattened[] = $item;
+            }
+        }
+
+        $this->categoryOptions = array_values(array_unique($flattened));
+
+        // For grievance reroute options (all departments)
+        $allDepartmentCategories = Department::whereNotNull('grievance_categories')
+            ->pluck('grievance_categories')
             ->toArray();
 
-        $this->categoryOptions = array_combine($allCategories, $allCategories);
+        $flattenedCategories = [];
+        foreach ($allDepartmentCategories as $departmentCategories) {
+            $departmentCategories = is_string($departmentCategories) ? json_decode($departmentCategories, true) : $departmentCategories;
 
-        $this->grievanceRerouteCategories = Grievance::distinct('grievance_category')
+            if (is_array($departmentCategories)) {
+                foreach ($departmentCategories as $type => $categories) {
+                    if (is_array($categories)) {
+                        foreach ($categories as $category) {
+                            $flattenedCategories[] = $category;
+                        }
+                    }
+                }
+            }
+        }
+
+        $customAllCategories = Grievance::whereNotNull('grievance_category')
             ->pluck('grievance_category')
-            ->filter()
             ->toArray();
+
+        $this->grievanceRerouteCategories = array_values(
+            array_unique(array_merge($flattenedCategories, $customAllCategories))
+        );
     }
+
 
     public function sortBy(string $field): void
     {
@@ -882,44 +878,49 @@ class Index extends Component
     public function rerouteSelectedGrievances(): void
     {
         $this->validate([
-            'selected'   => 'required|array|min:1',
-            'department' => 'required|exists:departments,department_name',
-            'category'   => 'required|string',
+            'selected'           => 'required|array|min:1',
+            'department'         => 'required|exists:departments,department_name',
+            'grievance_type'     => 'required|string',
+            'grievance_category' => 'required|string',
+        ], [
+            'selected.required'           => 'Please select at least one report.',
+            'department.required'         => 'Department is required.',
+            'department.exists'           => 'Selected department is invalid.',
+            'grievance_type.required'     => 'Grievance type is required.',
+            'grievance_category.required' => 'Category is required.',
         ]);
 
         $user = auth()->user();
+        $department = Department::where('department_name', $this->department)->firstOrFail();
 
-        DB::transaction(function () use ($user) {
-            $department = Department::where('department_name', $this->department)->firstOrFail();
+        $hrLiaisons = HrLiaisonDepartment::where('department_id', $department->department_id)
+            ->pluck('hr_liaison_id')
+            ->toArray();
 
+        if ($department->requires_hr_liaison && empty($hrLiaisons)) {
+            $this->dispatch('notify', [
+                'type'    => 'error',
+                'title'   => 'No HR Liaisons Found',
+                'message' => "Department {$department->department_name} requires at least one HR Liaison.",
+            ]);
+            return;
+        }
+
+        DB::transaction(function () use ($user, $department, $hrLiaisons) {
             foreach ($this->selected as $grievanceId) {
                 $grievance = Grievance::findOrFail($grievanceId);
 
-                $oldStatus      = $grievance->grievance_status;
-                $oldCategory    = $grievance->grievance_category;
-                $oldDepartments = $grievance->departments()->pluck('department_name')->toArray();
-
-                $grievance->assignments()->delete();
-
-                $hrLiaisons = HrLiaisonDepartment::where('department_id', $department->department_id)
-                    ->pluck('hr_liaison_id')
-                    ->toArray();
-
-                if (empty($hrLiaisons)) {
-                    $this->dispatch('notify', [
-                        'type' => 'error',
-                        'title' => 'No HR Liaisons Found',
-                        'message' => "Department {$department->department_name} has no HR Liaisons assigned for report #{$grievance->grievance_ticket_id}.",
-                    ]);
-                    continue;
-                }
-
+                $oldStatus       = $grievance->grievance_status;
+                $oldType         = $grievance->grievance_type;
+                $oldCategory     = $grievance->grievance_category;
                 $oldDepartmentId = $grievance->department_id;
+                $oldDepartments  = $grievance->departments()->pluck('department_name')->toArray();
 
                 $grievance->update([
                     'department_id'      => $department->department_id,
                     'grievance_status'   => 'pending',
-                    'grievance_category' => $this->category,
+                    'grievance_type'     => $this->grievance_type,
+                    'grievance_category' => $this->grievance_category,
                     'updated_at'         => now(),
                 ]);
 
@@ -928,21 +929,34 @@ class Index extends Component
                     'from_department_id' => $oldDepartmentId,
                     'to_department_id'   => $department->department_id,
                     'performed_by'       => $user->id,
+                    'from_type'          => $oldType,
+                    'to_type'            => $this->grievance_type,
                     'from_category'      => $oldCategory,
-                    'to_category'        => $this->category,
+                    'to_category'        => $this->grievance_category,
                 ]);
 
-                foreach ($hrLiaisons as $liaisonId) {
+                $grievance->assignments()->delete();
+
+                if ($department->requires_hr_liaison) {
+                    foreach ($hrLiaisons as $liaisonId) {
+                        Assignment::create([
+                            'grievance_id'  => $grievance->grievance_id,
+                            'department_id' => $department->department_id,
+                            'hr_liaison_id' => $liaisonId,
+                            'assigned_at'   => now(),
+                        ]);
+                    }
+                } else {
                     Assignment::create([
                         'grievance_id'  => $grievance->grievance_id,
                         'department_id' => $department->department_id,
-                        'hr_liaison_id' => $liaisonId,
+                        'hr_liaison_id' => null,
                         'assigned_at'   => now(),
                     ]);
                 }
 
                 $grievance->addRemark([
-                    'message'   => "Report rerouted to '{$department->department_name}' and category changed to '{$this->category}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) .").",
+                    'message'   => "Report rerouted to '{$department->department_name}', type '{$this->grievance_type}', category '{$this->grievance_category}' by {$user->name} (" . $this->displayRoleName($user->getRoleNames()->first()) . ").",
                     'user_id'   => $user->id,
                     'user_name' => $user->name,
                     'role'      => $this->displayRoleName($user->getRoleNames()->first()),
@@ -951,59 +965,41 @@ class Index extends Component
                     'type'      => 'reroute',
                 ]);
 
-                $changes = [
-                    'grievance_status' => [
-                        'old' => ucfirst($oldStatus),
-                        'new' => 'Pending',
-                    ],
-                    'grievance_category' => [
-                        'old' => $oldCategory,
-                        'new' => $this->category,
-                    ],
-                    'departments' => [
-                        'old' => implode(', ', $oldDepartments),
-                        'new' => $department->department_name,
-                    ],
-                    'assigned_hr_liaisons' => [
-                        'new' => implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
-                    ],
-                ];
+                $ticketId = $grievance->grievance_ticket_id;
 
-                ActivityLog::create([
-                    'user_id'      => $user->id,
-                    'role_id'      => $user->roles->first()?->id,
-                    'module'       => 'Report Management',
-                    'action'       => "Rerouted report #{$grievance->grievance_ticket_id} to {$department->department_name}",
-                    'action_type'  => 'reroute',
-                    'model_type'   => 'App\\Models\\Grievance',
-                    'model_id'     => $grievance->grievance_id,
-                    'description'  => "Assigned HR Liaisons: " . implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray()),
-                    'changes'      => $changes,
-                    'status'       => 'success',
-                    'ip_address'   => request()->ip(),
-                    'device_info'  => request()->header('User-Agent'),
-                    'user_agent'   => substr(request()->header('User-Agent'), 0, 255),
-                    'platform'     => php_uname('s'),
-                    'timestamp'    => now(),
-                ]);
-
-                $citizen = $grievance->user()->first();
-                if ($citizen) {
+                if ($citizen = $grievance->user()->first()) {
                     $citizen->notify(new GeneralNotification(
                         'Your Report Was Rerouted',
                         "Your report '{$grievance->grievance_title}' has been rerouted to {$department->department_name}.",
                         'info',
-                        ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                        ['grievance_ticket_id' => $ticketId],
                         ['type' => 'info'],
                         true,
-                        [
-                            [
-                                'label' => 'View Updated Report',
-                                'url'   => route('citizen.grievance.view', $grievance->grievance_ticket_id),
-                                'open_new_tab' => true,
-                            ],
-                        ]
+                        [[
+                            'label' => 'View Updated Report',
+                            'url'   => route('citizen.grievance.view', $ticketId),
+                            'open_new_tab' => true,
+                        ]]
                     ));
+                }
+
+                if ($department->requires_hr_liaison) {
+                    $hrUsers = User::whereIn('id', $hrLiaisons)->get();
+                    foreach ($hrUsers as $hr) {
+                        $hr->notify(new GeneralNotification(
+                            'New Rerouted Report Assigned',
+                            "A report titled '{$grievance->grievance_title}' has been rerouted to your department.",
+                            'info',
+                            ['grievance_ticket_id' => $ticketId],
+                            ['type' => 'info'],
+                            true,
+                            [[
+                                'label' => 'View Report',
+                                'url'   => route('hr-liaison.grievance.view', $ticketId),
+                                'open_new_tab' => true,
+                            ]]
+                        ));
+                    }
                 }
 
                 $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->get();
@@ -1012,16 +1008,14 @@ class Index extends Component
                         'Report Rerouted',
                         "The report '{$grievance->grievance_title}' was rerouted to {$department->department_name}.",
                         'warning',
-                        ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                        ['grievance_ticket_id' => $ticketId],
                         ['type' => 'warning'],
                         true,
-                        [
-                            [
-                                'label' => 'View Report',
-                                'url'   => route('admin.forms.grievances.view', $grievance->grievance_ticket_id),
-                                'open_new_tab' => true,
-                            ],
-                        ]
+                        [[
+                            'label' => 'View Report',
+                            'url'   => route('admin.forms.grievances.view', $ticketId),
+                            'open_new_tab' => true,
+                        ]]
                     ));
                 }
 
@@ -1029,16 +1023,47 @@ class Index extends Component
                     'Reroute Successful',
                     "You have rerouted the report '{$grievance->grievance_title}' to {$department->department_name}.",
                     'success',
-                    ['grievance_ticket_id' => $grievance->grievance_ticket_id],
+                    ['grievance_ticket_id' => $ticketId],
                     ['type' => 'success'],
                     true,
                     []
                 ));
+
+                $changes = [
+                    'grievance_status'   => ['old' => ucfirst($oldStatus), 'new' => 'Pending'],
+                    'grievance_type'     => ['old' => $oldType, 'new' => $this->grievance_type],
+                    'grievance_category' => ['old' => $oldCategory, 'new' => $this->grievance_category],
+                    'departments'        => ['old' => implode(', ', $oldDepartments), 'new' => $department->department_name],
+                    'assigned_hr_liaisons'=> [
+                        'new' => $department->requires_hr_liaison
+                            ? implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray())
+                            : 'Not required for this department'
+                    ],
+                ];
+
+                ActivityLog::create([
+                    'user_id'     => $user->id,
+                    'role_id'     => $user->roles->first()?->id,
+                    'module'      => 'Report Management',
+                    'action'      => "Rerouted report #{$ticketId} to {$department->department_name}",
+                    'action_type' => 'reroute',
+                    'model_type'  => 'App\\Models\\Grievance',
+                    'model_id'    => $grievance->grievance_id,
+                    'description' => $department->requires_hr_liaison
+                        ? "Assigned HR Liaisons: " . implode(', ', User::whereIn('id', $hrLiaisons)->pluck('name')->toArray())
+                        : "No HR Liaison required for this department",
+                    'changes'     => $changes,
+                    'status'      => 'success',
+                    'ip_address'  => request()->ip(),
+                    'device_info' => request()->header('User-Agent'),
+                    'user_agent'  => substr(request()->header('User-Agent'), 0, 255),
+                    'platform'    => php_uname('s'),
+                    'timestamp'   => now(),
+                ]);
             }
         });
 
         $this->dispatch('reroute-success');
-
         $this->resetPage();
         $this->updateStats();
         $this->resetInputFields();

@@ -15,11 +15,17 @@ class Department extends Model
         'department_name',
         'department_code',
         'department_description',
+        'grievance_categories',
         'department_bg',
         'department_profile',
         'is_active',
         'is_available',
     ];
+
+    protected $casts = [
+        'grievance_categories' => 'array',
+    ];
+
     public function hrLiaisons()
     {
         return $this->belongsToMany(

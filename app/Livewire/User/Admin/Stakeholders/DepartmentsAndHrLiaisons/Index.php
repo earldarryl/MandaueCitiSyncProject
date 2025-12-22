@@ -47,12 +47,47 @@ class Index extends Component implements Forms\Contracts\HasForms
     public $edit_department_background;
     public $profilePreview;
     public $backgroundPreview;
+    public $grievanceCategories = [
+        'Complaint' => [''],
+        'Inquiry'   => [''],
+        'Request'   => [''],
+    ];
+
+    public function addCategory($type)
+    {
+        $this->grievanceCategories[$type][] = '';
+    }
+
+    public function removeCategory($type, $index)
+    {
+        unset($this->grievanceCategories[$type][$index]);
+        $this->grievanceCategories[$type] = array_values($this->grievanceCategories[$type]);
+    }
+
+    public $editingGrievanceCategories = [
+        'Complaint' => [],
+        'Inquiry'   => [],
+        'Request'   => [],
+    ];
+
+    public function addEditingCategory($type)
+    {
+        $this->editingGrievanceCategories[$type][] = '';
+    }
+
+    public function removeEditingCategory($type, $index)
+    {
+        unset($this->editingGrievanceCategories[$type][$index]);
+        $this->editingGrievanceCategories[$type] = array_values($this->editingGrievanceCategories[$type]);
+    }
+
     public $newDepartment = [
         'department_name' => '',
         'department_code' => '',
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
+        'requires_hr_liaison' => '',
     ];
 
     public $newLiaison = [
@@ -67,6 +102,7 @@ class Index extends Component implements Forms\Contracts\HasForms
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
+        'requires_hr_liaison' => '',
     ];
 
     public $currentDepartmentId;
@@ -83,6 +119,7 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
+            'requires_hr_liaison' => '',
         ];
 
         $this->editingDepartment = [
@@ -91,6 +128,7 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
+            'requires_hr_liaison' => '',
         ];
 
         $this->newLiaison = [
@@ -107,9 +145,14 @@ class Index extends Component implements Forms\Contracts\HasForms
         $this->profilePreview = null;
         $this->backgroundPreview = null;
 
+        $this->grievanceCategories = [
+            'Complaint' => [''],
+            'Inquiry'   => [''],
+            'Request'   => [''],
+        ];
+
         $this->resetErrorBag();
     }
-
 
     public function mount()
     {
@@ -359,6 +402,10 @@ class Index extends Component implements Forms\Contracts\HasForms
                 'newDepartment.department_description' => 'nullable|string|max:1000',
                 'newDepartment.is_active'              => 'required',
                 'newDepartment.is_available'           => 'required',
+                'newDepartment.requires_hr_liaison'    => 'required',
+                'grievanceCategories.Complaint.*'     => 'required|string|max:255',
+                'grievanceCategories.Inquiry.*'       => 'required|string|max:255',
+                'grievanceCategories.Request.*'       => 'required|string|max:255',
             ],
             [
                 'newDepartment.department_name.required' => 'Please enter a department name.',
@@ -376,6 +423,19 @@ class Index extends Component implements Forms\Contracts\HasForms
 
                 'newDepartment.is_active.required'    => 'Please select whether the department is active.',
                 'newDepartment.is_available.required' => 'Please select whether the department is available.',
+                'newDepartment.requires_hr_liaison.required' => 'Please select whether the department is required HR Liaison.',
+
+                'grievanceCategories.Complaint.*.required' => 'Each Complaint category cannot be empty.',
+                'grievanceCategories.Complaint.*.string'   => 'Each Complaint category must be valid text.',
+                'grievanceCategories.Complaint.*.max'      => 'Each Complaint category cannot exceed 255 characters.',
+
+                'grievanceCategories.Inquiry.*.required' => 'Each Inquiry category cannot be empty.',
+                'grievanceCategories.Inquiry.*.string'   => 'Each Inquiry category must be valid text.',
+                'grievanceCategories.Inquiry.*.max'      => 'Each Inquiry category cannot exceed 255 characters.',
+
+                'grievanceCategories.Request.*.required' => 'Each Request category cannot be empty.',
+                'grievanceCategories.Request.*.string'   => 'Each Request category must be valid text.',
+                'grievanceCategories.Request.*.max'      => 'Each Request category cannot exceed 255 characters.',
             ]
         );
 
@@ -392,6 +452,7 @@ class Index extends Component implements Forms\Contracts\HasForms
 
         $isActiveValue    = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
+        $requiresHrLiaisonValue = strtolower($this->editingDepartment['requires_hr_liaison']) === 'yes' ? 1 : 0;
 
         $department = Department::create([
             'department_name'        => $this->newDepartment['department_name'],
@@ -399,6 +460,8 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => $this->newDepartment['department_description'],
             'is_active'              => $isActiveValue,
             'is_available'           => $isAvailableValue,
+            'requires_hr_liaison'    => $requiresHrLiaisonValue,
+            'grievance_categories'   => $this->grievanceCategories,
             'department_profile'     => $create_department_profile,
             'department_bg'          => $create_department_background,
         ]);
@@ -409,8 +472,15 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description'      => '',
             'is_active'                   => '',
             'is_available'                => '',
+            'requires_hr_liaison'         => '',
             'create_department_profile'   => null,
             'create_department_background' => null,
+        ];
+
+        $this->grievanceCategories = [
+            'Complaint' => [''],
+            'Inquiry'   => [''],
+            'Request'   => [''],
         ];
 
         $this->create_department_profile = null;
@@ -488,23 +558,70 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => $department->department_description,
             'is_active' => $department->is_active ? 'Active' : 'Inactive',
             'is_available' => $department->is_available ? 'Yes' : 'No',
+            'requires_hr_liaison' => $department->requires_hr_liaison ? 'Yes' : 'No',
         ];
+
+        $this->editingGrievanceCategories = is_string($department->grievance_categories)
+            ? json_decode($department->grievance_categories, true)
+            : $department->grievance_categories ?? [
+                'Complaint' => [''],
+                'Inquiry'   => [''],
+                'Request'   => [''],
+            ];
+
+        foreach (['Complaint','Inquiry','Request'] as $type) {
+            if (empty($this->editingGrievanceCategories[$type])) {
+                $this->editingGrievanceCategories[$type] = [''];
+            }
+        }
 
         $this->profilePreview = $department->department_profile ? Storage::url($department->department_profile) : null;
         $this->backgroundPreview = $department->department_bg ? Storage::url($department->department_bg) : null;
-
-
     }
 
     public function updateDepartment()
     {
-        $this->validate([
-            'editingDepartment.department_name'        => 'required|string|max:255',
-            'editingDepartment.department_code'        => 'required|string|max:50',
-            'editingDepartment.department_description' => 'nullable|string|max:1000',
-            'editingDepartment.is_active'              => 'required',
-            'editingDepartment.is_available'           => 'required',
-        ]);
+        $this->validate(
+            [
+                'editingDepartment.department_name'        => 'required|string|max:255',
+                'editingDepartment.department_code'        => 'required|string|max:50',
+                'editingDepartment.department_description' => 'nullable|string|max:1000',
+                'editingDepartment.is_active'              => 'required',
+                'editingDepartment.is_available'           => 'required',
+                'editingDepartment.requires_hr_liaison'    => 'required',
+                'editingGrievanceCategories.Complaint.*'   => 'required|string|max:255',
+                'editingGrievanceCategories.Inquiry.*'     => 'required|string|max:255',
+                'editingGrievanceCategories.Request.*'     => 'required|string|max:255',
+            ],
+            [
+                'editingDepartment.department_name.required' => 'Please enter a department name.',
+                'editingDepartment.department_name.string'   => 'Department name must be valid text.',
+                'editingDepartment.department_name.max'      => 'Department name cannot exceed 255 characters.',
+
+                'editingDepartment.department_code.required' => 'Please enter a department code.',
+                'editingDepartment.department_code.string'   => 'Department code must be valid text.',
+                'editingDepartment.department_code.max'      => 'Department code cannot exceed 50 characters.',
+
+                'editingDepartment.department_description.string' => 'Description must be valid text.',
+                'editingDepartment.department_description.max'    => 'Description cannot exceed 1000 characters.',
+
+                'editingDepartment.is_active.required'    => 'Please select whether the department is active.',
+                'editingDepartment.is_available.required' => 'Please select whether the department is available.',
+                'editingDepartment.requires_hr_liaison.required' => 'Please select whether the department requires HR Liaison.',
+
+                'editingGrievanceCategories.Complaint.*.required' => 'Each Complaint category cannot be empty.',
+                'editingGrievanceCategories.Complaint.*.string'   => 'Each Complaint category must be valid text.',
+                'editingGrievanceCategories.Complaint.*.max'      => 'Each Complaint category cannot exceed 255 characters.',
+
+                'editingGrievanceCategories.Inquiry.*.required' => 'Each Inquiry category cannot be empty.',
+                'editingGrievanceCategories.Inquiry.*.string'   => 'Each Inquiry category must be valid text.',
+                'editingGrievanceCategories.Inquiry.*.max'      => 'Each Inquiry category cannot exceed 255 characters.',
+
+                'editingGrievanceCategories.Request.*.required' => 'Each Request category cannot be empty.',
+                'editingGrievanceCategories.Request.*.string'   => 'Each Request category must be valid text.',
+                'editingGrievanceCategories.Request.*.max'      => 'Each Request category cannot exceed 255 characters.',
+            ]
+        );
 
         $department = Department::find($this->editingDepartment['department_id']);
         if (!$department) {
@@ -531,6 +648,7 @@ class Index extends Component implements Forms\Contracts\HasForms
 
         $isActiveValue    = strtolower($this->editingDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->editingDepartment['is_available']) === 'yes' ? 1 : 0;
+        $requiresHrLiaisonValue = strtolower($this->editingDepartment['requires_hr_liaison']) === 'yes' ? 1 : 0;
 
         $department->fill([
             'department_name'        => $this->editingDepartment['department_name'],
@@ -538,22 +656,17 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description' => $this->editingDepartment['department_description'],
             'is_active'              => $isActiveValue,
             'is_available'           => $isAvailableValue,
+            'requires_hr_liaison'    => $requiresHrLiaisonValue,
+            'grievance_categories'   => $this->editingGrievanceCategories
         ]);
+
+        $department->save();
 
         if ($newProfilePath) {
             $department->department_profile = $newProfilePath;
         }
         if ($newBackgroundPath) {
             $department->department_bg = $newBackgroundPath;
-        }
-
-        if (!$department->isDirty()) {
-            $this->dispatch('notify', [
-                'type'    => 'warning',
-                'title'   => 'No Changes Detected',
-                'message' => "No updates were made to <b>{$department->department_name}</b>.",
-            ]);
-            return;
         }
 
         $department->save();
@@ -565,6 +678,7 @@ class Index extends Component implements Forms\Contracts\HasForms
             'department_description'   => '',
             'is_active'                => '',
             'is_available'             => '',
+            'requires_hr_liaison'      => '',
             'edit_department_profile'  => null,
             'edit_department_background' => null,
         ];

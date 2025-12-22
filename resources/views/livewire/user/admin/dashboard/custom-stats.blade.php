@@ -258,7 +258,17 @@
                         placeholder="Select availability status"
                         :options="['Yes','No']"
                     />
+
                     <flux:error name="newDepartment.is_available" />
+
+                    <x-select
+                        name="newDepartment.requires_hr_liaison"
+                        wire:model.defer="newDepartment.requires_hr_liaison"
+                        placeholder="Is HR Liaison required?"
+                        :options="['Yes','No']"
+                    />
+
+                    <flux:error name="newDepartment.requires_hr_liaison" />
 
                     <div class="space-y-4 mt-4">
 
@@ -274,7 +284,7 @@
 
                             <label class="block text-sm font-medium text-gray-700 mb-1">Department Profile</label>
 
-                            <flux:input type="file" wire:model="department_profile" accept=".jpg,.jpeg,.png" />
+                            <flux:input type="file" wire:model="create_department_profile" accept=".jpg,.jpeg,.png" />
 
                             <!-- Progress Bar -->
                             <div x-show="uploading" class="relative w-full bg-gray-200 rounded h-2 mt-2 overflow-hidden">
@@ -282,7 +292,49 @@
                             </div>
                             <span x-show="uploading" class="text-xs text-gray-700 mt-1" x-text="progress + '%'"></span>
 
-                            <flux:error name="department_profile" />
+                            <flux:error name="create_department_profile" />
+                        </div>
+
+                        <div x-data="{
+                                categories: @entangle('grievanceCategories').defer,
+                                addCategory(type) {
+                                    this.categories[type].push('');
+                                },
+                                removeCategory(type, index) {
+                                    this.categories[type].splice(index, 1);
+                                }
+                            }">
+
+                            @foreach(['Complaint','Inquiry','Request'] as $type)
+                                <div class="flex flex-col gap-2 mb-3">
+                                    <label class="font-medium text-gray-700 dark:text-gray-200">{{ $type }} Categories</label>
+
+                                    @foreach($grievanceCategories[$type] as $index => $category)
+                                        <div class="flex flex-col gap-1 mt-2">
+                                            <div class="flex gap-2">
+                                                <flux:input type="text"
+                                                            wire:model.defer="grievanceCategories.{{ $type }}.{{ $index }}"
+                                                            placeholder="Enter category" />
+
+                                                <button type="button" wire:click="removeCategory('{{ $type }}', {{ $index }})"
+                                                        class="px-3 py-1 text-xs rounded-md border border-red-400 text-white bg-red-600 hover:bg-red-700
+                                                            dark:bg-red-900 dark:text-red-300 dark:border-red-600 dark:hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    Remove
+                                                </button>
+                                            </div>
+
+                                            <!-- Flux Error for this specific category -->
+                                            <flux:error name="grievanceCategories.{{ $type }}.{{ $index }}" />
+                                        </div>
+                                    @endforeach
+
+                                    <button type="button" wire:click="addCategory('{{ $type }}')"
+                                            class="px-3 py-1 text-xs rounded-md border border-green-400 text-white bg-green-600 hover:bg-green-700
+                                                dark:bg-green-900 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800">
+                                        Add {{ $type }}
+                                    </button>
+                                </div>
+                            @endforeach
                         </div>
 
                         <!-- Department Background Upload -->
@@ -309,7 +361,6 @@
                         </div>
 
                     </div>
-
                 </div>
 
                 <footer class="flex justify-end gap-2 border-t border-gray-300 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-800 sticky bottom-0 z-10 shadow-inner">
@@ -320,7 +371,7 @@
                     </button>
                     <button wire:click="createDepartment"
                             wire:loading.attr="disabled"
-                            wire:target="department_profile, create_department_background, createDepartment"
+                            wire:target="create_department_profile, create_department_background, createDepartment"
                             class="px-3 py-1 text-xs rounded-md border border-blue-400 text-white bg-blue-600 hover:bg-blue-700
                                 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-600 dark:hover:bg-blue-800
                                 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -337,6 +388,7 @@
                     <div class="dot w-2 h-2 bg-black dark:bg-zinc-300 rounded-full [animation-delay:1s]"></div>
                 </div>
             </div>
+
         </div>
     </div>
 
