@@ -123,59 +123,7 @@
                         grievanceType: @entangle('grievance_type'),
                         grievanceCategory: @entangle('grievance_category'),
 
-                        categoriesMap: {
-                            'Business Permit and Licensing Office': {
-                                'Complaint': [
-                                    'Delayed Business Permit Processing',
-                                    'Unclear Requirements or Procedures',
-                                    'Unfair Treatment by Personnel'
-                                ],
-                                'Inquiry': [
-                                    'Business Permit Requirements Inquiry',
-                                    'Renewal Process Clarification',
-                                    'Schedule or Fee Inquiry'
-                                ],
-                                'Request': [
-                                    'Document Correction or Update Request',
-                                    'Business Record Verification Request',
-                                    'Appointment or Processing Schedule Request'
-                                ],
-                            },
-                            'Traffic Enforcement Agency of Mandaue': {
-                                'Complaint': [
-                                    'Traffic Enforcer Misconduct',
-                                    'Unjust Ticketing or Penalty',
-                                    'Inefficient Traffic Management'
-                                ],
-                                'Inquiry': [
-                                    'Traffic Rules Clarification',
-                                    'Citation or Violation Inquiry',
-                                    'Inquiry About Traffic Assistance'
-                                ],
-                                'Request': [
-                                    'Request for Traffic Assistance',
-                                    'Request for Event Traffic Coordination',
-                                    'Request for Violation Review'
-                                ],
-                            },
-                            'City Social Welfare Services': {
-                                'Complaint': [
-                                    'Discrimination or Neglect in Assistance',
-                                    'Delayed Social Service Response',
-                                    'Unprofessional Staff Behavior'
-                                ],
-                                'Inquiry': [
-                                    'Assistance Program Inquiry',
-                                    'Eligibility or Requirements Clarification',
-                                    'Social Service Schedule Inquiry'
-                                ],
-                                'Request': [
-                                    'Request for Social Assistance',
-                                    'Financial Aid or Program Enrollment Request',
-                                    'Home Visit or Consultation Request'
-                                ],
-                            }
-                        },
+                        categoriesMap: @js($categoriesMap),
 
                         get departmentOptions() {
                             return Object.keys(this.categoriesMap);
@@ -183,7 +131,7 @@
 
                         get typeOptions() {
                             return this.department
-                                ? Object.keys(this.categoriesMap[this.department])
+                                ? Object.keys(this.categoriesMap[this.department] || {})
                                 : [];
                         },
 
@@ -208,7 +156,7 @@
                         }
                     }"
 
-                     x-init="
+                    x-init="
                         $watch('department', () => {
                             grievanceType = '';
                             grievanceCategory = '';
@@ -221,7 +169,6 @@
                             $wire.set('grievance_category', '', true);
                         });
                     "
-
                     class="flex flex-col gap-6"
                 >
 
@@ -360,9 +307,48 @@
                         <flux:error name="department" />
                     </flux:field>
 
-                    <!-- Grievance Type -->
+                   <!-- Grievance Type -->
                     <flux:field x-cloak>
-                        <div class="flex flex-col gap-2" x-data="{ open: false, search: '' }">
+                        <div class="flex flex-col gap-2"
+                            x-data="{
+                                open: false,
+                                search: '',
+                                highlightedIndex: -1,
+                                grievanceType: @entangle('grievance_type'),
+                                department: @entangle('department'),
+                                categoriesMap: @js($categoriesMap),
+
+                                get typeOptions() {
+                                    return this.department ? Object.keys(this.categoriesMap[this.department] || {}) : [];
+                                },
+
+                                get filteredOptions() {
+                                    if(!this.search) return this.typeOptions;
+                                    return this.typeOptions.filter(t => t.toLowerCase().includes(this.search.toLowerCase()));
+                                },
+
+                                resetCategory() {
+                                    this.grievanceCategory = '';
+                                    $wire.set('grievance_category', '', true);
+                                },
+
+                                selectOption(opt) {
+                                    this.grievanceType = opt;
+                                    $wire.set('grievance_type', opt, true);
+                                    this.resetCategory();
+                                    this.open = false;
+                                    this.search = '';
+                                    this.highlightedIndex = -1;
+                                }
+                            }"
+
+                            x-init="
+                                $watch('department', () => { grievanceType = ''; resetCategory(); highlightedIndex=0 });
+                                $watch('grievanceType', () => { resetCategory(); highlightedIndex=0 });
+                            "
+                        >
+
+                            <!-- Label -->
                             <flux:label class="flex gap-2 items-center">
                                 <flux:icon.squares-2x2 />
                                 <span>Type</span>
@@ -371,108 +357,117 @@
                                 What kind of report would you like to file?
                             </h3>
 
+                            <!-- Input -->
                             <div class="relative !cursor-pointer">
-                                <!-- Input -->
-                                <div
-                                    @click="open = !open; if(open) highlightedIndex=0"
-                                    tabindex="0"
-                                    class="relative !cursor-pointer"
-                                >
-                                    <flux:input
-                                        name="grievance_type"
-                                        readonly
-                                        x-bind:value="grievanceType"
-                                        placeholder="Select report type"
-                                        class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                    />
-
-                                    <!-- X button & Chevron -->
-                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-                                        <flux:button
-                                            x-show="!!grievanceType"
-                                            size="sm"
-                                            variant="subtle"
-                                            icon="x-mark"
-                                            class="h-5 w-5"
-                                            @click.stop="grievanceType=''; $wire.set('grievance_type','',true);"
-                                        />
-                                        <div class="h-5 w-5 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="2" stroke="currentColor"
-                                                class="h-5 w-5 text-gray-500 transition-transform duration-200"
-                                                :class="open ? 'rotate-180' : ''">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                <flux:input
+                                    name="grievance_type"
+                                    readonly
+                                    x-bind:value="grievanceType"
+                                    placeholder="Select report type"
+                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                    @click="open = !open; if(open) highlightedIndex = 0"
+                                />
 
                                 <!-- Dropdown -->
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false; search=''"
+                                <div x-show="open"
+                                    @click.outside="open = false; search=''; highlightedIndex=-1"
                                     x-transition
-                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-                                >
+                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto">
+
+                                    <!-- Search -->
                                     <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
                                         <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                                        <input
-                                            type="text"
+                                        <input type="text"
                                             x-model="search"
                                             placeholder="Search..."
-                                            class="w-full border-none focus:outline-none focus:ring-0 bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+                                            class="w-full border-none focus:outline-none bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+                                            @keydown.arrow-down.prevent="if(highlightedIndex < filteredOptions.length-1) highlightedIndex++"
+                                            @keydown.arrow-up.prevent="if(highlightedIndex > 0) highlightedIndex--"
+                                            @keydown.enter.prevent="if(filteredOptions[highlightedIndex]) selectOption(filteredOptions[highlightedIndex])"
                                         />
                                     </div>
 
+                                    <!-- Options -->
                                     <ul class="py-1">
-                                        <template x-for="opt in typeOptions.filter(t => t.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                        <template x-for="(opt, index) in filteredOptions" :key="opt">
                                             <li>
-                                                <button
-                                                    type="button"
-                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                                    @click="
-                                                        grievanceType = opt;
-                                                        $wire.set('grievance_type', opt, true);
-                                                        resetCategory();
-                                                        open = false;
-                                                        search = '';
-                                                    "
-                                                    x-text="opt"
-                                                ></button>
+                                                <button type="button"
+                                                        @click="selectOption(opt)"
+                                                        class="w-full text-left px-4 py-2 text-sm rounded-md flex justify-between items-center"
+                                                        :class="grievanceType === opt
+                                                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
+                                                            : index === highlightedIndex
+                                                                ? 'bg-zinc-100 dark:bg-zinc-800'
+                                                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
+                                                    <span x-text="opt"></span>
+                                                    <flux:icon.check x-show="grievanceType === opt" class="w-4 h-4"/>
+                                                </button>
                                             </li>
                                         </template>
 
-                                        <li x-show="typeOptions.filter(t => t.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                        <li x-show="filteredOptions.length === 0"
                                             class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
                                             No results found
                                         </li>
                                     </ul>
                                 </div>
                             </div>
+                            <flux:error name="grievance_type" />
                         </div>
-                        <flux:error name="grievance_type" />
                     </flux:field>
 
+                    <!-- Grievance Category -->
                     <flux:field x-cloak>
                         <div class="flex flex-col gap-2"
                             x-data="{
                                 open: false,
                                 search: '',
-                                selectedCategory: grievanceCategory,
+                                highlightedIndex: -1,
+                                grievanceCategory: @entangle('grievance_category'),
+                                grievanceType: @entangle('grievance_type'),
+                                department: @entangle('department'),
+                                categoriesMap: @js($categoriesMap),
                                 grievanceCategoryInput: '',
 
+                                get categoryOptions() {
+                                    if(this.department && this.grievanceType){
+                                        const base = this.categoriesMap[this.department][this.grievanceType] || [];
+                                        return [...base, 'Other'];
+                                    }
+                                    return [];
+                                },
+
+                                get filteredOptions() {
+                                    if(!this.search) return this.categoryOptions;
+                                    return this.categoryOptions.filter(c => c.toLowerCase().includes(this.search.toLowerCase()));
+                                },
+
                                 confirmOther() {
-                                    if (this.grievanceCategoryInput.trim() === '') return;
-                                    this.selectedCategory = this.grievanceCategoryInput;
+                                    if(this.grievanceCategoryInput.trim() === '') return;
+                                    this.grievanceCategory = this.grievanceCategoryInput;
                                     $wire.set('grievance_category', this.grievanceCategoryInput, true);
                                     this.open = false;
                                     this.search = '';
+                                    this.highlightedIndex = -1;
+                                },
+
+                                selectOption(opt) {
+                                    if(opt === 'Other') {
+                                        this.grievanceCategory = '';
+                                        this.grievanceCategoryInput = '';
+                                        this.open = true;
+                                        this.$nextTick(() => { this.$refs.otherInput.focus(); });
+                                    } else {
+                                        this.grievanceCategory = opt;
+                                        $wire.set('grievance_category', opt, true);
+                                        this.open = false;
+                                        this.search = '';
+                                        this.highlightedIndex = -1;
+                                    }
                                 }
                             }"
-                            x-init="
-                                selectedCategory = grievanceCategory;
-                                $watch('grievanceCategory', value => selectedCategory = value);
-                            "
+
+                            x-init="$watch('grievanceCategory', value => grievanceCategory = value);"
                         >
 
                             <!-- Label -->
@@ -484,106 +479,72 @@
                                 Choose a category based on the selected department and type.
                             </h3>
 
+                            <!-- Input -->
                             <div class="relative !cursor-pointer">
-                                <!-- Input with X & Chevron -->
-                                <div
-                                    @click="open = !open"
-                                    tabindex="0"
-                                    class="relative !cursor-pointer"
-                                >
-                                    <flux:input
-                                        name="grievance_category"
-                                        readonly
-                                        x-bind:value="selectedCategory"
-                                        placeholder="Select report category"
-                                        class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
-                                    />
-
-                                    <div class="absolute right-3 inset-y-0 flex items-center gap-2">
-                                        <flux:button
-                                            x-show="!!selectedCategory"
-                                            size="sm"
-                                            variant="subtle"
-                                            icon="x-mark"
-                                            class="h-5 w-5"
-                                            @click.stop="selectedCategory=''; $wire.set('grievance_category','',true);"
-                                        />
-                                        <div class="h-5 w-5 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="2" stroke="currentColor"
-                                                class="h-5 w-5 text-gray-500 transition-transform duration-200"
-                                                :class="open ? 'rotate-180' : ''">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                <flux:input
+                                    name="grievance_category"
+                                    readonly
+                                    x-bind:value="grievanceCategory"
+                                    placeholder="Select report category"
+                                    class:input="border rounded-lg w-full cursor-pointer select-none !cursor-pointer"
+                                    @click="open = !open; if(open) highlightedIndex = 0"
+                                />
 
                                 <!-- Dropdown -->
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false; search=''; grievanceCategoryInput='';"
+                                <div x-show="open"
+                                    @click.outside="open = false; search=''; grievanceCategoryInput=''; highlightedIndex=-1"
                                     x-transition
-                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto"
-                                >
+                                    class="absolute z-50 mt-1 w-full bg-white dark:bg-zinc-900 ring-1 ring-gray-200 dark:ring-zinc-700 rounded-md shadow-md max-h-48 overflow-y-auto">
+
+                                    <!-- Search -->
                                     <div class="w-full flex items-center border-b border-gray-300 dark:border-zinc-700 p-1">
                                         <flux:icon.magnifying-glass class="px-1 text-gray-500 dark:text-zinc-700"/>
-                                        <input
-                                            type="text"
+                                        <input type="text"
                                             x-model="search"
                                             placeholder="Search..."
                                             class="w-full border-none focus:outline-none bg-transparent placeholder-gray-400 py-1 text-sm font-medium"
+                                            @keydown.arrow-down.prevent="if(highlightedIndex < filteredOptions.length-1) highlightedIndex++"
+                                            @keydown.arrow-up.prevent="if(highlightedIndex > 0) highlightedIndex--"
+                                            @keydown.enter.prevent="if(filteredOptions[highlightedIndex]) selectOption(filteredOptions[highlightedIndex])"
                                         />
                                     </div>
 
+                                    <!-- Options -->
                                     <ul class="py-1">
-                                        <template x-for="opt in categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase()))" :key="opt">
+                                        <template x-for="(opt, index) in filteredOptions" :key="opt">
                                             <li>
-                                                <button
-                                                    type="button"
-                                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                                    x-text="opt"
-                                                    @click="
-                                                        if (opt === 'Other') {
-                                                            selectedCategory = '';
-                                                            grievanceCategoryInput = '';
-                                                            open = true;
-                                                            $nextTick(() => {
-                                                                $refs.otherBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                                $refs.otherInput.focus();
-                                                            });
-                                                        } else {
-                                                            selectedCategory = opt;
-                                                            $wire.set('grievance_category', opt, true);
-                                                            open = false;
-                                                            search = '';
-                                                        }
-                                                    "
-                                                ></button>
+                                                <button type="button"
+                                                        @click="selectOption(opt)"
+                                                        class="w-full text-left px-4 py-2 text-sm rounded-md flex justify-between items-center"
+                                                        :class="grievanceCategory === opt
+                                                            ? 'bg-zinc-100 dark:bg-zinc-800 font-medium'
+                                                            : index === highlightedIndex
+                                                                ? 'bg-zinc-100 dark:bg-zinc-800'
+                                                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'">
+                                                    <span x-text="opt"></span>
+                                                    <flux:icon.check x-show="grievanceCategory === opt" class="w-4 h-4"/>
+                                                </button>
                                             </li>
                                         </template>
 
-                                        <li x-show="categoryOptions.filter(c => c.toLowerCase().includes(search.toLowerCase())).length === 0"
+                                        <li x-show="filteredOptions.length === 0"
                                             class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
                                             No results found
                                         </li>
                                     </ul>
 
-                                    <div
-                                        x-show="selectedCategory === '' && categoryOptions.includes('Other') && open"
-                                        x-transition
+                                    <!-- Other input -->
+                                    <div x-show="grievanceCategory === '' && categoryOptions.includes('Other') && open"
                                         x-ref="otherBox"
-                                        class="p-3 border-t border-gray-300 dark:border-zinc-700"
-                                    >
+                                        class="p-3 border-t border-gray-300 dark:border-zinc-700">
                                         <flux:label>Specify Other Category</flux:label>
                                         <div class="flex gap-2 mt-1">
-                                            <flux:input
-                                                type="text"
-                                                placeholder="Enter category"
-                                                x-ref="otherInput"
-                                                x-model="grievanceCategoryInput"
-                                                @keydown.enter.prevent="confirmOther()"
-                                                class="flex-1"
+                                            <flux:input type="text"
+                                                        placeholder="Enter category"
+                                                        x-ref="otherInput"
+                                                        x-model="grievanceCategoryInput"
+                                                        @keydown.enter.prevent="confirmOther()"
+                                                        class="flex-1"
                                             />
                                             <flux:button @click="confirmOther()" size="sm" variant="primary">
                                                 Select
@@ -593,10 +554,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <flux:error name="grievance_category" />
                         </div>
-                        <flux:error name="grievance_category" />
                     </flux:field>
-
 
                 </div>
 

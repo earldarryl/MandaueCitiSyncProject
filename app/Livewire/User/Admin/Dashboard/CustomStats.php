@@ -52,6 +52,7 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         'department_description' => '',
         'is_active' => '',
         'is_available' => '',
+        'requires_hr_liaison' => '',
     ];
 
 
@@ -61,6 +62,23 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         'password' => '',
     ];
 
+    public $grievanceCategories = [
+        'Complaint' => [''],
+        'Inquiry'   => [''],
+        'Request'   => [''],
+    ];
+
+    public function addCategory($type)
+    {
+        $this->grievanceCategories[$type][] = '';
+    }
+
+    public function removeCategory($type, $index)
+    {
+        unset($this->grievanceCategories[$type][$index]);
+        $this->grievanceCategories[$type] = array_values($this->grievanceCategories[$type]);
+    }
+
     public function resetFields(): void
     {
         $this->newDepartment = [
@@ -69,6 +87,7 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'department_description' => '',
             'is_active' => '',
             'is_available' => '',
+            'requires_hr_liaison' => '',
         ];
 
         $this->newLiaison = [
@@ -82,6 +101,12 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
         $this->profilePreview = null;
         $this->backgroundPreview = null;
+
+        $this->grievanceCategories = [
+            'Complaint' => [''],
+            'Inquiry'   => [''],
+            'Request'   => [''],
+        ];
 
         $this->resetErrorBag();
     }
@@ -234,13 +259,49 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
     public function createDepartment()
     {
-        $this->validate([
-            'newDepartment.department_name' => 'required|string|max:255|unique:departments,department_name',
-            'newDepartment.department_code' => 'required|string|max:50|unique:departments,department_code',
-            'newDepartment.department_description' => 'nullable|string|max:1000',
-            'newDepartment.is_active' => 'required',
-            'newDepartment.is_available' => 'required',
-        ]);
+        $this->validate(
+            [
+                'newDepartment.department_name'        => 'required|string|max:255|unique:departments,department_name',
+                'newDepartment.department_code'        => 'required|string|max:50|unique:departments,department_code',
+                'newDepartment.department_description' => 'nullable|string|max:1000',
+                'newDepartment.is_active'              => 'required',
+                'newDepartment.is_available'           => 'required',
+                'newDepartment.requires_hr_liaison'    => 'required',
+                'grievanceCategories.Complaint.*'     => 'required|string|max:255',
+                'grievanceCategories.Inquiry.*'       => 'required|string|max:255',
+                'grievanceCategories.Request.*'       => 'required|string|max:255',
+            ],
+            [
+                'newDepartment.department_name.required' => 'Please enter a department name.',
+                'newDepartment.department_name.string'   => 'Department name must be valid text.',
+                'newDepartment.department_name.max'      => 'Department name cannot exceed 255 characters.',
+                'newDepartment.department_name.unique'   => 'This department name already exists.',
+
+                'newDepartment.department_code.required' => 'Please enter a department code.',
+                'newDepartment.department_code.string'   => 'Department code must be valid text.',
+                'newDepartment.department_code.max'      => 'Department code cannot exceed 50 characters.',
+                'newDepartment.department_code.unique'   => 'This department code is already in use.',
+
+                'newDepartment.department_description.string' => 'Description must be valid text.',
+                'newDepartment.department_description.max'    => 'Description cannot exceed 1000 characters.',
+
+                'newDepartment.is_active.required'    => 'Please select whether the department is active.',
+                'newDepartment.is_available.required' => 'Please select whether the department is available.',
+                'newDepartment.requires_hr_liaison.required' => 'Please select whether the department is required HR Liaison.',
+
+                'grievanceCategories.Complaint.*.required' => 'Each Complaint category cannot be empty.',
+                'grievanceCategories.Complaint.*.string'   => 'Each Complaint category must be valid text.',
+                'grievanceCategories.Complaint.*.max'      => 'Each Complaint category cannot exceed 255 characters.',
+
+                'grievanceCategories.Inquiry.*.required' => 'Each Inquiry category cannot be empty.',
+                'grievanceCategories.Inquiry.*.string'   => 'Each Inquiry category must be valid text.',
+                'grievanceCategories.Inquiry.*.max'      => 'Each Inquiry category cannot exceed 255 characters.',
+
+                'grievanceCategories.Request.*.required' => 'Each Request category cannot be empty.',
+                'grievanceCategories.Request.*.string'   => 'Each Request category must be valid text.',
+                'grievanceCategories.Request.*.max'      => 'Each Request category cannot exceed 255 characters.',
+            ]
+        );
 
         $create_department_profile = null;
         $create_department_background = null;
@@ -255,15 +316,18 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
 
         $isActiveValue = strtolower($this->newDepartment['is_active']) === 'active' ? 1 : 0;
         $isAvailableValue = strtolower($this->newDepartment['is_available']) === 'yes' ? 1 : 0;
+        $requiresHrLiaisonValue = strtolower($this->newDepartment['requires_hr_liaison']) === 'yes' ? 1 : 0;
 
         $department = Department::create([
-            'department_name' => $this->newDepartment['department_name'],
-            'department_code' => $this->newDepartment['department_code'],
+            'department_name'        => $this->newDepartment['department_name'],
+            'department_code'        => $this->newDepartment['department_code'],
             'department_description' => $this->newDepartment['department_description'],
-            'is_active' => $isActiveValue,
-            'is_available' => $isAvailableValue,
-            'department_profile' => $create_department_profile,
-            'department_bg' => $create_department_background,
+            'is_active'              => $isActiveValue,
+            'is_available'           => $isAvailableValue,
+            'requires_hr_liaison'    => $requiresHrLiaisonValue,
+            'grievance_categories'   => $this->grievanceCategories,
+            'department_profile'     => $create_department_profile,
+            'department_bg'          => $create_department_background,
         ]);
 
         $this->newDepartment = [
@@ -274,6 +338,12 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
             'is_available' => '',
         ];
 
+        $this->grievanceCategories = [
+            'Complaint' => [''],
+            'Inquiry'   => [''],
+            'Request'   => [''],
+        ];
+
         $this->department_profile = null;
         $this->create_department_background = null;
 
@@ -281,40 +351,41 @@ class CustomStats extends Widget implements Forms\Contracts\HasForms
         $this->dispatch('refresh');
         $this->dispatch('close-all-modals');
 
-        $sender = auth()->user();
+        $creator = auth()->user();
 
-        $hrLiaisons = User::role('hr_liaison')->get();
-        foreach ($hrLiaisons as $hr) {
-            $hr->notify(new GeneralNotification(
+        $creator->notify(new GeneralNotification(
+            'Department Created Successfully',
+            "You created the new department <b>{$department->department_name}</b>.",
+            'success',
+            [],
+            ['type' => 'success'],
+            true,
+            [[
+                'label'        => 'View Departments',
+                'url'          => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                'open_new_tab' => false,
+            ]]
+        ));
+
+        $admins = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        foreach ($admins as $admin) {
+            $admin->notify(new GeneralNotification(
                 'New Department Created',
-                "The department <b>{$department->department_name}</b> has been added.",
+                "{$creator->name} has created the department <b>{$department->department_name}</b>.",
                 'info',
-                ['department_id' => $department->department_id],
                 [],
+                ['type' => 'info'],
                 true,
-                [
-                    [
-                        'label' => 'View Departments',
-                        'url' => route('hr-liaison.department.index'),
-                        'open_new_tab' => true,
-                    ]
-                ]
+                [[
+                    'label'        => 'View Departments',
+                    'url'          => route('admin.stakeholders.departments-and-hr-liaisons.index'),
+                    'open_new_tab' => false,
+                ]]
             ));
         }
-
-        $sender?->notify(new GeneralNotification(
-            'Department Created Successfully',
-            "The department <b>{$department->department_name}</b> has been created.",
-            'success',
-            ['department_id' => $department->department_id],
-            [],
-            true,
-        [
-                    'label' => 'View Departments',
-                    'url' => route('admin.stakeholders.departments-and-hr-liaisons.index'),
-                    'open_new_tab' => true,
-                ]
-        ));
     }
     protected function calculateStats(): void
     {

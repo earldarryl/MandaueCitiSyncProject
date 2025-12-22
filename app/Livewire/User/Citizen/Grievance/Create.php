@@ -37,8 +37,8 @@ class Create extends Component implements Forms\Contracts\HasForms
     public $attachments = [];
     public $grievance_title;
     public $grievance_details;
-    public $departmentOptions;
-    public $categoriesMap;
+    public $departmentOptions = [];
+    public $categoriesMap = [];
     protected $listeners = [
         'handleDelayedRedirect',
     ];
@@ -50,69 +50,21 @@ class Create extends Component implements Forms\Contracts\HasForms
 
     public function mount(): void
     {
-
-       $this->departmentOptions = Department::whereHas('hrLiaisons')
+        $departments = Department::whereHas('hrLiaisons')
             ->where('is_active', 1)
             ->where('is_available', 1)
+            ->where('requires_hr_liaison', 1)
+            ->get(['department_name', 'grievance_categories']);
+
+        $this->departmentOptions = $departments
             ->pluck('department_name', 'department_name')
             ->toArray();
 
-        $this->categoriesMap = [
-            'Business Permit and Licensing Office' => [
-                'Complaint' => [
-                    'Delayed Business Permit Processing',
-                    'Unclear Requirements or Procedures',
-                    'Unfair Treatment by Personnel',
-                ],
-                'Inquiry' => [
-                    'Business Permit Requirements Inquiry',
-                    'Renewal Process Clarification',
-                    'Schedule or Fee Inquiry',
-                ],
-                'Request' => [
-                    'Document Correction or Update Request',
-                    'Business Record Verification Request',
-                    'Appointment or Processing Schedule Request',
-                ],
-            ],
-
-            'Traffic Enforcement Agency of Mandaue' => [
-                'Complaint' => [
-                    'Traffic Enforcer Misconduct',
-                    'Unjust Ticketing or Penalty',
-                    'Inefficient Traffic Management',
-                ],
-                'Inquiry' => [
-                    'Traffic Rules Clarification',
-                    'Citation or Violation Inquiry',
-                    'Inquiry About Traffic Assistance',
-                ],
-                'Request' => [
-                    'Request for Traffic Assistance',
-                    'Request for Event Traffic Coordination',
-                    'Request for Violation Review',
-                ],
-            ],
-
-            'City Social Welfare Services' => [
-                'Complaint' => [
-                    'Discrimination or Neglect in Assistance',
-                    'Delayed Social Service Response',
-                    'Unprofessional Staff Behavior',
-                ],
-                'Inquiry' => [
-                    'Assistance Program Inquiry',
-                    'Eligibility or Requirements Clarification',
-                    'Social Service Schedule Inquiry',
-                ],
-                'Request' => [
-                    'Request for Social Assistance',
-                    'Financial Aid or Program Enrollment Request',
-                    'Home Visit or Consultation Request',
-                ],
-            ],
-        ];
-
+        $this->categoriesMap = $departments
+            ->mapWithKeys(fn ($dept) => [
+                $dept->department_name => $dept->grievance_categories ?? [],
+            ])
+            ->toArray();
     }
 
     protected function rules(): array
